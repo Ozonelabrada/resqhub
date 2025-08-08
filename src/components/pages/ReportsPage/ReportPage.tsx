@@ -7,8 +7,6 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import { Dropdown } from 'primereact/dropdown';
 import { Calendar } from 'primereact/calendar';
 import { FileUpload } from 'primereact/fileupload';
-import { Badge } from 'primereact/badge';
-import { Divider } from 'primereact/divider';
 import { Message } from 'primereact/message';
 import { Steps } from 'primereact/steps';
 import { ProgressBar } from 'primereact/progressbar';
@@ -67,6 +65,7 @@ const ReportPage: React.FC = () => {
     manufacturer: '',
     productType: '',
     standardSpecs: '',
+    color: '', // Added color property
     
     // Report information
     title: '',
@@ -97,10 +96,14 @@ const ReportPage: React.FC = () => {
       try {
         setLoading(true);
         
+        // Define response types
+        type CategoriesResponseType = { data?: { data?: Category[] } };
+        type ItemsResponseType = { data?: { data?: ItemSuggestion[] } };
+
         // Load categories and items in parallel
         const [categoriesResponse, itemsResponse] = await Promise.all([
-          ItemsService.getCategories(100, 1),
-          ItemsService.getItems(true, 100, 1)
+          ItemsService.getCategories(100, 1) as Promise<CategoriesResponseType>,
+          ItemsService.getItems(true, 100, 1) as Promise<ItemsResponseType>
         ]);
 
         console.log('Categories Response:', categoriesResponse);
@@ -149,7 +152,7 @@ const ReportPage: React.FC = () => {
     // Load user profile from backend instead of localStorage
     const loadUserProfile = async () => {
       try {
-        const userProfile = await AuthService.getCurrentUserProfile();
+        const userProfile = await AuthService.getCurrentUserProfile() as { data?: { name?: string; fullName?: string; email?: string } };
         console.log('User Profile:', userProfile);
         
         if (userProfile?.data) {
@@ -157,8 +160,8 @@ const ReportPage: React.FC = () => {
             ...prev,
             contactInfo: {
               ...prev.contactInfo,
-              name: userProfile.data.name || userProfile.data.fullName || '',
-              email: userProfile.data.email || ''
+              name: userProfile.data?.name || userProfile.data?.fullName || '',
+              email: userProfile.data?.email || ''
             }
           }));
         }
@@ -318,8 +321,7 @@ const ReportPage: React.FC = () => {
       setFormData(prev => ({
         ...prev,
         [parent]: {
-          ...prev[parent as keyof typeof prev],
-          [child]: value
+                    [child]: value
         }
       }));
     } else {
@@ -420,7 +422,8 @@ const ReportPage: React.FC = () => {
       console.log('Location Details Payload:', locationDetailsPayload);
       
       // Step 1: Create the main report (without reference IDs)
-      const reportResponse = await ItemsService.createReport(reportPayload);
+      type ReportResponseType = { data?: { id?: number } };
+      const reportResponse = await ItemsService.createReport(reportPayload) as ReportResponseType;
       console.log('Report created:', reportResponse);
       
       if (!reportResponse || !reportResponse.data || !reportResponse.data.id) {
@@ -439,7 +442,7 @@ const ReportPage: React.FC = () => {
           
           const imageResponses = await Promise.all(imageUploadPromises);
           imageUrls = imageResponses
-            .filter(response => response?.data?.url)
+            .filter((response): response is { data: { url: string } } => !!(response && typeof response === 'object' && 'data' in response && (response as any).data && 'url' in (response as any).data))
             .map(response => response.data.url);
           
           console.log('Images uploaded:', imageUrls);
@@ -456,7 +459,10 @@ const ReportPage: React.FC = () => {
         imageUrls: imageUrls
       };
       
-      const itemDetailsResponse = await ItemsService.createReportItemDetails(itemDetailsWithReportId);
+      // Add explicit types for the responses
+      type DetailResponseType = { data?: { id?: number } };
+
+      const itemDetailsResponse = await ItemsService.createReportItemDetails(itemDetailsWithReportId) as DetailResponseType;
       console.log('Item details created:', itemDetailsResponse);
       
       // Step 4: Create contact info with the report ID
@@ -465,7 +471,7 @@ const ReportPage: React.FC = () => {
         reportId: reportId
       };
       
-      const contactInfoResponse = await ItemsService.createReportContactInfo(contactInfoWithReportId);
+      const contactInfoResponse = await ItemsService.createReportContactInfo(contactInfoWithReportId) as DetailResponseType;
       console.log('Contact info created:', contactInfoResponse);
       
       // Step 5: Create location details with the report ID
@@ -474,7 +480,7 @@ const ReportPage: React.FC = () => {
         reportId: reportId
       };
       
-      const locationDetailsResponse = await ItemsService.createReportLocationDetails(locationDetailsWithReportId);
+      const locationDetailsResponse = await ItemsService.createReportLocationDetails(locationDetailsWithReportId) as DetailResponseType;
       console.log('Location details created:', locationDetailsResponse);
       
       // Step 6: Update the main report with the detail IDs (if backend requires this)
@@ -619,11 +625,11 @@ const ReportPage: React.FC = () => {
             completeMethod={searchSuggestions}
             field="name"
             onChange={(e) => {
-              const selectedValue = e.value;
+              const selectedValue = e.value as string | ItemSuggestion;
               updateFormData('name', typeof selectedValue === 'string' ? selectedValue : selectedValue?.name || '');
 
               // Auto-suggest category, brand, and model for custom text input
-              if (selectedValue && typeof selectedValue === 'string' && selectedValue.length > 2) {
+              if (typeof selectedValue === 'string' && selectedValue.length > 2) {
                 // Try to find a matching suggestion
                 const match = itemSuggestions.find(
                   item => item.name.toLowerCase() === selectedValue.toLowerCase()

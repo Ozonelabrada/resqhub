@@ -191,7 +191,7 @@ const HubHomePage: React.FC = () => {
   ];
 
   // Generate chart options for trending items
-  const getChartOptions = (isPositiveTrend: boolean) => ({
+  const getChartOptions = () => ({
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -263,15 +263,6 @@ const HubHomePage: React.FC = () => {
       navigate('/signin');
     }
   };
-
-  const handleQuickReport = (type: string) => {
-    if (type === 'lost') {
-      navigate('/lost');
-    } else {
-      navigate('/found');
-    }
-  };
-
   const handleLogout = () => {
     localStorage.removeItem('publicUserToken');
     localStorage.removeItem('publicUserData');
@@ -417,7 +408,6 @@ const HubHomePage: React.FC = () => {
             <Logo 
               size={isMobile ? 'small' : 'medium'} 
               variant="full" 
-              color="white"
               onClick={() => navigate('/')}
             />
             
@@ -790,7 +780,7 @@ const HubHomePage: React.FC = () => {
                           <Chart 
                             type="line" 
                             data={getChartData(item)} 
-                            options={getChartOptions(item.trend.startsWith('+'))}
+                            options={getChartOptions()}
                             style={{ height: '100%' }}
                           />
                         </div>

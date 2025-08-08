@@ -286,7 +286,7 @@ const ItemsPage: React.FC = () => {
               <div>
                 <h3 className="text-xl font-bold text-gray-900 mb-1">{item.title}</h3>
                 <div className="flex align-items-center gap-2 mb-2">
-                  <Avatar icon="pi pi-user" size="small" />
+                  <Avatar icon="pi pi-user"/>
                   <span className="text-sm text-gray-600">{item.user_name}</span>
                   <Chip label={item.category_name} className="text-xs" />
                 </div>

@@ -5,11 +5,37 @@ import { Card } from 'primereact/card';
 import { Dropdown } from 'primereact/dropdown';
 import { ColorPicker } from 'primereact/colorpicker';
 import { InputText } from 'primereact/inputtext';
-import { Slider } from 'primereact/slider';
 import { Divider } from 'primereact/divider';
 import { TabView, TabPanel } from 'primereact/tabview';
 import { Badge } from 'primereact/badge';
-import { useTheme } from '../../../contexts/ThemeContext';
+// TODO: Replace with actual theme config import if available
+const themeConfig = {
+  themes: {
+    default: {
+      name: 'Default',
+      colors: {
+        primary: '#3b82f6',
+        secondary: '#64748b',
+        success: '#22c55e',
+        warning: '#f59e42',
+        danger: '#ef4444',
+        info: '#0ea5e9',
+        background: '#f8fafc',
+        surface: '#ffffff',
+        text: '#1e293b',
+        textSecondary: '#64748b',
+        primaryDark: '#1d4ed8',
+        primaryLight: '#93c5fd',
+        secondaryDark: '#334155',
+        secondaryLight: '#cbd5e1'
+      },
+      gradients: {
+        hero: 'linear-gradient(90deg, #3b82f6 0%, #64748b 100%)'
+      }
+    }
+    // Add more themes as needed
+  }
+};
 
 interface ThemeCustomizerProps {
   visible: boolean;
@@ -134,10 +160,10 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({ visible, onHide }) =>
 
             <PreviewCard />
 
-            <div className="grid">
-              {availableThemes.map((themeName) => {
-                const theme = require('../../../config/theme').themes[themeName];
+              {availableThemes.map((themeName: React.Key | null | undefined) => {
+                const theme = themeConfig.themes[themeName as string];
                 return (
+                  <div key={themeName} className="col-6 mb-3">
                   <div key={themeName} className="col-6 mb-3">
                     <Card 
                       className="cursor-pointer hover:shadow-3 transition-all transition-duration-200"
