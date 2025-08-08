@@ -229,7 +229,7 @@ const AdminLayout = () => {
         <div className="relative">
           <Avatar
             icon={currentUser.avatar ? undefined : "pi pi-user"}
-            image={currentUser.avatar}
+            image={currentUser.avatar ?? undefined}
             size="large"
             shape="circle"
             className="cursor-pointer hover:shadow-3 transition-all transition-duration-200"
