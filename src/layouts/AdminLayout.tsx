@@ -318,7 +318,6 @@ const AdminLayout = () => {
         </div>
       </div>
 
-<<<<<<< HEAD
       {/* Mobile Bottom Navigation for Admin */}
       {isMobile && (
         <div 
@@ -357,21 +356,6 @@ const AdminLayout = () => {
           </div>
         </div>
       )}
-=======
-      {/* Logout Confirmation Modal */}
-      <ConfirmationModal
-        visible={showLogoutConfirm}
-        onHide={() => setShowLogoutConfirm(false)}
-        onConfirm={handleLogoutConfirm}
-        title="Confirm Logout"
-        message="Are you sure you want to logout? You will need to sign in again to access the admin panel."
-        confirmLabel="Logout"
-        cancelLabel="Cancel"
-        severity="warning"
-        icon="pi pi-sign-out"
-        loading={isLoggingOut}
-      />
->>>>>>> b15f95c44464e05e9dabba74a39a6fd1bf212c1e
     </div>
   );
 };
