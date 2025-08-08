@@ -5,24 +5,19 @@ import { Button } from 'primereact/button';
 import { Badge } from 'primereact/badge';
 import { Avatar } from 'primereact/avatar';
 import { TabView, TabPanel } from 'primereact/tabview';
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
-import { Calendar } from 'primereact/calendar';
 import { Chip } from 'primereact/chip';
-import { ProgressBar } from 'primereact/progressbar';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { Divider } from 'primereact/divider';
 import { FileUpload } from 'primereact/fileupload';
-import { Image } from 'primereact/image';
 import { Menu } from 'primereact/menu';
 import { Toast } from 'primereact/toast';
 import { Dialog } from 'primereact/dialog';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { Logo } from '../../../ui';
 import { ItemsService } from '../../../../services/itemsService';
-import { UserService, type BackendUserData } from '../../../../services/userService';
+import { UserService } from '../../../../services/userService';
 
 const PersonalHubPage: React.FC = () => {
   const navigate = useNavigate();
@@ -224,17 +219,6 @@ const PersonalHubPage: React.FC = () => {
     accountMenuRef.current?.toggle(event);
   };
 
-  // Handle report action (same as HubHomePage)
-  const handleReportAction = (type: 'lost' | 'found') => {
-    if (isAuthenticated) {
-      navigate(`/report?type=${type}`);
-    } else {
-      localStorage.setItem('intendedAction', `report_${type}`);
-      localStorage.setItem('returnPath', `/report?type=${type}`);
-      navigate('/signin');
-    }
-  };
-
   const fetchUserReports = async (loadMore = false) => {
     // Get current user ID
     const currentUserId = UserService.getCurrentUserId();
@@ -255,21 +239,27 @@ const PersonalHubPage: React.FC = () => {
       // Handle the nested response structure from backend
       if (response && typeof response === 'object') {
         // Check for nested data structure: response.data.data
-        if ('data' in response && response.data && 'data' in response.data && Array.isArray(response.data.data)) {
-          reports = response.data.data;
-          hasMore = response.data.loadMore || false;
+        if (
+          'data' in response &&
+          response.data &&
+          typeof response.data === 'object' &&
+          'data' in response.data &&
+          Array.isArray((response.data as any).data)
+        ) {
+          reports = (response.data as any).data;
+          hasMore = (response.data as any).hasMore || (response.data as any).loadMore || false;
           console.log('Found reports in nested data structure:', reports.length);
         }
         // Fallback: Check for direct data array
         else if ('data' in response && Array.isArray(response.data)) {
           reports = response.data;
-          hasMore = response.hasMore || false;
+          hasMore = (response as any).hasMore || false;
           console.log('Found reports in direct data structure:', reports.length);
         }
         // Fallback: Check for reports array
         else if ('reports' in response && Array.isArray(response.reports)) {
           reports = response.reports;
-          hasMore = response.hasMore || false;
+          hasMore = (response as any).hasMore || false;
           console.log('Found reports in reports structure:', reports.length);
         }
         // Fallback: Check if response itself is an array
@@ -519,7 +509,7 @@ const PersonalHubPage: React.FC = () => {
     };
     
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.active;
-    return <Badge value={config.label} severity={config.severity} />;
+    return <Badge value={config.label}/>;
   };
 
   const getTypeBadge = (type: string) => {
@@ -541,7 +531,7 @@ const PersonalHubPage: React.FC = () => {
         
         try {
           // Update user data locally first for immediate UI update
-          setUserData(prev => ({
+          setUserData((prev: any) => ({
             ...prev,
             profilePicture: profilePictureData
           }));
@@ -578,7 +568,7 @@ const PersonalHubPage: React.FC = () => {
           });
           
           // Revert the local change on error
-          setUserData(prev => ({
+          setUserData((prev: { profilePicture: any; }) => ({
             ...prev,
             profilePicture: prev.profilePicture
           }));
@@ -772,8 +762,7 @@ const PersonalHubPage: React.FC = () => {
           <div className="flex align-items-center justify-content-between">
             <Logo 
               size={isMobile ? 'small' : 'medium'} 
-              variant="full" 
-              color="white"
+              variant="full"
               onClick={() => navigate('/')}
             />
             
@@ -1178,7 +1167,7 @@ const PersonalHubPage: React.FC = () => {
                       )}
 
                       {/* Debug Information - Remove after fixing */}
-                      {process.env.NODE_ENV === 'development' && (
+                      {import.meta.env.MODE === 'development' && (
                         <div className="mt-4 p-3 bg-gray-50 border-round text-sm">
                           <strong>Debug Info:</strong><br />
                           Reports Length: {userReports.length}<br />

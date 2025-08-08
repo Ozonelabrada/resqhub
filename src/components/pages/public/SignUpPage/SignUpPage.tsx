@@ -439,15 +439,19 @@ const SignUpPage = () => {
           )}
 
           {/* Progress Steps */}
+          <style>
+            {`
+              .custom-steps {
+                --p-steps-item-active-color: #10b981;
+                --p-steps-item-color: #9ca3af;
+              }
+            `}
+          </style>
           <div className="mb-6">
             <Steps 
               model={steps} 
               activeIndex={currentStep} 
-              className="w-full"
-              style={{
-                '--p-steps-item-active-color': '#10b981',
-                '--p-steps-item-color': '#9ca3af'
-              }}
+              className="w-full custom-steps"
             />
           </div>
 

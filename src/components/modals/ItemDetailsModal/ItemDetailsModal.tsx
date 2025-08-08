@@ -6,9 +6,6 @@ import { Divider } from 'primereact/divider';
 import { Card } from 'primereact/card';
 import { Timeline } from 'primereact/timeline';
 import { Avatar } from 'primereact/avatar';
-import { TabView, TabPanel } from 'primereact/tabview';
-import { Chip } from 'primereact/chip';
-import { ProgressBar } from 'primereact/progressbar';
 import CommentSection from '../../features/comments/CommentSection';
 
 export interface ItemDetailsModalProps {

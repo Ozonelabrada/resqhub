@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
@@ -10,7 +10,6 @@ import { ProgressSpinner } from 'primereact/progressspinner';
 
 const SearchItemsPage: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || null);
   const [isMobile, setIsMobile] = useState(false);
@@ -679,7 +678,11 @@ const SearchItemsPage: React.FC = () => {
       setCurrentPage(1);
       setHasMore(true);
       
-      fetchItems(1, searchTerm, selectedCategory).then(result => {
+      fetchItems(
+        1,
+        searchTerm ?? undefined,
+        selectedCategory ?? undefined
+      ).then(result => {
         setItems(result.items);
         setHasMore(result.hasMore);
       });
@@ -699,10 +702,10 @@ const SearchItemsPage: React.FC = () => {
   // Load more items
   const loadMoreItems = useCallback(async () => {
     if (loading || !hasMore) return;
-    
+
     const nextPage = currentPage + 1;
-    const result = await fetchItems(nextPage, searchTerm, selectedCategory);
-    
+    const result = await fetchItems(nextPage, searchTerm ?? undefined, selectedCategory ?? undefined);
+
     if (result.items.length > 0) {
       setItems(prev => [...prev, ...result.items]);
       setCurrentPage(nextPage);

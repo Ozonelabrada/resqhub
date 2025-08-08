@@ -10,7 +10,6 @@ import { Toast } from 'primereact/toast';
 import { Dropdown } from 'primereact/dropdown';
 import { Card } from 'primereact/card';
 import { Divider } from 'primereact/divider';
-import { ProgressSpinner } from 'primereact/progressspinner';
 import { UserService, type BackendUserData } from '../../../services/userService';
 
 interface EditProfileModalProps {

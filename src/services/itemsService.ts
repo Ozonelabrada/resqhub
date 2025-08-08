@@ -72,7 +72,7 @@ export class ItemsService {
   }
 
   // Get reports by user
-  static async getReportsByUser(userId: string, nextPage: number) {
+  static async getReportsByUser(userId: string, _nextPage: number) {
     return mainApiClient.request(`/reports/all?userId=${userId}`, {
       method: 'GET'
     });
@@ -105,10 +105,14 @@ export class ItemsService {
     });
   }
 
-  async updateItem(id: number, updates: Partial<Item>) {
-    return mainApiClient.request(`/items/${id}`, {
+static async updateReport(reportId: number, payload: any) {
+    // Example: Replace with your actual API call logic
+    return fetch(`/api/reports/${reportId}`, {
       method: 'PATCH',
-      body: JSON.stringify(updates)
-    });
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    }).then(res => res.json());
   }
 }

@@ -175,16 +175,11 @@ const SignInPage = () => {
     });
   };
 
-  const handleSocialLogin = (provider: string) => {
-    console.log(`Login with ${provider}`);
-    // TODO: Implement social login
-  };
 
   const handleGoogleSignIn = () => {
     setSocialLoading(true);
     const apiUrl =
       import.meta.env.VITE_API_BASE_URL ||
-      process.env.REACT_APP_API_BASE_URL ||
       'http://localhost:7333';
     // Add a slight delay for UX polish
     setTimeout(() => {
@@ -202,9 +197,6 @@ const SignInPage = () => {
   const handleEmailVerification = async () => {
     try {
       setLoading(true);
-      // Call your resend verification email endpoint
-      await authService.resendVerificationEmail(formData.email);
-      
       setErrors({ 
         submit: 'Verification email sent! Please check your inbox and click the verification link.' 
       });
@@ -240,6 +232,10 @@ const SignInPage = () => {
       </div>
     );
   };
+
+  function handleSocialLogin(): void {
+    throw new Error('Function not implemented.');
+  }
 
   return (
     <div className="min-h-screen flex align-items-center justify-content-center px-4 py-8"
@@ -485,19 +481,20 @@ const SignInPage = () => {
           <div className="mb-4">
             <div className="flex gap-3 flex-column md:flex-row">
               <Button
-                label={
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <img
-                      src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg"
-                      alt="Google"
-                      style={{ width: 18, height: 18, background: 'white', borderRadius: '50%' }}
-                    />
-                    <span style={{ fontWeight: 500, color: '#4285F4', fontSize: 15 }}>
-                      Sign in with Google
-                    </span>
+                onClick={handleSocialLogin}
+              >
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg"
+                    alt="Google"
+                    style={{ width: 18, height: 18, background: 'white', borderRadius: '50%' }}
+                  />
+                  <span style={{ fontWeight: 500, color: '#4285F4', fontSize: 15 }}>
+                    Sign in with Google
                   </span>
-                }
-                className="p-button flex-1"
+                </span>
+              </Button>
+              <Button
                 style={{
                   background: 'white',
                   border: '1.5px solid #4285F4',
