@@ -8,8 +8,37 @@ import { InputText } from 'primereact/inputtext';
 import { Divider } from 'primereact/divider';
 import { TabView, TabPanel } from 'primereact/tabview';
 import { Badge } from 'primereact/badge';
+import { useTheme } from '@emotion/react';
 // TODO: Replace with actual theme config import if available
-const themeConfig = {
+
+type Theme = {
+  name: string;
+  colors: {
+    primary: string;
+    secondary: string;
+    success: string;
+    warning: string;
+    danger: string;
+    info: string;
+    background: string;
+    surface: string;
+    text: string;
+    textSecondary: string;
+    primaryDark: string;
+    primaryLight: string;
+    secondaryDark: string;
+    secondaryLight: string;
+  };
+  gradients: {
+    hero: string;
+  };
+};
+
+const themeConfig: {
+  themes: {
+    [key: string]: Theme;
+  };
+} = {
   themes: {
     default: {
       name: 'Default',
@@ -43,7 +72,19 @@ interface ThemeCustomizerProps {
 }
 
 const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({ visible, onHide }) => {
-  const { currentTheme, setTheme, availableThemes, customizeTheme, resetTheme } = useTheme();
+  // Replace this with your actual theme context or props if available
+  // Example: const { currentTheme, setTheme, availableThemes, customizeTheme, resetTheme } = useThemeContext();
+  const theme = useTheme() as Theme;
+  const currentTheme = theme;
+  // You need to provide implementations for setTheme, availableThemes, customizeTheme, resetTheme
+  // For now, use placeholders or pass them as props/context
+
+  // Placeholder implementations (replace with real ones)
+  const setTheme = (_themeName: string) => {};
+  const availableThemes = Object.keys(themeConfig.themes);
+  const customizeTheme = (_custom: Partial<Theme>) => {};
+  const resetTheme = () => {};
+
   const [activeTab, setActiveTab] = useState(0);
   const [previewColors, setPreviewColors] = useState(currentTheme.colors);
 
@@ -160,14 +201,14 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({ visible, onHide }) =>
 
             <PreviewCard />
 
+            <div className="grid">
               {availableThemes.map((themeName: React.Key | null | undefined) => {
                 const theme = themeConfig.themes[themeName as string];
                 return (
                   <div key={themeName} className="col-6 mb-3">
-                  <div key={themeName} className="col-6 mb-3">
                     <Card 
                       className="cursor-pointer hover:shadow-3 transition-all transition-duration-200"
-                      onClick={() => handleThemeChange(themeName)}
+                      onClick={() => typeof themeName === 'string' && handleThemeChange(themeName)}
                       style={{ 
                         border: currentTheme.name === theme.name ? '2px solid #3b82f6' : '1px solid #e5e7eb',
                         background: theme.gradients.hero
