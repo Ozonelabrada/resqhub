@@ -230,14 +230,6 @@ const AdminLayout = () => {
             >
               <small style={{ fontSize: '0.7rem', marginTop: '2px' }}>Analytics</small>
             </Button>
-            <Button
-              icon="pi pi-users"
-              className="p-button-text flex-column"
-              onClick={() => navigate('/admin/users')}
-              style={{ color: '#475569', padding: '0.5rem' }}
-            >
-              <small style={{ fontSize: '0.7rem', marginTop: '2px' }}>Users</small>
-            </Button>
           </div>
         </div>
       )}
