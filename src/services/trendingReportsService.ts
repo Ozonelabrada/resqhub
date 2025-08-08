@@ -1,5 +1,5 @@
 import { mainApiClient } from '../api/client';
-import type { TrendingReportsResponse, TrendingReportItem } from '../types/api';
+import type { TrendingReportItem } from '../types/api';
 
 interface PaginatedTrendingReportsResponse {
   message: string;

@@ -1,4 +1,3 @@
-import { UserService } from '../services/userService';
 
 const mapFormDataToApiPayload = (reportType: string, formData: any) => {
   // Get the current user ID

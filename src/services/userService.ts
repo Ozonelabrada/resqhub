@@ -162,6 +162,3 @@ export class UserService {
     return null;
   }
 }
-
-// Export types for external use
-export type { BackendUserData, BackendUserResponse };
