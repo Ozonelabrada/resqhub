@@ -1,16 +1,138 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
 import { Badge } from 'primereact/badge';
+import { Avatar } from 'primereact/avatar';
+import { Chip } from 'primereact/chip';
+import { Carousel } from 'primereact/carousel';
+import { Menu } from 'primereact/menu';
+import { ProgressSpinner } from 'primereact/progressspinner';
+import { Toast } from 'primereact/toast';
+import { Chart } from 'primereact/chart';
+import { Logo } from '../../../ui';
+import { useStatistics } from '../../../../hooks/useStatistics';
+import { useTrendingReports } from '../../../../hooks/useTrendingReports';
 
 const HubHomePage: React.FC = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userData, setUserData] = useState<any>(null);
+  const accountMenuRef = useRef<Menu>(null);
+  const toast = useRef<Toast>(null);
+
+  // Use custom hooks for statistics and trending reports
+  const { statistics: stats, loading: statsLoading, error: statsError } = useStatistics();
+  const { 
+    trendingReports, 
+    loading: trendingLoading, 
+    error: trendingError,
+    calculateAndRefresh 
+  } = useTrendingReports();
+
+  // Auto-refresh trending data periodically (optional)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Silently refresh trending data every 5 minutes
+      calculateAndRefresh();
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => clearInterval(interval);
+  }, [calculateAndRefresh]);
+
+  // Show error toast if there's an API error for statistics
+  useEffect(() => {
+    if (statsError) {
+      toast.current?.show({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to load platform statistics. Using default values.',
+        life: 5000
+      });
+    }
+  }, [statsError]);
+
+  // Show error toast if there's an API error for trending reports
+  useEffect(() => {
+    if (trendingError) {
+      toast.current?.show({
+        severity: 'warn',
+        summary: 'Warning',
+        detail: 'Failed to load trending reports. Using default data.',
+        life: 5000
+      });
+    }
+  }, [trendingError]);
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuthStatus = () => {
+      const token = localStorage.getItem('publicUserToken');
+      const user = localStorage.getItem('publicUserData');
+      
+      // Debug logging
+      console.log('HubHomePage - Checking auth status:', {
+        token: token ? 'exists' : 'null',
+        user: user ? 'exists' : 'null',
+        isAuthenticated,
+        userData
+      });
+      
+      setIsAuthenticated(!!token);
+      if (user) {
+        try {
+          const parsedUser = JSON.parse(user);
+          setUserData(parsedUser);
+          console.log('HubHomePage - Parsed user data:', parsedUser);
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+          setUserData(null);
+        }
+      } else {
+        setUserData(null);
+      }
+    };
+
+    // Check on mount
+    checkAuthStatus();
+
+    // Listen for storage changes (when user signs in/out in another tab)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'publicUserToken' || e.key === 'publicUserData') {
+        console.log('HubHomePage - Storage changed:', e.key, e.newValue);
+        checkAuthStatus();
+      }
+    };
+
+    // Listen for focus events (when user returns to this tab)
+    const handleFocus = () => {
+      console.log('HubHomePage - Window focused, checking auth');
+      checkAuthStatus();
+    };
+
+    // Listen for visibility change (when tab becomes visible)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('HubHomePage - Tab became visible, checking auth');
+        checkAuthStatus();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
 
   // Mobile detection
   useEffect(() => {
@@ -33,287 +155,733 @@ const HubHomePage: React.FC = () => {
     { label: 'Clothing', value: 'Clothing' }
   ];
 
-  const stats = {
-    totalItems: 1247,
-    successfulMatches: 342,
-    activeReports: 905,
-    citiesCovered: 25
-  };
-
   const recentSuccesses = [
-    { id: 1, title: 'iPhone 13 Pro', location: 'Central Park', timeAgo: '2 hours ago' },
-    { id: 2, title: 'Blue Backpack', location: 'Metro Station', timeAgo: '5 hours ago' },
-    { id: 3, title: 'Car Keys', location: 'Shopping Mall', timeAgo: '1 day ago' },
-    { id: 4, title: 'Gold Watch', location: 'Beach Resort', timeAgo: '2 days ago' }
+    { 
+      id: 1, 
+      title: 'iPhone 13 Pro', 
+      location: 'Central Park', 
+      timeAgo: '2 hours ago',
+      type: 'lost',
+      image: '/api/placeholder/100/100'
+    },
+    { 
+      id: 2, 
+      title: 'Blue Backpack', 
+      location: 'Metro Station', 
+      timeAgo: '5 hours ago',
+      type: 'found',
+      image: '/api/placeholder/100/100'
+    },
+    { 
+      id: 3, 
+      title: 'Car Keys', 
+      location: 'Shopping Mall', 
+      timeAgo: '1 day ago',
+      type: 'lost',
+      image: '/api/placeholder/100/100'
+    },
+    { 
+      id: 4, 
+      title: 'Gold Watch', 
+      location: 'Beach Resort', 
+      timeAgo: '2 days ago',
+      type: 'found',
+      image: '/api/placeholder/100/100'
+    }
   ];
+
+  // Generate chart options for trending items
+  const getChartOptions = () => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false
+      },
+      tooltip: {
+        enabled: false
+      }
+    },
+    scales: {
+      x: {
+        display: false,
+        grid: {
+          display: false
+        }
+      },
+      y: {
+        display: false,
+        grid: {
+          display: false
+        }
+      }
+    },
+    elements: {
+      point: {
+        radius: 0,
+        hoverRadius: 0
+      },
+      line: {
+        tension: 0.3,
+        borderWidth: 2
+      }
+    },
+    interaction: {
+      intersect: false
+    }
+  });
+
+  const getChartData = (item: any) => {
+    const isPositiveTrend = item.trend.startsWith('+');
+    return {
+      labels: item.labels,
+      datasets: [
+        {
+          data: item.weeklyData,
+          borderColor: isPositiveTrend ? '#16a34a' : '#dc2626',
+          backgroundColor: isPositiveTrend ? 'rgba(22, 163, 74, 0.1)' : 'rgba(220, 38, 38, 0.1)',
+          fill: true,
+          tension: 0.3
+        }
+      ]
+    };
+  };
 
   const handleSearch = () => {
     const params = new URLSearchParams();
-    if (searchTerm) params.set('search', searchTerm);
-    if (selectedCategory) params.set('category', selectedCategory);
+    if (searchTerm) params.append('search', searchTerm);
+    if (selectedCategory) params.append('category', selectedCategory);
     navigate(`/search?${params.toString()}`);
   };
 
-  const handleQuickReport = (type: 'lost' | 'found') => {
-    navigate(`/report?type=${type}`);
+  const handleReportAction = (type: 'lost' | 'found') => {
+    if (isAuthenticated) {
+      navigate(`/report?type=${type}`);
+    } else {
+      localStorage.setItem('intendedAction', `report_${type}`);
+      localStorage.setItem('returnPath', `/report?type=${type}`);
+      navigate('/signin');
+    }
+  };
+  const handleLogout = () => {
+    localStorage.removeItem('publicUserToken');
+    localStorage.removeItem('publicUserData');
+    setIsAuthenticated(false);
+    setUserData(null);
+    window.location.reload();
   };
 
-  return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-      {/* Hero Section */}
-      <div className={`${isMobile ? 'p-3' : 'p-6'} text-center text-white`}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          {/* Header */}
-          <div className="flex justify-content-between align-items-center mb-4">
-            <div className="flex align-items-center gap-3">
-              <div className="w-3rem h-3rem bg-white border-round-xl flex align-items-center justify-content-center shadow-2">
-                <i className="pi pi-search text-blue-600" style={{ fontSize: '1.5rem' }}></i>
+  // Account menu items
+  const accountMenuItems = [
+    {
+      label: 'My Profile',
+      icon: 'pi pi-user',
+      command: () => navigate('/profile')
+    },
+    {
+      label: 'Personal Hub',
+      icon: 'pi pi-home',
+      command: () => navigate('/hub')
+    },
+    {
+      label: 'My Reports',
+      icon: 'pi pi-list',
+      command: () => navigate('/hub?tab=reports')
+    },
+    {
+      label: 'Notifications',
+      icon: 'pi pi-bell',
+      command: () => navigate('/notifications')
+    },
+    {
+      label: 'Settings',
+      icon: 'pi pi-cog',
+      command: () => navigate('/settings')
+    },
+    {
+      separator: true
+    },
+    {
+      label: 'Admin Panel',
+      icon: 'pi pi-shield',
+      command: () => navigate('/admin/login'),
+      className: 'text-orange-600'
+    },
+    {
+      separator: true
+    },
+    {
+      label: 'Help & Support',
+      icon: 'pi pi-question-circle',
+      command: () => navigate('/help')
+    },
+    {
+      label: 'Logout',
+      icon: 'pi pi-sign-out',
+      command: handleLogout,
+      className: 'text-red-600'
+    }
+  ];
+
+  const showAccountMenu = (event: React.MouseEvent) => {
+    accountMenuRef.current?.toggle(event);
+  };
+
+  const successTemplate = (item: any) => {
+    return (
+      <Card 
+        className="m-2 border-1 border-green-200 h-full" 
+        style={{ 
+          backgroundColor: '#ffffffff',
+          minHeight: '180px',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+      >
+        <div className="flex align-items-center gap-3 p-3 h-full">
+          <img 
+            src={item.image} 
+            alt={item.title}
+            className="w-4rem h-4rem object-cover border-round shadow-2 flex-shrink-0"
+          />
+          <div className="flex-1 flex flex-column justify-content-between h-full">
+            <div>
+              <div className="flex align-items-center gap-2 mb-1">
+                <span className="font-semibold text-gray-800">{item.title}</span>
+                <Badge 
+                  value={item.type.toUpperCase()} 
+                  severity={item.type === 'lost' ? 'danger' : 'success'}
+                  className="text-xs"
+                />
               </div>
-              <div className="text-left">
-                <h1 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold m-0`}>ResQHub</h1>
-                <p className="m-0 text-blue-100">Lost & Found Platform</p>
+              <div className="text-sm text-gray-600 mb-1">
+                <i className="pi pi-map-marker mr-1 text-gray-500"></i>
+                {item.location}
               </div>
             </div>
-            
-            <Button 
-              label="Admin Login"
-              icon="pi pi-user"
-              onClick={() => navigate('/admin/login')}
-              className="p-button-outlined p-button-sm"
-              style={{ borderColor: 'white', color: 'white' }}
+            <div className="text-xs text-gray-500 mt-auto">{item.timeAgo}</div>
+          </div>
+          <div className="text-center flex-shrink-0">
+            <i className="pi pi-check-circle text-green-600 text-2xl"></i>
+            <div className="text-xs text-green-700 font-semibold">Reunited!</div>
+          </div>
+        </div>
+      </Card>
+    );
+  };
+
+  // Show loading spinner while fetching data
+  if (statsLoading || trendingLoading) {
+    return (
+      <div style={{ 
+        minHeight: '100vh', 
+        backgroundColor: '#f8fafc', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center' 
+      }}>
+        <div className="text-center">
+          <ProgressSpinner style={{ width: '50px', height: '50px' }} />
+          <p className="mt-3 text-gray-600">Loading platform data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#495560ff' }}>
+      <Toast ref={toast} />
+      
+      {/* Hero Section */}
+      <div 
+        className="relative"
+        style={{
+          background: 'linear-gradient(135deg, #353333ff 0%, #475a4bff 50%, #888887ff 100%)',
+          color: 'white',
+          paddingTop: '2rem',
+          paddingBottom: '3rem'
+        }}
+      >
+        {/* Navigation */}
+        <div className={`${isMobile ? 'px-4' : 'px-8'} mb-6`}>
+          <div className="flex align-items-center justify-content-between">
+            <Logo 
+              size={isMobile ? 'small' : 'medium'} 
+              variant="full" 
+              onClick={() => navigate('/')}
             />
-          </div>
-
-          {/* Hero Content */}
-          <div className="mb-6">
-            <h2 className={`${isMobile ? 'text-3xl' : 'text-5xl'} font-bold mb-3`}>
-              Lost Something? Found Something?
-            </h2>
-            <p className={`${isMobile ? 'text-lg' : 'text-xl'} mb-4 text-blue-100`}>
-              Connect with your community to reunite lost items with their owners
-            </p>
-          </div>
-
-          {/* Quick Search */}
-          <Card className="mb-6" style={{ maxWidth: '800px', margin: '0 auto 2rem auto' }}>
-            <div className="grid" style={{ margin: '0' }}>
-              <div className="col-12 md:col-8">
-                <div className="p-inputgroup">
-                  <span className="p-inputgroup-addon">
-                    <i className="pi pi-search"></i>
-                  </span>
-                  <InputText 
-                    placeholder="Search for lost or found items..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                    style={{ fontSize: isMobile ? '14px' : '16px' }}
+            
+            {isAuthenticated ? (
+              <div className="flex align-items-center gap-3">
+                <div className="text-right">
+                  <div className="text-sm" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>Welcome back,</div>
+                  <div className="font-semibold text-white">{userData?.name}</div>
+                </div>
+                
+                {/* Account Avatar with Dropdown */}
+                <div className="relative">
+                  <Avatar 
+                    icon="pi pi-user" 
+                    shape="circle" 
+                    style={{ backgroundColor: 'white', color: '#1e40af' }}
+                    onClick={showAccountMenu}
+                    className="cursor-pointer hover:shadow-lg transition-all duration-200"
+                  />
+                  <Menu 
+                    model={accountMenuItems} 
+                    popup 
+                    ref={accountMenuRef} 
+                    className="mt-2"
+                    style={{ minWidth: '220px' }}
                   />
                 </div>
               </div>
-              <div className="col-12 md:col-4">
-                <Dropdown 
+            ) : (
+              <div className="flex gap-2">
+                <Button 
+                  label="Sign In"
+                  icon="pi pi-sign-in"
+                  onClick={() => navigate('/signin')}
+                  className="p-button-outlined p-button-sm"
+                  style={{ 
+                    borderColor: 'rgba(255, 255, 255, 0.8)', 
+                    color: 'white',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                  }}
+                />
+                <Button 
+                  label="Admin"
+                  icon="pi pi-shield"
+                  onClick={() => navigate('/admin/login')}
+                  className="p-button-text p-button-sm"
+                  style={{ color: 'rgba(255, 255, 255, 0.9)' }}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Hero Content */}
+          <div className="mb-6 text-center">
+            {isAuthenticated ? (
+              <>
+                <h2 className={`${isMobile ? 'text-2xl' : 'text-4xl'} font-bold mb-3 text-white`}>
+                  Welcome to Your Community Hub! 🏠
+                </h2>
+                <p className={`${isMobile ? 'text-lg' : 'text-xl'} mb-4`} 
+                   style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
+                  Help make your neighborhood safer by reporting and finding lost items
+                </p>
+              </>
+            ) : (
+              <>
+                <h1 className={`${isMobile ? 'text-3xl' : 'text-5xl'} font-bold mb-4 text-white`}>
+                  Find What's Lost, Return What's Found 🔍
+                </h1>
+                <p className={`${isMobile ? 'text-lg' : 'text-xl'} mb-6`} 
+                   style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
+                  Join thousands of community members helping reunite people with their belongings
+                </p>
+              </>
+            )}
+
+            {/* Quick Action Buttons */}
+            <div className="flex gap-3 mb-6 justify-content-center">
+              <Button
+                label="Report Lost Item"
+                icon="pi pi-minus-circle"
+                className="p-button-lg"
+                style={{ 
+                  backgroundColor: '#cda710ff', 
+                  borderColor: '#7e6b6bff',
+                  color: 'white',
+                  boxShadow: '0 4px 6px rgba(220, 38, 38, 0.3)'
+                }}
+                onClick={() => handleReportAction('lost')}
+              />
+              <Button
+                label="Report Found Item"
+                icon="pi pi-plus-circle"
+                className="p-button-lg"
+                style={{ 
+                  backgroundColor: '#16a34a', 
+                  borderColor: '#16a34a',
+                  color: 'white',
+                  boxShadow: '0 4px 6px rgba(22, 163, 74, 0.3)'
+                }}
+                onClick={() => handleReportAction('found')}
+              />
+            </div>
+          </div>
+
+          {/* Search Bar with Today's Stats Row */}
+          <Card className="shadow-lg border-0" style={{ backgroundColor: 'white' }}>
+            <div className={`${isMobile ? 'flex-column' : 'flex'} gap-3`}>
+              {/* Search Controls */}
+              <div className={`flex ${isMobile ? 'flex-column' : ''} gap-3 ${isMobile ? 'w-full' : 'flex-1'}`}>
+                <InputText
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search for lost or found items..."
+                  className="flex-1"
+                  style={{ 
+                    fontSize: '16px',
+                    padding: '12px 16px',
+                    color: '#374151',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px'
+                  }}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                />
+                <Dropdown
                   value={selectedCategory}
                   options={categories}
                   onChange={(e) => setSelectedCategory(e.value)}
                   placeholder="Category"
-                  className="w-full"
+                  className={isMobile ? 'w-full' : 'w-12rem'}
+                  style={{ 
+                    minWidth: isMobile ? 'auto' : '150px',
+                    color: '#374151'
+                  }}
                 />
-              </div>
-              <div className="col-12">
-                <Button 
-                  label="Search Items"
+                <Button
+                  label="Search"
                   icon="pi pi-search"
                   onClick={handleSearch}
-                  className="w-full p-button-lg"
-                  style={{ marginTop: '1rem' }}
+                  className="p-button-primary"
+                  style={{ 
+                    minWidth: '100px',
+                    backgroundColor: '#3b82f6',
+                    borderColor: '#3b82f6',
+                    color: 'white'
+                  }}
                 />
               </div>
+
+              {/* Today's Activity Stats */}
+              {stats && !isMobile && (
+                <div className="flex align-items-center gap-4 border-left-2 border-blue-200 pl-4">
+                  <div className="text-xs text-gray-500 font-medium">Today's Activity:</div>
+                  <div className="flex gap-3">
+                    <div className="text-center">
+                      <div className="text-sm font-bold text-blue-600">{stats.newUsersToday}</div>
+                      <div className="text-xs text-gray-500">New Users</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm font-bold text-green-600">{stats.itemsReportedToday}</div>
+                      <div className="text-xs text-gray-500">Items Reported</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm font-bold text-orange-600">{stats.matchesMadeToday}</div>
+                      <div className="text-xs text-gray-500">Matches Made</div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
+
+            {/* Mobile Today's Stats - Below search on mobile */}
+            {stats && isMobile && (
+              <div className="mt-3 pt-3 border-top-1 border-gray-200">
+                <div className="text-xs text-gray-500 font-medium mb-2 text-center">Today's Activity</div>
+                <div className="flex justify-content-center gap-4">
+                  <div className="text-center">
+                    <div className="text-sm font-bold text-blue-600">{stats.newUsersToday}</div>
+                    <div className="text-xs text-gray-500">New Users</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-sm font-bold text-green-600">{stats.itemsReportedToday}</div>
+                    <div className="text-xs text-gray-500">Items Reported</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-sm font-bold text-orange-600">{stats.matchesMadeToday}</div>
+                    <div className="text-xs text-gray-500">Matches Made</div>
+                  </div>
+                </div>
+              </div>
+            )}
           </Card>
-
-          {/* Quick Actions */}
-          <div className="grid" style={{ margin: '0 -1rem', maxWidth: '600px', margin: '0 auto' }}>
-            <div className="col-6" style={{ padding: '0 1rem' }}>
-              <Button 
-                label={isMobile ? "Report Lost" : "Report Lost Item"}
-                icon="pi pi-minus-circle"
-                onClick={() => handleQuickReport('lost')}
-                severity="danger"
-                className="w-full p-button-lg"
-                style={{ borderRadius: '12px' }}
-              />
-            </div>
-            <div className="col-6" style={{ padding: '0 1rem' }}>
-              <Button 
-                label={isMobile ? "Report Found" : "Report Found Item"}
-                icon="pi pi-plus-circle"
-                onClick={() => handleQuickReport('found')}
-                severity="success"
-                className="w-full p-button-lg"
-                style={{ borderRadius: '12px' }}
-              />
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* Stats Section */}
-      <div className={`${isMobile ? 'p-3' : 'p-6'} bg-white`}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <h3 className="text-center text-2xl font-bold text-gray-800 mb-4">
-            Community Impact
-          </h3>
-          
-          <div className="grid" style={{ margin: '0 -0.5rem' }}>
-            <div className="col-6 md:col-3" style={{ padding: '0 0.5rem' }}>
-              <Card className="text-center bg-blue-50 h-full">
+      {/* Stats Section - Updated with real API data */}
+      {stats && (
+        <div className={`${isMobile ? 'px-4' : 'px-8'} py-6`} style={{ backgroundColor: '#f1f5f9' }}>
+          <div className="grid">
+            <div className="col-6 md:col-3">
+              <Card className="text-center h-full border-0 shadow-2" 
+                    style={{ backgroundColor: '#dbeafe', borderLeft: '4px solid #3b82f6' }}>
                 <div className="p-3">
-                  <div className="text-3xl font-bold text-blue-600 mb-2">{stats.totalItems.toLocaleString()}</div>
+                  <div className="text-2xl font-bold text-blue-700 mb-2">
+                    {stats.totalItems.toLocaleString()}
+                  </div>
                   <div className="text-gray-700 font-medium">Total Items</div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {stats.lostItemsCount} lost, {stats.foundItemsCount} found
+                  </div>
                 </div>
               </Card>
             </div>
-            <div className="col-6 md:col-3" style={{ padding: '0 0.5rem' }}>
-              <Card className="text-center bg-green-50 h-full">
+            <div className="col-6 md:col-3">
+              <Card className="text-center h-full border-0 shadow-2" 
+                    style={{ backgroundColor: '#dcfce7', borderLeft: '4px solid #16a34a' }}>
                 <div className="p-3">
-                  <div className="text-3xl font-bold text-green-600 mb-2">{stats.successfulMatches}</div>
+                  <div className="text-2xl font-bold text-green-700 mb-2">
+                    {stats.successfulMatches.toLocaleString()}
+                  </div>
                   <div className="text-gray-700 font-medium">Successful Matches</div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {stats.successRate.toFixed(1)}% success rate
+                  </div>
                 </div>
               </Card>
             </div>
-            <div className="col-6 md:col-3" style={{ padding: '0 0.5rem' }}>
-              <Card className="text-center bg-orange-50 h-full">
+            <div className="col-6 md:col-3">
+              <Card className="text-center h-full border-0 shadow-2" 
+                    style={{ backgroundColor: '#fed7aa', borderLeft: '4px solid #ea580c' }}>
                 <div className="p-3">
-                  <div className="text-3xl font-bold text-orange-600 mb-2">{stats.activeReports}</div>
+                  <div className="text-2xl font-bold text-orange-700 mb-2">
+                    {stats.activeReports.toLocaleString()}
+                  </div>
                   <div className="text-gray-700 font-medium">Active Reports</div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {stats.pendingReports} pending verification
+                  </div>
                 </div>
               </Card>
             </div>
-            <div className="col-6 md:col-3" style={{ padding: '0 0.5rem' }}>
-              <Card className="text-center bg-purple-50 h-full">
+            <div className="col-6 md:col-3">
+              <Card className="text-center h-full border-0 shadow-2" 
+                    style={{ backgroundColor: '#e9d5ff', borderLeft: '4px solid #9333ea' }}>
                 <div className="p-3">
-                  <div className="text-3xl font-bold text-purple-600 mb-2">{stats.citiesCovered}</div>
+                  <div className="text-2xl font-bold text-purple-700 mb-2">
+                    {stats.citiesCovered || 0}
+                  </div>
                   <div className="text-gray-700 font-medium">Cities Covered</div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {stats.mostActiveCity ? `Most active: ${stats.mostActiveCity}` : 'Growing daily'}
+                  </div>
                 </div>
               </Card>
             </div>
           </div>
+
+          {/* Additional Stats Row */}
+          <div className="grid mt-4">
+            <div className="col-12 md:col-4">
+              <Card className="text-center h-full border-0 shadow-1" 
+                    style={{ backgroundColor: '#f0f9ff', borderLeft: '3px solid #0ea5e9' }}>
+                <div className="p-3">
+                  <div className="text-lg font-bold text-sky-700 mb-1">
+                    {stats.totalUsers.toLocaleString()}
+                  </div>
+                  <div className="text-gray-600 text-sm">Total Users</div>
+                </div>
+              </Card>
+            </div>
+            <div className="col-12 md:col-4">
+              <Card className="text-center h-full border-0 shadow-1" 
+                    style={{ backgroundColor: '#f0f9ff', borderLeft: '3px solid #0ea5e9' }}>
+                <div className="p-3">
+                  <div className="text-lg font-bold text-sky-700 mb-1">
+                    {stats.averageMatchTimeFormatted}
+                  </div>
+                  <div className="text-gray-600 text-sm">Avg. Match Time</div>
+                </div>
+              </Card>
+            </div>
+            <div className="col-12 md:col-4">
+              <Card className="text-center h-full border-0 shadow-1" 
+                    style={{ backgroundColor: '#f0f9ff', borderLeft: '3px solid #0ea5e9' }}>
+                <div className="p-3">
+                  <div className="text-lg font-bold text-sky-700 mb-1">
+                    {stats.totalRewardFormatted}
+                  </div>
+                  <div className="text-gray-600 text-sm">Total Rewards</div>
+                </div>
+              </Card>
+            </div>
+          </div>
+
+          {/* Last Updated Info */}
+          <div className="text-center mt-3">
+            <div className="text-xs text-gray-500">
+              Statistics last updated: {new Date(stats.calculatedAt).toLocaleString()}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Recent Successes Section */}
+      <div className={`${isMobile ? 'px-4' : 'px-8'} py-6`} style={{ backgroundColor: '#3c5547ff', color: 'white' }}>
+        <div className="text-center mb-6">
+          <h3 className="text-2xl font-bold text-gray-800 mb-2">Recent Success Stories 🎉</h3>
+          <p className="text-gray-600 mb-4">See how our community helps reunite people with their belongings</p>
+          <Button
+            label="View All Success Stories"
+            icon="pi pi-arrow-right"
+            iconPos="right"
+            className="p-button-outlined p-button-sm"
+            style={{ 
+              color: '#ffffffff', 
+              borderColor: '#3b82f6',
+              backgroundColor: '#105a2cff'
+            }}
+            onClick={() => navigate('/success-stories')}
+          />
+        </div>
+        
+        <div className="flex justify-content-center">
+          <Carousel
+            value={recentSuccesses}
+            numVisible={isMobile ? 1 : 3}
+            numScroll={1}
+            itemTemplate={successTemplate}
+            circular
+            autoplayInterval={5000}
+            showNavigators
+            showIndicators
+            className="w-full max-w-6xl max-h-1xl"
+          />
         </div>
       </div>
 
-      {/* Recent Successes */}
-      <div className={`${isMobile ? 'p-3' : 'p-6'} bg-gray-50`}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <h3 className="text-center text-2xl font-bold text-gray-800 mb-4">
-            Recent Success Stories
-          </h3>
-          
-          <div className="grid" style={{ margin: '0 -0.5rem' }}>
-            {recentSuccesses.map((success) => (
-              <div key={success.id} className="col-12 md:col-6 lg:col-3" style={{ padding: '0 0.5rem' }}>
-                <Card className="mb-3 hover:shadow-3 transition-all transition-duration-200">
-                  <div className="flex align-items-center gap-3 p-2">
-                    <div className="w-3rem h-3rem bg-green-100 border-round flex align-items-center justify-content-center">
-                      <i className="pi pi-check text-green-600" style={{ fontSize: '1.2rem' }}></i>
+      {/* Trending Items Section - with silent auto-refresh */}
+      <div className={`${isMobile ? 'px-4' : 'px-8'} py-6`} style={{ backgroundColor: '#f8fafc', color: '#4b5563' }}>
+        <div className="text-center mb-6">
+          <h3 className="text-2xl font-bold text-gray-800 mb-2">Trending Lost Items 📈</h3>
+          <p className="text-gray-600">Most reported items this week with real-time trend analysis</p>
+        </div>
+        
+        <div className="flex justify-content-center">
+          <div className="grid max-w-6xl w-full">
+            {Array.isArray(trendingReports) && trendingReports.length > 0 ? (
+              trendingReports.map((item) => (
+                <div key={`${item.categoryId}-${item.title}`} className="col-12 md:col-6 lg:col-3">
+                  <Card className="h-full border-0 shadow-2" style={{ backgroundColor: 'white' }}>
+                    <div className="p-3">
+                      {/* Header with title and trend */}
+                      <div className="flex align-items-center justify-content-between mb-3">
+                        <div>
+                          <div className="font-semibold text-gray-800">{item.title}</div>
+                          <div className="text-sm text-gray-600">{item.category}</div>
+                        </div>
+                        <Chip 
+                          label={item.trend} 
+                          style={{ 
+                            backgroundColor: item.trend.startsWith('+') ? '#dcfce7' : '#fee2e2', 
+                            color: item.trend.startsWith('+') ? '#15803d' : '#dc2626'
+                          }}
+                        />
+                      </div>
+
+                      {/* Line Chart */}
+                      {Array.isArray(item.weeklyData) && item.weeklyData.length > 0 && (
+                        <div className="mb-3" style={{ height: '80px' }}>
+                          <Chart 
+                            type="line" 
+                            data={getChartData(item)} 
+                            options={getChartOptions()}
+                            style={{ height: '100%' }}
+                          />
+                        </div>
+                      )}
+
+                      {/* Weekly Summary */}
+                      <div className="text-center mb-2">
+                        <div className="text-xs text-gray-500 mb-1">This Week's Progress</div>
+                        <div className="flex align-items-center justify-content-center gap-2">
+                          <Badge 
+                            value={item.reports || 0} 
+                            style={{ backgroundColor: '#3b82f6', color: 'white' }}
+                          />
+                          <span className="text-sm text-gray-600">total reports</span>
+                        </div>
+                      </div>
+
+                      {/* Week Range */}
+                      {Array.isArray(item.labels) && item.labels.length > 0 && (
+                        <div className="text-center">
+                          <div className="text-xs text-gray-400">
+                            {item.labels[0]} - {item.labels[item.labels.length - 1]}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div className="flex-1">
-                      <div className="font-bold text-gray-800">{success.title}</div>
-                      <div className="text-sm text-gray-600">{success.location}</div>
-                      <div className="text-xs text-green-600 font-medium">{success.timeAgo}</div>
-                    </div>
+                  </Card>
+                </div>
+              ))
+            ) : (
+              <div className="col-12">
+                <Card className="text-center p-6" style={{ backgroundColor: 'white' }}>
+                  <div className="text-gray-500">
+                    {trendingLoading ? (
+                      <>
+                        <ProgressSpinner style={{ width: '30px', height: '30px' }} />
+                        <p className="mt-2">Loading trending reports...</p>
+                      </>
+                    ) : (
+                      <p>No trending reports available at the moment.</p>
+                    )}
                   </div>
                 </Card>
               </div>
-            ))}
+            )}
           </div>
+        </div>
 
-          <div className="text-center">
-            <Button 
-              label="View All Success Stories"
-              icon="pi pi-external-link"
-              onClick={() => navigate('/success-stories')}
-              className="p-button-outlined"
-            />
+        {/* Legend/Info */}
+        <div className="text-center mt-4">
+          <div className="text-xs text-gray-500">
+            <i className="pi pi-info-circle mr-1"></i>
+            Charts show daily report counts for the past 7 days • Auto-updated every 5 minutes
           </div>
         </div>
       </div>
 
-      {/* How It Works */}
-      <div className={`${isMobile ? 'p-3' : 'p-6'} bg-white`}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <h3 className="text-center text-2xl font-bold text-gray-800 mb-6">
-            How It Works
-          </h3>
-          
-          <div className="grid" style={{ margin: '0 -1rem' }}>
-            <div className="col-12 md:col-4" style={{ padding: '0 1rem' }}>
-              <div className="text-center">
-                <div className="w-4rem h-4rem bg-blue-100 border-round-3xl flex align-items-center justify-content-center mx-auto mb-3">
-                  <i className="pi pi-plus text-blue-600" style={{ fontSize: '2rem' }}></i>
-                </div>
-                <h4 className="text-lg font-bold text-gray-800 mb-2">1. Report</h4>
-                <p className="text-gray-600">
-                  Report your lost item or something you found with detailed description and photos.
-                </p>
-              </div>
-            </div>
-            <div className="col-12 md:col-4" style={{ padding: '0 1rem' }}>
-              <div className="text-center">
-                <div className="w-4rem h-4rem bg-green-100 border-round-3xl flex align-items-center justify-content-center mx-auto mb-3">
-                  <i className="pi pi-search text-green-600" style={{ fontSize: '2rem' }}></i>
-                </div>
-                <h4 className="text-lg font-bold text-gray-800 mb-2">2. Search</h4>
-                <p className="text-gray-600">
-                  Browse through reported items or use our smart search to find potential matches.
-                </p>
-              </div>
-            </div>
-            <div className="col-12 md:col-4" style={{ padding: '0 1rem' }}>
-              <div className="text-center">
-                <div className="w-4rem h-4rem bg-purple-100 border-round-3xl flex align-items-center justify-content-center mx-auto mb-3">
-                  <i className="pi pi-heart text-purple-600" style={{ fontSize: '2rem' }}></i>
-                </div>
-                <h4 className="text-lg font-bold text-gray-800 mb-2">3. Reunite</h4>
-                <p className="text-gray-600">
-                  Connect securely with the owner or finder to arrange safe return of the item.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className={`${isMobile ? 'p-3' : 'p-6'} bg-gray-800 text-white`}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div className="grid" style={{ margin: '0 -1rem' }}>
-            <div className="col-12 md:col-6" style={{ padding: '0 1rem' }}>
-              <div className="flex align-items-center gap-3 mb-3">
-                <div className="w-2rem h-2rem bg-blue-600 border-round flex align-items-center justify-content-center">
-                  <i className="pi pi-search text-white"></i>
-                </div>
-                <span className="text-xl font-bold">ResQHub</span>
-              </div>
-              <p className="text-gray-300 text-sm">
-                Connecting communities to reunite lost items with their rightful owners.
-              </p>
-            </div>
-            <div className="col-12 md:col-6" style={{ padding: '0 1rem' }}>
-              <div className="text-right">
-                <p className="text-gray-300 text-sm mb-2">
-                  Have questions? Need help?
-                </p>
-                <Button 
-                  label="Contact Support"
-                  icon="pi pi-envelope"
-                  className="p-button-outlined p-button-sm"
-                  style={{ borderColor: 'white', color: 'white' }}
-                />
-              </div>
+      {/* Call to Action Section */}
+      <div className={`${isMobile ? 'px-4' : 'px-8'} py-8`} 
+           style={{ backgroundColor: '#8eb8a7ff' }}>
+        <Card className="text-center border-0 shadow-4" 
+              style={{ 
+                background: 'linear-gradient(135deg, #476359ff 0%, #dbeafe 100%)', 
+                border: '2px solid #93c5fd' 
+              }}>
+          <div className="p-6">
+            <h3 className="text-2xl font-bold text-blue-800 mb-3">
+              Ready to Help Your Community? 🤝
+            </h3>
+            <p className="text-blue-700 mb-4 line-height-3">
+              Join thousands of people helping reunite lost items with their owners. 
+              Every report counts and makes a difference!
+            </p>
+            <div className="flex gap-3 justify-content-center">
+              <Button
+                label="Report Lost Item"
+                icon="pi pi-minus-circle"
+                className="p-button-lg"
+                style={{ 
+                  backgroundColor: '#dc2626', 
+                  borderColor: '#dc2626',
+                  color: 'white',
+                  boxShadow: '0 4px 6px rgba(220, 38, 38, 0.3)'
+                }}
+                onClick={() => handleReportAction('lost')}
+              />
+              <Button
+                label="Report Found Item"
+                icon="pi pi-plus-circle"
+                className="p-button-lg"
+                style={{ 
+                  backgroundColor: '#16a34a', 
+                  borderColor: '#16a34a',
+                  color: 'white',
+                  boxShadow: '0 4px 6px rgba(22, 163, 74, 0.3)'
+                }}
+                onClick={() => handleReportAction('found')}
+              />
             </div>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );
