@@ -7,14 +7,11 @@ import { Badge } from 'primereact/badge';
 import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
 import { Toast } from 'primereact/toast';
-import ConfirmationModal from '../components/modals/ConfirmationModal/ConfirmationModal';
 import LeftSideBarPage from '../components/layout/Sidebar/LeftSideBardPage';
 
 const AdminLayout = () => {
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const navigate = useNavigate();
   const userMenuRef = useRef<Menu>(null);
   const toast = useRef<Toast>(null);
@@ -28,40 +25,37 @@ const AdminLayout = () => {
   };
 
   // Handle logout confirmation
-  const handleLogoutConfirm = async () => {
-    setIsLoggingOut(true);
+  // const handleLogoutConfirm = async () => {
+  //   setIsLoggingOut(true);
     
-    try {
-      // Simulate async logout process
-      await new Promise(resolve => setTimeout(resolve, 1500));
+  //   try {
+  //     // Simulate async logout process
+  //     await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Clear any auth tokens/data
-      localStorage.removeItem('adminToken');
-      localStorage.removeItem('adminUser');
+  //     // Clear any auth tokens/data
+  //     localStorage.removeItem('adminToken');
+  //     localStorage.removeItem('adminUser');
       
-      toast.current?.show({
-        severity: 'success',
-        summary: 'Logged Out',
-        detail: 'You have been successfully logged out.',
-        life: 2000
-      });
+  //     toast.current?.show({
+  //       severity: 'success',
+  //       summary: 'Logged Out',
+  //       detail: 'You have been successfully logged out.',
+  //       life: 2000
+  //     });
       
-      // Redirect to login page after a short delay
-      setTimeout(() => {
-        navigate('/admin/login');
-      }, 2000);
-    } catch (error) {
-      toast.current?.show({
-        severity: 'error',
-        summary: 'Logout Failed',
-        detail: 'Failed to logout. Please try again.',
-        life: 3000
-      });
-    } finally {
-      setIsLoggingOut(false);
-      setShowLogoutConfirm(false);
-    }
-  };
+  //     // Redirect to login page after a short delay
+  //     setTimeout(() => {
+  //       navigate('/admin/login');
+  //     }, 2000);
+  //   } catch (error) {
+  //     toast.current?.show({
+  //       severity: 'error',
+  //       summary: 'Logout Failed',
+  //       detail: 'Failed to logout. Please try again.',
+  //       life: 3000
+  //     });
+  //   }
+  // };
 
   // User menu items
   const userMenuItems = [
@@ -119,15 +113,6 @@ const AdminLayout = () => {
     },
     {
       separator: true
-    },
-    {
-      label: 'Logout',
-      icon: 'pi pi-sign-out',
-      className: 'text-red-500',
-      command: () => {
-        // Show confirmation modal instead of direct logout
-        setShowLogoutConfirm(true);
-      }
     }
   ];
 
