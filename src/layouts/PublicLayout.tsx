@@ -169,12 +169,6 @@ const PublicLayout = () => {
 
   const end = (
     <div className="flex align-items-center gap-2">
-      <Button
-        label="Emergency Report"
-        icon="pi pi-exclamation-triangle"
-        className="p-button-danger p-button-sm"
-        onClick={() => handleProtectedNavigation('/report?emergency=true', 'report')}
-      />
       
       {isAuthenticated ? (
         // Authenticated user menu
@@ -230,16 +224,10 @@ const PublicLayout = () => {
 
       {/* Authentication Status Banner (optional) */}
       {!isAuthenticated && !shouldHideNavBar() && (location.pathname === '/search' || location.pathname.includes('/item/')) && (
-        <div className="w-full p-2 text-center" style={{ backgroundColor: '#fef3c7', borderBottom: '1px solid #f59e0b' }}>
+        <div className="w-full p-2 text-center" style={{ backgroundColor: '#fef3c7', borderBottom: '1px solid #f59e0b', color: '#000000ff' }}>
           <span className="text-sm text-yellow-800">
             <i className="pi pi-info-circle mr-2"></i>
             You can search items freely. 
-           <Button
-              label="Emergency Report"
-              icon="pi pi-exclamation-triangle"
-              className="p-button-danger p-button-sm"
-              onClick={() => handleProtectedNavigation('/report?emergency=true', 'report')}
-            />
             to claim items or report incidents.
           </span>
         </div>

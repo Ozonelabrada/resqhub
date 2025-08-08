@@ -64,6 +64,32 @@ const SignInPage = () => {
     }
   };
 
+  // Helper function to extract error message from different response structures
+  const extractErrorMessage = (error: any): string => {
+    // If it's a direct error object with message
+    if (error?.message) {
+      return error.message;
+    }
+    
+    // If it's a response object that failed with message
+    if (error?.succeeded === false && error?.message) {
+      return error.message;
+    }
+    
+    // If it's an HTTP error response that was parsed
+    if (error?.response?.message) {
+      return error.response.message;
+    }
+    
+    // If it's a network error or other error
+    if (typeof error === 'string') {
+      return error;
+    }
+    
+    // Default fallback
+    return 'An error occurred during sign in. Please try again.';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -80,7 +106,8 @@ const SignInPage = () => {
 
       console.log('Sign in response:', response); // Debug log
 
-      if (response && response.succeeded) {
+      // Handle successful response
+      if (response && response.succeeded === true) {
         // Handle redirect after login
         const intendedAction = localStorage.getItem('intendedAction');
         const returnPath = localStorage.getItem('returnPath');
@@ -91,16 +118,49 @@ const SignInPage = () => {
         } else {
           navigate('/');
         }
-      } else {
-        // Handle unsuccessful response
+      } 
+      // Handle unsuccessful response with specific status codes
+      else if (response && response.succeeded === false) {
+        let errorMessage = response.message || 'Sign in failed. Please try again.';
+        
+        // Handle specific status codes for better user experience
+        switch (response.statusCode) {
+          case 403:
+            if (response.message?.toLowerCase().includes('not verified')) {
+              errorMessage = `${response.message} Please check your email and click the verification link.`;
+            } else {
+              errorMessage = response.message || 'Access forbidden. Please check your credentials.';
+            }
+            break;
+          case 401:
+            errorMessage = response.message || 'Invalid email or password. Please check your credentials.';
+            break;
+          case 400:
+            errorMessage = response.message || 'Invalid request. Please check your input.';
+            break;
+          case 429:
+            errorMessage = response.message || 'Too many login attempts. Please try again later.';
+            break;
+          case 500:
+            errorMessage = 'Server error occurred. Please try again later.';
+            break;
+          default:
+            errorMessage = response.message || 'Sign in failed. Please try again.';
+        }
+        
+        setErrors({ submit: errorMessage });
+      }
+      // Handle case where response structure is unexpected
+      else {
         setErrors({ 
-          submit: response?.message || 'Invalid email or password. Please check your credentials and try again.' 
+          submit: 'Unexpected response from server. Please try again.' 
         });
       }
     } catch (err: any) {
       console.error('Login error:', err);
-      // Handle different types of errors
-      const errorMessage = err?.message || 'An error occurred during sign in. Please try again.';
+      
+      // Extract error message from various error structures
+      const errorMessage = extractErrorMessage(err);
       setErrors({ submit: errorMessage });
     } finally {
       setLoading(false);
@@ -138,10 +198,47 @@ const SignInPage = () => {
     minWidth: '200px',
     flex: 1
   };
+  // Add this method to handle email verification
+  const handleEmailVerification = async () => {
+    try {
+      setLoading(true);
+      // Call your resend verification email endpoint
+      await authService.resendVerificationEmail(formData.email);
+      
+      setErrors({ 
+        submit: 'Verification email sent! Please check your inbox and click the verification link.' 
+      });
+    } catch (error) {
+      setErrors({ 
+        submit: 'Failed to send verification email. Please try again.' 
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Alternative approach: Use a regular InputText for password without the Password component
-  const handlePasswordToggle = () => {
-    // We'll implement a custom toggle
+  // Update the error display to include verification button for unverified accounts
+  const renderErrorMessage = () => {
+    if (!errors.submit) return null;
+
+    const isEmailNotVerified = errors.submit.toLowerCase().includes('not verified');
+
+    return (
+      <div className="mb-4">
+        <Message severity="error" text={errors.submit} className="w-full" />
+        {isEmailNotVerified && (
+          <div className="mt-2 text-center">
+            <Button
+              label="Resend Verification Email"
+              icon="pi pi-envelope"
+              className="p-button-text p-button-sm"
+              onClick={handleEmailVerification}
+              disabled={loading || !formData.email}
+            />
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -255,9 +352,7 @@ const SignInPage = () => {
           </div>
 
           {/* Error Message */}
-          {errors.submit && (
-            <Message severity="error" text={errors.submit} className="w-full mb-4" />
-          )}
+          {renderErrorMessage()}
 
           {/* Sign In Form */}
           <div style={{ marginBottom: '1.5rem' }}>

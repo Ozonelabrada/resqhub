@@ -1,19 +1,21 @@
-import { authApiClient } from "../api/client";
+import { authApiClient, mainApiClient } from "../api/client";
 import type { SignInRequest, SignUpRequest, AuthResponse, OAuth2CallbackResponse } from "../types";
 
 export class AuthService {
+  resendVerificationEmail(email: string) {
+    throw new Error('Method not implemented.');
+  }
   async signIn(credentials: SignInRequest): Promise<AuthResponse> {
     try {
-      // Send credentials with the request
       const response = await authApiClient.request<AuthResponse>('/login', {
         method: 'POST',
         body: JSON.stringify(credentials),
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include' // Explicitly include credentials
+        credentials: 'include'
       });
 
-      // Store token and user data if successful
-      if (response && response.succeeded) {
+      // Only store token and user data if the request was successful
+      if (response && response.succeeded === true) {
         if (response.token) {
           localStorage.setItem('publicUserToken', response.token);
         }
@@ -29,9 +31,11 @@ export class AuthService {
         }
       }
 
+      // Return the full response (both success and failure cases)
       return response;
     } catch (error) {
       console.error('Sign in error:', error);
+      // Re-throw the error so the UI can handle it
       throw error;
     }
   }
@@ -199,5 +203,21 @@ export class AuthService {
       console.error('Error parsing user data:', error);
       return null;
     }
+  }
+
+  // Get current user profile using token
+  static async getCurrentUserProfile() {
+    return mainApiClient.request('/auth/profile', {
+      method: 'GET',
+      // Token will be automatically added by the mainApiClient
+    });
+  }
+
+  // Login (if needed)
+  static async login(credentials: { email: string; password: string }) {
+    return mainApiClient.request('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials)
+    });
   }
 }

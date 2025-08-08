@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
@@ -15,8 +15,29 @@ import { ProgressBar } from 'primereact/progressbar';
 import { Chip } from 'primereact/chip';
 import { RadioButton } from 'primereact/radiobutton';
 import { SelectButton } from 'primereact/selectbutton';
+import { AutoComplete } from 'primereact/autocomplete';
+import { Toast } from 'primereact/toast';
 import { ItemsService } from '../../../services/itemsService';
+import { AuthService } from '../../../services/authService';
 import mapFormDataToApiPayload from '../../../utils/mapFormDataToApiPayload';
+
+interface Category {
+  id: number;
+  name: string;
+  description?: string;
+}
+
+interface ItemSuggestion {
+  id: number;
+  name: string;
+  categoryId: number;
+  categoryName: string;
+  brand?: string;
+  model?: string;
+  manufacturer?: string;
+  productType?: string;
+}
+
 const ReportPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -24,24 +45,43 @@ const ReportPage: React.FC = () => {
   const [reportType, setReportType] = useState<'lost' | 'found'>('lost');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const toast = useRef<Toast>(null);
 
-  // Form data that adapts to report type
+  // Backend data states
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [itemSuggestions, setItemSuggestions] = useState<ItemSuggestion[]>([]);
+  const [filteredSuggestions, setFilteredSuggestions] = useState<ItemSuggestion[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filteredBrandSuggestions, setFilteredBrandSuggestions] = useState<string[]>([]);
+  const [filteredModelSuggestions, setFilteredModelSuggestions] = useState<string[]>([]);
+
+  // Form data - Updated to match new API structure and enum defaults
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
+    // Basic item information
+    name: '',
+    brand: '',
+    model: '',
+    categoryId: 0,
     category: '',
+    description: '',
+    manufacturer: '',
+    productType: '',
+    standardSpecs: '',
+    
+    // Report information
+    title: '',
     location: '',
     currentLocation: '', // For found items only
     date: null as Date | null,
     time: '',
-    condition: 'good', // For found items only
+    condition: 'good', // Default to 'good' (ID: 3)
     contactInfo: {
       name: '',
       phone: '',
       email: '',
-      preferredContact: 'phone'
+      preferredContact: 'phone' // Default to 'phone' (ID: 1)
     },
-    handoverPreference: 'meet', // For found items only
+    handoverPreference: 'meet', // Default to 'meet' (ID: 1)
     additionalInfo: {
       reward: '', // For lost items only
       circumstances: '',
@@ -50,6 +90,47 @@ const ReportPage: React.FC = () => {
     },
     images: [] as File[]
   });
+
+  // Load backend data on component mount
+  useEffect(() => {
+    const loadBackendData = async () => {
+      try {
+        setLoading(true);
+        
+        // Load categories and items in parallel
+        const [categoriesResponse, itemsResponse] = await Promise.all([
+          ItemsService.getCategories(100, 1),
+          ItemsService.getItems(true, 100, 1)
+        ]);
+
+        console.log('Categories Response:', categoriesResponse);
+        console.log('Items Response:', itemsResponse);
+
+        // Set categories
+        if (categoriesResponse?.data?.data) {
+          setCategories(categoriesResponse.data.data);
+        }
+
+        // Set item suggestions
+        if (itemsResponse?.data?.data) {
+          setItemSuggestions(itemsResponse.data.data);
+        }
+
+      } catch (error) {
+        console.error('Error loading backend data:', error);
+        toast.current?.show({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to load form data. Please refresh the page.',
+          life: 5000
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadBackendData();
+  }, []);
 
   // Check authentication and get report type from URL
   useEffect(() => {
@@ -65,19 +146,41 @@ const ReportPage: React.FC = () => {
       setReportType(type);
     }
 
-    // Auto-fill user data if available
-    const userData = localStorage.getItem('publicUserData');
-    if (userData) {
-      const user = JSON.parse(userData);
-      setFormData(prev => ({
-        ...prev,
-        contactInfo: {
-          ...prev.contactInfo,
-          name: user.name || '',
-          email: user.email || ''
+    // Load user profile from backend instead of localStorage
+    const loadUserProfile = async () => {
+      try {
+        const userProfile = await AuthService.getCurrentUserProfile();
+        console.log('User Profile:', userProfile);
+        
+        if (userProfile?.data) {
+          setFormData(prev => ({
+            ...prev,
+            contactInfo: {
+              ...prev.contactInfo,
+              name: userProfile.data.name || userProfile.data.fullName || '',
+              email: userProfile.data.email || ''
+            }
+          }));
         }
-      }));
-    }
+      } catch (error) {
+        console.error('Error loading user profile:', error);
+        // Fallback to localStorage
+        const userData = localStorage.getItem('publicUserData');
+        if (userData) {
+          const user = JSON.parse(userData);
+          setFormData(prev => ({
+            ...prev,
+            contactInfo: {
+              ...prev.contactInfo,
+              name: user.name || '',
+              email: user.email || ''
+            }
+          }));
+        }
+      }
+    };
+
+    loadUserProfile();
   }, [searchParams, navigate]);
 
   // Mobile detection
@@ -96,36 +199,31 @@ const ReportPage: React.FC = () => {
     { label: 'Found Item', value: 'found', icon: 'pi pi-plus-circle' }
   ];
 
-  const categories = [
-    { label: 'Electronics', value: 'Electronics' },
-    { label: 'Accessories', value: 'Accessories' },
-    { label: 'Keys', value: 'Keys' },
-    { label: 'Jewelry', value: 'Jewelry' },
-    { label: 'Documents', value: 'Documents' },
-    { label: 'Clothing', value: 'Clothing' },
-    { label: 'Bags & Wallets', value: 'Bags & Wallets' },
-    { label: 'Pets', value: 'Pets' },
-    { label: 'Vehicles', value: 'Vehicles' },
-    { label: 'Other', value: 'Other' }
-  ];
-
+  // Updated with backend enum values
   const conditionOptions = [
+    { label: 'New', value: 'new', color: 'success' },
     { label: 'Excellent', value: 'excellent', color: 'success' },
     { label: 'Good', value: 'good', color: 'info' },
     { label: 'Fair', value: 'fair', color: 'warning' },
+    { label: 'Poor', value: 'poor', color: 'warning' },
     { label: 'Damaged', value: 'damaged', color: 'danger' }
   ];
 
   const handoverOptions = [
     { label: 'Meet in person', value: 'meet' },
     { label: 'Pickup from my location', value: 'pickup' },
-    { label: 'Mail/Ship to owner', value: 'mail' }
+    { label: 'Mail/Ship to owner', value: 'mail' },
+    { label: 'Courier delivery', value: 'courier' },
+    { label: 'Drop off at location', value: 'dropoff' },
+    { label: 'Police station handover', value: 'policestation' }
   ];
 
   const contactMethods = [
     { label: 'Phone', value: 'phone' },
     { label: 'Email', value: 'email' },
-    { label: 'Both', value: 'both' }
+    { label: 'Both Phone & Email', value: 'both' },
+    { label: 'SMS', value: 'sms' },
+    { label: 'In-App messaging', value: 'inapp' }
   ];
 
   const steps = [
@@ -134,6 +232,85 @@ const ReportPage: React.FC = () => {
     { label: 'Location & Info' },
     { label: 'Contact & Submit' }
   ];
+
+  // Updated search suggestions using backend data
+  const searchSuggestions = (event: any) => {
+    const query = event.query.toLowerCase();
+    let filtered: ItemSuggestion[] = [];
+
+    // Filter suggestions based on query
+    filtered = itemSuggestions.filter(item => 
+      item.name.toLowerCase().includes(query) ||
+      (item.brand && item.brand.toLowerCase().includes(query)) ||
+      (item.model && item.model.toLowerCase().includes(query))
+    );
+
+    // Sort by relevance (items starting with query come first)
+    filtered.sort((a, b) => {
+      const aStartsWith = a.name.toLowerCase().startsWith(query);
+      const bStartsWith = b.name.toLowerCase().startsWith(query);
+      
+      if (aStartsWith && !bStartsWith) return -1;
+      if (!aStartsWith && bStartsWith) return 1;
+      return a.name.localeCompare(b.name);
+    });
+
+    // Limit to top 10 suggestions
+    setFilteredSuggestions(filtered.slice(0, 10));
+  };
+
+  // Updated item selection using backend data
+  const handleItemSelection = (selectedItem: ItemSuggestion) => {
+    updateFormData('name', selectedItem.name);
+    updateFormData('title', selectedItem.name);
+    
+    // Find and set category
+    const category = categories.find(cat => cat.id === selectedItem.categoryId);
+    if (category) {
+      updateFormData('category', category.name);
+      updateFormData('categoryId', category.id);
+    }
+    
+    // Auto-fill other details if available
+    if (selectedItem.brand) updateFormData('brand', selectedItem.brand);
+    if (selectedItem.model) updateFormData('model', selectedItem.model);
+    if (selectedItem.manufacturer) updateFormData('manufacturer', selectedItem.manufacturer);
+    if (selectedItem.productType) updateFormData('productType', selectedItem.productType);
+  };
+
+  // Updated category suggestion using backend data
+  const suggestCategoryForCustomItem = (item: string): string => {
+    const itemLower = item.toLowerCase();
+    
+    // Define keywords for each category (you might want to make this backend-driven too)
+    const categoryKeywords = {
+      'Electronics': ['phone', 'iphone', 'android', 'laptop', 'computer', 'tablet', 'ipad', 'macbook', 'dell', 'hp', 'camera', 'headphone', 'airpods', 'watch', 'apple', 'samsung', 'sony', 'nintendo', 'xbox', 'playstation', 'charger', 'cable', 'mouse', 'keyboard', 'speaker', 'tv', 'monitor'],
+      'Accessories': ['glasses', 'sunglasses', 'hat', 'cap', 'scarf', 'belt', 'gloves', 'umbrella', 'watch', 'bracelet'],
+      'Keys': ['key', 'keys', 'keychain', 'remote', 'fob'],
+      'Jewelry': ['ring', 'necklace', 'earring', 'bracelet', 'pendant', 'gold', 'silver', 'diamond', 'jewelry', 'jewellery'],
+      'Documents': ['passport', 'license', 'id', 'card', 'certificate', 'paper', 'document', 'receipt', 'ticket'],
+      'Clothing': ['shirt', 'jacket', 'coat', 'jeans', 'pants', 'dress', 'skirt', 'shoes', 'boots', 'sneakers', 'socks', 'tie', 'suit', 'hoodie', 'sweater'],
+      'Bags & Wallets': ['wallet', 'purse', 'bag', 'backpack', 'handbag', 'briefcase', 'suitcase', 'luggage'],
+      'Pets': ['dog', 'cat', 'pet', 'puppy', 'kitten', 'bird', 'rabbit', 'hamster', 'fish', 'turtle'],
+      'Vehicles': ['bike', 'bicycle', 'car', 'motorcycle', 'scooter', 'skateboard', 'truck', 'van'],
+      'Other': []
+    };
+
+    // Check each category for matching keywords
+    for (const [categoryName, keywords] of Object.entries(categoryKeywords)) {
+      if (categoryName === 'Other') continue;
+      
+      const hasMatch = keywords.some(keyword => itemLower.includes(keyword));
+      if (hasMatch) {
+        const category = categories.find(cat => cat.name.toLowerCase() === categoryName.toLowerCase());
+        return category ? category.name : categoryName;
+      }
+    }
+
+    // Default to 'Other' if no match found
+    const otherCategory = categories.find(cat => cat.name.toLowerCase() === 'other');
+    return otherCategory ? otherCategory.name : 'Other';
+  };
 
   const updateFormData = (field: string, value: any) => {
     if (field.includes('.')) {
@@ -146,19 +323,39 @@ const ReportPage: React.FC = () => {
         }
       }));
     } else {
-      setFormData(prev => ({
-        ...prev,
-        [field]: value
-      }));
+      setFormData(prev => {
+        const newData = {
+          ...prev,
+          [field]: value
+        };
+        
+        // Auto-sync name and title
+        if (field === 'name') {
+          newData.title = value;
+        } else if (field === 'title') {
+          newData.name = value;
+        }
+        
+        // Auto-set categoryId when category is selected
+        if (field === 'category') {
+          const categoryObj = categories.find(cat => cat.name === value);
+          if (categoryObj) {
+            newData.categoryId = categoryObj.id;
+          }
+        }
+        
+        return newData;
+      });
     }
   };
 
+  // Updated validation
   const validateStep = (step: number) => {
     switch (step) {
       case 0:
         return reportType !== null;
       case 1:
-        return formData.title && formData.category && formData.description && formData.description.length >= 10;
+        return formData.name && formData.category && formData.description && formData.description.length >= 10;
       case 2:
         if (reportType === 'lost') {
           return formData.location && formData.date;
@@ -202,25 +399,135 @@ const ReportPage: React.FC = () => {
     }));
   };
 
- const handleSubmit = async () => {
-  if (!validateStep(currentStep)) return;
-  
-  setIsSubmitting(true);
+  // Updated handleSubmit function for new API structure
+  const handleSubmit = async () => {
+    if (!validateStep(currentStep)) return;
+    
+    setIsSubmitting(true);
 
-  try {
-    const reportData = mapFormDataToApiPayload(reportType, formData);
-    // Call the API to save the report
-    await ItemsService.createReport(reportData);
+    try {
+      // Get all payloads for the new API structure
+      const { 
+        reportPayload, 
+        itemDetailsPayload, 
+        contactInfoPayload, 
+        locationDetailsPayload 
+      } = mapFormDataToApiPayload(reportType, formData);
+      
+      console.log('Report Payload:', reportPayload);
+      console.log('Item Details Payload:', itemDetailsPayload);
+      console.log('Contact Info Payload:', contactInfoPayload);
+      console.log('Location Details Payload:', locationDetailsPayload);
+      
+      // Step 1: Create the main report (without reference IDs)
+      const reportResponse = await ItemsService.createReport(reportPayload);
+      console.log('Report created:', reportResponse);
+      
+      if (!reportResponse || !reportResponse.data || !reportResponse.data.id) {
+        throw new Error('Failed to create report - no report ID returned');
+      }
+      
+      const reportId = reportResponse.data.id;
+      
+      // Step 2: Upload images if any
+      let imageUrls: string[] = [];
+      if (formData.images.length > 0) {
+        try {
+          const imageUploadPromises = formData.images.map(file => 
+            ItemsService.uploadImage(file, reportId)
+          );
+          
+          const imageResponses = await Promise.all(imageUploadPromises);
+          imageUrls = imageResponses
+            .filter(response => response?.data?.url)
+            .map(response => response.data.url);
+          
+          console.log('Images uploaded:', imageUrls);
+        } catch (imageError) {
+          console.warn('Some images failed to upload:', imageError);
+          // Continue with form submission even if images fail
+        }
+      }
+      
+      // Step 3: Create item details with the report ID and image URLs
+      const itemDetailsWithReportId = {
+        ...itemDetailsPayload,
+        reportId: reportId,
+        imageUrls: imageUrls
+      };
+      
+      const itemDetailsResponse = await ItemsService.createReportItemDetails(itemDetailsWithReportId);
+      console.log('Item details created:', itemDetailsResponse);
+      
+      // Step 4: Create contact info with the report ID
+      const contactInfoWithReportId = {
+        ...contactInfoPayload,
+        reportId: reportId
+      };
+      
+      const contactInfoResponse = await ItemsService.createReportContactInfo(contactInfoWithReportId);
+      console.log('Contact info created:', contactInfoResponse);
+      
+      // Step 5: Create location details with the report ID
+      const locationDetailsWithReportId = {
+        ...locationDetailsPayload,
+        reportId: reportId
+      };
+      
+      const locationDetailsResponse = await ItemsService.createReportLocationDetails(locationDetailsWithReportId);
+      console.log('Location details created:', locationDetailsResponse);
+      
+      // Step 6: Update the main report with the detail IDs (if backend requires this)
+      if (itemDetailsResponse?.data?.id || contactInfoResponse?.data?.id || locationDetailsResponse?.data?.id) {
+        const updatePayload: any = {};
+        
+        if (itemDetailsResponse?.data?.id) {
+          updatePayload.reportItemDetailsId = itemDetailsResponse.data.id;
+        }
+        
+        if (contactInfoResponse?.data?.id) {
+          updatePayload.reportContactInfoId = contactInfoResponse.data.id;
+        }
+        
+        if (locationDetailsResponse?.data?.id) {
+          updatePayload.reportLocationDetailsId = locationDetailsResponse.data.id;
+        }
+        
+        // Only update if we have IDs to update
+        if (Object.keys(updatePayload).length > 0) {
+          try {
+            const updateResponse = await ItemsService.updateReport(reportId, updatePayload);
+            console.log('Report updated with detail IDs:', updateResponse);
+          } catch (updateError) {
+            console.warn('Failed to update report with detail IDs:', updateError);
+            // Don't fail the entire process for this
+          }
+        }
+      }
+      
+      // Show success message
+      toast.current?.show({
+        severity: 'success',
+        summary: 'Success',
+        detail: `${reportType === 'lost' ? 'Lost' : 'Found'} item report submitted successfully!`,
+        life: 3000
+      });
 
-    // Navigate to success page
-    navigate('/');
-  } catch (error) {
-    console.error('Error submitting report:', error);
-    Message.error('Failed to submit report. Please try again later.');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+      // Navigate to success page or home
+      navigate('/');
+      
+    } catch (error) {
+      console.error('Error submitting report:', error);
+      toast.current?.show({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to submit report. Please try again.',
+        life: 5000
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleReportTypeChange = (newType: 'lost' | 'found') => {
     setReportType(newType);
@@ -228,8 +535,8 @@ const ReportPage: React.FC = () => {
     setFormData(prev => ({
       ...prev,
       currentLocation: '',
-      condition: 'good',
-      handoverPreference: 'meet',
+      condition: 'good', 
+      handoverPreference: 'meet', 
       additionalInfo: {
         ...prev.additionalInfo,
         reward: '',
@@ -237,6 +544,20 @@ const ReportPage: React.FC = () => {
       }
     }));
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#34373aff', color: '#ffffff' }}>
+        <div className="p-6">
+          <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center', paddingTop: '100px' }}>
+            <div className="text-white text-2xl mb-4">Loading form data...</div>
+            <ProgressBar mode="indeterminate" style={{ height: '6px' }} />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const renderReportTypeStep = () => (
     <div className="space-y-4">
@@ -292,26 +613,133 @@ const ReportPage: React.FC = () => {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             What {reportType === 'lost' ? 'did you lose' : 'did you find'}? *
           </label>
-          <InputText
-            value={formData.title}
-            onChange={(e) => updateFormData('title', e.target.value)}
-            placeholder="e.g., iPhone 14, Blue Wallet, Set of Keys..."
+          <AutoComplete
+            value={formData.name}
+            suggestions={filteredSuggestions}
+            completeMethod={searchSuggestions}
+            field="name"
+            onChange={(e) => {
+              const selectedValue = e.value;
+              updateFormData('name', typeof selectedValue === 'string' ? selectedValue : selectedValue?.name || '');
+
+              // Auto-suggest category, brand, and model for custom text input
+              if (selectedValue && typeof selectedValue === 'string' && selectedValue.length > 2) {
+                // Try to find a matching suggestion
+                const match = itemSuggestions.find(
+                  item => item.name.toLowerCase() === selectedValue.toLowerCase()
+                );
+                if (match) {
+                  if (!formData.category) updateFormData('category', match.categoryName);
+                  if (!formData.brand && match.brand) updateFormData('brand', match.brand);
+                  if (!formData.model && match.model) updateFormData('model', match.model);
+                } else {
+                  // Fallback to keyword-based category suggestion
+                  const suggestedCategory = suggestCategoryForCustomItem(selectedValue);
+                  if (!formData.category) updateFormData('category', suggestedCategory);
+                }
+              }
+            }}
+            onSelect={(e) => {
+              if (typeof e.value === 'object' && e.value !== null) {
+                handleItemSelection(e.value as ItemSuggestion);
+              }
+            }}
+            placeholder="Start typing... e.g., iPhone 14, Blue Wallet, Set of Keys..."
             className="w-full"
+            dropdown
+            forceSelection={false}
+            minLength={1}
+            delay={300}
+            emptyMessage="No suggestions found. Type to search common items or enter your custom item."
+            itemTemplate={(item: ItemSuggestion) => (
+              <div className="flex align-items-center justify-content-between p-2">
+                <div className="flex align-items-center">
+                  <i className="pi pi-search mr-2 text-gray-400"></i>
+                  <div>
+                    <div>{item.name}</div>
+                    {item.brand && <small className="text-gray-500">{item.brand}</small>}
+                  </div>
+                </div>
+                <small className="text-gray-500">
+                  {item.categoryName}
+                </small>
+              </div>
+            )}
           />
+          <small className="text-gray-500 block mt-1">
+            💡 Start typing to see suggestions with auto-category selection, or enter your own item
+          </small>
         </div>
         
         <div className="col-12 md:col-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Category *
+            Category * {formData.category && formData.name && (
+              <span className="text-green-600 text-xs">
+                (Auto-selected for "{formData.name}")
+              </span>
+            )}
           </label>
           <Dropdown
             value={formData.category}
-            options={categories}
+            options={categories.map(cat => ({ label: cat.name, value: cat.name }))}
             onChange={(e) => updateFormData('category', e.value)}
+            optionLabel="label"
+            optionValue="value"
             placeholder="Select a category"
             className="w-full"
           />
         </div>
+
+        <div className="col-12 md:col-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Brand
+          </label>
+          <AutoComplete
+            value={formData.brand}
+            suggestions={filteredBrandSuggestions}
+            completeMethod={searchBrandSuggestions}
+            onChange={(e) => updateFormData('brand', e.value)}
+            placeholder="e.g., Apple, Samsung, Nike..."
+            className="w-full"
+            dropdown
+            forceSelection={false}
+            minLength={1}
+            delay={200}
+          />
+        </div>
+
+        <div className="col-12 md:col-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Model
+          </label>
+          <AutoComplete
+            value={formData.model}
+            suggestions={filteredModelSuggestions}
+            completeMethod={searchModelSuggestions}
+            onChange={(e) => updateFormData('model', e.value)}
+            placeholder="e.g., iPhone 14 Pro, Galaxy S24..."
+            className="w-full"
+            dropdown
+            forceSelection={false}
+            minLength={1}
+            delay={200}
+          />
+        </div>
+
+        {/* Show color for found items */}
+        {reportType === 'found' && (
+          <div className="col-12 md:col-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Color
+            </label>
+            <InputText
+              value={formData.color || ''}
+              onChange={(e) => updateFormData('color', e.target.value)}
+              placeholder="e.g., Blue, Black, Red..."
+              className="w-full"
+            />
+          </div>
+        )}
 
         {/* Show condition for found items */}
         {reportType === 'found' && (
@@ -337,12 +765,28 @@ const ReportPage: React.FC = () => {
           <InputTextarea
             value={formData.description}
             onChange={(e) => updateFormData('description', e.target.value)}
-            placeholder="Provide detailed description including color, brand, size, distinctive features..."
+            placeholder="Provide detailed description including color, size, distinctive features..."
             rows={4}
             className="w-full"
           />
           <small className="text-gray-500">
             {formData.description.length}/500 characters (minimum 10)
+          </small>
+        </div>
+
+        <div className="col-12">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Standard Specifications
+          </label>
+          <InputTextarea
+            value={formData.standardSpecs}
+            onChange={(e) => updateFormData('standardSpecs', e.target.value)}
+            placeholder="Technical specifications, dimensions, weight, serial numbers..."
+            rows={3}
+            className="w-full"
+          />
+          <small className="text-gray-500 block mt-1">
+            💡 Include technical details, serial numbers, or specifications if known
           </small>
         </div>
 
@@ -371,7 +815,8 @@ const ReportPage: React.FC = () => {
             multiple
             onSelect={handleImageUpload}
             chooseLabel="Add Photos"
-            className="w-full"
+            className="w-full p-fileupload-choose p-fileupload-filename"
+            auto={false}
           />
           
           {formData.images.length > 0 && (
@@ -394,6 +839,35 @@ const ReportPage: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Enhanced preview of what will be saved */}
+        {formData.name && formData.category && (
+          <div className="col-12">
+            <div className="p-3 bg-blue-50 border-round border-1 border-blue-200">
+              <div className="flex align-items-center gap-2 mb-2">
+                <i className="pi pi-info-circle text-blue-600"></i>
+                <span className="font-semibold text-blue-800">Item Information Preview</span>
+              </div>
+              <div className="text-sm text-blue-700 grid">
+                <div className="col-6">
+                  <strong>Name:</strong> {formData.name}<br />
+                  <strong>Category:</strong> {formData.category} (ID: {formData.categoryId})<br />
+                  <strong>Brand:</strong> {formData.brand || 'Not specified'}<br />
+                  <strong>Model:</strong> {formData.model || 'Not specified'}
+                </div>
+                <div className="col-6">
+                  {reportType === 'found' && (
+                    <>
+                      <strong>Color:</strong> {formData.color || 'Not specified'}<br />
+                      <strong>Condition:</strong> {formData.condition || 'Not specified'}<br />
+                    </>
+                  )}
+                  <strong>Images:</strong> {formData.images.length} selected
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -601,6 +1075,32 @@ const ReportPage: React.FC = () => {
     </div>
   );
 
+  const searchBrandSuggestions = (event: any) => {
+    const query = event.query.toLowerCase();
+    const brands = Array.from(
+      new Set(itemSuggestions
+        .filter(item => item.brand)
+        .map(item => item.brand!)
+      )
+    );
+    setFilteredBrandSuggestions(
+      brands.filter(brand => brand.toLowerCase().includes(query)).slice(0, 10)
+    );
+  };
+
+  const searchModelSuggestions = (event: any) => {
+    const query = event.query.toLowerCase();
+    const models = Array.from(
+      new Set(itemSuggestions
+        .filter(item => item.model)
+        .map(item => item.model!)
+      )
+    );
+    setFilteredModelSuggestions(
+      models.filter(model => model.toLowerCase().includes(query)).slice(0, 10)
+    );
+  };
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#34373aff', color: '#ffffff' }}>
       <div className={`${isMobile ? 'p-3' : 'p-6'}`}>
@@ -672,6 +1172,8 @@ const ReportPage: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      <Toast ref={toast} />
     </div>
   );
 };

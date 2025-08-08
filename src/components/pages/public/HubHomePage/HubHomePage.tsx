@@ -71,13 +71,67 @@ const HubHomePage: React.FC = () => {
 
   // Check authentication status
   useEffect(() => {
-    const token = localStorage.getItem('publicUserToken');
-    const user = localStorage.getItem('publicUserData');
-    
-    setIsAuthenticated(!!token);
-    if (user) {
-      setUserData(JSON.parse(user));
-    }
+    const checkAuthStatus = () => {
+      const token = localStorage.getItem('publicUserToken');
+      const user = localStorage.getItem('publicUserData');
+      
+      // Debug logging
+      console.log('HubHomePage - Checking auth status:', {
+        token: token ? 'exists' : 'null',
+        user: user ? 'exists' : 'null',
+        isAuthenticated,
+        userData
+      });
+      
+      setIsAuthenticated(!!token);
+      if (user) {
+        try {
+          const parsedUser = JSON.parse(user);
+          setUserData(parsedUser);
+          console.log('HubHomePage - Parsed user data:', parsedUser);
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+          setUserData(null);
+        }
+      } else {
+        setUserData(null);
+      }
+    };
+
+    // Check on mount
+    checkAuthStatus();
+
+    // Listen for storage changes (when user signs in/out in another tab)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'publicUserToken' || e.key === 'publicUserData') {
+        console.log('HubHomePage - Storage changed:', e.key, e.newValue);
+        checkAuthStatus();
+      }
+    };
+
+    // Listen for focus events (when user returns to this tab)
+    const handleFocus = () => {
+      console.log('HubHomePage - Window focused, checking auth');
+      checkAuthStatus();
+    };
+
+    // Listen for visibility change (when tab becomes visible)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('HubHomePage - Tab became visible, checking auth');
+        checkAuthStatus();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   // Mobile detection
@@ -369,17 +423,6 @@ const HubHomePage: React.FC = () => {
             
             {isAuthenticated ? (
               <div className="flex align-items-center gap-3">
-                <Button
-                  label="My Hub"
-                  icon="pi pi-user"
-                  onClick={() => navigate('/hub')}
-                  className="p-button-outlined p-button-sm"
-                  style={{ 
-                    borderColor: 'rgba(255, 255, 255, 0.8)', 
-                    color: 'white',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                  }}
-                />
                 <div className="text-right">
                   <div className="text-sm" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>Welcome back,</div>
                   <div className="font-semibold text-white">{userData?.name}</div>
