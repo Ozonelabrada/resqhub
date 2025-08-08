@@ -1,5 +1,5 @@
 import { mainApiClient } from '../api/client';
-import type { SearchParams, CreateItemRequest, Item } from '../types/api';
+import type { SearchParams, CreateItemRequest } from '../types/api';
 
 export class ItemsService {
   // Main report creation
@@ -89,10 +89,6 @@ export class ItemsService {
     return mainApiClient.request(`/reports/all/${userId}`, {
       method: 'GET'
     });
-  }
-
-  static getWatchListByUser(userId: any, watchListCurrentPage: number) {
-    throw new Error('Method not implemented.');
   }
 
   async searchItems(params: SearchParams) {

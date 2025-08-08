@@ -2,9 +2,6 @@ import { authApiClient, mainApiClient } from "../api/client";
 import type { SignInRequest, SignUpRequest, AuthResponse, OAuth2CallbackResponse } from "../types";
 
 export class AuthService {
-  resendVerificationEmail(email: string) {
-    throw new Error('Method not implemented.');
-  }
   async signIn(credentials: SignInRequest): Promise<AuthResponse> {
     try {
       const response = await authApiClient.request<AuthResponse>('/login', {
