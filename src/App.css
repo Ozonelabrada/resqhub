@@ -40,3 +40,6 @@
 .read-the-docs {
   color: #888;
 }
+.p-fileupload-choose .p-fileupload-filename {
+  display: none !important;
+}

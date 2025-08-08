@@ -1,0 +1,167 @@
+import { mainApiClient } from '../api/client';
+
+export interface BackendUserData {
+  id: string;
+  email: string;
+  name: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  username: string;
+  profilePicture: string;
+  coverPhoto: string | null;
+  bio: string | null;
+  location: string | null;
+  joinDate: string;
+  emailVerified: boolean;
+  verificationStatus: number;
+  successfulReturns: number;
+  helpedPeople: number;
+  role: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BackendUserResponse {
+  message: string;
+  succeeded: boolean;
+  statusCode: number;
+  data: BackendUserData;
+  errors: null;
+  baseEntity: null;
+}
+
+export class UserService {
+  static async getCurrentUser(userId?: string): Promise<BackendUserData> {
+    try {
+      // If userId is not provided, try to get it from localStorage
+      let userIdToUse = userId;
+      if (!userIdToUse) {
+        const userData = localStorage.getItem('publicUserData');
+        if (userData) {
+          try {
+            const parsedUser = JSON.parse(userData);
+            userIdToUse = parsedUser.id;
+          } catch (error) {
+            console.error('Error parsing user data from localStorage:', error);
+          }
+        }
+      }
+
+      // If we still don't have a userId, throw an error
+      if (!userIdToUse) {
+        throw new Error('User ID is required to fetch user profile');
+      }
+
+      const response = await mainApiClient.request<BackendUserResponse>(`/users/${userIdToUse}`, {
+        credentials: 'include'
+      });
+      
+      if (!response.succeeded) {
+        throw new Error(response.message || 'Failed to fetch user profile');
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      throw error;
+    }
+  }
+
+  static async updateUserProfile(userId: string, updates: Partial<BackendUserData>): Promise<BackendUserData> {
+    try {
+      const response = await mainApiClient.request<BackendUserResponse>(`/users/${userId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates),
+        credentials: 'include'
+      });
+      
+      if (!response.succeeded) {
+        throw new Error(response.message || 'Failed to update user profile');
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      throw error;
+    }
+  }
+
+  // Get user by ID (public method for external use)
+  static async getUserById(userId: string): Promise<BackendUserData> {
+    try {
+      const response = await mainApiClient.request<BackendUserResponse>(`/users/${userId}`, {
+        credentials: 'include'
+      });
+      
+      if (!response.succeeded) {
+        throw new Error(response.message || 'Failed to fetch user profile');
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user by ID:', error);
+      throw error;
+    }
+  }
+
+  // Helper function to transform backend user data to frontend format
+  static transformUserData(backendUser: BackendUserData) {
+    return {
+      id: backendUser.id,
+      email: backendUser.email,
+      name: backendUser.name || backendUser.fullName || 'User Name',
+      firstName: backendUser.firstName,
+      lastName: backendUser.lastName,
+      fullName: backendUser.fullName || backendUser.name || 'User Name',
+      username: backendUser.username || backendUser.email?.split('@')[0] || 'username',
+      profilePicture: backendUser.profilePicture || null,
+      coverPhoto: backendUser.coverPhoto || null,
+      bio: backendUser.bio || 'Helping reunite lost items with their owners 🔍',
+      location: backendUser.location || 'Location not set',
+      joinDate: backendUser.joinDate || backendUser.createdAt,
+      emailVerified: backendUser.emailVerified,
+      verificationStatus: this.getVerificationStatusText(backendUser.verificationStatus),
+      successfulReturns: backendUser.successfulReturns || 0,
+      helpedPeople: backendUser.helpedPeople || 0,
+      role: this.getRoleText(backendUser.role),
+      createdAt: backendUser.createdAt,
+      updatedAt: backendUser.updatedAt
+    };
+  }
+
+  private static getVerificationStatusText(status: number): string {
+    switch (status) {
+      case 0: return 'pending';
+      case 1: return 'verified';
+      case 2: return 'rejected';
+      default: return 'pending';
+    }
+  }
+
+  private static getRoleText(role: number): string {
+    switch (role) {
+      case 0: return 'user';
+      case 1: return 'admin';
+      case 2: return 'moderator';
+      default: return 'user';
+    }
+  }
+
+  // Helper method to get current user ID from localStorage
+  static getCurrentUserId(): string | null {
+    try {
+      const userData = localStorage.getItem('publicUserData');
+      if (userData) {
+        const parsedUser = JSON.parse(userData);
+        return parsedUser.id || null;
+      }
+    } catch (error) {
+      console.error('Error getting current user ID:', error);
+    }
+    return null;
+  }
+}
+
+// Export types for external use
+export type { BackendUserData, BackendUserResponse };

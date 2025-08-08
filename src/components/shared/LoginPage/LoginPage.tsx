@@ -18,7 +18,7 @@ const LoginPage: React.FC = () => {
   const handleLogin = () => {
     console.log({ email, password, remember });
     // add real auth later
-    navigate('/dashboard');
+    navigate('/admin/dashboard');
   };
 
   return (
