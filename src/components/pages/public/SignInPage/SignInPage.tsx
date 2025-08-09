@@ -179,8 +179,7 @@ const SignInPage = () => {
   const handleGoogleSignIn = () => {
     setSocialLoading(true);
     const apiUrl =
-      import.meta.env.VITE_API_BASE_URL ||
-      'http://localhost:7333';
+      import.meta.env.REACT_APP_API_BASE_URL;
     // Add a slight delay for UX polish
     setTimeout(() => {
       window.location.href = `${apiUrl}/auth/google`;

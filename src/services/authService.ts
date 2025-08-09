@@ -78,7 +78,7 @@ export class AuthService {
     
     // Redirect to your backend Google OAuth2 endpoint
     // The backend will handle the OAuth2 flow and redirect back to the frontend
-    window.location.href = `http://localhost:7333/auth/google`;
+    window.location.href = `${import.meta.env.REACT_APP_API_BASE_URL}/auth/google`;
   }
 
   // Handle OAuth2 callback
