@@ -21,7 +21,7 @@ const AdminLayout = () => {
     name: 'Admin User',
     email: 'admin@resqhub.com',
     role: 'Administrator',
-    avatar: null // or URL to avatar image
+    avatar: undefined // or URL to avatar image
   };
 
   // Handle logout confirmation
@@ -214,7 +214,7 @@ const AdminLayout = () => {
         <div className="relative">
           <Avatar
             icon={currentUser.avatar ? undefined : "pi pi-user"}
-            image={currentUser.avatar ?? undefined}
+            image={currentUser.avatar || undefined}
             size="large"
             shape="circle"
             className="cursor-pointer hover:shadow-3 transition-all transition-duration-200"
