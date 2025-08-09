@@ -20,7 +20,7 @@ const HubHomePage: React.FC = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isBelowDesktop, setIsBelowDesktop] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userData, setUserData] = useState<any>(null);
   const accountMenuRef = useRef<Menu>(null);
@@ -134,15 +134,15 @@ const HubHomePage: React.FC = () => {
     };
   }, []);
 
-  // Mobile detection
+  // Update the effect for screen size detection:
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+    const checkScreen = () => {
+      setIsBelowDesktop(window.innerWidth < 1024); // 1024px is the desktop breakpoint
     };
 
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    checkScreen();
+    window.addEventListener('resize', checkScreen);
+    return () => window.removeEventListener('resize', checkScreen);
   }, []);
 
   const categories = [
@@ -370,6 +370,21 @@ const HubHomePage: React.FC = () => {
     );
   };
 
+  // Add a helper to determine the number of visible items
+  const getCarouselNumVisible = () => {
+    if (window.innerWidth < 768) return 1;      // mobile
+    if (window.innerWidth < 1024) return 2;     // tablet
+    return 3;                                   // desktop
+  };
+
+  const [carouselNumVisible, setCarouselNumVisible] = useState(getCarouselNumVisible());
+
+  useEffect(() => {
+    const handleResize = () => setCarouselNumVisible(getCarouselNumVisible());
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Show loading spinner while fetching data
   if (statsLoading || trendingLoading) {
     return (
@@ -403,10 +418,10 @@ const HubHomePage: React.FC = () => {
         }}
       >
         {/* Navigation */}
-        <div className={`${isMobile ? 'px-4' : 'px-8'} mb-6`}>
+        <div className={`${isBelowDesktop ? 'px-4' : 'px-8'} mb-6`}>
           <div className="flex align-items-center justify-content-between">
             <Logo 
-              size={isMobile ? 'small' : 'medium'} 
+              size={isBelowDesktop ? 'small' : 'medium'} 
               variant="full" 
               onClick={() => navigate('/')}
             />
@@ -464,20 +479,20 @@ const HubHomePage: React.FC = () => {
           <div className="mb-6 text-center">
             {isAuthenticated ? (
               <>
-                <h2 className={`${isMobile ? 'text-2xl' : 'text-4xl'} font-bold mb-3 text-white`}>
+                <h2 className={`${isBelowDesktop ? 'text-2xl' : 'text-4xl'} font-bold mb-3 text-white`}>
                   Welcome to Your Community Hub! 🏠
                 </h2>
-                <p className={`${isMobile ? 'text-lg' : 'text-xl'} mb-4`} 
+                <p className={`${isBelowDesktop ? 'text-lg' : 'text-xl'} mb-4`} 
                    style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
                   Help make your neighborhood safer by reporting and finding lost items
                 </p>
               </>
             ) : (
               <>
-                <h1 className={`${isMobile ? 'text-3xl' : 'text-5xl'} font-bold mb-4 text-white`}>
+                <h1 className={`${isBelowDesktop ? 'text-3xl' : 'text-5xl'} font-bold mb-4 text-white`}>
                   Find What's Lost, Return What's Found 🔍
                 </h1>
-                <p className={`${isMobile ? 'text-lg' : 'text-xl'} mb-6`} 
+                <p className={`${isBelowDesktop ? 'text-lg' : 'text-xl'} mb-6`} 
                    style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
                   Join thousands of community members helping reunite people with their belongings
                 </p>
@@ -515,9 +530,9 @@ const HubHomePage: React.FC = () => {
 
           {/* Search Bar with Today's Stats Row */}
           <Card className="shadow-lg border-0" style={{ backgroundColor: 'white' }}>
-            <div className={`${isMobile ? 'flex-column' : 'flex'} gap-3`}>
+            <div className={`${isBelowDesktop ? 'flex-column' : 'flex'} gap-3`}>
               {/* Search Controls */}
-              <div className={`flex ${isMobile ? 'flex-column' : ''} gap-3 ${isMobile ? 'w-full' : 'flex-1'}`}>
+              <div className={`flex ${isBelowDesktop ? 'flex-column' : ''} gap-3 ${isBelowDesktop ? 'w-full' : 'flex-1'}`}>
                 <InputText
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -537,9 +552,9 @@ const HubHomePage: React.FC = () => {
                   options={categories}
                   onChange={(e) => setSelectedCategory(e.value)}
                   placeholder="Category"
-                  className={isMobile ? 'w-full' : 'w-12rem'}
+                  className={isBelowDesktop ? 'w-full' : 'w-12rem'}
                   style={{ 
-                    minWidth: isMobile ? 'auto' : '150px',
+                    minWidth: isBelowDesktop ? 'auto' : '150px',
                     color: '#374151'
                   }}
                 />
@@ -557,8 +572,8 @@ const HubHomePage: React.FC = () => {
                 />
               </div>
 
-              {/* Today's Activity Stats */}
-              {stats && !isMobile && (
+              {/* Desktop: Today's Activity to the right of search */}
+              {!isBelowDesktop && stats && (
                 <div className="flex align-items-center gap-4 border-left-2 border-blue-200 pl-4">
                   <div className="text-xs text-gray-500 font-medium">Today's Activity:</div>
                   <div className="flex gap-3">
@@ -579,8 +594,8 @@ const HubHomePage: React.FC = () => {
               )}
             </div>
 
-            {/* Mobile Today's Stats - Below search on mobile */}
-            {stats && isMobile && (
+            {/* Mobile/Tablet: Today's Activity below search */}
+            {isBelowDesktop && stats && (
               <div className="mt-3 pt-3 border-top-1 border-gray-200">
                 <div className="text-xs text-gray-500 font-medium mb-2 text-center">Today's Activity</div>
                 <div className="flex justify-content-center gap-4">
@@ -605,7 +620,7 @@ const HubHomePage: React.FC = () => {
 
       {/* Stats Section - Updated with real API data */}
       {stats && (
-        <div className={`${isMobile ? 'px-4' : 'px-8'} py-6`} style={{ backgroundColor: '#f1f5f9' }}>
+        <div className={`${isBelowDesktop ? 'px-4' : 'px-8'} py-6`} style={{ backgroundColor: '#f1f5f9' }}>
           <div className="grid">
             <div className="col-6 md:col-3">
               <Card className="text-center h-full border-0 shadow-2" 
@@ -712,7 +727,7 @@ const HubHomePage: React.FC = () => {
       )}
 
       {/* Recent Successes Section */}
-      <div className={`${isMobile ? 'px-4' : 'px-8'} py-6`} style={{ backgroundColor: '#3c5547ff', color: 'white' }}>
+      <div className={`${isBelowDesktop ? 'px-4' : 'px-8'} py-6`} style={{ backgroundColor: '#3c5547ff', color: 'white' }}>
         <div className="text-center mb-6">
           <h3 className="text-2xl font-bold text-gray-800 mb-2">Recent Success Stories 🎉</h3>
           <p className="text-gray-600 mb-4">See how our community helps reunite people with their belongings</p>
@@ -730,23 +745,26 @@ const HubHomePage: React.FC = () => {
           />
         </div>
         
-        <div className="flex justify-content-center">
-          <Carousel
-            value={recentSuccesses}
-            numVisible={isMobile ? 1 : 3}
-            numScroll={1}
-            itemTemplate={successTemplate}
-            circular
-            autoplayInterval={5000}
-            showNavigators
-            showIndicators
-            className="w-full max-w-6xl max-h-1xl"
-          />
+        {/* Center the carousel horizontally */}
+        <div className="flex justify-content-center w-full">
+          <div className="w-full" style={{ maxWidth: 1200, margin: '0 auto' }}>
+            <Carousel
+              value={recentSuccesses}
+              numVisible={carouselNumVisible}
+              numScroll={1}
+              itemTemplate={successTemplate}
+              circular
+              autoplayInterval={5000}
+              showNavigators
+              showIndicators
+              className="w-full"
+            />
+          </div>
         </div>
       </div>
 
       {/* Trending Items Section - with silent auto-refresh */}
-      <div className={`${isMobile ? 'px-4' : 'px-8'} py-6`} style={{ backgroundColor: '#f8fafc', color: '#4b5563' }}>
+      <div className={`${isBelowDesktop ? 'px-4' : 'px-8'} py-6`} style={{ backgroundColor: '#f8fafc', color: '#4b5563' }}>
         <div className="text-center mb-6">
           <h3 className="text-2xl font-bold text-gray-800 mb-2">Trending Lost Items 📈</h3>
           <p className="text-gray-600">Most reported items this week with real-time trend analysis</p>
@@ -839,7 +857,7 @@ const HubHomePage: React.FC = () => {
       </div>
 
       {/* Call to Action Section */}
-      <div className={`${isMobile ? 'px-4' : 'px-8'} py-8`} 
+      <div className={`${isBelowDesktop ? 'px-4' : 'px-8'} py-8`} 
            style={{ backgroundColor: '#8eb8a7ff' }}>
         <Card className="text-center border-0 shadow-4" 
               style={{ 
