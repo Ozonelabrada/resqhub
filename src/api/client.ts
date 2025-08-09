@@ -75,6 +75,6 @@ export class ApiClient {
 }
 
 // Multiple API clients for different services
-export const mainApiClient = new ApiClient(import.meta.env.REACT_APP_API_BASE_URL);
-export const authApiClient = new ApiClient(`${import.meta.env.REACT_APP_API_BASE_URL}/auth`);
-export const reportsApiClient = new ApiClient(`${import.meta.env.REACT_APP_API_BASE_URL}/reports`);
+export const mainApiClient = new ApiClient(import.meta.env.VITE_APP_API_BASE_URL);
+export const authApiClient = new ApiClient(`${import.meta.env.VITE_APP_API_BASE_URL}/auth`);
+export const reportsApiClient = new ApiClient(`${import.meta.env.VITE_APP_API_BASE_URL}/reports`);
