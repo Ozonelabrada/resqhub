@@ -227,13 +227,13 @@ const AdminLayout = () => {
           />
           
           {/* Online Status Indicator */}
-          <div 
+          {/* <div 
             className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-round"
             style={{ 
               border: '2px solid white',
               transform: 'translate(25%, 25%)'
             }}
-          ></div>
+          ></div> */}
         </div>
         
         {/* User Menu */}
