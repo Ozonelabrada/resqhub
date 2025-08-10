@@ -5,9 +5,8 @@ import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
 import { Badge } from 'primereact/badge';
-import { Dialog } from 'primereact/dialog';
 import { ProgressSpinner } from 'primereact/progressspinner';
-
+import ItemDetailsModal from '../../../modals/ItemDetailsModal';
 const SearchItemsPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
@@ -925,17 +924,31 @@ const SearchItemsPage: React.FC = () => {
                         ) : (
                           <div></div>
                         )}
-                        <Button 
-                          label="View Details"
-                          icon="pi pi-eye"
-                          className="p-button-sm p-button-outlined"
-                          onClick={(e) => handleViewDetails(item, e)}
-                        />
+                        <div className="flex align-items-center gap-3">
+                          <div className="flex align-items-center gap-1 text-gray-500">
+                            <i className="pi pi-thumbs-up" style={{ fontSize: '1rem' }}></i>
+                            <span style={{ fontSize: '0.95rem' }}>{item.likeCount ?? 0}</span>
+                          </div>
+                          <div className="flex align-items-center gap-1 text-gray-500">
+                            <i className="pi pi-comments" style={{ fontSize: '1rem' }}></i>
+                            <span style={{ fontSize: '0.95rem' }}>{item.commentCount ?? 0}</span>
+                          </div>
+                          <div className="flex align-items-center gap-1 text-gray-500">
+                            <i className="pi pi-eye" style={{ fontSize: '1rem' }}></i>
+                            <span style={{ fontSize: '0.95rem' }}>{item.watchCount ?? 0}</span>
+                          </div>
+                          <Button 
+                            label="View Details"
+                            icon="pi pi-eye"
+                            className="p-button-sm p-button-outlined"
+                            onClick={(e) => handleViewDetails(item, e)}
+                          />
+                        </div>
                       </div>
                     </div>
-                  </Card>
-                </div>
-              ))}
+                    </Card>
+                  </div>
+                ))}
             </div>
 
             {/* Loading Indicator */}
@@ -960,91 +973,12 @@ const SearchItemsPage: React.FC = () => {
         )}
       </div>
 
-      {/* Simple Test Modal */}
-      <Dialog
-        header={selectedItem ? `${selectedItem.title} Details` : 'Item Details'}
+      {/* View Details Modal */}
+      <ItemDetailsModal
         visible={isModalVisible}
         onHide={handleCloseModal}
-        style={{ width: '90vw', maxWidth: '800px' }}
-        modal
-      >
-        {selectedItem && (
-          <div className="p-4">
-            <div className="mb-4">
-              <img 
-                src={selectedItem.images[0] || selectedItem.image} 
-                alt={selectedItem.title}
-                className="w-full h-15rem object-cover border-round"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik0xNTAgMTIwSDE1OFYxMjhIMTY2VjEzNkgxNzRWMTQ0SDE4MlYxNTJIMTkwVjE2MEgxOThWMTY4SDIwNlYxNzZIMjE0VjE4NEgyMjJWMTkySDIzMFYyMDBIMjM4VjIwOEgyNDZWMjE2SDI1NFYyMjRIMjYyVjIzMkgyNzBWMjQwSDI3OFYyNDhIMjg2VjI1NkgyOTRWMjY0SDMwMlYyNzJIMzEwVjI4MEgzMThWMjg4SDMyNlYyOTZIMzM0VjMwNEgzNDJWMzEySDM1MFYzMjBIMzU4VjMyOEgzNjZWMzM2SDM3NFYzNDRIMzgyVjM1MkgzODBWMzQ0SDM3MlYzMzZIMzY0VjMyOEgzNTZWMzIwSDM0OFYzMTJIMzQwVjMwNEgzMzJWMjk2SDMyNFYyODhIMzE2VjI4MEgzMDhWMjcySDMwMFYyNjRIMjkyVjI1NkgyODRWMjQ4SDI3NlYyNDBIMjY4VjIzMkgyNjBWMjI0SDI1MlYyMTZIMjQ0VjIwOEgyMzZWMjAwSDIyOFYxOTJIMjIwVjE4NEgyMTJWMTc2SDIwNFYxNjhIMTk2VjE2MEgxODhWMTUySDI4MFYxNDRIMTcyVjEzNkgxNjRWMTI4SDE1NlYxMjBIMTUwWiIgZmlsbD0iI0M0QzRDNCIvPgo8L3N2Zz4K';
-                }}
-              />
-            </div>
-            
-            <div className="mb-3">
-              <h3 className="text-2xl font-bold mb-2">{selectedItem.title}</h3>
-              <Badge 
-                value={selectedItem.type === 'lost' ? 'LOST' : 'FOUND'} 
-                severity={selectedItem.type === 'lost' ? 'danger' : 'success'} 
-                className="mb-3"
-              />
-            </div>
-            
-            <div className="mb-3">
-              <p className="text-gray-700 line-height-3">{selectedItem.description}</p>
-            </div>
-            
-            <div className="grid">
-              <div className="col-6">
-                <div className="text-sm text-gray-500 mb-1">Location</div>
-                <div className="flex align-items-center gap-2">
-                  <i className="pi pi-map-marker text-gray-600"></i>
-                  <span className="font-medium">{selectedItem.location}</span>
-                </div>
-              </div>
-              <div className="col-6">
-                <div className="text-sm text-gray-500 mb-1">Date</div>
-                <div className="flex align-items-center gap-2">
-                  <i className="pi pi-calendar text-gray-600"></i>
-                  <span className="font-medium">{selectedItem.date}</span>
-                </div>
-              </div>
-            </div>
-            
-            {selectedItem.reward && (
-              <div className="mt-3">
-                <div className="bg-green-100 text-green-700 px-3 py-2 border-round">
-                  💰 Reward: {selectedItem.reward}
-                </div>
-              </div>
-            )}
-            
-            {selectedItem.contactInfo && (
-              <div className="mt-4">
-                <h4 className="text-lg font-semibold mb-2">Contact Information</h4>
-                <div className="bg-blue-50 p-3 border-round">
-                  <div className="font-medium">{selectedItem.contactInfo.name}</div>
-                  {selectedItem.contactInfo.phone && (
-                    <div className="text-sm text-gray-600">📞 {selectedItem.contactInfo.phone}</div>
-                  )}
-                  {selectedItem.contactInfo.email && (
-                    <div className="text-sm text-gray-600">✉️ {selectedItem.contactInfo.email}</div>
-                  )}
-                </div>
-              </div>
-            )}
-            
-            <div className="mt-4 text-center">
-              <Button 
-                label="Contact Owner" 
-                icon="pi pi-envelope"
-                className="p-button-success"
-              />
-            </div>
-          </div>
-        )}
-      </Dialog>
+        item={selectedItem}
+      />
     </div>
   );
 };
