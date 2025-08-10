@@ -7,7 +7,6 @@ import { Dropdown } from 'primereact/dropdown';
 import { Badge } from 'primereact/badge';
 import { Avatar } from 'primereact/avatar';
 import { Chip } from 'primereact/chip';
-import { Carousel } from 'primereact/carousel';
 import { Menu } from 'primereact/menu';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { Toast } from 'primereact/toast';
@@ -15,6 +14,7 @@ import { Chart } from 'primereact/chart';
 import { Logo } from '../../../ui';
 import { useStatistics } from '../../../../hooks/useStatistics';
 import { useTrendingReports } from '../../../../hooks/useTrendingReports';
+import { CSSTransition } from 'react-transition-group';
 
 const HubHomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -27,6 +27,7 @@ const HubHomePage: React.FC = () => {
   const toast = useRef<Toast>(null);
 
   // Use custom hooks for statistics and trending reports
+  const bottomBarRef = useRef<HTMLDivElement>(null);
   const { statistics: stats, loading: statsLoading, error: statsError } = useStatistics();
   const { 
     trendingReports, 
@@ -327,63 +328,22 @@ const HubHomePage: React.FC = () => {
     accountMenuRef.current?.toggle(event);
   };
 
-  const successTemplate = (item: any) => {
-    return (
-      <Card 
-        className="m-2 border-1 border-green-200 h-full" 
-        style={{ 
-          backgroundColor: '#ffffffff',
-          minHeight: '180px',
-          display: 'flex',
-          flexDirection: 'column'
-        }}
-      >
-        <div className="flex align-items-center gap-3 p-3 h-full">
-          <img 
-            src={item.image} 
-            alt={item.title}
-            className="w-4rem h-4rem object-cover border-round shadow-2 flex-shrink-0"
-          />
-          <div className="flex-1 flex flex-column justify-content-between h-full">
-            <div>
-              <div className="flex align-items-center gap-2 mb-1">
-                <span className="font-semibold text-gray-800">{item.title}</span>
-                <Badge 
-                  value={item.type.toUpperCase()} 
-                  severity={item.type === 'lost' ? 'danger' : 'success'}
-                  className="text-xs"
-                />
-              </div>
-              <div className="text-sm text-gray-600 mb-1">
-                <i className="pi pi-map-marker mr-1 text-gray-500"></i>
-                {item.location}
-              </div>
-            </div>
-            <div className="text-xs text-gray-500 mt-auto">{item.timeAgo}</div>
-          </div>
-          <div className="text-center flex-shrink-0">
-            <i className="pi pi-check-circle text-green-600 text-2xl"></i>
-            <div className="text-xs text-green-700 font-semibold">Reunited!</div>
-          </div>
-        </div>
-      </Card>
-    );
-  };
-
-  // Add a helper to determine the number of visible items
-  const getCarouselNumVisible = () => {
-    if (window.innerWidth < 768) return 1;      // mobile
-    if (window.innerWidth < 1024) return 2;     // tablet
-    return 3;                                   // desktop
-  };
-
-  const [carouselNumVisible, setCarouselNumVisible] = useState(getCarouselNumVisible());
+  const [showBottomBar, setShowBottomBar] = useState(false);
 
   useEffect(() => {
-    const handleResize = () => setCarouselNumVisible(getCarouselNumVisible());
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    if (!isBelowDesktop) return;
+
+    const handleScroll = () => {
+      const scrollY = window.scrollY || window.pageYOffset;
+      const windowHeight = window.innerHeight;
+      const docHeight = document.documentElement.scrollHeight;
+      // Show when user is within 80px of the bottom
+      setShowBottomBar(scrollY + windowHeight >= docHeight - 80);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isBelowDesktop]);
 
   // Show loading spinner while fetching data
   if (statsLoading || trendingLoading) {
@@ -500,13 +460,13 @@ const HubHomePage: React.FC = () => {
             )}
 
             {/* Quick Action Buttons */}
-            <div className="flex gap-3 mb-6 justify-content-center">
+            <div className={`flex gap-3 mb-6 justify-content-center ${isBelowDesktop ? 'flex-column w-full' : ''}`}>
               <Button
                 label="Report Lost Item"
                 icon="pi pi-minus-circle"
-                className="p-button-lg"
-                style={{ 
-                  backgroundColor: '#cda710ff', 
+                className={`p-button-lg ${isBelowDesktop ? 'w-full' : ''}`}
+                style={{
+                  backgroundColor: '#cda710ff',
                   borderColor: '#7e6b6bff',
                   color: 'white',
                   boxShadow: '0 4px 6px rgba(220, 38, 38, 0.3)'
@@ -516,9 +476,9 @@ const HubHomePage: React.FC = () => {
               <Button
                 label="Report Found Item"
                 icon="pi pi-plus-circle"
-                className="p-button-lg"
-                style={{ 
-                  backgroundColor: '#16a34a', 
+                className={`p-button-lg ${isBelowDesktop ? 'w-full' : ''}`}
+                style={{
+                  backgroundColor: '#16a34a',
                   borderColor: '#16a34a',
                   color: 'white',
                   boxShadow: '0 4px 6px rgba(22, 163, 74, 0.3)'
@@ -729,37 +689,73 @@ const HubHomePage: React.FC = () => {
       {/* Recent Successes Section */}
       <div className={`${isBelowDesktop ? 'px-4' : 'px-8'} py-6`} style={{ backgroundColor: '#3c5547ff', color: 'white' }}>
         <div className="text-center mb-6">
-          <h3 className="text-2xl font-bold text-gray-800 mb-2">Recent Success Stories 🎉</h3>
-          <p className="text-gray-600 mb-4">See how our community helps reunite people with their belongings</p>
+          <h3 className="text-2xl font-bold text-white mb-2">Recent Success Stories 🎉</h3>
+          <p className="text-gray-200 mb-4">See how our community helps reunite people with their belongings</p>
           <Button
             label="View All Success Stories"
             icon="pi pi-arrow-right"
             iconPos="right"
             className="p-button-outlined p-button-sm"
-            style={{ 
-              color: '#ffffffff', 
-              borderColor: '#3b82f6',
-              backgroundColor: '#105a2cff'
+            style={{
+              color: '#fff',
+              borderColor: '#fff',
+              backgroundColor: 'transparent'
             }}
             onClick={() => navigate('/success-stories')}
           />
         </div>
-        
-        {/* Center the carousel horizontally */}
-        <div className="flex justify-content-center w-full">
-          <div className="w-full" style={{ maxWidth: 1200, margin: '0 auto' }}>
-            <Carousel
-              value={recentSuccesses}
-              numVisible={carouselNumVisible}
-              numScroll={1}
-              itemTemplate={successTemplate}
-              circular
-              autoplayInterval={5000}
-              showNavigators
-              showIndicators
-              className="w-full"
-            />
-          </div>
+
+        <div className={`grid gap-4 ${isBelowDesktop ? '' : 'grid-cols-3'}`}>
+          {recentSuccesses.map((item) => (
+            <div key={item.id} className="col-12 md:col-4">
+              <Card
+                className="h-full border-0 shadow-4"
+                style={{
+                  background: 'linear-gradient(135deg, #f8fafc 60%, #e0e7ef 100%)',
+                  borderRadius: '18px',
+                  overflow: 'hidden',
+                  minHeight: 220,
+                  color: '#222'
+                }}
+              >
+                <div className="flex flex-column align-items-center p-4">
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="mb-3"
+                    style={{
+                      width: 72,
+                      height: 72,
+                      objectFit: 'cover',
+                      borderRadius: '50%',
+                      border: '3px solid #16a34a',
+                      boxShadow: '0 2px 8px rgba(22,163,74,0.08)'
+                    }}
+                  />
+                  <div className="font-bold text-lg mb-1">{item.title}</div>
+                  <div className="flex align-items-center gap-2 mb-2">
+                    <Badge
+                      value={item.type === 'lost' ? 'Lost' : 'Found'}
+                      severity={item.type === 'lost' ? 'danger' : 'success'}
+                      className="text-xs"
+                    />
+                    <span className="text-gray-500 text-sm">{item.location}</span>
+                  </div>
+                  <div className="text-xs text-gray-400 mb-2">{item.timeAgo}</div>
+                  <Button
+                    label="View Details"
+                    icon="pi pi-external-link"
+                    className="p-button-text p-button-sm"
+                    style={{
+                      color: '#2563eb',
+                      fontWeight: 600
+                    }}
+                    onClick={() => navigate(`/success-stories/${item.id}`)}
+                  />
+                </div>
+              </Card>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -873,30 +869,66 @@ const HubHomePage: React.FC = () => {
               Every report counts and makes a difference!
             </p>
             <div className="flex gap-3 justify-content-center">
-              <Button
-                label="Report Lost Item"
-                icon="pi pi-minus-circle"
-                className="p-button-lg"
-                style={{ 
-                  backgroundColor: '#dc2626', 
-                  borderColor: '#dc2626',
-                  color: 'white',
-                  boxShadow: '0 4px 6px rgba(220, 38, 38, 0.3)'
-                }}
-                onClick={() => handleReportAction('lost')}
-              />
-              <Button
-                label="Report Found Item"
-                icon="pi pi-plus-circle"
-                className="p-button-lg"
-                style={{ 
-                  backgroundColor: '#16a34a', 
-                  borderColor: '#16a34a',
-                  color: 'white',
-                  boxShadow: '0 4px 6px rgba(22, 163, 74, 0.3)'
-                }}
-                onClick={() => handleReportAction('found')}
-              />
+
+              {/* Floating Bottom Action Bar for Mobile */}
+              {isBelowDesktop && (
+                <CSSTransition
+                  in={isBelowDesktop && showBottomBar}
+                  timeout={300}
+                  classNames="fade-bottom-bar"
+                  unmountOnExit
+                  nodeRef={bottomBarRef}
+                >
+                  <div
+                    ref={bottomBarRef}
+                    className="fixed left-0 right-0 z-5 flex justify-content-center fade-bottom-bar"
+                    style={{
+                      bottom: 20,
+                      pointerEvents: 'none'
+                    }}
+                  >
+                    <div
+                      className="flex gap-3 p-2"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.18)',
+                        borderRadius: 16,
+                        boxShadow: '0 4px 24px rgba(0,0,0,0.10)',
+                        pointerEvents: 'auto',
+                        minWidth: 320,
+                        maxWidth: 420,
+                        transition: 'opacity 0.3s'
+                      }}
+                    >
+                      <Button
+                        label="Lost"
+                        icon="pi pi-minus-circle"
+                        className="p-button-lg flex-1"
+                        style={{
+                          background: 'linear-gradient(90deg, #fbbf24 0%, #f59e42 100%)',
+                          border: 'none',
+                          color: '#fff',
+                          fontWeight: 700,
+                          borderRadius: 12
+                        }}
+                        onClick={() => handleReportAction('lost')}
+                      />
+                      <Button
+                        label="Found"
+                        icon="pi pi-plus-circle"
+                        className="p-button-lg flex-1"
+                        style={{
+                          background: 'linear-gradient(90deg, #22c55e 0%, #16a34a 100%)',
+                          border: 'none',
+                          color: '#fff',
+                          fontWeight: 700,
+                          borderRadius: 12
+                        }}
+                        onClick={() => handleReportAction('found')}
+                      />
+                    </div>
+                  </div>
+                </CSSTransition>
+              )}
             </div>
           </div>
         </Card>
