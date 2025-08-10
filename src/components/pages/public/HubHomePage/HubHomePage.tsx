@@ -25,6 +25,7 @@ const HubHomePage: React.FC = () => {
   const [userData, setUserData] = useState<any>(null);
   const accountMenuRef = useRef<Menu>(null);
   const toast = useRef<Toast>(null);
+  const guestMenuRef = useRef<Menu>(null);
 
   // Use custom hooks for statistics and trending reports
   const bottomBarRef = useRef<HTMLDivElement>(null);
@@ -324,8 +325,26 @@ const HubHomePage: React.FC = () => {
     }
   ];
 
+  // Guest menu items for mobile
+  const guestMenuItems = [
+    {
+      label: 'Sign In',
+      icon: 'pi pi-sign-in',
+      command: () => navigate('/signin')
+    },
+    {
+      label: 'Admin Login',
+      icon: 'pi pi-shield',
+      command: () => navigate('/admin/login')
+    }
+  ];
+
   const showAccountMenu = (event: React.MouseEvent) => {
     accountMenuRef.current?.toggle(event);
+  };
+
+  const showGuestMenu = (event: React.MouseEvent) => {
+    guestMenuRef.current?.toggle(event);
   };
 
   const [showBottomBar, setShowBottomBar] = useState(false);
@@ -412,26 +431,48 @@ const HubHomePage: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="flex gap-2">
-                <Button 
-                  label="Sign In"
-                  icon="pi pi-sign-in"
-                  onClick={() => navigate('/signin')}
-                  className="p-button-outlined p-button-sm"
-                  style={{ 
-                    borderColor: 'rgba(255, 255, 255, 0.8)', 
-                    color: 'white',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                  }}
-                />
-                <Button 
-                  label="Admin"
-                  icon="pi pi-shield"
-                  onClick={() => navigate('/admin/login')}
-                  className="p-button-text p-button-sm"
-                  style={{ color: 'rgba(255, 255, 255, 0.9)' }}
-                />
-              </div>
+              isBelowDesktop ? (
+                <div className="relative">
+                  <Button
+                    icon="pi pi-bars"
+                    className="p-button-rounded p-button-text p-button-sm"
+                    aria-label="Menu"
+                    onClick={showGuestMenu}
+                    style={{
+                      color: 'white',
+                      fontSize: '1.5rem'
+                    }}
+                  />
+                  <Menu
+                    model={guestMenuItems}
+                    popup
+                    ref={guestMenuRef}
+                    className="mt-2"
+                    style={{ minWidth: '160px' }}
+                  />
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Button 
+                    label="Sign In"
+                    icon="pi pi-sign-in"
+                    onClick={() => navigate('/signin')}
+                    className="p-button-outlined p-button-sm"
+                    style={{ 
+                      borderColor: 'rgba(255, 255, 255, 0.8)', 
+                      color: 'white',
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                    }}
+                  />
+                  <Button 
+                    label="Admin"
+                    icon="pi pi-shield"
+                    onClick={() => navigate('/admin/login')}
+                    className="p-button-text p-button-sm"
+                    style={{ color: 'rgba(255, 255, 255, 0.9)' }}
+                  />
+                </div>
+              )
             )}
           </div>
 
