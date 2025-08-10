@@ -69,7 +69,25 @@ button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
-
+/* Add to your main CSS file */
+.fade-bottom-bar-enter {
+  opacity: 0;
+  transform: translateY(40px);
+}
+.fade-bottom-bar-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s, transform 0.3s;
+}
+.fade-bottom-bar-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+.fade-bottom-bar-exit-active {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.3s, transform 0.3s;
+}
 @media (prefers-color-scheme: light) {
   :root {
     color: #21354700;
