@@ -180,8 +180,9 @@ const ItemDetailsModal: React.FC<ItemDetailsModalProps> = ({ visible, onHide, it
           <h3 className="mb-3">Timeline</h3>
           <Timeline 
             value={timelineEvents} 
+            align="left"
             content={(event) => (
-              <div className="ml-3">
+              <div>
                 <div className="font-semibold">{event.status}</div>
                 <div className="text-sm text-gray-500">
                   {new Date(event.date).toLocaleString()}
