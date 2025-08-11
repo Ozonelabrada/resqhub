@@ -402,7 +402,6 @@ const SignUpPage = () => {
             >
               <i className="pi pi-user-plus" style={{ color: 'white', fontSize: 28 }}></i>
             </div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Join ResQHub</h1>
             <p className="text-gray-600">Create your account to get started</p>
           </div>
 
