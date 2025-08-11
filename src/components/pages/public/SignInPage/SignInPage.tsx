@@ -314,15 +314,7 @@ const SignInPage = () => {
                 </span>
               </div>
             </div>
-            
-            {/* Catchy tagline */}
-            <p className="text-lg text-gray-600 p-0 mb-4 font-medium" style={{ 
-              letterSpacing: '0.3px',
-              lineHeight: '1.4'
-            }}>
-              Reuniting people with their precious belongings
-            </p>
-            
+           
             {/* Sign in message */}
             <h1 className="text-xl font-bold text-gray-800 m-0" style={{ letterSpacing: 0.3 }}>
               Welcome back! Please sign in to continue
