@@ -10,8 +10,6 @@ import PersonalHubPage from './components/pages/public/PersonalHubPage/PersonalH
 
 // Admin Pages
 import AdminLoginPage from './components/shared/LoginPage/LoginPage';
-import DashboardPage from './components/pages/admin/DashboardPage/DashboardPage';
-import ItemsPage from './components/features/items/ItemsPage';
 
 // Shared Pages
 import NotFoundPage from './components/shared/NotFoundPage/NotFoundPage';

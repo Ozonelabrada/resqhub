@@ -21,7 +21,7 @@ const SignInPage = () => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isFormValid, setIsFormValid] = useState(false);
-  const [socialLoading, setSocialLoading] = useState(false);
+ // const [socialLoading, setSocialLoading] = useState(false);
 
   // Form validation
   useEffect(() => {
@@ -176,15 +176,15 @@ const SignInPage = () => {
   };
 
 
-  const handleGoogleSignIn = () => {
-    setSocialLoading(true);
-    const apiUrl =
-      import.meta.env.VITE_APP_API_BASE_URL;
-    // Add a slight delay for UX polish
-    setTimeout(() => {
-      window.location.href = `${apiUrl}/auth/google`;
-    }, 500);
-  };
+  // const handleGoogleSignIn = () => {
+  //   setSocialLoading(true);
+  //   const apiUrl =
+  //     import.meta.env.VITE_APP_API_BASE_URL;
+  //   // Add a slight delay for UX polish
+  //   setTimeout(() => {
+  //     window.location.href = `${apiUrl}/auth/google`;
+  //   }, 500);
+  // };
 
   // Inline styles to override any global CSS that might be setting width to 1%
   const inputOverrideStyles: React.CSSProperties = {
@@ -232,9 +232,9 @@ const SignInPage = () => {
     );
   };
 
-  function handleSocialLogin(): void {
-    throw new Error('Function not implemented.');
-  }
+  // function handleSocialLogin(): void {
+  //   throw new Error('Function not implemented.');
+  // }
 
   return (
     <div className="min-h-screen flex align-items-center justify-content-center px-4 py-8"
@@ -245,7 +245,7 @@ const SignInPage = () => {
       }}>
 
       {/* Loading Overlay for Social Auth */}
-      {socialLoading && (
+      {/* {socialLoading && (
         <div style={{
           position: 'fixed',
           zIndex: 9999,
@@ -269,7 +269,7 @@ const SignInPage = () => {
             {`@keyframes spin { 100% { transform: rotate(360deg); } }`}
           </style>
         </div>
-      )}
+      )} */}
 
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
