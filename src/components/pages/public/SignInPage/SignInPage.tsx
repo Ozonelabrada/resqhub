@@ -167,13 +167,13 @@ const SignInPage = () => {
     }
   };
 
-  const handleDemoLogin = () => {
-    setFormData({
-      email: 'demo@resqhub.com',
-      password: 'demo123',
-      rememberMe: false
-    });
-  };
+  // const handleDemoLogin = () => {
+  //   setFormData({
+  //     email: 'demo@resqhub.com',
+  //     password: 'demo123',
+  //     rememberMe: false
+  //   });
+  // };
 
 
   // const handleGoogleSignIn = () => {
@@ -322,7 +322,7 @@ const SignInPage = () => {
           </div>
 
           {/* Demo Login Banner */}
-          <div className="mb-4 p-3 border-round-lg" style={{ backgroundColor: '#e0f2fe', border: '1px solid #0277bd' }}>
+          {/* <div className="mb-4 p-3 border-round-lg" style={{ backgroundColor: '#e0f2fe', border: '1px solid #0277bd' }}>
             <div className="flex align-items-center justify-content-between">
               <div>
                 <div className="text-sm font-semibold text-cyan-800">Try Demo Account</div>
@@ -336,7 +336,7 @@ const SignInPage = () => {
                 onClick={handleDemoLogin}
               />
             </div>
-          </div>
+          </div> */}
 
           {/* Error Message */}
           {renderErrorMessage()}
