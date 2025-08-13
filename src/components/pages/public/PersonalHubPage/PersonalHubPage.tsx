@@ -11,11 +11,9 @@ import { Chip } from 'primereact/chip';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { Divider } from 'primereact/divider';
 import { FileUpload } from 'primereact/fileupload';
-import { Menu } from 'primereact/menu';
 import { Toast } from 'primereact/toast';
 import { Dialog } from 'primereact/dialog';
 import { InputTextarea } from 'primereact/inputtextarea';
-import { Logo } from '../../../ui';
 import { ItemsService } from '../../../../services/itemsService';
 import { UserService } from '../../../../services/userService';
 
@@ -27,9 +25,7 @@ const PersonalHubPage: React.FC = () => {
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const [isMobile, setIsMobile] = useState(false);
   const [showProfileEdit, setShowProfileEdit] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userLoading, setUserLoading] = useState(true);
-  const accountMenuRef = useRef<Menu>(null);
   const toast = useRef<Toast>(null);
   
   // Infinite scroll states for reports
@@ -62,8 +58,6 @@ const PersonalHubPage: React.FC = () => {
         navigate('/signin');
         return;
       }
-
-      setIsAuthenticated(true);
       setUserLoading(true);
 
       try {
@@ -152,72 +146,7 @@ const PersonalHubPage: React.FC = () => {
       fetchUserReports();
       loadRecentActivity();
     }
-  }, [userData, userLoading]);
-
-  // Handle logout (same as HubHomePage)
-  const handleLogout = () => {
-    localStorage.removeItem('publicUserToken');
-    localStorage.removeItem('publicUserData');
-    setIsAuthenticated(false);
-    setUserData(null);
-    navigate('/signin');
-  };
-
-  // Account menu items (same as HubHomePage)
-  const accountMenuItems = [
-    {
-      label: 'My Profile',
-      icon: 'pi pi-user',
-      command: () => navigate('/profile')
-    },
-    {
-      label: 'Public Hub',
-      icon: 'pi pi-home',
-      command: () => navigate('/')
-    },
-    {
-      label: 'My Reports',
-      icon: 'pi pi-list',
-      command: () => navigate('/hub?tab=reports')
-    },
-    {
-      label: 'Notifications',
-      icon: 'pi pi-bell',
-      command: () => navigate('/notifications')
-    },
-    {
-      label: 'Settings',
-      icon: 'pi pi-cog',
-      command: () => navigate('/settings')
-    },
-    {
-      separator: true
-    },
-    {
-      label: 'Admin Panel',
-      icon: 'pi pi-shield',
-      command: () => navigate('/admin/login'),
-      className: 'text-orange-600'
-    },
-    {
-      separator: true
-    },
-    {
-      label: 'Help & Support',
-      icon: 'pi pi-question-circle',
-      command: () => navigate('/help')
-    },
-    {
-      label: 'Logout',
-      icon: 'pi pi-sign-out',
-      command: handleLogout,
-      className: 'text-red-600'
-    }
-  ];
-
-  const showAccountMenu = (event: React.MouseEvent) => {
-    accountMenuRef.current?.toggle(event);
-  };
+  }, [userData, userLoading]); 
 
   const fetchUserReports = async (loadMore = false) => {
     // Get current user ID
