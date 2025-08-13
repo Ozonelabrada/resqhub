@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 
 // Public Pages
 import HubHomePage from './components/pages/public/HubHomePage/HubHomePage';
@@ -23,45 +23,41 @@ import OAuth2RegisterPage from './components/pages/Auth/OAuth2RegisterPage';
 import PublicLayout from './layouts/PublicLayout';
 import AdminLayout from './layouts/AdminLayout';
 import ReportPage from './components/pages/ReportsPage/ReportPage';
+import ProfilePage from './components/pages/ProfilePage/ProfilePage';
 
 const AppRouter = () => {
   return (
-    <Router>
-      <Routes>
-        {/* 🌐 PUBLIC ROUTES - No authentication required */}
-        <Route path="/" element={<PublicLayout />}>
-          <Route index element={<HubHomePage />} />
-          <Route path="search" element={<SearchItemsPage />} />
-          <Route path="signin" element={<SignInPage />} />
-          <Route path="signup" element={<SignUpPage />} />
-          <Route path="/report" element={<ReportPage />} />
-          <Route path="/lost" element={<ReportPage />} />
-          <Route path="/found" element={<ReportPage />} />
-          <Route path="hub" element={<PersonalHubPage />} />
-          
-          {/* OAuth2 Routes - Handle frontend callback */}
-          <Route path="/signin-google" element={<AuthCallbackPage />} />
-          <Route path="/auth/signin-google" element={<AuthCallbackPage />} />
-          <Route path="/auth/callback" element={<AuthCallbackPage />} />
-          <Route path="/auth/register" element={<OAuth2RegisterPage />} />
-        </Route>
+    <Routes>
+      {/* 🌐 PUBLIC ROUTES - No authentication required */}
+      <Route path="/" element={<PublicLayout />}>
+        <Route index element={<HubHomePage />} />
+        <Route path="search" element={<SearchItemsPage />} />
+        <Route path="signin" element={<SignInPage />} />
+        <Route path="signup" element={<SignUpPage />} />
+        <Route path="/report" element={<ReportPage />} />
+        <Route path="/lost" element={<ReportPage />} />
+        <Route path="/found" element={<ReportPage />} />
+        <Route path="/hub" element={<PersonalHubPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        
+        {/* OAuth2 Routes - Handle frontend callback */}
+        <Route path="/signin-google" element={<AuthCallbackPage />} />
+        <Route path="/auth/signin-google" element={<AuthCallbackPage />} />
+        <Route path="/auth/callback" element={<AuthCallbackPage />} />
+        <Route path="/auth/register" element={<OAuth2RegisterPage />} />
+      </Route>
 
-        {/* 🔐 ADMIN LOGIN - Standalone without layout */}
-        <Route path="/admin/login" element={<AdminLoginPage />} />
+      {/* 🔐 ADMIN LOGIN - Standalone without layout */}
+      <Route path="/admin/login" element={<AdminLoginPage />} />
 
-        {/* 🔐 ADMIN ROUTES - Authentication required with layout */}
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route path="dashboard" element={<DashboardPage />} />
-          <Route path="items" element={<ItemsPage />} />
-          <Route path="analytics" element={<div>Analytics Page</div>} />
-          <Route path="users" element={<div>Users Management Page</div>} />
-        </Route>
+      {/* 🔐 ADMIN ROUTES - Authentication required with layout */}
+      <Route path="/admin" element={<AdminLayout />}>
+      </Route>
 
-        {/* 🚧 UTILITY ROUTES */}
-        <Route path="/maintenance" element={<UnderMaintenancePage />} />
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </Router>
+      {/* 🚧 UTILITY ROUTES */}
+      <Route path="/maintenance" element={<UnderMaintenancePage />} />
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
   );
 };
 

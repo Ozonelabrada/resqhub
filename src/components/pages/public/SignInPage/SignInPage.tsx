@@ -239,7 +239,7 @@ const SignInPage = () => {
   return (
     <div className="min-h-screen flex align-items-center justify-content-center px-4 py-8"
       style={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: 'linear-gradient(135deg, #353333ff 0%, #475a4bff 50%, #888887ff 100%)',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         position: 'relative'
       }}>
@@ -471,7 +471,7 @@ const SignInPage = () => {
           {/* Social Login Buttons */}
           <div className="mb-4">
             <div className="flex gap-3 flex-column md:flex-row">
-              <Button
+              {/* <Button
                 onClick={handleSocialLogin}
               >
                 <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -484,8 +484,8 @@ const SignInPage = () => {
                     Sign in with Google
                   </span>
                 </span>
-              </Button>
-              <Button
+              </Button> */}
+              {/* <Button
                 style={{
                   background: 'white',
                   border: '1.5px solid #4285F4',
@@ -500,7 +500,7 @@ const SignInPage = () => {
                 }}
                 onClick={handleGoogleSignIn}
                 disabled={loading || socialLoading}
-              />
+              /> */}
               {/* You can add other social buttons here */}
             </div>
           </div>

@@ -15,6 +15,7 @@ import { Logo } from '../../../ui';
 import { useStatistics } from '../../../../hooks/useStatistics';
 import { useTrendingReports } from '../../../../hooks/useTrendingReports';
 import { CSSTransition } from 'react-transition-group';
+import { Dialog } from 'primereact/dialog';
 
 const HubHomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -265,12 +266,23 @@ const HubHomePage: React.FC = () => {
       navigate('/signin');
     }
   };
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
   const handleLogout = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
     localStorage.removeItem('publicUserToken');
     localStorage.removeItem('publicUserData');
     setIsAuthenticated(false);
     setUserData(null);
+    setShowLogoutConfirm(false);
     window.location.reload();
+  };
+
+  const cancelLogout = () => {
+    setShowLogoutConfirm(false);
   };
 
   // Account menu items
@@ -386,6 +398,23 @@ const HubHomePage: React.FC = () => {
     <div style={{ minHeight: '100vh', backgroundColor: '#495560ff' }}>
       <Toast ref={toast} />
       
+      {/* Logout Confirmation Dialog */}
+      <Dialog
+        header="Confirm Logout"
+        visible={showLogoutConfirm}
+        onHide={cancelLogout}
+        style={{ width: '350px' }}
+        footer={
+          <div className="flex justify-content-end gap-2">
+            <Button label="Cancel" icon="pi pi-times" className="p-button-text" onClick={cancelLogout} />
+            <Button label="Logout" icon="pi pi-sign-out" className="p-button-danger" onClick={confirmLogout} />
+          </div>
+        }
+        modal
+      >
+        <div>Are you sure you want to log out?</div>
+      </Dialog>
+
       {/* Hero Section */}
       <div 
         className="relative"
@@ -409,7 +438,7 @@ const HubHomePage: React.FC = () => {
               <div className="flex align-items-center gap-3">
                 <div className="text-right">
                   <div className="text-sm" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>Welcome back,</div>
-                  <div className="font-semibold text-white">{userData?.name}</div>
+                  <div className="font-semibold text-white">{userData?.email}</div>
                 </div>
                 
                 {/* Account Avatar with Dropdown */}
@@ -746,58 +775,339 @@ const HubHomePage: React.FC = () => {
           />
         </div>
 
-        <div className={`grid gap-4 ${isBelowDesktop ? '' : 'grid-cols-3'}`}>
-          {recentSuccesses.map((item) => (
-            <div key={item.id} className="col-12 md:col-4">
-              <Card
-                className="h-full border-0 shadow-4"
-                style={{
-                  background: 'linear-gradient(135deg, #f8fafc 60%, #e0e7ef 100%)',
-                  borderRadius: '18px',
-                  overflow: 'hidden',
-                  minHeight: 220,
-                  color: '#222'
-                }}
-              >
-                <div className="flex flex-column align-items-center p-4">
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="mb-3"
-                    style={{
-                      width: 72,
-                      height: 72,
-                      objectFit: 'cover',
-                      borderRadius: '50%',
-                      border: '3px solid #16a34a',
-                      boxShadow: '0 2px 8px rgba(22,163,74,0.08)'
-                    }}
-                  />
-                  <div className="font-bold text-lg mb-1">{item.title}</div>
-                  <div className="flex align-items-center gap-2 mb-2">
-                    <Badge
-                      value={item.type === 'lost' ? 'Lost' : 'Found'}
-                      severity={item.type === 'lost' ? 'danger' : 'success'}
-                      className="text-xs"
+        {/* Responsive grid for desktop, stacked for mobile */}
+        {isBelowDesktop ? (
+          <div className="grid gap-4">
+            {recentSuccesses.map((item) => (
+              <div key={item.id} className="col-12">
+                <Card
+                  className="h-full border-0 shadow-4"
+                  style={{
+                    background: 'linear-gradient(135deg, #f8fafc 60%, #e0e7ef 100%)',
+                    borderRadius: '18px',
+                    overflow: 'hidden',
+                    minHeight: 220,
+                    color: '#222'
+                  }}
+                >
+                  <div className="flex flex-column align-items-center p-4">
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="mb-3"
+                      style={{
+                        width: 72,
+                        height: 72,
+                        objectFit: 'cover',
+                        borderRadius: '50%',
+                        border: '3px solid #16a34a',
+                        boxShadow: '0 2px 8px rgba(22,163,74,0.08)'
+                      }}
                     />
-                    <span className="text-gray-500 text-sm">{item.location}</span>
+                    <div className="font-bold text-lg mb-1">{item.title}</div>
+                    <div className="flex align-items-center gap-2 mb-2">
+                      <Badge
+                        value={item.type === 'lost' ? 'Lost' : 'Found'}
+                        severity={item.type === 'lost' ? 'danger' : 'success'}
+                        className="text-xs"
+                      />
+                      <span className="text-gray-500 text-sm">{item.location}</span>
+                    </div>
+                    <div className="text-xs text-gray-400 mb-2">{item.timeAgo}</div>
+                    <Button
+                      label="View Details"
+                      icon="pi pi-external-link"
+                      className="p-button-text p-button-sm"
+                      style={{
+                        color: '#2563eb',
+                        fontWeight: 600
+                      }}
+                      onClick={() => navigate(`/success-stories/${item.id}`)}
+                    />
                   </div>
-                  <div className="text-xs text-gray-400 mb-2">{item.timeAgo}</div>
-                  <Button
-                    label="View Details"
-                    icon="pi pi-external-link"
-                    className="p-button-text p-button-sm"
+                </Card>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', alignItems: 'center', width: '100%' }}>
+            {/* Desktop custom layout */}
+            {recentSuccesses.length === 1 && (
+              <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+                  <Card
+                    className="h-full border-0 shadow-4"
                     style={{
-                      color: '#2563eb',
-                      fontWeight: 600
+                      background: 'linear-gradient(135deg, #f8fafc 60%, #e0e7ef 100%)',
+                      borderRadius: '18px',
+                      overflow: 'hidden',
+                      minWidth: 320,
+                      maxWidth: 420,
+                      color: '#222'
                     }}
-                    onClick={() => navigate(`/success-stories/${item.id}`)}
-                  />
+                  >
+                    {/* ...Card content... */}
+                    <div className="flex flex-column align-items-center p-4">
+                      <img
+                        src={recentSuccesses[0].image}
+                        alt={recentSuccesses[0].title}
+                        className="mb-3"
+                        style={{
+                          width: 72,
+                          height: 72,
+                          objectFit: 'cover',
+                          borderRadius: '50%',
+                          border: '3px solid #16a34a',
+                          boxShadow: '0 2px 8px rgba(22,163,74,0.08)'
+                        }}
+                      />
+                      <div className="font-bold text-lg mb-1">{recentSuccesses[0].title}</div>
+                      <div className="flex align-items-center gap-2 mb-2">
+                        <Badge
+                          value={recentSuccesses[0].type === 'lost' ? 'Lost' : 'Found'}
+                          severity={recentSuccesses[0].type === 'lost' ? 'danger' : 'success'}
+                          className="text-xs"
+                        />
+                        <span className="text-gray-500 text-sm">{recentSuccesses[0].location}</span>
+                      </div>
+                      <div className="text-xs text-gray-400 mb-2">{recentSuccesses[0].timeAgo}</div>
+                      <Button
+                        label="View Details"
+                        icon="pi pi-external-link"
+                        className="p-button-text p-button-sm"
+                        style={{
+                          color: '#2563eb',
+                          fontWeight: 600
+                        }}
+                        onClick={() => navigate(`/success-stories/${recentSuccesses[0].id}`)}
+                      />
+                    </div>
+                  </Card>
                 </div>
-              </Card>
-            </div>
-          ))}
-        </div>
+              </div>
+            )}
+            {recentSuccesses.length === 2 && (
+              <div style={{ display: 'flex', gap: '1.5rem', width: '100%' }}>
+                {recentSuccesses.map((item) => (
+                  <div key={item.id} style={{ flex: 1 }}>
+                    <Card
+                      className="h-full border-0 shadow-4"
+                      style={{
+                        background: 'linear-gradient(135deg, #f8fafc 60%, #e0e7ef 100%)',
+                        borderRadius: '18px',
+                        overflow: 'hidden',
+                        minWidth: 320,
+                        color: '#222'
+                      }}
+                    >
+                      {/* ...Card content... */}
+                      <div className="flex flex-column align-items-center p-4">
+                        <img
+                          src={item.image}
+                          alt={item.title}
+                          className="mb-3"
+                          style={{
+                            width: 72,
+                            height: 72,
+                            objectFit: 'cover',
+                            borderRadius: '50%',
+                            border: '3px solid #16a34a',
+                            boxShadow: '0 2px 8px rgba(22,163,74,0.08)'
+                          }}
+                        />
+                        <div className="font-bold text-lg mb-1">{item.title}</div>
+                        <div className="flex align-items-center gap-2 mb-2">
+                          <Badge
+                            value={item.type === 'lost' ? 'Lost' : 'Found'}
+                            severity={item.type === 'lost' ? 'danger' : 'success'}
+                            className="text-xs"
+                          />
+                          <span className="text-gray-500 text-sm">{item.location}</span>
+                        </div>
+                        <div className="text-xs text-gray-400 mb-2">{item.timeAgo}</div>
+                        <Button
+                          label="View Details"
+                          icon="pi pi-external-link"
+                          className="p-button-text p-button-sm"
+                          style={{
+                            color: '#2563eb',
+                            fontWeight: 600
+                          }}
+                          onClick={() => navigate(`/success-stories/${item.id}`)}
+                        />
+                      </div>
+                    </Card>
+                  </div>
+                ))}
+              </div>
+            )}
+            {(recentSuccesses.length === 3 || recentSuccesses.length === 4) && (
+              <div style={{ display: 'flex', gap: '1.5rem', width: '100%' }}>
+                {recentSuccesses.map((item) => (
+                  <div key={item.id} style={{ flex: 1 }}>
+                    <Card
+                      className="h-full border-0 shadow-4"
+                      style={{
+                        background: 'linear-gradient(135deg, #f8fafc 60%, #e0e7ef 100%)',
+                        borderRadius: '18px',
+                        overflow: 'hidden',
+                        minWidth: 220,
+                        color: '#222'
+                      }}
+                    >
+                      {/* ...Card content... */}
+                      <div className="flex flex-column align-items-center p-4">
+                        <img
+                          src={item.image}
+                          alt={item.title}
+                          className="mb-3"
+                          style={{
+                            width: 72,
+                            height: 72,
+                            objectFit: 'cover',
+                            borderRadius: '50%',
+                            border: '3px solid #16a34a',
+                            boxShadow: '0 2px 8px rgba(22,163,74,0.08)'
+                          }}
+                        />
+                        <div className="font-bold text-lg mb-1">{item.title}</div>
+                        <div className="flex align-items-center gap-2 mb-2">
+                          <Badge
+                            value={item.type === 'lost' ? 'Lost' : 'Found'}
+                            severity={item.type === 'lost' ? 'danger' : 'success'}
+                            className="text-xs"
+                          />
+                          <span className="text-gray-500 text-sm">{item.location}</span>
+                        </div>
+                        <div className="text-xs text-gray-400 mb-2">{item.timeAgo}</div>
+                        <Button
+                          label="View Details"
+                          icon="pi pi-external-link"
+                          className="p-button-text p-button-sm"
+                          style={{
+                            color: '#2563eb',
+                            fontWeight: 600
+                          }}
+                          onClick={() => navigate(`/success-stories/${item.id}`)}
+                        />
+                      </div>
+                    </Card>
+                  </div>
+                ))}
+              </div>
+            )}
+            {recentSuccesses.length === 5 && (
+              <>
+                <div style={{ display: 'flex', gap: '1.5rem', width: '100%' }}>
+                  {recentSuccesses.slice(0, 3).map((item) => (
+                    <div key={item.id} style={{ flex: 1 }}>
+                      <Card
+                        className="h-full border-0 shadow-4"
+                        style={{
+                          background: 'linear-gradient(135deg, #f8fafc 60%, #e0e7ef 100%)',
+                          borderRadius: '18px',
+                          overflow: 'hidden',
+                          minWidth: 220,
+                          color: '#222'
+                        }}
+                      >
+                        {/* ...Card content... */}
+                        <div className="flex flex-column align-items-center p-4">
+                          <img
+                            src={item.image}
+                            alt={item.title}
+                            className="mb-3"
+                            style={{
+                              width: 72,
+                              height: 72,
+                              objectFit: 'cover',
+                              borderRadius: '50%',
+                              border: '3px solid #16a34a',
+                              boxShadow: '0 2px 8px rgba(22,163,74,0.08)'
+                            }}
+                          />
+                          <div className="font-bold text-lg mb-1">{item.title}</div>
+                          <div className="flex align-items-center gap-2 mb-2">
+                            <Badge
+                              value={item.type === 'lost' ? 'Lost' : 'Found'}
+                              severity={item.type === 'lost' ? 'danger' : 'success'}
+                              className="text-xs"
+                            />
+                            <span className="text-gray-500 text-sm">{item.location}</span>
+                          </div>
+                          <div className="text-xs text-gray-400 mb-2">{item.timeAgo}</div>
+                          <Button
+                            label="View Details"
+                            icon="pi pi-external-link"
+                            className="p-button-text p-button-sm"
+                            style={{
+                              color: '#2563eb',
+                              fontWeight: 600
+                            }}
+                            onClick={() => navigate(`/success-stories/${item.id}`)}
+                          />
+                        </div>
+                      </Card>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: '1.5rem', width: '100%', marginTop: '1.5rem' }}>
+                  {recentSuccesses.slice(3, 5).map((item) => (
+                    <div key={item.id} style={{ flex: 1 }}>
+                      <Card
+                        className="h-full border-0 shadow-4"
+                        style={{
+                          background: 'linear-gradient(135deg, #f8fafc 60%, #e0e7ef 100%)',
+                          borderRadius: '18px',
+                          overflow: 'hidden',
+                          minWidth: 220,
+                          color: '#222'
+                        }}
+                      >
+                        {/* ...Card content... */}
+                        <div className="flex flex-column align-items-center p-4">
+                          <img
+                            src={item.image}
+                            alt={item.title}
+                            className="mb-3"
+                            style={{
+                              width: 72,
+                              height: 72,
+                              objectFit: 'cover',
+                              borderRadius: '50%',
+                              border: '3px solid #16a34a',
+                              boxShadow: '0 2px 8px rgba(22,163,74,0.08)'
+                            }}
+                          />
+                          <div className="font-bold text-lg mb-1">{item.title}</div>
+                          <div className="flex align-items-center gap-2 mb-2">
+                            <Badge
+                              value={item.type === 'lost' ? 'Lost' : 'Found'}
+                              severity={item.type === 'lost' ? 'danger' : 'success'}
+                              className="text-xs"
+                            />
+                            <span className="text-gray-500 text-sm">{item.location}</span>
+                          </div>
+                          <div className="text-xs text-gray-400 mb-2">{item.timeAgo}</div>
+                          <Button
+                            label="View Details"
+                            icon="pi pi-external-link"
+                            className="p-button-text p-button-sm"
+                            style={{
+                              color: '#2563eb',
+                              fontWeight: 600
+                            }}
+                            onClick={() => navigate(`/success-stories/${item.id}`)}
+                          />
+                        </div>
+                      </Card>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Trending Items Section - with silent auto-refresh */}

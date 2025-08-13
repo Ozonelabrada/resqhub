@@ -1,35 +1,23 @@
-import { useState, useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Menubar } from 'primereact/menubar';
 import { Button } from 'primereact/button';
 import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
+import { useAuth } from '../context/AuthContext'; // <-- use the context
 
 const PublicLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<any>(null);
-  
+  const { isAuthenticated, userData: user, setIsAuthenticated, setUserData } = useAuth() ?? {};
+
   // Use useRef instead of useState for menu references
   const userMenuRef = useRef<Menu>(null);
   const authMenuRef = useRef<Menu>(null);
 
-  // Check authentication status
-  useEffect(() => {
-    // TODO: Replace with actual auth check
-    const token = localStorage.getItem('publicUserToken');
-    const userData = localStorage.getItem('publicUserData');
-    
-    if (token && userData) {
-      setIsAuthenticated(true);
-      setUser(JSON.parse(userData));
-    }
-  }, []);
-
   // Check if current page should hide the navigation bar
   const shouldHideNavBar = () => {
-    return location.pathname === '/' || location.pathname === '/hub';
+    return location.pathname === '/';
   };
 
   // Navigation handler that checks auth for protected actions
@@ -124,8 +112,8 @@ const PublicLayout = () => {
       command: () => {
         localStorage.removeItem('publicUserToken');
         localStorage.removeItem('publicUserData');
-        setIsAuthenticated(false);
-        setUser(null);
+        if (setIsAuthenticated) setIsAuthenticated(false);
+        if (setUserData) setUserData(null);
         navigate('/');
       }
     }
@@ -267,7 +255,7 @@ const PublicLayout = () => {
               </div>
               
               <div className="text-sm opacity-75">
-                © 2025 ResQHub. All rights reserved.
+                © {new Date().getFullYear()} ResQHub. All rights reserved.
               </div>
             </div>
           </div>
