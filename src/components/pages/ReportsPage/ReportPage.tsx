@@ -18,6 +18,10 @@ import { Toast } from 'primereact/toast';
 import { ItemsService } from '../../../services/itemsService';
 import { AuthService } from '../../../services/authService';
 import mapFormDataToApiPayload from '../../../utils/mapFormDataToApiPayload';
+import { Avatar } from 'primereact/avatar';
+import { Menu } from 'primereact/menu';
+  
+import { useLocation } from 'react-router-dom';
 
 interface Category {
   id: number;
@@ -43,7 +47,10 @@ const ReportPage: React.FC = () => {
   const [reportType, setReportType] = useState<'lost' | 'found'>('lost');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userData, setUserData] = useState<any>(null);
   const toast = useRef<Toast>(null);
+  const accountMenuRef = useRef<Menu>(null);
 
   // Backend data states
   const [categories, setCategories] = useState<Category[]>([]);
@@ -549,6 +556,73 @@ const ReportPage: React.FC = () => {
         storageLocation: ''
       }
     }));
+  };
+  const location = useLocation();
+
+  useEffect(() => {
+    const updateAuthState = () => {
+      const token = localStorage.getItem('publicUserToken');
+      const user = localStorage.getItem('publicUserData');
+      setIsAuthenticated(!!token);
+      if (user) {
+        try {
+          setUserData(JSON.parse(user));
+        } catch {
+          setUserData(null);
+        }
+      } else {
+        setUserData(null);
+      }
+    };
+
+    updateAuthState();
+
+    // Listen for storage changes (cross-tab)
+    window.addEventListener('storage', updateAuthState);
+
+    return () => {
+      window.removeEventListener('storage', updateAuthState);
+    };
+  }, []);
+
+  // React to navigation changes (in-app) using location
+  useEffect(() => {
+    const token = localStorage.getItem('publicUserToken');
+    const user = localStorage.getItem('publicUserData');
+    setIsAuthenticated(!!token);
+    if (user) {
+      try {
+        setUserData(JSON.parse(user));
+      } catch {
+        setUserData(null);
+      }
+    } else {
+      setUserData(null);
+    }
+  }, [location]);
+
+  // Account menu items
+  const accountMenuItems = [
+    {
+      label: 'My Profile',
+      icon: 'pi pi-user',
+      command: () => navigate('/profile')
+    },
+    {
+      label: 'Logout',
+      icon: 'pi pi-sign-out',
+      command: () => {
+        localStorage.removeItem('publicUserToken');
+        localStorage.removeItem('publicUserData');
+        setIsAuthenticated(false);
+        setUserData(null);
+        navigate('/');
+      }
+    }
+  ];
+
+  const showAccountMenu = (event: React.MouseEvent) => {
+    accountMenuRef.current?.toggle(event);
   };
 
   // Show loading state
@@ -1108,15 +1182,51 @@ const ReportPage: React.FC = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#34373aff', color: '#ffffff' }}>
+    <div style={{ minHeight: '100vh', 
+          background: 'linear-gradient(135deg, #353333ff 0%, #475a4bff 50%, #888887ff 100%)',
+          color: '#ffffff' }}>
       <div className={`${isMobile ? 'p-3' : 'p-6'}`}>
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
           {/* Header */}
           <div className="flex align-items-center justify-content-between mb-4">
-             <Chip
+            <Chip
               label={`${reportType === 'lost' ? 'Lost' : 'Found'} Item Report`}
               className={reportType === 'lost' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}
             />
+            {/* Auth display */}
+            {isAuthenticated && userData ? (
+              <div className="flex align-items-center gap-2">
+                <Avatar
+                  icon="pi pi-user"
+                  shape="circle"
+                  style={{ backgroundColor: 'white', color: '#1e40af', cursor: 'pointer' }}
+                  onClick={showAccountMenu}
+                />
+                <span className="text-sm text-white font-semibold">{userData.name || userData.email}</span>
+                <Menu
+                  model={accountMenuItems}
+                  popup
+                  ref={accountMenuRef}
+                  className="mt-2"
+                  style={{ minWidth: '160px' }}
+                />
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <Button
+                  label="Sign In"
+                  icon="pi pi-sign-in"
+                  className="p-button-outlined p-button-sm"
+                  onClick={() => navigate('/signin')}
+                />
+                <Button
+                  label="Sign Up"
+                  icon="pi pi-user-plus"
+                  className="p-button-text p-button-sm"
+                  onClick={() => navigate('/signup')}
+                />
+              </div>
+            )}
           </div>
 
           {/* Progress */}

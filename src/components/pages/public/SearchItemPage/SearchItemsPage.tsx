@@ -781,7 +781,9 @@ const SearchItemsPage: React.FC = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', color: '#252323ff', width: '100%' }}>
+    <div style={{ minHeight: '100vh',
+          background: 'linear-gradient(135deg, #353333ff 0%, #475a4bff 50%, #888887ff 100%)',
+           color: '#ffffffff', width: '100%' }}>
       {/* Header */}
       <div className="bg-white shadow-2 sticky top-0 z-5 w-full">
         <div className="px-4 py-4" style={{ width: '100%' }}>

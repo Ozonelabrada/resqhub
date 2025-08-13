@@ -327,7 +327,7 @@ const SignUpPage = () => {
     <div
       className="min-h-screen flex align-items-center justify-content-center"
       style={{
-        background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 25%, #f9fafb 75%, #f3f4f6 100%)',
+          background: 'linear-gradient(135deg, #353333ff 0%, #475a4bff 50%, #888887ff 100%)',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         padding: '2rem 1rem'
       }}
