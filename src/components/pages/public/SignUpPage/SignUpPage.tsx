@@ -8,7 +8,7 @@ import { Steps } from 'primereact/steps';
 import { Dropdown } from 'primereact/dropdown';
 import { InputMask } from 'primereact/inputmask';
 import { Checkbox } from 'primereact/checkbox';
-import { Divider } from 'primereact/divider';
+//import { Divider } from 'primereact/divider';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { AuthService } from '../../../../services/authService';
 
@@ -34,7 +34,7 @@ const SignUpPage = () => {
     subscribeNewsletter: false
   });
   const [loading, setLoading] = useState(false);
-  const [socialLoading, setSocialLoading] = useState(false);
+  //const [socialLoading, setSocialLoading] = useState(false);
   const [error, setError] = useState('');
 
   const userTypes = [
@@ -147,24 +147,24 @@ const SignUpPage = () => {
     }
   };
 
-  const handleGoogleSignUp = async () => {
-    setSocialLoading(true);
-    setError('');
+  // const handleGoogleSignUp = async () => {
+  //   setSocialLoading(true);
+  //   setError('');
     
-    try {
-      // Store current location for redirect after auth
-      const currentPath = window.location.pathname + window.location.search;
-      localStorage.setItem('returnPath', currentPath);
-      localStorage.setItem('intendedAction', 'signup');
+  //   try {
+  //     // Store current location for redirect after auth
+  //     const currentPath = window.location.pathname + window.location.search;
+  //     localStorage.setItem('returnPath', currentPath);
+  //     localStorage.setItem('intendedAction', 'signup');
       
-      // Start Google OAuth2 flow
-      await authService.startGoogleLogin();
-    } catch (err) {
-      console.error('Google signup error:', err);
-      setError('Failed to start Google signup. Please try again.');
-      setSocialLoading(false);
-    }
-  };
+  //     // Start Google OAuth2 flow
+  //     await authService.startGoogleLogin();
+  //   } catch (err) {
+  //     console.error('Google signup error:', err);
+  //     setError('Failed to start Google signup. Please try again.');
+  //     setSocialLoading(false);
+  //   }
+  // };
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -343,7 +343,7 @@ const SignUpPage = () => {
       />
 
       {/* Loading Overlay for Social Auth */}
-      {socialLoading && (
+      {/* {socialLoading && (
         <div 
           style={{
             position: 'fixed',
@@ -372,7 +372,7 @@ const SignUpPage = () => {
             Please wait while we connect your Google account
           </div>
         </div>
-      )}
+      )} */}
 
       <Card
         className="w-full shadow-lg border-0"
@@ -406,7 +406,7 @@ const SignUpPage = () => {
           </div>
 
           {/* Quick Google Sign Up - Show only on first step */}
-          {currentStep === 0 && (
+          {/* {currentStep === 0 && (
             <div className="mb-6">
               <Button
                 type="button"
@@ -435,7 +435,7 @@ const SignUpPage = () => {
                 <span className="text-gray-500 text-sm">or continue with email</span>
               </Divider>
             </div>
-          )}
+          )} */}
 
           {/* Progress Steps */}
           <style>
