@@ -86,9 +86,7 @@ const LoginPage: React.FC = () => {
     <div
       className="min-h-screen flex align-items-center justify-content-center"
       style={{
-        background: isAdmin
-          ? 'linear-gradient(135deg, #f59e42 0%, #b91c1c 100%)'
-          : 'linear-gradient(135deg, #353333ff 0%, #475a4bff 50%, #888887ff 100%)',
+          background: 'linear-gradient(135deg, #353333ff 0%, #475a4bff 50%, #888887ff 100%)',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         padding: '2rem 1rem',
         position: 'relative'
@@ -112,7 +110,7 @@ const LoginPage: React.FC = () => {
             width: '100%',
             maxWidth: '420px',
             margin: '0 auto',
-            border: isAdmin ? '2px solid #f59e42' : '2px solid #10b981',
+            border: isAdmin ? '2px solid #475a4bff' : '2px solid #10b981',
             borderRadius: 24,
             boxShadow: isAdmin
               ? '0 8px 32px 0 rgba(185,28,28,0.15)'
@@ -126,7 +124,7 @@ const LoginPage: React.FC = () => {
                 height: 64,
                 borderRadius: '16px',
                 background: isAdmin
-                  ? 'linear-gradient(135deg, #f59e42 0%, #b91c1c 100%)'
+                  ? 'linear-gradient(135deg, #475a4bff 0%, #1c7d17ff 100%)'
                   : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                 display: 'flex',
                 alignItems: 'center',
@@ -205,7 +203,7 @@ const LoginPage: React.FC = () => {
                 fontSize: '1.1rem',
                 borderRadius: 10,
                 background: isAdmin
-                  ? 'linear-gradient(135deg, #f59e42 0%, #b91c1c 100%)'
+                  ? 'linear-gradient(135deg, #39ab76ff 0%, #475a4bff 100%)'
                   : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                 border: 'none'
               }}
