@@ -10,6 +10,7 @@ import { useRef } from 'react';
 import ItemDetailsModal from '../../../modals/ItemDetailsModal/ItemDetailsModal';
 import ConfirmationModal from '../../../modals/ConfirmationModal/ConfirmationModal';
 import { AdminService } from '../../../../services/adminService';
+import { useNavigate } from 'react-router-dom';
 
 interface LostFoundItem {
   id: number;
@@ -41,8 +42,9 @@ const DashboardPage: React.FC = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<LostFoundItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [adminUser, setAdminUser] = useState<{ name: string; email: string } | null>(null);
+  const [adminUser, setAdminUser] = useState<{ name: string; email: string; role?: string } | null>(null);
   const toast = useRef<Toast>(null);
+  const navigate = useNavigate();
 
   const [recentItems, setRecentItems] = useState<LostFoundItem[]>([
     { 
@@ -196,19 +198,33 @@ const DashboardPage: React.FC = () => {
     // Fetch current admin user from backend
     const fetchAdminUser = async () => {
       try {
-        const adminId = localStorage.getItem('adminUserId');
-        if (!adminId) {
+        const adminUserData = localStorage.getItem('adminUserData');
+        if (!adminUserData) {
           setAdminUser(null);
+          navigate('/admin/login', { replace: true });
           return;
         }
-        const user = await AdminService.getAdminById(adminId);
-        setAdminUser(user);
+        const parsedUser = JSON.parse(adminUserData);
+        // Check role (case-insensitive)
+        if (!parsedUser.role || parsedUser.role.toLowerCase() !== 'admin') {
+          setAdminUser(null);
+          localStorage.removeItem('adminUserData');
+          localStorage.removeItem('adminToken');
+          localStorage.removeItem('adminUserId');
+          navigate('/admin/login', { replace: true });
+          return;
+        }
+        setAdminUser(parsedUser);
       } catch (err) {
         setAdminUser(null);
+        localStorage.removeItem('adminUserData');
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminUserId');
+        navigate('/admin/login', { replace: true });
       }
     };
     fetchAdminUser();
-  }, []);
+  }, [navigate]);
 
   const categories = [
     { label: 'All Categories', value: null },
@@ -347,7 +363,7 @@ const DashboardPage: React.FC = () => {
       style={{ 
         padding: isMobile ? '0.5rem' : '1rem',
         paddingBottom: isMobile ? '5rem' : '1rem',
-        backgroundColor: '#f8fafc'
+        background: 'linear-gradient(135deg, #353333ff 0%, #475a4bff 50%, #888887ff 100%)',
       }}
     >
       <Toast ref={toast} />
