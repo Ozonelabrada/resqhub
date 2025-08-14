@@ -10,7 +10,6 @@ import { useRef } from 'react';
 import ItemDetailsModal from '../../../modals/ItemDetailsModal/ItemDetailsModal';
 import ConfirmationModal from '../../../modals/ConfirmationModal/ConfirmationModal';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../../context/AuthContext';
 
 interface LostFoundItem {
   id: number;
@@ -44,10 +43,6 @@ const DashboardPage: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const toast = useRef<Toast>(null);
   const navigate = useNavigate();
-
-  const auth = useAuth();
-  const isAuthenticated = auth?.isAuthenticated;
-  const userData = auth?.userData;
 
   const [recentItems, setRecentItems] = useState<LostFoundItem[]>([
     { 
