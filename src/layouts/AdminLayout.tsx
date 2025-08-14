@@ -8,46 +8,38 @@ import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
 import { Toast } from 'primereact/toast';
 import LeftSideBarPage from '../components/layout/Sidebar/LeftSideBardPage';
-import adminService from '../services/adminService';
+import { useAuth } from '../context/AuthContext';
 
 const AdminLayout = () => {
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
-  type AdminUser = {
-    name?: string;
-    role?: string;
-    avatar?: string;
-    // add other properties as needed
-  };
-  const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
+  const auth = useAuth();
+  const isAuthenticated = auth?.isAuthenticated;
+  const userData = auth?.userData;
+  const logout = auth?.logout;
   const navigate = useNavigate();
   const userMenuRef = useRef<Menu>(null);
   const toast = useRef<Toast>(null);
 
-  // Check login and fetch admin user
+  // Only allow admins
   useEffect(() => {
-    const checkAuthAndFetchUser = async () => {
-      const token = localStorage.getItem('adminToken');
-      if (!token) {
-        navigate('/admin/login', { replace: true });
-        return;
-      }
-      try {
-        const user = await adminService.getCurrentAdmin();
-        setAdminUser({
-          ...user,
-          role: user.role?.toString()
-        });
-      } catch (err) {
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('adminUserData');
-        navigate('/admin/login', { replace: true });
-      }
-    };
-    checkAuthAndFetchUser();
-  }, [navigate]);
+    if (
+      !isAuthenticated ||
+      !userData ||
+      !userData.role ||
+      userData.role.toLowerCase() !== 'admin'
+    ) {
+      navigate('/admin/login', { replace: true });
+    }
+  }, [isAuthenticated, userData, navigate]);
 
-  // User menu items
+  // Logout handler
+  const handleLogout = () => {
+    if (logout) logout();
+    navigate('/admin/login', { replace: true });
+  };
+
+  // Add Logout to userMenuItems
   const userMenuItems = [
     {
       label: 'Profile Settings',
@@ -59,7 +51,6 @@ const AdminLayout = () => {
           detail: 'Opening profile settings...',
           life: 3000
         });
-        // Navigate to profile page when implemented
         // navigate('/admin/profile');
       }
     },
@@ -73,7 +64,6 @@ const AdminLayout = () => {
           detail: 'Opening account settings...',
           life: 3000
         });
-        // Navigate to settings page when implemented
         // navigate('/admin/settings');
       }
     },
@@ -97,12 +87,16 @@ const AdminLayout = () => {
           detail: 'Opening help center...',
           life: 3000
         });
-        // Navigate to help page when implemented
         // navigate('/admin/help');
       }
     },
     {
       separator: true
+    },
+    {
+      label: 'Logout',
+      icon: 'pi pi-sign-out',
+      command: handleLogout
     }
   ];
 
@@ -195,45 +189,34 @@ const AdminLayout = () => {
         {/* User Info - Desktop Only */}
         {!isMobile && (
           <div className="text-right">
-            <div className="text-sm font-semibold text-gray-700">{adminUser?.name}</div>
-            <div className="text-xs text-gray-500">{adminUser?.role}</div>
+            <div className="text-sm font-semibold text-gray-700">{userData?.name}</div>
+            <div className="text-xs text-gray-500">{userData?.role}</div>
           </div>
         )}
         
         {/* User Avatar with Dropdown */}
         <div className="relative">
           <Avatar
-            icon={adminUser?.avatar ? undefined : "pi pi-user"}
-            image={adminUser?.avatar || undefined}
+            icon={userData?.avatar ? undefined : "pi pi-user"}
+            image={userData?.avatar || undefined}
             size="large"
             shape="circle"
             className="cursor-pointer hover:shadow-3 transition-all transition-duration-200"
             style={{ 
-              backgroundColor: adminUser?.avatar ? undefined : '#3B82F6', 
+              backgroundColor: userData?.avatar ? undefined : '#3B82F6', 
               color: 'white',
               border: '2px solid #e5e7eb'
             }}
             onClick={(e) => userMenuRef.current?.toggle(e)}
           />
-          
-          {/* Online Status Indicator */}
-          {/* <div 
-            className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-round"
-            style={{ 
-              border: '2px solid white',
-              transform: 'translate(25%, 25%)'
-            }}
-          ></div> */}
+          <Menu 
+            model={userMenuItems} 
+            popup 
+            ref={userMenuRef}
+            className="w-15rem"
+            style={{ marginTop: '0.5rem' }}
+          />
         </div>
-        
-        {/* User Menu */}
-        <Menu 
-          model={userMenuItems} 
-          popup 
-          ref={userMenuRef}
-          className="w-15rem"
-          style={{ marginTop: '0.5rem' }}
-        />
       </div>
     </div>
   );

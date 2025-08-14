@@ -4,7 +4,7 @@ import { Menubar } from 'primereact/menubar';
 import { Button } from 'primereact/button';
 import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
-import { useAuth } from '../context/AuthContext'; // <-- use the context
+import { useAuth } from '../context/AuthContext';
 
 const PublicLayout = () => {
   const navigate = useNavigate();
@@ -264,5 +264,6 @@ const PublicLayout = () => {
     </div>
   );
 };
+
 
 export default PublicLayout;
