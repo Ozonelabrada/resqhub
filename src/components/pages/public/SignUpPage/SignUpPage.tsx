@@ -8,7 +8,6 @@ import { Steps } from 'primereact/steps';
 import { Dropdown } from 'primereact/dropdown';
 import { InputMask } from 'primereact/inputmask';
 import { Checkbox } from 'primereact/checkbox';
-//import { Divider } from 'primereact/divider';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { AuthService } from '../../../../services/authService';
 
@@ -18,23 +17,17 @@ const SignUpPage = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
-    // Step 1: Basic Info
     name: '',
     email: '',
     phone: '',
-    
-    // Step 2: Account Setup
     password: '',
     confirmPassword: '',
-    
-    // Step 3: Profile Details
     userType: '',
     organization: '',
     agreeToTerms: false,
     subscribeNewsletter: false
   });
   const [loading, setLoading] = useState(false);
-  //const [socialLoading, setSocialLoading] = useState(false);
   const [error, setError] = useState('');
 
   const userTypes = [
@@ -51,7 +44,6 @@ const SignUpPage = () => {
 
   const validateStep = (step: number) => {
     setError('');
-    
     switch (step) {
       case 0:
         if (!formData.name.trim()) {
@@ -67,7 +59,6 @@ const SignUpPage = () => {
           return false;
         }
         return true;
-        
       case 1:
         if (!formData.password) {
           setError('Password is required');
@@ -82,7 +73,6 @@ const SignUpPage = () => {
           return false;
         }
         return true;
-        
       case 2:
         if (!formData.userType) {
           setError('Please select your user type');
@@ -93,7 +83,6 @@ const SignUpPage = () => {
           return false;
         }
         return true;
-        
       default:
         return true;
     }
@@ -112,10 +101,8 @@ const SignUpPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateStep(currentStep)) return;
-    
     setLoading(true);
     setError('');
-
     try {
       const registrationData = {
         name: formData.name,
@@ -127,13 +114,11 @@ const SignUpPage = () => {
         agreeToNewsletter: formData.subscribeNewsletter,
         provider: 'local' as const
       };
-
       const response = await authService.signUp(registrationData);
-      
       if (response && response.succeeded) {
-        navigate('/signin', { 
-          state: { 
-            message: 'Account created successfully! Please sign in to continue.' 
+        navigate('/login', {
+          state: {
+            message: 'Account created successfully! Please sign in to continue.'
           }
         });
       } else {
@@ -146,25 +131,6 @@ const SignUpPage = () => {
       setLoading(false);
     }
   };
-
-  // const handleGoogleSignUp = async () => {
-  //   setSocialLoading(true);
-  //   setError('');
-    
-  //   try {
-  //     // Store current location for redirect after auth
-  //     const currentPath = window.location.pathname + window.location.search;
-  //     localStorage.setItem('returnPath', currentPath);
-  //     localStorage.setItem('intendedAction', 'signup');
-      
-  //     // Start Google OAuth2 flow
-  //     await authService.startGoogleLogin();
-  //   } catch (err) {
-  //     console.error('Google signup error:', err);
-  //     setError('Failed to start Google signup. Please try again.');
-  //     setSocialLoading(false);
-  //   }
-  // };
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -183,7 +149,6 @@ const SignUpPage = () => {
                 disabled={loading}
               />
             </div>
-
             <div className="col-12">
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Email Address *
@@ -197,7 +162,6 @@ const SignUpPage = () => {
                 disabled={loading}
               />
             </div>
-
             <div className="col-12">
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Phone Number (Optional)
@@ -213,7 +177,6 @@ const SignUpPage = () => {
             </div>
           </div>
         );
-
       case 1:
         return (
           <div className="grid">
@@ -233,7 +196,6 @@ const SignUpPage = () => {
                 Password must be at least 6 characters long
               </small>
             </div>
-
             <div className="col-12">
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Confirm Password *
@@ -249,7 +211,6 @@ const SignUpPage = () => {
             </div>
           </div>
         );
-
       case 2:
         return (
           <div className="grid">
@@ -266,7 +227,6 @@ const SignUpPage = () => {
                 disabled={loading}
               />
             </div>
-
             {formData.userType === 'organization' && (
               <div className="col-12">
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -281,7 +241,6 @@ const SignUpPage = () => {
                 />
               </div>
             )}
-
             <div className="col-12 mt-4">
               <div className="flex align-items-center mb-3">
                 <Checkbox
@@ -302,7 +261,6 @@ const SignUpPage = () => {
                   *
                 </label>
               </div>
-
               <div className="flex align-items-center">
                 <Checkbox
                   id="subscribeNewsletter"
@@ -317,7 +275,6 @@ const SignUpPage = () => {
             </div>
           </div>
         );
-
       default:
         return null;
     }
@@ -325,55 +282,18 @@ const SignUpPage = () => {
 
   return (
     <div
-      className="min-h-screen flex align-items-center justify-content-center"
       style={{
-          background: 'linear-gradient(135deg, #353333ff 0%, #475a4bff 50%, #888887ff 100%)',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        padding: '2rem 1rem'
+        minHeight: '100vh',
+        width: '100%',
+        background: 'linear-gradient(135deg, #353333ff 0%, #475a4bff 50%, #888887ff 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '2rem 1rem',
+        position: 'relative',
+        zIndex: 1 // Ensure it does not overlay the header
       }}
     >
-      {/* Subtle background pattern */}
-      <div 
-        style={{
-          position: 'absolute',
-          inset: 0,
-          opacity: 0.03,
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23059669' fill-opacity='1'%3E%3Cpath d='M20 20c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10zm10 0c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10z'/%3E%3C/g%3E%3C/svg%3E")`
-        }}
-      />
-
-      {/* Loading Overlay for Social Auth */}
-      {/* {socialLoading && (
-        <div 
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(20px)',
-            zIndex: 9999,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-        >
-          <img
-            src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_2013_Google.png"
-            alt="Google"
-            style={{ width: 80, height: 80, objectFit: 'contain', marginBottom: '1rem' }}
-          />
-          <div style={{ fontSize: '1.2rem', fontWeight: 600, color: '#1f2937', marginBottom: '0.5rem' }}>
-            Redirecting to Google...
-          </div>
-          <div style={{ fontSize: '1rem', color: '#6b7280' }}>
-            Please wait while we connect your Google account
-          </div>
-        </div>
-      )} */}
-
       <Card
         className="w-full shadow-lg border-0"
         style={{
@@ -385,7 +305,6 @@ const SignUpPage = () => {
         }}
       >
         <div className="p-6">
-          {/* Header */}
           <div className="text-center mb-6">
             <div
               style={{
@@ -404,40 +323,6 @@ const SignUpPage = () => {
             </div>
             <p className="text-gray-600">Create your account to get started</p>
           </div>
-
-          {/* Quick Google Sign Up - Show only on first step */}
-          {/* {currentStep === 0 && (
-            <div className="mb-6">
-              <Button
-                type="button"
-                className="w-full p-button-outlined border-2"
-                onClick={handleGoogleSignUp}
-                disabled={loading || socialLoading}
-                style={{
-                  borderColor: '#db4437',
-                  color: '#db4437',
-                  padding: '12px',
-                  borderRadius: 12,
-                  fontWeight: 600
-                }}
-              >
-                <div className="flex align-items-center justify-content-center gap-3">
-                  <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg"
-                    alt="Google"
-                    style={{ width: 20, height: 20 }}
-                  />
-                  Sign up with Google
-                </div>
-              </Button>
-              
-              <Divider align="center" className="my-4">
-                <span className="text-gray-500 text-sm">or continue with email</span>
-              </Divider>
-            </div>
-          )} */}
-
-          {/* Progress Steps */}
           <style>
             {`
               .custom-steps {
@@ -447,23 +332,15 @@ const SignUpPage = () => {
             `}
           </style>
           <div className="mb-6">
-            <Steps 
-              model={steps} 
-              activeIndex={currentStep} 
+            <Steps
+              model={steps}
+              activeIndex={currentStep}
               className="w-full custom-steps"
             />
           </div>
-
-          {/* Error Message */}
           {error && <Message severity="error" text={error} className="w-full mb-4" />}
-
-          {/* Form */}
           <form onSubmit={handleSubmit}>
-            <div className="mb-6">
-              {renderStepContent()}
-            </div>
-
-            {/* Navigation Buttons */}
+            <div className="mb-6">{renderStepContent()}</div>
             <div className="flex justify-content-between align-items-center">
               {currentStep > 0 ? (
                 <Button
@@ -477,7 +354,6 @@ const SignUpPage = () => {
               ) : (
                 <div></div>
               )}
-
               <div>
                 {currentStep < steps.length - 1 ? (
                   <Button
@@ -521,8 +397,6 @@ const SignUpPage = () => {
               </div>
             </div>
           </form>
-
-          {/* Sign In Link */}
           <div className="text-center mt-6 pt-4 border-top-1 surface-border">
             <span className="text-gray-600">Already have an account? </span>
             <Link

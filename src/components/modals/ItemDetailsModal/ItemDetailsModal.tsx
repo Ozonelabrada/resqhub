@@ -34,10 +34,15 @@ const ItemDetailsModal: React.FC<ItemDetailsModalProps> = ({ visible, onHide, it
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [showContactInfo, setShowContactInfo] = useState(false);
 
+  // Detect if user is logged in (public or admin)
+  const isAuthenticated = Boolean(
+    localStorage.getItem('publicUserToken') ||
+    localStorage.getItem('adminUserToken')
+  );
+
   if (!item) return null;
 
   const handleContactOwner = () => {
-    const isAuthenticated = localStorage.getItem('publicUserToken');
     if (!isAuthenticated) {
       localStorage.setItem('intendedAction', 'contact');
       localStorage.setItem('returnPath', window.location.pathname);

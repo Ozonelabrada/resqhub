@@ -4,7 +4,6 @@ import { Routes, Route } from 'react-router-dom';
 // Public Pages
 import HubHomePage from './components/pages/public/HubHomePage/HubHomePage';
 import SearchItemsPage from './components/pages/public/SearchItemPage/SearchItemsPage';
-import SignInPage from './components/pages/public/SignInPage/SignInPage';
 import SignUpPage from './components/pages/public/SignUpPage/SignUpPage';
 import PersonalHubPage from './components/pages/public/PersonalHubPage/PersonalHubPage';
 
@@ -22,6 +21,8 @@ import PublicLayout from './layouts/PublicLayout';
 import AdminLayout from './layouts/AdminLayout';
 import ReportPage from './components/pages/ReportsPage/ReportPage';
 import ProfilePage from './components/pages/ProfilePage/ProfilePage';
+import LoginPage from './components/shared/LoginPage/LoginPage';
+import DashboardPage from './components/pages/admin/DashboardPage/DashboardPage';
 
 const AppRouter = () => {
   return (
@@ -30,8 +31,8 @@ const AppRouter = () => {
       <Route path="/" element={<PublicLayout />}>
         <Route index element={<HubHomePage />} />
         <Route path="search" element={<SearchItemsPage />} />
-        <Route path="signin" element={<SignInPage />} />
-        <Route path="signup" element={<SignUpPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignUpPage />} />
         <Route path="/report" element={<ReportPage />} />
         <Route path="/lost" element={<ReportPage />} />
         <Route path="/found" element={<ReportPage />} />
@@ -50,6 +51,7 @@ const AppRouter = () => {
 
       {/* 🔐 ADMIN ROUTES - Authentication required with layout */}
       <Route path="/admin" element={<AdminLayout />}>
+      <Route path="/admin/dashboard" element={<DashboardPage />} />
       </Route>
 
       {/* 🚧 UTILITY ROUTES */}

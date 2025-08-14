@@ -9,6 +9,7 @@ import { ConfirmDialog } from 'primereact/confirmdialog';
 import { useRef } from 'react';
 import ItemDetailsModal from '../../../modals/ItemDetailsModal/ItemDetailsModal';
 import ConfirmationModal from '../../../modals/ConfirmationModal/ConfirmationModal';
+import { AdminService } from '../../../../services/adminService';
 
 interface LostFoundItem {
   id: number;
@@ -40,6 +41,7 @@ const DashboardPage: React.FC = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<LostFoundItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [adminUser, setAdminUser] = useState<{ name: string; email: string } | null>(null);
   const toast = useRef<Toast>(null);
 
   const [recentItems, setRecentItems] = useState<LostFoundItem[]>([
@@ -188,6 +190,24 @@ const DashboardPage: React.FC = () => {
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
     return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
+  useEffect(() => {
+    // Fetch current admin user from backend
+    const fetchAdminUser = async () => {
+      try {
+        const adminId = localStorage.getItem('adminUserId');
+        if (!adminId) {
+          setAdminUser(null);
+          return;
+        }
+        const user = await AdminService.getAdminById(adminId);
+        setAdminUser(user);
+      } catch (err) {
+        setAdminUser(null);
+      }
+    };
+    fetchAdminUser();
   }, []);
 
   const categories = [
@@ -353,6 +373,24 @@ const DashboardPage: React.FC = () => {
               <div className="w-2 h-2 bg-green-500 border-round animation-pulse"></div>
               {isMobile ? 'Live' : 'Live Updates Active'}
             </div>
+          </div>
+
+          {/* Header with admin user */}
+          <div className="w-full mb-4 flex justify-content-between align-items-center">
+            <div>
+              <h1 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-gray-800 m-0`}>
+                Admin Dashboard
+              </h1>
+              <p className="text-gray-600 m-0 mt-1">
+                {isMobile ? 'Manage lost & found items' : 'Manage and track all lost & found items'}
+              </p>
+            </div>
+            {adminUser && (
+              <div className="flex align-items-center gap-2">
+                <i className="pi pi-user text-primary"></i>
+                <span className="font-semibold">{adminUser.name || adminUser.email}</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -537,7 +575,7 @@ const DashboardPage: React.FC = () => {
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
-                          target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik0xMjAgODBIMTI4Vjg4SDEzNlY5NkgxNDRWMTA0SDE1MlYxMTJIMTYwVjEyMEgxNjhWMTI4SDE3NlYxMzZIMTg0VjE0NEgxOTJWMTUySDIwMFYxNjBIMjA4VjE2OEgyMTZWMTc2SDIyNFYxODRIMjMyVjE5MkgyNDBWMjAwSDI0OFYyMDhIMjU2VjIxNkgyNjRWMjI0SDI3MlYyMzJIMjgwVjI0MEgyODhWMjQ4SDI5NlYyNTZIMzA0VjI2NEgzMTJWMjcySDMyMFYyODBIMzI4VjI4OEgzMzZWMjk2SDM0NFYzMDRIMzUyVjMxMkgzNjBWMzIwSDM2OFYzMjhIMzc2VjMzNkgzODRWMzQ0SDM5MlYzNTJIMDAwVjM0NEgzODRWMzM2SDM3NlYzMjhIMzY4VjMyMEgzNjBWMzEySDM1MlYzMDRIMzQ0VjI5NkgzMzZWMjg4SDMyOFYyODBIMzIwVjI3MkgzMTJWMjY0SDMwNFYyNTZIMjk2VjI0OEgyODhWMjQwSDI4MFYyMzJIMjcyVjIyNEgyNjRWMjE2SDI1NlYyMDhIMjQ4VjIwMEgyNDBWMTkySDIzMlYxODRIMjI0VjE3NkgyMTZWMTY4SDIwOFYxNjBIMjAwVjE1MkgxOTJWMTQ0SDE4NFYxMzZIMTc2VjEyOEgxNjhWMTIwSDE2MFYxMTJIMTUyVjEwNEgxNDRWOTZIMTM2Vjg4SDEyOFY4MEgxMjBaIiBmaWxsPSIjQzRDNEM0Ii8+Cjwvc3ZnPgo=';
+                          target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik0xMjAgODBIMTI4Vjg4SDEzNlY5NkgxNDRWMTA0SDE1MlYxMTJIMTYwVjEyMEgxNjhWMTI4SDE3NlYxMzZIMTg0VjE0NEgxOTJWMTUySDIwMFYxNjBIMjA4VjE2OEgyMTZWMTc2SDIyNFYxODRIMjMyVjE5MkgyNDBWMjAwSDI0OFYyMDhIMjU2VjIxNkgyNjRWMjI0SDI3MlYyMzJIMjgwVjI0MEgyODhWMjQ4SDI5NlYyNTJIMDAwVjM0NEgzODRWMzM2SDM3NlYzMjhIMzY4VjMyMEgzNjBWMzEySDM1MlYzMDRIMzQ0VjI5NkgzMzZWMjg4SDMyOFYyODBIMzIwVjI3MkgzMTJWMjY0SDMwNFYyNTZIMjk2VjI0OEgyODhWMjQwSDI4MFYyMzJIMjcyVjIyNEgyNjRWMjE2SDI1NlYyMDhIMjQ4VjIwMEgyNDBWMTkySDIzMlYxODRIMjI0VjE3NkgyMTZWMTY4SDIwOFYxNjBIMjAwVjE1MkgxOTJWMTQ0SDE4NFYxMzZIMTc2VjEyOEgxNjhWMTIwSDE2MFYxMTJIMTUyVjEwNEgxNDRWOTZIMTM2Vjg4SDEyOFY4MEgxMjBaIiBmaWxsPSIjQzRDNEM0Ii8+Cjwvc3ZnPgo=';
                         }}
                       />
                       <div className="absolute top-2 right-2">

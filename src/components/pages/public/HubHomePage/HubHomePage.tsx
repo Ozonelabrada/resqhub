@@ -263,7 +263,7 @@ const HubHomePage: React.FC = () => {
     } else {
       localStorage.setItem('intendedAction', `report_${type}`);
       localStorage.setItem('returnPath', `/report?type=${type}`);
-      navigate('/signin');
+      navigate('/login');
     }
   };
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -342,7 +342,7 @@ const HubHomePage: React.FC = () => {
     {
       label: 'Sign In',
       icon: 'pi pi-sign-in',
-      command: () => navigate('/signin')
+      command: () => navigate('/login')
     },
     {
       label: 'Admin Login',

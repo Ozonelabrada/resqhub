@@ -8,54 +8,44 @@ import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
 import { Toast } from 'primereact/toast';
 import LeftSideBarPage from '../components/layout/Sidebar/LeftSideBardPage';
+import adminService from '../services/adminService';
 
 const AdminLayout = () => {
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  type AdminUser = {
+    name?: string;
+    role?: string;
+    avatar?: string;
+    // add other properties as needed
+  };
+  const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
   const navigate = useNavigate();
   const userMenuRef = useRef<Menu>(null);
   const toast = useRef<Toast>(null);
 
-  // Mock user data - replace with actual user context/auth
-  const currentUser = {
-    name: 'Admin User',
-    email: 'admin@resqhub.com',
-    role: 'Administrator',
-    avatar: undefined // or URL to avatar image
-  };
-
-  // Handle logout confirmation
-  // const handleLogoutConfirm = async () => {
-  //   setIsLoggingOut(true);
-    
-  //   try {
-  //     // Simulate async logout process
-  //     await new Promise(resolve => setTimeout(resolve, 1500));
-      
-  //     // Clear any auth tokens/data
-  //     localStorage.removeItem('adminToken');
-  //     localStorage.removeItem('adminUser');
-      
-  //     toast.current?.show({
-  //       severity: 'success',
-  //       summary: 'Logged Out',
-  //       detail: 'You have been successfully logged out.',
-  //       life: 2000
-  //     });
-      
-  //     // Redirect to login page after a short delay
-  //     setTimeout(() => {
-  //       navigate('/admin/login');
-  //     }, 2000);
-  //   } catch (error) {
-  //     toast.current?.show({
-  //       severity: 'error',
-  //       summary: 'Logout Failed',
-  //       detail: 'Failed to logout. Please try again.',
-  //       life: 3000
-  //     });
-  //   }
-  // };
+  // Check login and fetch admin user
+  useEffect(() => {
+    const checkAuthAndFetchUser = async () => {
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        navigate('/admin/login', { replace: true });
+        return;
+      }
+      try {
+        const user = await adminService.getCurrentAdmin();
+        setAdminUser({
+          ...user,
+          role: user.role?.toString()
+        });
+      } catch (err) {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminUserData');
+        navigate('/admin/login', { replace: true });
+      }
+    };
+    checkAuthAndFetchUser();
+  }, [navigate]);
 
   // User menu items
   const userMenuItems = [
@@ -205,21 +195,21 @@ const AdminLayout = () => {
         {/* User Info - Desktop Only */}
         {!isMobile && (
           <div className="text-right">
-            <div className="text-sm font-semibold text-gray-700">{currentUser.name}</div>
-            <div className="text-xs text-gray-500">{currentUser.role}</div>
+            <div className="text-sm font-semibold text-gray-700">{adminUser?.name}</div>
+            <div className="text-xs text-gray-500">{adminUser?.role}</div>
           </div>
         )}
         
         {/* User Avatar with Dropdown */}
         <div className="relative">
           <Avatar
-            icon={currentUser.avatar ? undefined : "pi pi-user"}
-            image={currentUser.avatar || undefined}
+            icon={adminUser?.avatar ? undefined : "pi pi-user"}
+            image={adminUser?.avatar || undefined}
             size="large"
             shape="circle"
             className="cursor-pointer hover:shadow-3 transition-all transition-duration-200"
             style={{ 
-              backgroundColor: currentUser.avatar ? undefined : '#3B82F6', 
+              backgroundColor: adminUser?.avatar ? undefined : '#3B82F6', 
               color: 'white',
               border: '2px solid #e5e7eb'
             }}
