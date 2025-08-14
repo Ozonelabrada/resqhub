@@ -8,6 +8,7 @@ import { Checkbox } from 'primereact/checkbox';
 import { Message } from 'primereact/message';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { AuthService } from '../../../services/authService';
+import { useAuth } from '../../../context/AuthContext'; // Adjust path as needed
 
 const authService = new AuthService();
 
@@ -21,6 +22,10 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isAdmin = location.pathname.startsWith('/admin');
+  const auth = useAuth();
+  const setIsAuthenticated = auth?.setIsAuthenticated;
+  const setUserData = auth?.setUserData;
+  const setToken = auth?.setToken; // <-- Get setToken from context
 
   const [formData, setFormData] = useState({
     email: '',
@@ -45,6 +50,32 @@ const LoginPage: React.FC = () => {
           email: formData.email,
           password: formData.password
         }) as LoginResponse;
+
+        // Check for admin role and store token/user
+        const user = response?.data?.user;
+        const token = response?.data?.user.token;
+        if (
+          response &&
+          response.succeeded === true &&
+          user &&
+          user.role &&
+          user.role.toLowerCase() === 'admin'
+        ) {
+          if (setIsAuthenticated) setIsAuthenticated(true);
+          if (setUserData) setUserData(user);
+          if (setToken) setToken(user.token); // <-- Make sure to call this!
+          localStorage.setItem('adminToken', user.token);
+          localStorage.setItem('adminUserData', JSON.stringify(user));
+          localStorage.setItem('adminUserId', user.id);
+          if (auth) {
+            auth.login(token, user, true);
+          }
+          navigate('/admin/dashboard', { replace: true });
+          return;
+        } else {
+          setError('You do not have admin access.');
+          return;
+        }
       } else {
         response = await authService.signIn({
           email: formData.email,
@@ -52,19 +83,17 @@ const LoginPage: React.FC = () => {
         });
       }
       if (response && response.succeeded === true) {
-        if (isAdmin) {
-          navigate('/admin/dashboard');
-        } else {
-          const intendedAction = localStorage.getItem('intendedAction');
-          const returnPath = localStorage.getItem('returnPath');
-          if (intendedAction && returnPath) {
-            localStorage.removeItem('intendedAction');
-            localStorage.removeItem('returnPath');
-            navigate(returnPath);
-          } else {
-            navigate('/');
-          }
-        }
+        const user = response?.data?.user;
+        const token = response?.data?.token;
+        if (setIsAuthenticated) setIsAuthenticated(true);
+        if (setUserData) setUserData(user);
+        if (setToken) setToken(token);
+        localStorage.setItem('adminToken', token);
+        localStorage.setItem('adminUserData', JSON.stringify(user));
+        document.cookie = `adminToken=${token}; path=/; max-age=${60 * 60 * 24 * 7}`;
+        // Redirect as needed
+        navigate('/');
+        return;
       } else {
         setError(response?.message || 'Login failed. Please try again.');
       }
@@ -221,3 +250,5 @@ const LoginPage: React.FC = () => {
 };
 
 export default LoginPage;
+
+

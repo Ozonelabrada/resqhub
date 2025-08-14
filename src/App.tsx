@@ -32,6 +32,7 @@ const AppRouter = () => {
         <Route index element={<HubHomePage />} />
         <Route path="search" element={<SearchItemsPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/signin" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/report" element={<ReportPage />} />
         <Route path="/lost" element={<ReportPage />} />

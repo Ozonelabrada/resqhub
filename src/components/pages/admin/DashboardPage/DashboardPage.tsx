@@ -9,8 +9,8 @@ import { ConfirmDialog } from 'primereact/confirmdialog';
 import { useRef } from 'react';
 import ItemDetailsModal from '../../../modals/ItemDetailsModal/ItemDetailsModal';
 import ConfirmationModal from '../../../modals/ConfirmationModal/ConfirmationModal';
-import { AdminService } from '../../../../services/adminService';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../../context/AuthContext';
 
 interface LostFoundItem {
   id: number;
@@ -42,9 +42,12 @@ const DashboardPage: React.FC = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<LostFoundItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [adminUser, setAdminUser] = useState<{ name: string; email: string; role?: string } | null>(null);
   const toast = useRef<Toast>(null);
   const navigate = useNavigate();
+
+  const auth = useAuth();
+  const isAuthenticated = auth?.isAuthenticated;
+  const userData = auth?.userData;
 
   const [recentItems, setRecentItems] = useState<LostFoundItem[]>([
     { 
@@ -200,23 +203,19 @@ const DashboardPage: React.FC = () => {
       try {
         const adminUserData = localStorage.getItem('adminUserData');
         if (!adminUserData) {
-          setAdminUser(null);
           navigate('/admin/login', { replace: true });
           return;
         }
         const parsedUser = JSON.parse(adminUserData);
         // Check role (case-insensitive)
         if (!parsedUser.role || parsedUser.role.toLowerCase() !== 'admin') {
-          setAdminUser(null);
           localStorage.removeItem('adminUserData');
           localStorage.removeItem('adminToken');
           localStorage.removeItem('adminUserId');
           navigate('/admin/login', { replace: true });
           return;
         }
-        setAdminUser(parsedUser);
       } catch (err) {
-        setAdminUser(null);
         localStorage.removeItem('adminUserData');
         localStorage.removeItem('adminToken');
         localStorage.removeItem('adminUserId');
@@ -225,7 +224,6 @@ const DashboardPage: React.FC = () => {
     };
     fetchAdminUser();
   }, [navigate]);
-
   const categories = [
     { label: 'All Categories', value: null },
     { label: 'Electronics', value: 'Electronics' },
@@ -363,7 +361,8 @@ const DashboardPage: React.FC = () => {
       style={{ 
         padding: isMobile ? '0.5rem' : '1rem',
         paddingBottom: isMobile ? '5rem' : '1rem',
-        background: 'linear-gradient(135deg, #353333ff 0%, #475a4bff 50%, #888887ff 100%)',
+        color: '#ffffffff',
+        background: 'linear-gradient(135deg, #239b51ff 0%, #475a4bff 50%, #888887ff 100%)',
       }}
     >
       <Toast ref={toast} />
@@ -390,24 +389,6 @@ const DashboardPage: React.FC = () => {
               {isMobile ? 'Live' : 'Live Updates Active'}
             </div>
           </div>
-
-          {/* Header with admin user */}
-          <div className="w-full mb-4 flex justify-content-between align-items-center">
-            <div>
-              <h1 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-gray-800 m-0`}>
-                Admin Dashboard
-              </h1>
-              <p className="text-gray-600 m-0 mt-1">
-                {isMobile ? 'Manage lost & found items' : 'Manage and track all lost & found items'}
-              </p>
-            </div>
-            {adminUser && (
-              <div className="flex align-items-center gap-2">
-                <i className="pi pi-user text-primary"></i>
-                <span className="font-semibold">{adminUser.name || adminUser.email}</span>
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Stats Cards - Responsive Grid */}
@@ -420,10 +401,16 @@ const DashboardPage: React.FC = () => {
               : isTablet 
                 ? 'repeat(4, 1fr)' 
                 : 'repeat(4, 1fr)',
-            gap: isMobile ? '0.5rem' : '1rem'
+            gap: isMobile ? '0.5rem' : '1rem',
+            color: '#ffffffff'
           }}
         >
-          <Card className="bg-blue-50 border-blue-200">
+          <Card className="bg-blue-50 border-blue-200"
+            style={{
+              background: 'linear-gradient(135deg, #e0f7fa 0%, #80deea 50%, #4dd0e1 100%)',
+              color: '#000000'
+            }}
+          >
             <div className="flex align-items-center justify-content-between">
               <div>
                 <div className={`text-blue-600 font-bold ${isMobile ? 'text-xl' : 'text-2xl'}`}>24</div>
@@ -433,7 +420,12 @@ const DashboardPage: React.FC = () => {
             </div>
           </Card>
           
-          <Card className="bg-red-50 border-red-200">
+          <Card className="bg-red-50 border-red-200"
+            style={{
+              background: 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 50%, #ef5350 100%)',
+              color: '#000000'
+            }}
+          >
             <div className="flex align-items-center justify-content-between">
               <div>
                 <div className={`text-red-600 font-bold ${isMobile ? 'text-xl' : 'text-2xl'}`}>15</div>
@@ -443,7 +435,12 @@ const DashboardPage: React.FC = () => {
             </div>
           </Card>
           
-          <Card className="bg-green-50 border-green-200">
+          <Card className="bg-green-50 border-green-200"
+            style={{
+              background: 'linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 50%, #a5d6a7 100%)',
+              color: '#000000'
+            }}
+          >
             <div className="flex align-items-center justify-content-between">
               <div>
                 <div className={`text-green-600 font-bold ${isMobile ? 'text-xl' : 'text-2xl'}`}>9</div>
@@ -453,7 +450,12 @@ const DashboardPage: React.FC = () => {
             </div>
           </Card>
           
-          <Card className="bg-orange-50 border-orange-200">
+          <Card className="bg-orange-50 border-orange-200"
+            style={{
+              background: 'linear-gradient(135deg, #fff3e0 0%, #ffe0b2 50%, #ffcc80 100%)',
+              color: '#000000'
+            }}
+          >
             <div className="flex align-items-center justify-content-between">
               <div>
                 <div className={`text-orange-600 font-bold ${isMobile ? 'text-xl' : 'text-2xl'}`}>3</div>
