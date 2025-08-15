@@ -48,11 +48,11 @@ const AppRouter = () => {
       </Route>
 
       {/* 🔐 ADMIN LOGIN - Standalone without layout */}
-      <Route path="/admin/login" element={<AdminLoginPage />} />
-
+        <Route path="/admin/login" element={<AdminLoginPage />} />
+        
       {/* 🔐 ADMIN ROUTES - Authentication required with layout */}
       <Route path="/admin" element={<AdminLayout />}>
-      <Route path="/admin/dashboard" element={<DashboardPage />} />
+        <Route path="dashboard" element={<DashboardPage />} />
       </Route>
 
       {/* 🚧 UTILITY ROUTES */}

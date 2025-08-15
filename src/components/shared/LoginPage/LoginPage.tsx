@@ -25,7 +25,7 @@ const LoginPage: React.FC = () => {
   const auth = useAuth();
   const setIsAuthenticated = auth?.setIsAuthenticated;
   const setUserData = auth?.setUserData;
-  const setToken = auth?.setToken; // <-- Get setToken from context
+  const setToken = auth?.setToken;
 
   const [formData, setFormData] = useState({
     email: '',
@@ -93,7 +93,7 @@ const LoginPage: React.FC = () => {
         localStorage.setItem('publicUserData', JSON.stringify(user));
         document.cookie = `publicUserToken=${token}; path=/; max-age=${60 * 60 * 24 * 7}`;
         if (auth) {
-          auth.login(token, user, false); // <-- false for public user
+          auth.login(token, user, false);
         }
         navigate('/');
         return;
