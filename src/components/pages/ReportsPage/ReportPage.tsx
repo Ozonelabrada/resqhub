@@ -1200,7 +1200,7 @@ const ReportPage: React.FC = () => {
                   icon="pi pi-user"
                   shape="circle"
                   style={{ backgroundColor: 'white', color: '#1e40af', cursor: 'pointer' }}
-                  onClick={showAccountMenu}
+                  
                 />
                 <span className="text-sm text-white font-semibold">{userData.name || userData.email}</span>
                 <Menu

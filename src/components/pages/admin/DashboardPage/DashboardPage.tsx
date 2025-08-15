@@ -10,6 +10,7 @@ import { useRef } from 'react';
 import ItemDetailsModal from '../../../modals/ItemDetailsModal/ItemDetailsModal';
 import ConfirmationModal from '../../../modals/ConfirmationModal/ConfirmationModal';
 import { useNavigate } from 'react-router-dom';
+import CategoryService from '../../../../services/categoryService';
 
 interface LostFoundItem {
   id: number;
@@ -179,6 +180,10 @@ const DashboardPage: React.FC = () => {
     }
   ]);
 
+  const [categories, setCategories] = useState<{ label: string; value: string | null }[]>([
+    { label: 'All Categories', value: null }
+  ]);
+
   // Enhanced responsive detection
   useEffect(() => {
     const checkScreenSize = () => {
@@ -219,14 +224,25 @@ const DashboardPage: React.FC = () => {
     };
     fetchAdminUser();
   }, [navigate]);
-  const categories = [
-    { label: 'All Categories', value: null },
-    { label: 'Electronics', value: 'Electronics' },
-    { label: 'Accessories', value: 'Accessories' },
-    { label: 'Keys', value: 'Keys' },
-    { label: 'Jewelry', value: 'Jewelry' },
-    { label: 'Clothing', value: 'Clothing' }
-  ];
+
+  useEffect(() => {
+    // Fetch categories from backend
+    const getCategories = async () => {
+      try {
+        const cats = await CategoryService.getCategories();
+        setCategories([
+          { label: 'All Categories', value: null },
+          ...cats.map((cat: any) => ({
+            label: cat.name,
+            value: cat.name
+          }))
+        ]);
+      } catch (err) {
+        // Optionally show a toast or log error
+      }
+    };
+    getCategories();
+  }, []);
 
   // Filter items based on search and category
   const filteredItems = recentItems.filter(item => {

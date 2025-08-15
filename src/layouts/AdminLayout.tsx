@@ -189,7 +189,7 @@ const AdminLayout = () => {
         {/* User Info - Desktop Only */}
         {!isMobile && (
           <div className="text-right">
-            <div className="text-sm font-semibold text-gray-700">{userData?.name}</div>
+            <div className="text-sm font-semibold text-gray-700">{userData?.email}</div>
             <div className="text-xs text-gray-500">{userData?.role}</div>
           </div>
         )}
@@ -260,7 +260,7 @@ const AdminLayout = () => {
             flexShrink: 0,
             borderRight: '1px solid #e5e7eb',
             backgroundColor: 'white',
-            overflowY: 'auto' // Allow sidebar to scroll if needed
+            overflowY: 'auto'
           }}>
             <LeftSideBarPage />
           </div>
@@ -269,7 +269,7 @@ const AdminLayout = () => {
         {/* Main Content Area - FIXED: Allow scrolling */}
         <div style={{ 
           flexGrow: 1,
-          overflow: 'auto', // Changed from 'hidden' to 'auto' to enable scrolling
+          overflow: 'auto',
           height: '100%'
         }}>
           <Outlet />

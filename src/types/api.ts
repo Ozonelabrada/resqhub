@@ -205,3 +205,32 @@ export interface TrendingReportsResponse extends BaseApiResponse {
   errors: any;
   baseEntity: any;
 }
+
+// Category types
+export interface Category {
+  id: number;
+  name: string;
+  description: string;
+  icon?: string;
+  isActive: boolean;
+  sortOrder?: number;
+  itemsCount?: number;
+  dateCreated?: string;
+  lastModifiedDate?: string;
+  createdBy?: string;
+  lastModifiedBy?: string | null;
+}
+
+export interface CategoryResponse {
+  message: string;
+  succeeded: boolean;
+  statusCode: number;
+  data: {
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+    pageNumber: number;
+    succeeded: boolean;
+    data: Category[];
+  };
+}
