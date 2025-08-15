@@ -63,7 +63,7 @@ const LoginPage: React.FC = () => {
         ) {
           if (setIsAuthenticated) setIsAuthenticated(true);
           if (setUserData) setUserData(user);
-          if (setToken) setToken(user.token); // <-- Make sure to call this!
+          if (setToken) setToken(user.token);
           localStorage.setItem('adminToken', user.token);
           localStorage.setItem('adminUserData', JSON.stringify(user));
           localStorage.setItem('adminUserId', user.id);
