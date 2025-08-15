@@ -621,9 +621,9 @@ const ReportPage: React.FC = () => {
     }
   ];
 
-  const showAccountMenu = (event: React.MouseEvent) => {
-    accountMenuRef.current?.toggle(event);
-  };
+  // const showAccountMenu = (event: React.MouseEvent) => {
+  //   accountMenuRef.current?.toggle(event);
+  // };
 
   // Show loading state
   if (loading) {

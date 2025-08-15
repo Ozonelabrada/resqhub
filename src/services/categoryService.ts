@@ -13,16 +13,21 @@ export interface BackendCategoryResponse {
 export class CategoryService {
   static async getCategories(params?: { isActive?: boolean; pageSize?: number; page?: number }): Promise<Category[]> {
     try {
-      const queryParams = new URLSearchParams({
-        isActive: String(params?.isActive ?? false),
-        pageSize: String(params?.pageSize ?? 100),
-        page: String(params?.page ?? 1),
-      }).toString();
-      const response = await mainApiClient.request<BackendCategoryResponse>(`/categories?${queryParams}`, {
+      // Only add isActive if it is explicitly set (not undefined or null)
+      const query: Record<string, string> = {};
+      if (typeof params?.isActive === 'boolean') {
+        query.isActive = String(params.isActive);
+      }
+      if (params?.pageSize) query.pageSize = String(params.pageSize);
+      if (params?.page) query.page = String(params.page);
+
+      const queryParams = new URLSearchParams(query).toString();
+      const url = queryParams ? `/categories?${queryParams}` : '/categories';
+
+      const response = await mainApiClient.request<BackendCategoryResponse>(url, {
         method: 'GET',
         credentials: 'include',
       });
-      // If paginated, data is an array in data.data
       if (Array.isArray(response.data)) {
         return response.data;
       }

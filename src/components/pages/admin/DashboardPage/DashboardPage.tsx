@@ -356,7 +356,6 @@ const DashboardPage: React.FC = () => {
       setItemToDelete(null);
     }
   };
-
   // Responsive grid columns calculation
   const getGridColumns = () => {
     if (isMobile) return 1;
@@ -387,7 +386,7 @@ const DashboardPage: React.FC = () => {
           <div className={`flex ${isMobile ? 'flex-column gap-2' : 'justify-content-between align-items-center'} mb-3`}>
             <div>
               <h1 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-gray-800 m-0`}>
-                Admin Dashboard
+                ResQHub Dashboard
               </h1>
               <p className="text-gray-600 m-0 mt-1">
                 {isMobile ? 'Manage lost & found items' : 'Manage and track all lost & found items'}

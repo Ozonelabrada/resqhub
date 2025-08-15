@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Menubar } from 'primereact/menubar';
 import { Button } from 'primereact/button';
 import { Sidebar } from 'primereact/sidebar';
@@ -7,8 +7,10 @@ import { Badge } from 'primereact/badge';
 import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
 import { Toast } from 'primereact/toast';
+import { ConfirmDialog } from 'primereact/confirmdialog';
 import LeftSideBarPage from '../components/layout/Sidebar/LeftSideBardPage';
 import { useAuth } from '../context/AuthContext';
+import { confirmDialog } from 'primereact/confirmdialog';
 
 const AdminLayout = () => {
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
@@ -18,25 +20,44 @@ const AdminLayout = () => {
   const userData = auth?.userData;
   const logout = auth?.logout;
   const navigate = useNavigate();
+  const location = useLocation();
   const userMenuRef = useRef<Menu>(null);
   const toast = useRef<Toast>(null);
 
   // Only allow admins
   useEffect(() => {
+    // Only redirect to /admin/login if the user is on an /admin route and not authenticated as admin
     if (
-      !isAuthenticated ||
-      !userData ||
-      !userData.role ||
-      userData.role.toLowerCase() !== 'admin'
+      location.pathname.startsWith('/admin') &&
+      (
+        !isAuthenticated ||
+        !userData ||
+        !userData.role ||
+        userData.role.toLowerCase() !== 'admin'
+      )
     ) {
       navigate('/admin/login', { replace: true });
     }
-  }, [isAuthenticated, userData, navigate]);
+  }, [isAuthenticated, userData, navigate, location.pathname]);
 
-  // Logout handler
+  // Logout handler with confirmation dialog
   const handleLogout = () => {
-    if (logout) logout();
-    navigate('/admin/login', { replace: true });
+    confirmDialog({
+      message: 'Are you sure you want to logout?',
+      header: 'Logout Confirmation',
+      icon: 'pi pi-sign-out',
+      acceptLabel: 'Logout',
+      rejectLabel: 'Cancel',
+      acceptClassName: 'p-button-danger',
+      accept: () => {
+        if (logout) logout();
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminUserData');
+        localStorage.removeItem('adminUserId');
+        document.cookie = 'adminToken=; Max-Age=0; path=/;';
+        navigate('/', { replace: true });
+      }
+    });
   };
 
   // Add Logout to userMenuItems
@@ -224,6 +245,7 @@ const AdminLayout = () => {
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Toast ref={toast} />
+      <ConfirmDialog />
       
       {/* Fixed Top Navigation */}
       <div style={{ flexShrink: 0 }}>
