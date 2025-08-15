@@ -1,4 +1,7 @@
 export class ApiClient {
+  get(_arg0: string, _arg1: { params: { isActive: boolean; pageSize: number; page: number; }; }) {
+      throw new Error('Method not implemented.');
+  }
   public baseURL: string;
   private defaultHeaders: Record<string, string>;
 

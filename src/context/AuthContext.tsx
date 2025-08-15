@@ -36,9 +36,16 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
       const publicUser = localStorage.getItem('publicUserData') || null;
 
       if (adminToken && adminUser) {
-        setToken(adminToken);
-        setUserData(JSON.parse(adminUser));
-        setIsAuthenticated(true);
+        const parsedUser = JSON.parse(adminUser);
+        if (parsedUser.role && parsedUser.role.toLowerCase() === 'admin') {
+          setToken(adminToken);
+          setUserData(parsedUser);
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+          setUserData(null);
+          setToken(null);
+        }
       } else if (publicToken && publicUser) {
         setToken(publicToken);
         setUserData(JSON.parse(publicUser));

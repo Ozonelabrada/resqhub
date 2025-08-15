@@ -63,7 +63,7 @@ const LoginPage: React.FC = () => {
         ) {
           if (setIsAuthenticated) setIsAuthenticated(true);
           if (setUserData) setUserData(user);
-          if (setToken) setToken(user.token); // <-- Make sure to call this!
+          if (setToken) setToken(user.token);
           localStorage.setItem('adminToken', user.token);
           localStorage.setItem('adminUserData', JSON.stringify(user));
           localStorage.setItem('adminUserId', user.id);
@@ -88,10 +88,13 @@ const LoginPage: React.FC = () => {
         if (setIsAuthenticated) setIsAuthenticated(true);
         if (setUserData) setUserData(user);
         if (setToken) setToken(token);
-        localStorage.setItem('adminToken', token);
-        localStorage.setItem('adminUserData', JSON.stringify(user));
-        document.cookie = `adminToken=${token}; path=/; max-age=${60 * 60 * 24 * 7}`;
-        // Redirect as needed
+        // Use public keys for public login
+        localStorage.setItem('publicUserToken', token);
+        localStorage.setItem('publicUserData', JSON.stringify(user));
+        document.cookie = `publicUserToken=${token}; path=/; max-age=${60 * 60 * 24 * 7}`;
+        if (auth) {
+          auth.login(token, user, false); // <-- false for public user
+        }
         navigate('/');
         return;
       } else {
