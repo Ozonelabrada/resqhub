@@ -1,4 +1,4 @@
-import { mainApiClient } from '../api/client';
+import api from '../api/client';
 
 export interface BackendUserData {
   id: string;
@@ -48,20 +48,15 @@ export class UserService {
         }
       }
 
-      // If we still don't have a userId, throw an error
       if (!userIdToUse) {
         throw new Error('User ID is required to fetch user profile');
       }
 
-      const response = await mainApiClient.request<BackendUserResponse>(`/users/${userIdToUse}`, {
-        credentials: 'include'
-      });
-      
-      if (!response.succeeded) {
-        throw new Error(response.message || 'Failed to fetch user profile');
+      const response = await api.get<BackendUserResponse>(`/users/${userIdToUse}`);
+      if (!response.data.succeeded) {
+        throw new Error(response.data.message || 'Failed to fetch user profile');
       }
-      
-      return response.data;
+      return response.data.data;
     } catch (error) {
       console.error('Error fetching user profile:', error);
       throw error;
@@ -70,42 +65,30 @@ export class UserService {
 
   static async updateUserProfile(userId: string, updates: Partial<BackendUserData>): Promise<BackendUserData> {
     try {
-      const response = await mainApiClient.request<BackendUserResponse>(`/users/${userId}`, {
-        method: 'PUT',
-        body: JSON.stringify(updates),
-        credentials: 'include'
-      });
-      
-      if (!response.succeeded) {
-        throw new Error(response.message || 'Failed to update user profile');
+      const response = await api.put<BackendUserResponse>(`/users/${userId}`, updates);
+      if (!response.data.succeeded) {
+        throw new Error(response.data.message || 'Failed to update user profile');
       }
-      
-      return response.data;
+      return response.data.data;
     } catch (error) {
       console.error('Error updating user profile:', error);
       throw error;
     }
   }
 
-  // Get user by ID (public method for external use)
   static async getUserById(userId: string): Promise<BackendUserData> {
     try {
-      const response = await mainApiClient.request<BackendUserResponse>(`/users/${userId}`, {
-        credentials: 'include'
-      });
-      
-      if (!response.succeeded) {
-        throw new Error(response.message || 'Failed to fetch user profile');
+      const response = await api.get<BackendUserResponse>(`/users/${userId}`);
+      if (!response.data.succeeded) {
+        throw new Error(response.data.message || 'Failed to fetch user profile');
       }
-      
-      return response.data;
+      return response.data.data;
     } catch (error) {
       console.error('Error fetching user by ID:', error);
       throw error;
     }
   }
 
-  // Helper function to transform backend user data to frontend format
   static transformUserData(backendUser: BackendUserData) {
     return {
       id: backendUser.id,
@@ -148,7 +131,6 @@ export class UserService {
     }
   }
 
-  // Helper method to get current user ID from localStorage
   static getCurrentUserId(): string | null {
     try {
       const userData = localStorage.getItem('publicUserData');

@@ -1,18 +1,17 @@
-import { mainApiClient } from '../api/client';
+import  mainApiClient  from '../api/client';
 import type { StatisticsResponse, StatisticsData } from '.././types/api';
 
 export class StatisticsService {
   static async getStatistics(): Promise<StatisticsData> {
     try {
-      const response = await mainApiClient.request<StatisticsResponse>('/statistics', {
-        credentials: 'include' // Include credentials
-      });
+      const response = await mainApiClient.request<StatisticsResponse>({ url: '/statistics' });
+      const responseData = response.data;
       
-      if (!response.succeeded) {
-        throw new Error(response.message || 'Failed to fetch statistics');
+      if (!responseData.succeeded) {
+        throw new Error(responseData.message || 'Failed to fetch statistics');
       }
       
-      return response.data;
+      return responseData.data;
     } catch (error) {
       console.error('Error fetching statistics:', error);
       throw error;
@@ -21,11 +20,9 @@ export class StatisticsService {
 
   static async getLocationStats(cityId: number): Promise<any> {
     try {
-      return await mainApiClient.request(`/statistics/city/${cityId}`, {
-        credentials: 'include' // Include credentials
-      });
+      return await mainApiClient.request({ url: `/statistics/city/${cityId}` });
     } catch (error) {
-      console.error('Error fetching location statistics:', error);
+      console.error('Error fetching location stats:', error);
       throw error;
     }
   }

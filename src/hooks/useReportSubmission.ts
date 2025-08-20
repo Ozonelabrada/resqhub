@@ -1,20 +1,20 @@
 // Optional: Auto-trigger trending calculation when new reports are submitted
 import { useState } from 'react';
+import { ItemsService } from '../services/itemsService';
 import { TrendingReportsService } from '../services/trendingReportsService';
-
-// Make sure to update the usage below if you change the import name
 
 export const useReportSubmission = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const submitReport = async (_reportData: any) => {
+  const submitReport = async (reportData: any) => {
     try {
       setIsSubmitting(true);
-      
-      
+
+      // Submit the report to the backend
+      await ItemsService.createReport(reportData);
+
       // Silently trigger trending calculation in the background
-      // Don't await this - let it run asynchronously
-      TrendingReportsService.calculateTrendingReports().catch(err => 
+      TrendingReportsService.calculateTrendingReports().catch(err =>
         console.log('Background trending calculation failed:', err)
       );
     } catch (error) {

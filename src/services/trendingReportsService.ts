@@ -1,4 +1,4 @@
-import { mainApiClient } from '../api/client';
+import mainApiClient from '../api/client';
 import type { TrendingReportItem } from '../types/api';
 
 interface PaginatedTrendingReportsResponse {
@@ -24,14 +24,15 @@ interface PaginatedTrendingReportsResponse {
 export class TrendingReportsService {
   static async getTrendingReports(): Promise<TrendingReportItem[]> {
     try {
-      const response = await mainApiClient.request<PaginatedTrendingReportsResponse>('/trending-reports/all', {
-        credentials: 'include' // Include credentials
+      const response = await mainApiClient.request<PaginatedTrendingReportsResponse>({
+        url: '/trending-reports/all'
       });
       
       console.log('Trending reports API response:', response);
       
-      if (response.succeeded && response.data) {
-        const data = response.data;
+      const responseData = response.data;
+      if (responseData.succeeded && responseData.data) {
+        const data = responseData.data;
         
         // Check various possible property names for the trending reports array
         const possibleArrayProperties = [
@@ -138,16 +139,16 @@ export class TrendingReportsService {
         message: string;
         succeeded: boolean;
         statusCode: number;
-      }>('/trending-reports/calculate', {
+      }>({
+        url: '/trending-reports/calculate',
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
-        },
-        credentials: 'include' // Include credentials
+        }
       });
       
-      if (!response.succeeded) {
-        throw new Error(response.message || 'Failed to calculate trending reports');
+      if (!response.data.succeeded) {
+        throw new Error(response.data.message || 'Failed to calculate trending reports');
       }
       
       console.log('Trending reports calculation triggered successfully');

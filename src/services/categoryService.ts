@@ -1,4 +1,4 @@
-import { mainApiClient } from '../api/client';
+import mainApiClient from '../api/client';
 import type { Category } from '../types/api';
 
 export interface BackendCategoryResponse {
@@ -24,9 +24,9 @@ export class CategoryService {
       const queryParams = new URLSearchParams(query).toString();
       const url = queryParams ? `/categories?${queryParams}` : '/categories';
 
-      const response = await mainApiClient.request<BackendCategoryResponse>(url, {
+      const response = await mainApiClient.request<BackendCategoryResponse>({
+        url,
         method: 'GET',
-        credentials: 'include',
       });
       if (Array.isArray(response.data)) {
         return response.data;
@@ -43,12 +43,12 @@ export class CategoryService {
 
   static async getCategoryById(id: number): Promise<Category | null> {
     try {
-      const response = await mainApiClient.request<BackendCategoryResponse>(`/categories/${id}`, {
+      const response = await mainApiClient.request<BackendCategoryResponse>({
+        url: `/categories/${id}`,
         method: 'GET',
-        credentials: 'include',
       });
       if (response.data && !Array.isArray(response.data)) {
-        return response.data as Category;
+        return response.data as unknown as Category;
       }
       return null;
     } catch (error) {
@@ -59,14 +59,14 @@ export class CategoryService {
 
   static async createCategory(category: Omit<Category, 'id'>): Promise<Category | null> {
     try {
-      const response = await mainApiClient.request<BackendCategoryResponse>('/categories', {
+      const response = await mainApiClient.request<BackendCategoryResponse>({
+        url: '/categories',
         method: 'POST',
-        body: JSON.stringify(category),
+        data: category,
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
       });
       if (response.data && !Array.isArray(response.data)) {
-        return response.data as Category;
+        return response.data.data as Category;
       }
       return null;
     } catch (error) {
@@ -77,14 +77,14 @@ export class CategoryService {
 
   static async updateCategory(id: number, updates: Partial<Category>): Promise<Category | null> {
     try {
-      const response = await mainApiClient.request<BackendCategoryResponse>(`/categories/${id}`, {
+      const response = await mainApiClient.request<BackendCategoryResponse>({
+        url: `/categories/${id}`,
         method: 'PUT',
-        body: JSON.stringify(updates),
+        data: updates,
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
       });
       if (response.data && !Array.isArray(response.data)) {
-        return response.data as Category;
+        return response.data.data as Category;
       }
       return null;
     } catch (error) {
@@ -95,12 +95,12 @@ export class CategoryService {
 
   static async deleteCategory(id: number): Promise<boolean> {
     try {
-      await mainApiClient.request<BackendCategoryResponse>(`/categories/${id}`, {
+      await mainApiClient.request<BackendCategoryResponse>({
+        url: `/categories/${id}`,
         method: 'DELETE',
-        credentials: 'include',
       });
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting category:', error);
       return false;
     }
