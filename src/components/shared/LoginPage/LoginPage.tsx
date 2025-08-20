@@ -46,10 +46,11 @@ const LoginPage: React.FC = () => {
     try {
       let response: LoginResponse;
       if (isAdmin) {
-        response = await AuthService.login({
+        const axiosResponse = await AuthService.login({
           email: formData.email,
           password: formData.password
-        }) as LoginResponse;
+        });
+        response = axiosResponse.data as LoginResponse;
 
         // Check for admin role and store token/user
         const user = response?.data?.user;
@@ -77,7 +78,7 @@ const LoginPage: React.FC = () => {
           return;
         }
       } else {
-        response = await authService.signIn({
+        response = await AuthService.signIn({
           email: formData.email,
           password: formData.password
         });

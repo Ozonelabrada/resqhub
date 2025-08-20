@@ -16,6 +16,7 @@ import { useStatistics } from '../../../../hooks/useStatistics';
 import { useTrendingReports } from '../../../../hooks/useTrendingReports';
 import { CSSTransition } from 'react-transition-group';
 import { Dialog } from 'primereact/dialog';
+import CategoryService from '../../../../services/categoryService';
 
 const HubHomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -24,6 +25,11 @@ const HubHomePage: React.FC = () => {
   const [isBelowDesktop, setIsBelowDesktop] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userData, setUserData] = useState<any>(null);
+  const [categories, setCategories] = useState<{ label: string; value: string | null }[]>(
+    [
+      { label: 'All Categories', value: null }
+    ]
+  );
   const accountMenuRef = useRef<Menu>(null);
   const toast = useRef<Toast>(null);
   const guestMenuRef = useRef<Menu>(null);
@@ -148,16 +154,25 @@ const HubHomePage: React.FC = () => {
     return () => window.removeEventListener('resize', checkScreen);
   }, []);
 
-  const categories = [
-    { label: 'All Categories', value: null },
-    { label: 'Electronics', value: 'Electronics' },
-    { label: 'Accessories', value: 'Accessories' },
-    { label: 'Keys', value: 'Keys' },
-    { label: 'Jewelry', value: 'Jewelry' },
-    { label: 'Documents', value: 'Documents' },
-    { label: 'Clothing', value: 'Clothing' }
-  ];
-
+  useEffect(() => {
+    // Fetch categories from backend
+    const getCategories = async () => {
+      try {
+        const cats = await CategoryService.getCategories({ isActive: true });
+        setCategories([
+          { label: 'All Categories', value: null },
+          ...cats.map((cat: any) => ({
+            label: cat.name,
+            value: cat.name
+          }))
+        ]);
+      } catch (err) {
+        // Optionally show a toast or log error
+      }
+    };
+    getCategories();
+  }, []);
+  
   const recentSuccesses = [
     { 
       id: 1, 
