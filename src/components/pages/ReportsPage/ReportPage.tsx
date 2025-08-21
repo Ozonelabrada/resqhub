@@ -461,13 +461,6 @@ const ReportPage: React.FC = () => {
     }));
   };
 
-  const removeImage = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index)
-    }));
-  };
-
   const handleSubmit = async () => {
     if (!validateStep(currentStep)) {
       toast.current?.show({

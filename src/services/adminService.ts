@@ -1,4 +1,4 @@
-import { mainApiClient } from '../api/client';
+import api from '../api/client';
 
 export interface BackendAdminData {
   id: string;
@@ -41,13 +41,11 @@ export class AdminService {
       if (!adminIdToUse) {
         throw new Error('Admin ID is required to fetch admin profile');
       }
-      const response = await mainApiClient.request<BackendAdminResponse>(`/admin/${adminIdToUse}`, {
-        credentials: 'include'
-      });
-      if (!response.succeeded) {
-        throw new Error(response.message || 'Failed to fetch admin profile');
+      const response = await api.get<BackendAdminResponse>(`/admin/${adminIdToUse}`);
+      if (!response.data.succeeded) {
+        throw new Error(response.data.message || 'Failed to fetch admin profile');
       }
-      return response.data;
+      return response.data.data;
     } catch (error) {
       console.error('Error fetching admin profile:', error);
       throw error;
@@ -56,15 +54,11 @@ export class AdminService {
 
   static async updateAdminProfile(adminId: string, updates: Partial<BackendAdminData>): Promise<BackendAdminData> {
     try {
-      const response = await mainApiClient.request<BackendAdminResponse>(`/admin/${adminId}`, {
-        method: 'PUT',
-        body: JSON.stringify(updates),
-        credentials: 'include'
-      });
-      if (!response.succeeded) {
-        throw new Error(response.message || 'Failed to update admin profile');
+      const response = await api.put<BackendAdminResponse>(`/admin/${adminId}`, updates);
+      if (!response.data.succeeded) {
+        throw new Error(response.data.message || 'Failed to update admin profile');
       }
-      return response.data;
+      return response.data.data;
     } catch (error) {
       console.error('Error updating admin profile:', error);
       throw error;
@@ -73,20 +67,17 @@ export class AdminService {
 
   static async getAdminById(adminId: string): Promise<BackendAdminData> {
     try {
-      const response = await mainApiClient.request<BackendAdminResponse>(`/admin/${adminId}`, {
-        credentials: 'include'
-      });
-      if (!response.succeeded) {
-        throw new Error(response.message || 'Failed to fetch admin profile');
+      const response = await api.get<BackendAdminResponse>(`/admin/${adminId}`);
+      if (!response.data.succeeded) {
+        throw new Error(response.data.message || 'Failed to fetch admin profile');
       }
-      return response.data;
+      return response.data.data;
     } catch (error) {
       console.error('Error fetching admin by ID:', error);
       throw error;
     }
   }
 
-  // Helper method to get current admin ID from localStorage
   static getCurrentAdminId(): string | null {
     try {
       const adminData = localStorage.getItem('adminUserData');

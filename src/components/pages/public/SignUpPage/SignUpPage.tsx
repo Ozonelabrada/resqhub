@@ -11,8 +11,6 @@ import { Checkbox } from 'primereact/checkbox';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { AuthService } from '../../../../services/authService';
 
-const authService = new AuthService();
-
 const SignUpPage = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
@@ -114,7 +112,7 @@ const SignUpPage = () => {
         agreeToNewsletter: formData.subscribeNewsletter,
         provider: 'local' as const
       };
-      const response = await authService.signUp(registrationData);
+      const response = await AuthService.signUp(registrationData);
       if (response && response.succeeded) {
         navigate('/login', {
           state: {

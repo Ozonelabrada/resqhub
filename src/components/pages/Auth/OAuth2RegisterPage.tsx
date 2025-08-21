@@ -10,8 +10,6 @@ import { Dropdown } from 'primereact/dropdown';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { AuthService } from '../../../services/authService';
 
-const authService = new AuthService();
-
 const OAuth2RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -175,7 +173,7 @@ const OAuth2RegisterPage: React.FC = () => {
       console.log('Submitting OAuth2 registration data:', registrationData);
 
       // Use the standard register endpoint - your backend should detect OAuth2 users
-      const response = await authService.signUp(registrationData);
+      const response = await AuthService.signUp(registrationData);
       
       if (response && response.succeeded) {
         // Save user data - handle different response structures
