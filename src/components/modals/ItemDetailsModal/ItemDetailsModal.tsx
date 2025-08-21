@@ -7,6 +7,7 @@ import { Card } from 'primereact/card';
 import { Timeline } from 'primereact/timeline';
 import { Avatar } from 'primereact/avatar';
 import CommentSection from '../../features/comments/CommentSection';
+import { useAuth } from '../../../context/AuthContext';
 
 export interface ItemDetailsModalProps {
   visible: boolean;
@@ -35,10 +36,8 @@ const ItemDetailsModal: React.FC<ItemDetailsModalProps> = ({ visible, onHide, it
   const [showContactInfo, setShowContactInfo] = useState(false);
 
   // Detect if user is logged in (public or admin)
-  const isAuthenticated = Boolean(
-    localStorage.getItem('publicUserToken') ||
-    localStorage.getItem('adminUserToken')
-  );
+  const auth = useAuth();
+  const isAuthenticated = auth?.isAuthenticated ?? false;
 
   if (!item) return null;
 
