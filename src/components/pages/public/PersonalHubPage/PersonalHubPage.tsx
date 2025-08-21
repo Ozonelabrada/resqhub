@@ -16,6 +16,7 @@ import { Dialog } from 'primereact/dialog';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { ItemsService } from '../../../../services/itemsService';
 import { UserService } from '../../../../services/userService';
+import { useAuth } from '../../../../context/AuthContext';
 
 const PersonalHubPage: React.FC = () => {
   const navigate = useNavigate();
@@ -52,9 +53,9 @@ const PersonalHubPage: React.FC = () => {
   // Check authentication status and fetch user data from backend
   useEffect(() => {
     const checkAuthAndFetchUser = async () => {
-      const token = localStorage.getItem('publicUserToken');
-      
-      if (!token) {
+      const auth = useAuth();
+
+      if (!auth?.token) {
         navigate('/signin');
         return;
       }
@@ -125,8 +126,8 @@ const PersonalHubPage: React.FC = () => {
 
     // Listen for focus events (when user returns to this tab)
     const handleFocus = () => {
-      const token = localStorage.getItem('publicUserToken');
-      if (!token) {
+      const auth = useAuth();
+      if (!auth?.token) {
         navigate('/signin');
       }
     };

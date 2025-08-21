@@ -19,6 +19,7 @@ import  { ItemsService } from '../../../services/itemsService';
 import { AuthService } from '../../../services/authService';
 import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
+import { useAuth } from '../../../context/AuthContext';
 
 interface Category {
   id: number;
@@ -121,20 +122,17 @@ const ReportPage: React.FC = () => {
   const toast = useRef<Toast>(null);
   const accountMenuRef = useRef<Menu>(null);
 
+  // Use AuthContext only
+  const auth = useAuth();
+
   // --- State ---
   const [currentStep, setCurrentStep] = useState(0);
   const [reportType, setReportType] = useState<'lost' | 'found'>('lost');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userData, setUserData] = useState<any>(null);
-
   const [categories, setCategories] = useState<Category[]>([]);
   const [itemSuggestions, setItemSuggestions] = useState<ItemSuggestion[]>([]);
-  const [filteredSuggestions, setFilteredSuggestions] = useState<ItemSuggestion[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filteredBrandSuggestions, setFilteredBrandSuggestions] = useState<string[]>([]);
-  const [filteredModelSuggestions, setFilteredModelSuggestions] = useState<string[]>([]);
   const [formData, setFormData] = useState<FormDataType>(() => {
     const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (saved) {
@@ -147,7 +145,73 @@ const ReportPage: React.FC = () => {
     return getInitialFormData();
   });
 
-  // --- Effects ---
+  // New state for brand suggestions
+  const [filteredBrandSuggestions, setFilteredBrandSuggestions] = useState<string[]>([]);
+  const [filteredModelSuggestions, setFilteredModelSuggestions] = useState<string[]>([]);
+  const [filteredNameSuggestions, setFilteredNameSuggestions] = useState<ItemSuggestion[]>([]);
+  
+  // Brand suggestions for AutoComplete
+  const searchBrandSuggestions = useCallback((event: any) => {
+    const query = event.query.toLowerCase();
+    const brands = Array.isArray(itemSuggestions)
+      ? itemSuggestions
+          .map(item => item.brand)
+          .filter((brand): brand is string => !!brand)
+      : [];
+    const uniqueBrands = Array.from(new Set(brands));
+    setFilteredBrandSuggestions(
+      uniqueBrands.filter(brand => brand.toLowerCase().includes(query)).slice(0, 10)
+    );
+  }, [itemSuggestions]);
+
+  const searchModelSuggestions = useCallback((event: any) => {
+    const query = event.query.toLowerCase();
+    const models = Array.isArray(itemSuggestions)
+      ? itemSuggestions
+          .map(item => item.model)
+          .filter((model): model is string => !!model)
+      : [];
+    const uniqueModels = Array.from(new Set(models));
+    setFilteredModelSuggestions(
+      uniqueModels.filter(model => model.toLowerCase().includes(query)).slice(0, 10)
+    );
+  }, [itemSuggestions]);
+
+  const searchNameSuggestions = useCallback(
+  async (event: any) => {
+    const query = event.query?.trim();
+    if (!query) {
+      setFilteredNameSuggestions([]);
+      return;
+    }
+    try {
+      const response = await ItemsService.getItems(
+        true, // isActive
+        50,   // pageSize
+        1     // page
+      );
+      const itemsArr = Array.isArray(response?.data?.data?.data) ? response.data.data.data : [];
+      const filteredArr = itemsArr.filter((item: any) =>
+        item.name && item.name.toLowerCase().includes(query.toLowerCase())
+      );
+      setFilteredNameSuggestions(filteredArr.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        brand: item.brand,
+        model: item.model,
+        categoryId: item.categoryId,
+        categoryName: categories.find((cat) => cat.id === item.categoryId)?.name || '', // <-- Fix here
+        manufacturer: item.manufacturer,
+        productType: item.productType,
+      })));
+    } catch (error) {
+      setFilteredNameSuggestions([]);
+    }
+  },
+  [auth?.token, categories] // <-- Add categories as dependency
+);
+
+// --- Effects ---
   // Save formData to localStorage on every change
   useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formData));
@@ -155,46 +219,54 @@ const ReportPage: React.FC = () => {
 
   // Load backend data on mount
   useEffect(() => {
-    let isMounted = true;
-    const loadBackendData = async () => {
-      setLoading(true);
-      try {
-        const [categoriesResponse, itemsResponse] = await Promise.all([
-          ItemsService.getCategories(100, 1),
-          ItemsService.getItems(true, 100, 1)
-        ]);
-        if (isMounted) {
-          // Defensive: always set to array
-          setCategories(Array.isArray(categoriesResponse?.data?.data) ? categoriesResponse.data.data : []);
-          setItemSuggestions(Array.isArray(itemsResponse?.data?.data) ? itemsResponse.data.data : []);
-        }
-      } catch (error) {
-        if (isMounted) {
-          toast.current?.show({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'Failed to load form data. Please refresh the page.',
-            life: 5000
-          });
-        }
-      } finally {
-        if (isMounted) setLoading(false);
+  let isMounted = true;
+  const loadBackendData = async () => {
+    setLoading(true);
+    try {
+      const [categoriesResponse, itemsResponse] = await Promise.all([
+        ItemsService.getCategories(100, 1),
+        ItemsService.getItems(true, 100, 1)
+      ]);
+      // Correct extraction for deeply nested data
+      const categoriesArr = Array.isArray(categoriesResponse?.data) ? categoriesResponse.data : [];
+      const itemsArr = Array.isArray(itemsResponse?.data?.data) ? itemsResponse.data.data : [];
+      const mappedItems = itemsArr.map((item: any) => ({
+        ...item,
+        categoryName: categoriesArr.find((cat: any) => cat.id === item.categoryId)?.name || ''
+      }));
+      setCategories(categoriesArr); // <-- Add this line
+      setItemSuggestions(mappedItems);
+    } catch (error) {
+      if (isMounted) {
+        toast.current?.show({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to load form data. Please refresh the page.',
+          life: 5000
+        });
       }
-    };
-    loadBackendData();
-    return () => { isMounted = false; };
-  }, []);
+    } finally {
+      if (isMounted) setLoading(false);
+    }
+  };
+  loadBackendData();
+  return () => { isMounted = false; };
+}, [location.key]);
 
   // Auth and user profile
   useEffect(() => {
-    const token = localStorage.getItem('publicUserToken');
-    if (!token) {
+    if (!auth) return;
+    if (!auth?.token) {
       navigate('/signin', { replace: true });
-      return;
     }
+  }, [auth?.token, navigate]);
+
+  useEffect(() => {
     const type = searchParams.get('type');
     if (type === 'lost' || type === 'found') setReportType(type);
+  }, [searchParams]);
 
+  useEffect(() => {
     const loadUserProfile = async () => {
       try {
         const userProfile = await AuthService.getCurrentUserProfile() as { data?: { name?: string; fullName?: string; email?: string } };
@@ -209,57 +281,28 @@ const ReportPage: React.FC = () => {
           }));
         }
       } catch (error: any) {
-        if (error?.response?.status === 401) {
-          const userData = localStorage.getItem('publicUserData');
-          if (userData) {
-            const user = JSON.parse(userData);
-            setFormData(prev => ({
-              ...prev,
-              contactInfo: {
-                ...prev.contactInfo,
-                name: user.name || '',
-                email: user.email || ''
-              }
-            }));
-          }
+        if (error?.response?.status === 401 && auth?.userData) {
+          // Use context userData as fallback
+          const user = typeof auth.userData === 'string' ? JSON.parse(auth.userData) : auth.userData;
+          setFormData(prev => ({
+            ...prev,
+            contactInfo: {
+              ...prev.contactInfo,
+              name: user?.name || '',
+              email: user?.email || ''
+            }
+          }));
         }
       }
     };
     loadUserProfile();
-  }, [searchParams, navigate]);
+  }, [searchParams, auth?.token, auth?.userData]);
 
   // Mobile detection
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  // Auth state sync (cross-tab and in-app)
-  useEffect(() => {
-    const updateAuthState = () => {
-      const token = localStorage.getItem('publicUserToken');
-      const user = localStorage.getItem('publicUserData');
-      setIsAuthenticated(!!token);
-      setUserData(user ? (() => { try { return JSON.parse(user); } catch { return null; } })() : null);
-    };
-    updateAuthState();
-    window.addEventListener('storage', updateAuthState);
-    return () => window.removeEventListener('storage', updateAuthState);
-  }, []);
-
-  useEffect(() => {
-    const token = localStorage.getItem('publicUserToken');
-    const user = localStorage.getItem('publicUserData');
-    setIsAuthenticated(!!token);
-    setUserData(user ? (() => { try { return JSON.parse(user); } catch { return null; } })() : null);
-  }, [location]);
-
-  // Cleanup effect to clear localStorage on unmount
-  useEffect(() => {
-    return () => {
-      localStorage.removeItem(LOCAL_STORAGE_KEY);
-    };
   }, []);
 
   // --- Handlers ---
@@ -589,60 +632,27 @@ const ReportPage: React.FC = () => {
     }));
   };
 
-  // --- Suggestions ---
-  const [filteredCategorySuggestions, setFilteredCategorySuggestions] = useState<string[]>([]);
+// --- Suggestions ---
+const [filteredCategorySuggestions, setFilteredCategorySuggestions] = useState<Category[]>([]);
 
-// Function to search category suggestions
-const searchCategorySuggestions = useCallback((event: any) => {
-  const query = event.query.toLowerCase();
-  const categoriesList = categories.map(cat => cat.name);
-  setFilteredCategorySuggestions(
-    categoriesList.filter(category => category.toLowerCase().includes(query)).slice(0, 10)
-  );
-}, [categories]);
-  const searchSuggestions = useCallback((event: any) => {
-    const query = event.query.toLowerCase();
-    const suggestionsArray = Array.isArray(itemSuggestions) ? itemSuggestions : [];
-    let filtered = suggestionsArray.filter(item =>
-      item.name.toLowerCase().includes(query) ||
-      (item.brand && item.brand.toLowerCase().includes(query)) ||
-      (item.model && item.model.toLowerCase().includes(query))
-    );
-    filtered.sort((a, b) => {
-      const aStartsWith = a.name.toLowerCase().startsWith(query);
-      const bStartsWith = b.name.toLowerCase().startsWith(query);
-      if (aStartsWith && !bStartsWith) return -1;
-      if (!aStartsWith && bStartsWith) return 1;
-      return a.name.localeCompare(b.name);
-    });
-    setFilteredSuggestions(filtered.slice(0, 10));
-  }, [itemSuggestions]);
-
-  const handleItemSelection = useCallback((selectedItem: ItemSuggestion) => {
-    updateFormData('name', selectedItem.name);
-    updateFormData('title', selectedItem.name);
-    const category = categories.find(cat => cat.id === selectedItem.categoryId);
-    if (category) {
-      updateFormData('category', category.name);
-      updateFormData('categoryId', category.id);
+const searchCategorySuggestions = useCallback(
+  async (event: any) => {
+    const query = event.query?.trim().toLowerCase() || '';
+    try {
+      const response = await ItemsService.getCategories(10, 1);
+      const categoriesArr = Array.isArray(response?.data?.data?.data) ? response.data.data.data : [];
+      // Optionally filter on client if needed
+      const filtered = query
+        ? categoriesArr.filter((cat: any) => cat.name.toLowerCase().includes(query))
+        : categoriesArr;
+      setFilteredCategorySuggestions(filtered);
+    } catch (error) {
+      setFilteredCategorySuggestions([]);
     }
-    if (selectedItem.brand) updateFormData('brand', selectedItem.brand);
-    if (selectedItem.model) updateFormData('model', selectedItem.model);
-    if (selectedItem.manufacturer) updateFormData('manufacturer', selectedItem.manufacturer);
-    if (selectedItem.productType) updateFormData('productType', selectedItem.productType);
-  }, [categories, updateFormData]);
+  },
+  [auth?.token]
+);
 
-  const searchBrandSuggestions = useCallback((event: any) => {
-    const query = event.query.toLowerCase();
-    const brands = Array.from(new Set(itemSuggestions.filter(item => item.brand).map(item => item.brand!)));
-    setFilteredBrandSuggestions(brands.filter(brand => brand.toLowerCase().includes(query)).slice(0, 10));
-  }, [itemSuggestions]);
-
-  const searchModelSuggestions = useCallback((event: any) => {
-    const query = event.query.toLowerCase();
-    const models = Array.from(new Set(itemSuggestions.filter(item => item.model).map(item => item.model!)));
-    setFilteredModelSuggestions(models.filter(model => model.toLowerCase().includes(query)).slice(0, 10));
-  }, [itemSuggestions]);
 
   // --- UI Data ---
   const reportTypeOptions = [
@@ -690,8 +700,6 @@ const searchCategorySuggestions = useCallback((event: any) => {
       command: () => {
         localStorage.removeItem('publicUserToken');
         localStorage.removeItem('publicUserData');
-        setIsAuthenticated(false);
-        setUserData(null);
         navigate('/');
       }
     }
@@ -767,51 +775,37 @@ const searchCategorySuggestions = useCallback((event: any) => {
           </label>
           <AutoComplete
             value={formData.name}
-            suggestions={filteredSuggestions}
-            completeMethod={searchSuggestions}
+            suggestions={filteredNameSuggestions}
+            completeMethod={searchNameSuggestions}
             field="name"
-            onChange={(e) => {
-              const selectedValue = e.value as string | ItemSuggestion;
-              updateFormData('name', typeof selectedValue === 'string' ? selectedValue : selectedValue?.name || '');
-
-              if (typeof selectedValue === 'string' && selectedValue.length > 2) {
-                const match = itemSuggestions.find(
-                  item => item.name.toLowerCase() === selectedValue.toLowerCase()
-                );
-                if (match) {
-                  if (!formData.category) updateFormData('category', match.categoryName);
-                  if (!formData.brand && match.brand) updateFormData('brand', match.brand);
-                  if (!formData.model && match.model) updateFormData('model', match.model);
-                } else {
-                  const suggestedCategory = filteredCategorySuggestions.find(cat => cat.toLowerCase() === selectedValue.toLowerCase());
-                  if (!formData.category) updateFormData('category', suggestedCategory);
-                }
-              }
-            }}
+            onChange={(e) => updateFormData('name', e.value)}
             onSelect={(e) => {
-              if (typeof e.value === 'object' && e.value !== null) {
-                handleItemSelection(e.value as ItemSuggestion);
+              const selected = e.value;
+              if (selected && typeof selected === 'object') {
+                setFormData(prev => ({
+                  ...prev,
+                  name: selected.name || '',
+                  brand: selected.brand || '',
+                  model: selected.model || '',
+                  categoryId: selected.categoryId || 0,
+                  category: selected.categoryName || '',
+                  manufacturer: selected.manufacturer || '',
+                  productType: selected.productType || '',
+                }));
               }
             }}
-            placeholder="Start typing... e.g., iPhone 14, Blue Wallet, Set of Keys..."
+            placeholder="Start typing... e.g., Samsung, iPhone, Wallet..."
             className="w-full"
             dropdown
             forceSelection={false}
             minLength={1}
             delay={300}
             emptyMessage="No suggestions found. Type to search common items or enter your custom item."
-            itemTemplate={(item: ItemSuggestion) => (
-              <div className="flex align-items-center justify-content-between p-2">
-                <div className="flex align-items-center">
-                  <i className="pi pi-search mr-2 text-gray-400"></i>
-                  <div>
-                    <div>{item.name}</div>
-                    {item.brand && <small className="text-gray-500">{item.brand}</small>}
-                  </div>
-                </div>
-                <small className="text-gray-500">
-                  {item.categoryName}
-                </small>
+            itemTemplate={(item: any) => (
+              <div>
+                <strong>{item.name}</strong>
+                {item.brand && <span style={{ marginLeft: 8, color: '#888' }}>{item.brand}</span>}
+                {item.model && <span style={{ marginLeft: 8, color: '#888' }}>{item.model}</span>}
               </div>
             )}
           />
@@ -832,13 +826,33 @@ const searchCategorySuggestions = useCallback((event: any) => {
             value={formData.category}
             suggestions={filteredCategorySuggestions}
             completeMethod={searchCategorySuggestions}
-            onChange={(e) => updateFormData('category', e.value)}
+            onChange={(e) => {
+              // Allow typing, but only set categoryId if a valid object is selected
+              if (typeof e.value === 'string') {
+                updateFormData('category', e.value);
+                updateFormData('categoryId', 0);
+              } else if (e.value && e.value.id && e.value.name) {
+                updateFormData('category', e.value.name);
+                updateFormData('categoryId', e.value.id);
+              }
+            }}
+            onSelect={(e) => {
+              updateFormData('category', e.value.name);
+              updateFormData('categoryId', e.value.id);
+            }}
+            field="name"
             placeholder="e.g., Electronics, Clothing, Home..."
             className="w-full"
             dropdown
-            forceSelection={false}
+            forceSelection={true}
             minLength={1}
             delay={200}
+            itemTemplate={(cat: any) => (
+              <div>
+                {cat.icon && <span style={{ marginRight: 8 }}>{cat.icon}</span>}
+                <span>{cat.name}</span>
+              </div>
+            )}
           />
         </div>
 
@@ -885,14 +899,13 @@ const searchCategorySuggestions = useCallback((event: any) => {
               Color
             </label>
             <InputText
-              value={formData.color || ''}
+              value={formData.color}
               onChange={(e) => updateFormData('color', e.target.value)}
               placeholder="e.g., Blue, Black, Red..."
               className="w-full"
             />
           </div>
         )}
-
         {/* Show condition for found items */}
         {reportType === 'found' && (
           <div className="col-12 md:col-6">
@@ -1000,16 +1013,16 @@ const searchCategorySuggestions = useCallback((event: any) => {
               </div>
               <div className="text-sm text-blue-700 grid">
                 <div className="col-6">
-                  <strong>Name:</strong> {formData.name}<br />
-                  <strong>Category:</strong> {formData.category} (ID: {formData.categoryId})<br />
-                  <strong>Brand:</strong> {formData.brand || 'Not specified'}<br />
-                  <strong>Model:</strong> {formData.model || 'Not specified'}
+                  <strong>Name:</strong> {formData.name || <span className="text-gray-400">Not specified</span>}<br />
+                  <strong>Category:</strong> {formData.category || <span className="text-gray-400">Not specified</span>} (ID: {formData.categoryId || <span className="text-gray-400">N/A</span>})<br />
+                  <strong>Brand:</strong> {formData.brand || <span className="text-gray-400">Not specified</span>}<br />
+                  <strong>Model:</strong> {formData.model || <span className="text-gray-400">Not specified</span>}
                 </div>
                 <div className="col-6">
                   {reportType === 'found' && (
                     <>
-                      <strong>Color:</strong> {formData.color || 'Not specified'}<br />
-                      <strong>Condition:</strong> {formData.condition || 'Not specified'}<br />
+                      <strong>Color:</strong> {formData.color || <span className="text-gray-400">Not specified</span>}<br />
+                      <strong>Condition:</strong> {formData.condition || <span className="text-gray-400">Not specified</span>}<br />
                     </>
                   )}
                   <strong>Images:</strong> {formData.images.length} selected
@@ -1241,14 +1254,17 @@ const searchCategorySuggestions = useCallback((event: any) => {
               className={reportType === 'lost' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}
             />
             {/* Auth display */}
-            {isAuthenticated && userData ? (
               <div className="flex align-items-center gap-2">
                 <Avatar
                   icon="pi pi-user"
                   shape="circle"
                   style={{ backgroundColor: 'white', color: '#1e40af', cursor: 'pointer' }}
                 />
-                <span className="text-sm text-white font-semibold">{userData.name || userData.email}</span>
+                <span className="text-sm text-white font-semibold">
+                  {auth && auth.userData
+                    ? (auth.userData.name || auth.userData.email)
+                    : ''}
+                </span>
                 <Menu
                   model={accountMenuItems}
                   popup
@@ -1257,22 +1273,6 @@ const searchCategorySuggestions = useCallback((event: any) => {
                   style={{ minWidth: '160px' }}
                 />
               </div>
-            ) : (
-              <div className="flex gap-2">
-                <Button
-                  label="Sign In"
-                  icon="pi pi-sign-in"
-                  className="p-button-outlined p-button-sm"
-                  onClick={() => navigate('/signin')}
-                />
-                <Button
-                  label="Sign Up"
-                  icon="pi pi-user-plus"
-                  className="p-button-text p-button-sm"
-                  onClick={() => navigate('/signup')}
-                />
-              </div>
-            )}
           </div>
           {/* Progress */}
           <Card className="mb-4">

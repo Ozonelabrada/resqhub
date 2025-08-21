@@ -17,6 +17,7 @@ import { useTrendingReports } from '../../../../hooks/useTrendingReports';
 import { CSSTransition } from 'react-transition-group';
 import { Dialog } from 'primereact/dialog';
 import CategoryService from '../../../../services/categoryService';
+import { useAuth } from '../../../../context/AuthContext';
 
 const HubHomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -78,70 +79,23 @@ const HubHomePage: React.FC = () => {
     }
   }, [trendingError]);
 
-  // Check authentication status
+  const auth = useAuth();
+  const token = auth?.token;
+  const authUserData = auth?.userData;
+
   useEffect(() => {
-    const checkAuthStatus = () => {
-      const token = localStorage.getItem('publicUserToken');
-      const user = localStorage.getItem('publicUserData');
-      
-      // Debug logging
-      console.log('HubHomePage - Checking auth status:', {
-        token: token ? 'exists' : 'null',
-        user: user ? 'exists' : 'null',
-        isAuthenticated,
-        userData
-      });
-      
-      setIsAuthenticated(!!token);
-      if (user) {
-        try {
-          const parsedUser = JSON.parse(user);
-          setUserData(parsedUser);
-          console.log('HubHomePage - Parsed user data:', parsedUser);
-        } catch (error) {
-          console.error('Error parsing user data:', error);
-          setUserData(null);
-        }
-      } else {
+    setIsAuthenticated(!!token);
+    if (authUserData) {
+      try {
+        const parsedUser = typeof authUserData === 'string' ? JSON.parse(authUserData) : authUserData;
+        setUserData(parsedUser);
+      } catch (error) {
         setUserData(null);
       }
-    };
-
-    // Check on mount
-    checkAuthStatus();
-
-    // Listen for storage changes (when user signs in/out in another tab)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'publicUserToken' || e.key === 'publicUserData') {
-        console.log('HubHomePage - Storage changed:', e.key, e.newValue);
-        checkAuthStatus();
-      }
-    };
-
-    // Listen for focus events (when user returns to this tab)
-    const handleFocus = () => {
-      console.log('HubHomePage - Window focused, checking auth');
-      checkAuthStatus();
-    };
-
-    // Listen for visibility change (when tab becomes visible)
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        console.log('HubHomePage - Tab became visible, checking auth');
-        checkAuthStatus();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('focus', handleFocus);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, []);
+    } else {
+      setUserData(null);
+    }
+  }, [token, authUserData]);
 
   // Update the effect for screen size detection:
   useEffect(() => {

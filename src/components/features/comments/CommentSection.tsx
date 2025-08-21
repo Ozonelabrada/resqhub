@@ -7,6 +7,7 @@ import { Badge } from 'primereact/badge';
 import { Divider } from 'primereact/divider';
 import { Message } from 'primereact/message';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../context/AuthContext';
 
 interface Comment {
   id: number;
@@ -37,12 +38,10 @@ const CommentSection: React.FC<CommentSectionProps> = ({ itemId, itemType, itemO
 
   // Check authentication status
   useEffect(() => {
-    const token = localStorage.getItem('publicUserToken');
-    const userData = localStorage.getItem('publicUserData');
-    
-    if (token && userData) {
+    const auth = useAuth();
+    if (auth?.token && auth?.userData) {
       setIsAuthenticated(true);
-      setCurrentUser(JSON.parse(userData));
+      setCurrentUser(JSON.parse(auth.userData));
     }
   }, []);
 

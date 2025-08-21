@@ -16,8 +16,15 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userData, setUserData] = useState(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [token, setToken] = useState(() => localStorage.getItem('publicUserToken'));
+  const [userData, setUserData] = useState(() => {
+    const data = localStorage.getItem('publicUserData');
+    try {
+      return data ? JSON.parse(data) : null;
+    } catch {
+      return null;
+    }
+  });
   const location = useLocation();
 
   useEffect(() => {

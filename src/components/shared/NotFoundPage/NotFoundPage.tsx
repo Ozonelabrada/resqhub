@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../../context/AuthContext';
 
 const NotFoundPage: React.FC = () => {
   const navigate = useNavigate();
@@ -9,8 +10,9 @@ const NotFoundPage: React.FC = () => {
   const isAdminContext = location.pathname.startsWith('/admin');
   
   // Check if user is authenticated (for admin context)
-  const isAdminAuthenticated = localStorage.getItem('adminToken'); // TODO: Replace with actual admin auth check
-  const isPublicAuthenticated = localStorage.getItem('publicUserToken');
+  const isPublicAuthenticated = useAuth()?.token;
+  // Alias for admin context authentication
+  const isAdminAuthenticated = isPublicAuthenticated;
 
   console.log('NotFoundPage is rendering, admin context:', isAdminContext); // Debug log
 

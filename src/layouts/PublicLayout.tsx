@@ -114,7 +114,7 @@ const PublicLayout = () => {
         localStorage.removeItem('publicUserData');
         if (setIsAuthenticated) setIsAuthenticated(false);
         if (setUserData) setUserData(null);
-        navigate('/');
+        setTimeout(() => navigate('/'), 0);
       }
     }
   ];
@@ -161,7 +161,7 @@ const PublicLayout = () => {
         // Authenticated user menu
         <div className="flex align-items-center gap-2">
           <span className="text-sm hidden md:inline">
-            Welcome, {user?.name || 'User'}
+            Welcome, {user?.name || user?.email || 'User'}
           </span>
           <Avatar
             icon="pi pi-user"
