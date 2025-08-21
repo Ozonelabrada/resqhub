@@ -8,9 +8,7 @@ import { Checkbox } from 'primereact/checkbox';
 import { Message } from 'primereact/message';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { AuthService } from '../../../services/authService';
-import { useAuth } from '../../../context/AuthContext'; // Adjust path as needed
-
-const authService = new AuthService();
+import { useAuth } from '../../../context/AuthContext'; 
 
 type LoginResponse = {
   succeeded: boolean;

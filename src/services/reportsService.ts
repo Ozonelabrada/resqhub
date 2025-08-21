@@ -1,4 +1,4 @@
-import { mainApiClient } from '../api/client';
+import api from '../api/client';
 
 export interface LostFoundItem {
   id: number;
@@ -28,11 +28,8 @@ export const ReportsService = {
       if (params?.page) query.append('page', String(params.page));
       if (params?.pageSize) query.append('pageSize', String(params.pageSize));
       const url = `/reports${query.toString() ? '?' + query.toString() : ''}`;
-      const response = await mainApiClient.request<LostFoundItem[]>(url, {
-        method: 'GET',
-        credentials: 'include',
-      });
-      return response || [];
+      const response = await api.get<{ data: LostFoundItem[] }>(url);
+      return response.data?.data || [];
     } catch (error) {
       console.error('Error fetching reports:', error);
       return [];
