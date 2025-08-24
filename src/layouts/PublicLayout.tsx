@@ -161,7 +161,7 @@ const PublicLayout = () => {
         // Authenticated user menu
         <div className="flex align-items-center gap-2">
           <span className="text-sm hidden md:inline">
-            Welcome, {user?.name || user?.email || 'User'}
+            Welcome, {user?.name || 'User'}
           </span>
           <Avatar
             icon="pi pi-user"

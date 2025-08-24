@@ -75,20 +75,23 @@ const AuthCallbackPage: React.FC = () => {
         } else {
           // Existing user - sign them in
           console.log('Signing in existing user');
-          
-          if (token) {
-            localStorage.setItem('publicUserToken', token);
+
+          // After successful login API call
+          const user = {
+            id: userId,
+            name: userName,
+            email: userEmail,
+            token: token || '',
+            picture: searchParams.get('user_picture') || ''
+          };
+
+          if (user.token) {
+            localStorage.setItem('Token', user.token);
           }
-          
-          if (userId && userName && userEmail) {
-            const userData = {
-              id: userId,
-              name: userName,
-              email: userEmail,
-              picture: searchParams.get('user_picture') || ''
-            };
-            localStorage.setItem('publicUserData', JSON.stringify(userData));
-          }
+
+          // Exclude token from userData
+          const { token: _, ...userDataWithoutToken } = user;
+          localStorage.setItem('publicUserData', JSON.stringify(userDataWithoutToken));
 
           setSuccess(true);
           

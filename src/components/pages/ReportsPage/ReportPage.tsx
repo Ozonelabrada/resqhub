@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
@@ -114,7 +114,7 @@ const getInitialFormData = (): FormDataType => ({
   images: []
 });
 
-const ReportPage: React.FC = () => {
+function ReportPage() {
   // --- Hooks (always at the top) ---
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -127,6 +127,7 @@ const ReportPage: React.FC = () => {
 
   // --- State ---
   const [currentStep, setCurrentStep] = useState(0);
+  const [itemChecked, setItemChecked] = useState(false);
   const [reportType, setReportType] = useState<'lost' | 'found'>('lost');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -223,19 +224,27 @@ const ReportPage: React.FC = () => {
   const loadBackendData = async () => {
     setLoading(true);
     try {
+      // Fetch both categories and items in parallel
       const [categoriesResponse, itemsResponse] = await Promise.all([
         ItemsService.getCategories(100, 1),
         ItemsService.getItems(true, 100, 1)
       ]);
       // Correct extraction for deeply nested data
-      const categoriesArr = Array.isArray(categoriesResponse?.data) ? categoriesResponse.data : [];
-      const itemsArr = Array.isArray(itemsResponse?.data?.data) ? itemsResponse.data.data : [];
+      const categoriesArr = Array.isArray(categoriesResponse?.data?.data?.data)
+        ? categoriesResponse.data.data.data
+        : [];
+      const itemsArr = Array.isArray(itemsResponse?.data?.data?.data)
+        ? itemsResponse.data.data.data
+        : [];
+      // Map items to include categoryName for preview
       const mappedItems = itemsArr.map((item: any) => ({
         ...item,
         categoryName: categoriesArr.find((cat: any) => cat.id === item.categoryId)?.name || ''
       }));
-      setCategories(categoriesArr); // <-- Add this line
-      setItemSuggestions(mappedItems);
+      if (isMounted) {
+        setCategories(categoriesArr);
+        setItemSuggestions(mappedItems);
+      }
     } catch (error) {
       if (isMounted) {
         toast.current?.show({
@@ -355,37 +364,56 @@ const ReportPage: React.FC = () => {
   const handleNext = async () => {
     if (!validateStep(currentStep)) return;
 
-    // Step 1: Item
-    if (currentStep === 1 && !formData.itemId) {
+    // Step 1: After Proceed, create the report
+    if (currentStep === 1 && itemChecked) {
       setIsSubmitting(true);
       try {
-        const itemPayload = {
-          name: formData.name,
-          brand: formData.brand,
-          model: formData.model,
-          categoryId: formData.categoryId,
+        // Get userId from auth context
+        const userId =
+          auth?.userData?.id ||
+          auth?.userData?.userId ||
+          (typeof auth?.userData === 'string'
+            ? JSON.parse(auth.userData).id
+            : undefined);
+
+        // Map reportType to number as required by backend
+        const reportTypeValue = reportType === 'lost' ? 1 : 2;
+
+        // Set expiresAt to 30 days from now
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 30);
+
+        const reportPayload = {
+          userId,
+          reportType: reportTypeValue,
           description: formData.description,
-          manufacturer: formData.manufacturer,
-          productType: formData.productType,
-          standardSpecs: formData.standardSpecs,
-          color: formData.color,
+          expiresAt: expiresAt.toISOString(),
+          itemId: formData.itemId,
         };
-        const itemRes = await ItemsService.createItem(itemPayload) as { data?: { id?: number } };
-        if (!itemRes?.data?.id) throw new Error('Failed to create item');
-        if (itemRes?.data?.id) {
-          setFormData(prev => ({ ...prev, itemId: itemRes.data!.id }));
-        }
+
+        const reportRes = await ItemsService.createReport(reportPayload);
+        if (!reportRes?.data?.id) throw new Error('Failed to create report');
+
+        toast.current?.show({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Report created successfully!',
+          life: 2000,
+        });
+
+        // Move to next step
+        setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
       } catch (error) {
         toast.current?.show({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to create item. Please try again.',
-          life: 5000
+          detail: 'Failed to create report. Please try again.',
+          life: 4000,
         });
+      } finally {
         setIsSubmitting(false);
-        return;
       }
-      setIsSubmitting(false);
+      return;
     }
 
     // Step 2: ItemDetails & Location
@@ -529,13 +557,24 @@ const ReportPage: React.FC = () => {
           standardSpecs: formData.standardSpecs,
           color: formData.color,
         };
-        const itemRes = await ItemsService.createItem(itemPayload) as unknown as { data?: { id?: number } };
-        console.log('createItem response:', itemRes);
-        if (!itemRes?.data?.id) throw new Error('Failed to create item');
-        itemId = itemRes.data.id;
-        setFormData(prev => ({ ...prev, itemId }));
+        const itemRes = await ItemsService.createItem(itemPayload);
+        if (itemRes?.status === 200 || itemRes?.status === 201) {
+          // Success: show notification and proceed
+          // toast.current?.show({
+          //   severity: 'success',
+          //   summary: 'Success',
+          //   detail: 'Item created successfully!',
+          //   life: 3000
+          // });
+          console.log('createItem response:', itemRes);
+          itemId = itemRes.data.id;
+          setFormData(prev => ({ ...prev, itemId }));
+        } else {
+          // Error: show error notification
+          throw new Error('Failed to create item. Please try again.');
+        }
       }
-      if (formData.images.length > 0) {
+      if (formData.images.length > 0 && typeof itemId === 'number') {
         const uploadPromises = formData.images.map(file => ItemsService.uploadImage(file, itemId));
         const uploadResults = await Promise.all(uploadPromises);
         console.log('uploadImage results:', uploadResults);
@@ -705,6 +744,21 @@ const searchCategorySuggestions = useCallback(
     }
   ];
 
+  // Utility: returns true if any top-level field or nested field has a value
+const isFormDirty = () => {
+  const initial = getInitialFormData();
+  for (const key in formData) {
+    if (typeof formData[key] === 'object' && formData[key] !== null) {
+      for (const subKey in formData[key]) {
+        if (formData[key][subKey] !== initial[key][subKey]) return true;
+      }
+    } else if (formData[key] !== initial[key]) {
+      return true;
+    }
+  }
+  return false;
+};
+
   // --- Render ---
   if (loading) {
     return (
@@ -778,45 +832,104 @@ const searchCategorySuggestions = useCallback(
             suggestions={filteredNameSuggestions}
             completeMethod={searchNameSuggestions}
             field="name"
-            onChange={(e) => updateFormData('name', e.value)}
-            onSelect={(e) => {
+            onChange={(e) => {
+              if (typeof e.value === 'string') {
+                setFormData((prev) => ({
+                  ...prev,
+                  name: e.value,
+                  brand: '',
+                  model: '',
+                  categoryId: 0,
+                  category: '', 
+                  manufacturer: '',
+                  productType: '',
+                  itemId: undefined, // Clear itemId if typing a new item
+                }));
+              } else if (e.value && typeof e.value === 'object') {
+                const categoryObj = categories.find(
+                  (cat) => String(cat.id) === String(e.value.categoryId)
+                );
+                setFormData((prev) => ({
+                  ...prev,
+                  name: e.value.name || '',
+                  brand: e.value.brand || '',
+                  model: e.value.model || '',
+                  categoryId: e.value.categoryId || 0,
+                  category: categoryObj?.name || '',
+                  manufacturer: e.value.manufacturer || '',
+                  productType: e.value.productType || '',
+                  itemId: e.value.id, // Set itemId if existing item selected
+                }));
+              }
+            }}
+            onSelect={async (e) => {
               const selected = e.value;
               if (selected && typeof selected === 'object') {
-                setFormData(prev => ({
+                let categoryObj = categories.find(
+                  (cat) => String(cat.id) === String(selected.categoryId)
+                );
+                if (!categoryObj && selected.categoryId) {
+                  try {
+                    const response = await ItemsService.getCategories(100, 1);
+                    const categoriesArr = Array.isArray(response?.data)
+                      ? response.data
+                      : [];
+                    categoryObj = categoriesArr.find(
+                      (cat) => String(cat.id) === String(selected.categoryId)
+                    );
+                    if (categoriesArr.length > 0)
+                      setCategories((prev) => {
+                        const merged = [...prev];
+                        categoriesArr.forEach((c) => {
+                          if (!merged.some((m) => m.id === c.id)) merged.push(c);
+                        });
+                        return merged;
+                      });
+                  } catch (err) {
+                    console.error('Failed to fetch categories', err);
+                  }
+                }
+                setFormData((prev) => ({
                   ...prev,
                   name: selected.name || '',
                   brand: selected.brand || '',
                   model: selected.model || '',
-                  categoryId: selected.categoryId || 0,
-                  category: selected.categoryName || '',
+                  categoryId: categoryObj?.id || 0,
+                  category: categoryObj?.name || '',
                   manufacturer: selected.manufacturer || '',
                   productType: selected.productType || '',
+                  itemId: selected.id,
                 }));
               }
             }}
             placeholder="Start typing... e.g., Samsung, iPhone, Wallet..."
             className="w-full"
             dropdown
-            forceSelection={false}
             minLength={1}
             delay={300}
             emptyMessage="No suggestions found. Type to search common items or enter your custom item."
             itemTemplate={(item: any) => (
               <div>
                 <strong>{item.name}</strong>
-                {item.brand && <span style={{ marginLeft: 8, color: '#888' }}>{item.brand}</span>}
-                {item.model && <span style={{ marginLeft: 8, color: '#888' }}>{item.model}</span>}
+                {item.brand && (
+                  <span style={{ marginLeft: 8, color: '#888' }}>{item.brand}</span>
+                )}
+                {item.model && (
+                  <span style={{ marginLeft: 8, color: '#888' }}>{item.model}</span>
+                )}
               </div>
             )}
           />
           <small className="text-gray-500 block mt-1">
-            💡 Start typing to see suggestions with auto-category selection, or enter your own item
+            💡 Start typing to see suggestions with auto-category selection, or enter
+            your own item
           </small>
         </div>
-        
+
         <div className="col-12 md:col-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Category * {formData.category && formData.name && (
+            Category *{' '}
+            {(typeof formData.category === 'object' && formData.category !== null && (formData.category as Category).name && formData.name) && (
               <span className="text-green-600 text-xs">
                 (Auto-selected for "{formData.name}")
               </span>
@@ -826,36 +939,28 @@ const searchCategorySuggestions = useCallback(
             value={formData.category}
             suggestions={filteredCategorySuggestions}
             completeMethod={searchCategorySuggestions}
+            field="name"
+            dropdown
+            placeholder='Select a category'
+            forceSelection
             onChange={(e) => {
-              // Allow typing, but only set categoryId if a valid object is selected
-              if (typeof e.value === 'string') {
-                updateFormData('category', e.value);
-                updateFormData('categoryId', 0);
-              } else if (e.value && e.value.id && e.value.name) {
-                updateFormData('category', e.value.name);
-                updateFormData('categoryId', e.value.id);
-              }
+              setFormData(prev => ({
+                ...prev,
+                category: typeof e.value === 'object' && e.value !== null ? e.value.name : e.value,
+                categoryId: e.value?.id || 0,
+              }));
             }}
             onSelect={(e) => {
-              updateFormData('category', e.value.name);
-              updateFormData('categoryId', e.value.id);
+              setFormData(prev => ({
+                ...prev,
+                category: typeof e.value === 'object' && e.value !== null ? e.value.name : e.value,
+                categoryId: e.value?.id || 0,
+              }));
             }}
-            field="name"
-            placeholder="e.g., Electronics, Clothing, Home..."
-            className="w-full"
-            dropdown
-            forceSelection={true}
-            minLength={1}
-            delay={200}
-            itemTemplate={(cat: any) => (
-              <div>
-                {cat.icon && <span style={{ marginRight: 8 }}>{cat.icon}</span>}
-                <span>{cat.name}</span>
-              </div>
-            )}
           />
         </div>
 
+        {/* Brand */}
         <div className="col-12 md:col-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Brand
@@ -874,6 +979,7 @@ const searchCategorySuggestions = useCallback(
           />
         </div>
 
+        {/* Model */}
         <div className="col-12 md:col-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Model
@@ -892,37 +998,37 @@ const searchCategorySuggestions = useCallback(
           />
         </div>
 
-        {/* Show color for found items */}
+        {/* Show color and condition for found items */}
         {reportType === 'found' && (
-          <div className="col-12 md:col-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Color
-            </label>
-            <InputText
-              value={formData.color}
-              onChange={(e) => updateFormData('color', e.target.value)}
-              placeholder="e.g., Blue, Black, Red..."
-              className="w-full"
-            />
-          </div>
+          <>
+            <div className="col-12 md:col-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Color
+              </label>
+              <InputText
+                value={formData.color}
+                onChange={(e) => updateFormData('color', e.target.value)}
+                placeholder="e.g., Blue, Black, Red..."
+                className="w-full"
+              />
+            </div>
+            <div className="col-12 md:col-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Item condition *
+              </label>
+              <Dropdown
+                value={formData.condition}
+                options={conditionOptions}
+                onChange={(e) => updateFormData('condition', e.value)}
+                optionLabel="label"
+                optionValue="value"
+                className="w-full"
+              />
+            </div>
+          </>
         )}
-        {/* Show condition for found items */}
-        {reportType === 'found' && (
-          <div className="col-12 md:col-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Item condition *
-            </label>
-            <Dropdown
-              value={formData.condition}
-              options={conditionOptions}
-              onChange={(e) => updateFormData('condition', e.value)}
-              optionLabel="label"
-              optionValue="value"
-              className="w-full"
-            />
-          </div>
-        )}
-        
+
+        {/* Description */}
         <div className="col-12">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Description * (minimum 10 characters)
@@ -939,6 +1045,7 @@ const searchCategorySuggestions = useCallback(
           </small>
         </div>
 
+        {/* Standard Specs */}
         <div className="col-12">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Standard Specifications
@@ -955,19 +1062,23 @@ const searchCategorySuggestions = useCallback(
           </small>
         </div>
 
+        {/* Identifying Features */}
         <div className="col-12">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Identifying Features
           </label>
           <InputTextarea
             value={formData.additionalInfo.identifyingFeatures}
-            onChange={(e) => updateFormData('additionalInfo.identifyingFeatures', e.target.value)}
+            onChange={(e) =>
+              updateFormData('additionalInfo.identifyingFeatures', e.target.value)
+            }
             placeholder="Any unique marks, scratches, stickers, engravings, or distinctive features..."
             rows={3}
             className="w-full"
           />
         </div>
 
+        {/* Photos */}
         <div className="col-12">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Photos (Optional - Max 5)
@@ -983,46 +1094,68 @@ const searchCategorySuggestions = useCallback(
             className="w-full p-fileupload-choose p-fileupload-filename"
             auto={false}
           />
-          
+
           {formData.images.length > 0 && (
             <div className="flex gap-2 mt-3 flex-wrap">
               {formData.images.map((file, index) => (
-              <div key={index} className="relative">
-                {file instanceof File ? (
-                  <img
-                    src={URL.createObjectURL(file)}
-                    alt={`Upload ${index + 1}`}
-                    className="w-4rem h-4rem object-cover border-round"
-                  />
-                ) : (
-                  <span>Invalid file</span>
-                )}
-              </div>
-            ))}
+                <div key={index} className="relative">
+                  {file instanceof File ? (
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={`Upload ${index + 1}`}
+                      className="w-4rem h-4rem object-cover border-round"
+                    />
+                  ) : (
+                    <span>Invalid file</span>
+                  )}
+                </div>
+              ))}
             </div>
           )}
         </div>
 
-        {/* Enhanced preview of what will be saved */}
-        {formData.name && formData.category && (
+        {/* Preview */}
+        {formData.name &&
+        (((typeof formData.category === 'object' && formData.category !== null && (formData.category as Category).name) ||
+          (typeof formData.category === 'string' && formData.category)) && (
           <div className="col-12">
             <div className="p-3 bg-blue-50 border-round border-1 border-blue-200">
               <div className="flex align-items-center gap-2 mb-2">
                 <i className="pi pi-info-circle text-blue-600"></i>
-                <span className="font-semibold text-blue-800">Item Information Preview</span>
+                <span className="font-semibold text-blue-800">
+                  Item Information Preview
+                </span>
               </div>
               <div className="text-sm text-blue-700 grid">
                 <div className="col-6">
-                  <strong>Name:</strong> {formData.name || <span className="text-gray-400">Not specified</span>}<br />
-                  <strong>Category:</strong> {formData.category || <span className="text-gray-400">Not specified</span>} (ID: {formData.categoryId || <span className="text-gray-400">N/A</span>})<br />
-                  <strong>Brand:</strong> {formData.brand || <span className="text-gray-400">Not specified</span>}<br />
-                  <strong>Model:</strong> {formData.model || <span className="text-gray-400">Not specified</span>}
+                  <strong>Name:</strong>{' '}
+                  {formData.name || <span className="text-gray-400">Not specified</span>}
+                  <br />
+                  <strong>Category:</strong>{' '}
+                  {formData.category && typeof formData.category === 'object' && (formData.category as Category).name
+                    ? (formData.category as Category).name
+                    : <span className="text-gray-400">Not specified</span>
+                  }{' '}
+                  (ID: {formData.categoryId || <span className="text-gray-400">N/A</span>}
+                  )
+                  <br />
+                  <strong>Brand:</strong>{' '}
+                  {formData.brand || <span className="text-gray-400">Not specified</span>}
+                  <br />
+                  <strong>Model:</strong>{' '}
+                  {formData.model || <span className="text-gray-400">Not specified</span>}
                 </div>
                 <div className="col-6">
                   {reportType === 'found' && (
                     <>
-                      <strong>Color:</strong> {formData.color || <span className="text-gray-400">Not specified</span>}<br />
-                      <strong>Condition:</strong> {formData.condition || <span className="text-gray-400">Not specified</span>}<br />
+                      <strong>Color:</strong>{' '}
+                      {formData.color || <span className="text-gray-400">Not specified</span>}
+                      <br />
+                      <strong>Condition:</strong>{' '}
+                      {formData.condition || (
+                        <span className="text-gray-400">Not specified</span>
+                      )}
+                      <br />
                     </>
                   )}
                   <strong>Images:</strong> {formData.images.length} selected
@@ -1030,7 +1163,8 @@ const searchCategorySuggestions = useCallback(
               </div>
             </div>
           </div>
-        )}
+        ))}
+
       </div>
     </div>
   );
@@ -1240,98 +1374,185 @@ const searchCategorySuggestions = useCallback(
 
   // --- Main Render ---
   return (
-    <div style={{
+  <div
+    style={{
       minHeight: '100vh',
+      height: '100vh',
       background: 'linear-gradient(135deg, #353333ff 0%, #475a4bff 50%, #888887ff 100%)',
-      color: '#ffffff'
-    }}>
-      <div className={`${isMobile ? 'p-3' : 'p-6'}`}>
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          {/* Header */}
-          <div className="flex align-items-center justify-content-between mb-4">
-            <Chip
-              label={`${reportType === 'lost' ? 'Lost' : 'Found'} Item Report`}
-              className={reportType === 'lost' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}
-            />
-            {/* Auth display */}
-              <div className="flex align-items-center gap-2">
-                <Avatar
-                  icon="pi pi-user"
-                  shape="circle"
-                  style={{ backgroundColor: 'white', color: '#1e40af', cursor: 'pointer' }}
-                />
-                <span className="text-sm text-white font-semibold">
-                  {auth && auth.userData
-                    ? (auth.userData.name || auth.userData.email)
-                    : ''}
-                </span>
-                <Menu
-                  model={accountMenuItems}
-                  popup
-                  ref={accountMenuRef}
-                  className="mt-2"
-                  style={{ minWidth: '160px' }}
-                />
-              </div>
-          </div>
-          {/* Progress */}
-          <Card className="mb-4">
-            <div className="mb-3">
-              <div className="flex justify-content-between align-items-center mb-2">
-                <span className="text-sm font-medium text-gray-600">
-                  Step {currentStep + 1} of {steps.length}
-                </span>
-                <span className="text-sm font-medium text-gray-600">
-                  {getStepProgress()}% Complete
-                </span>
-              </div>
-              <ProgressBar value={getStepProgress()} className="h-6px" />
-            </div>
-            <Steps
-              model={steps}
-              activeIndex={currentStep}
-              className="custom-steps"
-            />
-          </Card>
-          {/* Form Content */}
-          <Card className="p-4">
-            {currentStep === 0 && renderReportTypeStep()}
-            {currentStep === 1 && renderItemDetailsStep()}
-            {currentStep === 2 && renderLocationInfoStep()}
-            {currentStep === 3 && renderContactStep()}
-          </Card>
-          {/* Navigation */}
-          <div className="flex justify-content-between mt-4">
-            <Button
-              label="Previous"
-              icon="pi pi-chevron-left"
-              className="p-button-outlined"
-              onClick={handlePrevious}
-              disabled={currentStep === 0}
-            />
-            {currentStep < steps.length - 1 ? (
+      color: '#ffffff',
+      overflow: 'hidden', // Prevent double scrollbars
+    }}
+  >
+    <div className={`${isMobile ? 'p-3' : 'p-6'}`} style={{ height: '100%' }}>
+      <div
+        style={{
+          maxWidth: '800px',
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+        }}
+      >
+        {/* Header */}
+        <div className="flex align-items-center justify-content-between mb-4" style={{ flexShrink: 0 }}>
+          <Chip
+            label={`${reportType === 'lost' ? 'Lost' : 'Found'} Item Report`}
+            className={reportType === 'lost' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}
+          />
+          {/* Auth display */}
+            <div className="flex align-items-center gap-2">
+              <Avatar
+                icon="pi pi-user"
+                shape="circle"
+                style={{ backgroundColor: 'white', color: '#1e40af'}}
+              />
+              <span className="text-sm text-white font-semibold">
+                {auth && auth.userData
+                  ? (auth.userData.email || '')
+                  : ''}
+              </span>
+              <Menu
+                model={accountMenuItems}
+                popup
+                ref={accountMenuRef}
+                className="mt-2"
+                style={{ minWidth: '160px' }}
+              />
+            {isFormDirty() && (
               <Button
-                label="Next"
-                icon="pi pi-chevron-right"
-                iconPos="right"
-                onClick={handleNext}
+                icon="pi pi-times"
+                className="p-button-rounded p-button-text text-white"
+                tooltip="Clear all previous inputs"
+                tooltipOptions={{ position: 'top' }}
+                onClick={() => setFormData(getInitialFormData())}
+                aria-label="Clear all inputs"
+              />
+            )}
+            </div>
+        </div>
+        {/* Progress */}
+        <Card className="mb-4" style={{ flexShrink: 0 }}>
+          <div className="mb-3">
+            <div className="flex justify-content-between align-items-center mb-2">
+              <span className="text-sm font-medium text-gray-600">
+                Step {currentStep + 1} of {steps.length}
+              </span>
+              <span className="text-sm font-medium text-gray-600">
+                {getStepProgress()}% Complete
+              </span>
+            </div>
+            <ProgressBar value={getStepProgress()} className="h-6px" />
+          </div>
+          <Steps
+            model={steps}
+            activeIndex={currentStep}
+            className="custom-steps"
+          />
+        </Card>
+        {/* Form Content */}
+        <Card
+          className="p-4"
+          style={{
+            flex: 1,
+            minHeight: 0,
+            overflowY: 'auto',
+            background: 'rgba(255, 255, 255, 1)',
+          }}
+        >
+          {currentStep === 0 && renderReportTypeStep()}
+          {currentStep === 1 && renderItemDetailsStep()}
+          {currentStep === 2 && renderLocationInfoStep()}
+          {currentStep === 3 && renderContactStep()}
+        </Card>
+        {/* Navigation */}
+        <div className="flex justify-content-between mt-4" style={{ flexShrink: 0 }}>
+          <Button
+            label="Previous"
+            icon="pi pi-chevron-left"
+            className="p-button-outlined color-white"
+            onClick={handlePrevious}
+            disabled={currentStep === 0}
+          />
+          {/* Step 1: Show Proceed or Next, never both */}
+          {currentStep === 1 ? (
+            !itemChecked ? (
+              <Button
+                label={isSubmitting ? "Checking..." : "Proceed"}
+                icon="pi pi-check"
+                loading={isSubmitting}
+                onClick={async () => {
+                  setIsSubmitting(true);
+                  try {
+                    let itemId = formData.itemId;
+                    if (!itemId) {
+                      const itemPayload = {
+                        name: formData.name,
+                        brand: formData.brand,
+                        model: formData.model,
+                        categoryId: formData.categoryId,
+                      };
+                      const itemRes = await ItemsService.createItem(itemPayload);
+                      if (itemRes?.status === 200 || itemRes?.status === 201) {
+                        itemId = itemRes.data.id;
+                        setFormData((prev) => ({ ...prev, itemId }));
+                      } else {
+                        throw new Error('Failed to create item. Please try again.');
+                      }
+                    }
+                    setItemChecked(true);
+                    toast.current?.show({
+                      severity: 'success',
+                      summary: 'Success',
+                      detail: 'Item checked/created successfully!',
+                      life: 2000,
+                    });
+                  } catch (error) {
+                    toast.current?.show({
+                      severity: 'error',
+                      summary: 'Error',
+                      detail: 'Failed to check/create item. Please try again.',
+                      life: 4000,
+                    });
+                  } finally {
+                    setIsSubmitting(false);
+                  }
+                }}
                 disabled={!validateStep(currentStep)}
               />
             ) : (
               <Button
-                label={isSubmitting ? "Submitting..." : "Submit Report"}
-                icon="pi pi-check"
+                label={isSubmitting ? "Saving..." : "Next"}
+                icon="pi pi-chevron-right"
+                iconPos="right"
+                onClick={handleNext}
                 loading={isSubmitting}
-                onClick={handleSubmit}
-                className="p-button-success"
+                disabled={!validateStep(currentStep)}
               />
-            )}
-          </div>
+            )
+          ) : currentStep < steps.length - 1 ? (
+            <Button
+              label="Next"
+              icon="pi pi-chevron-right"
+              iconPos="right"
+              onClick={handleNext}
+              color="white"
+              disabled={!validateStep(currentStep)}
+            />
+          ) : (
+            <Button
+              label={isSubmitting ? "Submitting..." : "Submit Report"}
+              icon="pi pi-check"
+              loading={isSubmitting}
+              onClick={handleSubmit}
+              className="p-button-success"
+            />
+          )}
         </div>
       </div>
-      <Toast ref={toast} />
     </div>
-  );
+    <Toast ref={toast} />
+  </div>
+);
 };
 
 export default ReportPage;

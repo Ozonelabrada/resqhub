@@ -5,13 +5,10 @@ export class AuthService {
   static async signIn(credentials: SignInRequest): Promise<AuthResponse> {
     try {
       const response = await api.post<AuthResponse>('/auth/login', credentials);
-      if (response.data?.succeeded === true) {
-        if (response.data.token) {
-          localStorage.setItem('publicUserToken', response.data.token);
-        }
-        if (response.data.user) {
-          localStorage.setItem('publicUserData', JSON.stringify(response.data.user));
-        }
+      const user = response.data?.data?.user;
+      if (user && response.data?.token) {
+        localStorage.setItem('publicUserToken', response.data.token);
+        localStorage.setItem('publicUserData', JSON.stringify(user));
       }
       return response.data;
     } catch (error) {
