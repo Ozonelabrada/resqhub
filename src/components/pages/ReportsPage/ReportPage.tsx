@@ -39,6 +39,7 @@ interface ItemSuggestion {
 }
 
 interface FormDataType {
+  reportId: number | undefined;
   itemId: number | undefined;
   itemDetailsId?: number;
   locationId?: number;
@@ -75,12 +76,15 @@ interface FormDataType {
     [key: string]: any;
   };
   images: File[];
+  latitude?: number;
+  longitude?: number;
   [key: string]: any;
 }
 
 const LOCAL_STORAGE_KEY = 'reportFormData';
 
 const getInitialFormData = (): FormDataType => ({
+  reportId: undefined,
   itemId: undefined,
   name: '',
   brand: '',
@@ -111,7 +115,9 @@ const getInitialFormData = (): FormDataType => ({
     identifyingFeatures: '',
     storageLocation: ''
   },
-  images: []
+  images: [],
+  latitude: 14.5995, 
+  longitude: 120.9842,
 });
 
 function ReportPage() {
@@ -275,37 +281,55 @@ function ReportPage() {
     if (type === 'lost' || type === 'found') setReportType(type);
   }, [searchParams]);
 
-  useEffect(() => {
-    const loadUserProfile = async () => {
-      try {
-        const userProfile = await AuthService.getCurrentUserProfile() as { data?: { name?: string; fullName?: string; email?: string } };
-        if (userProfile?.data) {
-          setFormData(prev => ({
-            ...prev,
-            contactInfo: {
-              ...prev.contactInfo,
-              name: userProfile.data?.name || userProfile.data?.fullName || '',
-              email: userProfile.data?.email || ''
-            }
-          }));
-        }
-      } catch (error: any) {
-        if (error?.response?.status === 401 && auth?.userData) {
-          // Use context userData as fallback
-          const user = typeof auth.userData === 'string' ? JSON.parse(auth.userData) : auth.userData;
-          setFormData(prev => ({
-            ...prev,
-            contactInfo: {
-              ...prev.contactInfo,
-              name: user?.name || '',
-              email: user?.email || ''
-            }
-          }));
-        }
+// Add a state to hold the latest profile data for suggestions
+const [profileSuggestion, setProfileSuggestion] = useState<{ name?: string; email?: string; phone?: string; address?: string }>({
+  name: '',
+  email: '',
+  phone: '',
+  address: ''
+});
+
+useEffect(() => {
+  const loadUserProfile = async () => {
+    try {
+      const userProfile = await AuthService.getCurrentUserProfile();
+      const data = userProfile?.data;
+      if (data) {
+        setProfileSuggestion({
+          name: data.fullName || data.name || data.userName || '',
+          email: data.email || '',
+          phone: data.phoneNumber || '',
+          address: data.address || ''
+        });
+        setFormData(prev => ({
+          ...prev,
+          contactInfo: {
+            ...prev.contactInfo,
+            name: prev.contactInfo.name || data.fullName || data.name || data.userName || '',
+            email: prev.contactInfo.email || data.email || '',
+            phone: prev.contactInfo.phone || data.phoneNumber || '',
+            address: prev.contactInfo.address || data.address || ''
+          }
+        }));
       }
-    };
-    loadUserProfile();
-  }, [searchParams, auth?.token, auth?.userData]);
+    } catch (error: any) {
+      if (error?.response?.status === 401 && auth?.userData) {
+        const user = typeof auth.userData === 'string' ? JSON.parse(auth.userData) : auth.userData;
+        setFormData(prev => ({
+          ...prev,
+          contactInfo: {
+            ...prev.contactInfo,
+            name: prev.contactInfo.name || user?.fullName || user?.name || user?.userName || '',
+            email: prev.contactInfo.email || user?.email || '',
+            phone: prev.contactInfo.phone || user?.phoneNumber || '',
+            address: prev.contactInfo.address || user?.address || ''
+          }
+        }));
+      }
+    }
+  };
+  loadUserProfile();
+}, [searchParams, auth?.token, auth?.userData]);
 
   // Mobile detection
   useEffect(() => {
@@ -361,166 +385,205 @@ function ReportPage() {
 
   const getStepProgress = () => Math.round(((currentStep + 1) / steps.length) * 100);
 
-  const handleNext = async () => {
-    if (!validateStep(currentStep)) return;
+  // 1. Create the report and save reportId in state
+const handleProceed = async () => {
+  setIsSubmitting(true);
+  try {
+    if (!formData.reportId) {
+      const userId = auth?.userData?.id || auth?.userData?.userId;
+      const reportTypeValue = reportType === 'lost' ? 1 : 2;
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 30);
 
-    // Step 1: After Proceed, create the report
-    if (currentStep === 1 && itemChecked) {
-      setIsSubmitting(true);
-      try {
-        // Get userId from auth context
-        const userId =
-          auth?.userData?.id ||
-          auth?.userData?.userId ||
-          (typeof auth?.userData === 'string'
-            ? JSON.parse(auth.userData).id
-            : undefined);
+      const reportPayload = {
+        userId,
+        reportType: reportTypeValue,
+        description: formData.description,
+        expiresAt: expiresAt.toISOString(),
+        itemId: formData.itemId,
+      };
 
-        // Map reportType to number as required by backend
-        const reportTypeValue = reportType === 'lost' ? 1 : 2;
-
-        // Set expiresAt to 30 days from now
-        const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + 30);
-
-        const reportPayload = {
-          userId,
-          reportType: reportTypeValue,
-          description: formData.description,
-          expiresAt: expiresAt.toISOString(),
-          itemId: formData.itemId,
-        };
-
-        const reportRes = await ItemsService.createReport(reportPayload);
-        if (!reportRes?.data?.id) throw new Error('Failed to create report');
-
-        toast.current?.show({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'Report created successfully!',
-          life: 2000,
-        });
-
-        // Move to next step
-        setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
-      } catch (error) {
-        toast.current?.show({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to create report. Please try again.',
-          life: 4000,
-        });
-      } finally {
-        setIsSubmitting(false);
+      const reportRes = await ItemsService.createReport(reportPayload);
+      // Use the correct path to get reportId
+      const newReportId = reportRes?.data?.data?.reportId;
+      if (newReportId) {
+        setFormData(prev => ({ ...prev, reportId: newReportId }));
+      } else {
+        throw new Error('Failed to create report');
       }
+    }
+    setItemChecked(true);
+  } catch (error) {
+    console.log('Error creating report:', error);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+  // 2. Use the latest reportId from state for item details
+  const handleNext = async () => {
+  if (currentStep === 1) {
+    if (!itemChecked) {
+      toast.current?.show({
+        severity: 'warn',
+        summary: 'Action Required',
+        detail: 'Please click Proceed to create the report before continuing.',
+        life: 4000
+      });
       return;
     }
+    setIsSubmitting(true);
+    try {
+      // Always use the latest reportId from state
+      const reportId = formData.reportId;
+      if (!reportId) throw new Error('Missing reportId');
 
-    // Step 2: ItemDetails & Location
-    if (currentStep === 2 && !formData.itemDetailsId) {
-      setIsSubmitting(true);
-      try {
-        // ItemDetails
-        const itemDetailsPayload = {
-          itemId: formData.itemId,
-          images: formData.images,
-          identifyingFeatures: formData.additionalInfo.identifyingFeatures,
-          standardSpecs: formData.standardSpecs,
+      // 1. ITEM
+      let itemId = formData.itemId;
+      if (!itemId) {
+        const itemPayload = {
+          name: formData.name,
           brand: formData.brand,
           model: formData.model,
-          manufacturer: formData.manufacturer,
-          productType: formData.productType,
-          color: formData.color,
-          condition: formData.condition,
+          categoryId: formData.categoryId,
         };
-        const itemDetailsRes = await ItemsService.createItemDetails(itemDetailsPayload) as { data?: { id?: number } };
-        if (!itemDetailsRes?.data?.id) throw new Error('Failed to create item details');
-        // Location
-        const locationPayload = {
-          itemId: formData.itemId,
-          location: formData.location,
-          currentLocation: formData.currentLocation,
-          date: formData.date,
-          time: formData.time,
-          circumstances: formData.additionalInfo.circumstances,
-          storageLocation: formData.additionalInfo.storageLocation,
-        };
-        const locationRes = await ItemsService.createLocation(locationPayload) as { data?: { id?: number } };
-        if (!locationRes?.data?.id) throw new Error('Failed to create location');
-        setFormData(prev => ({
-          ...prev,
-          itemDetailsId: itemDetailsRes.data ? itemDetailsRes.data.id : undefined,
-          locationId: locationRes.data ? locationRes.data.id : undefined
-        }));
-      } catch (error) {
-        toast.current?.show({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to save item details or location. Please try again.',
-          life: 5000
-        });
-        setIsSubmitting(false);
-        return;
-      }
-      setIsSubmitting(false);
-    }
-
-    // Step 3: Contact & Report
-    if (currentStep === 3 && !formData.contactId) {
-      setIsSubmitting(true);
-      try {
-        // Contact
-        const contactPayload = {
-          itemId: formData.itemId,
-          name: formData.contactInfo.name,
-          phone: formData.contactInfo.phone,
-          email: formData.contactInfo.email,
-          preferredContact: formData.contactInfo.preferredContact,
-          handoverPreference: formData.handoverPreference,
-          reward: formData.additionalInfo.reward,
-        };
-        const contactRes = await ItemsService.createContact(contactPayload) as { data?: { id?: number } };
-        if (!contactRes?.data?.id) throw new Error('Failed to create contact');
-        if (contactRes?.data?.id) {
-          setFormData(prev => ({ ...prev, contactId: contactRes.data!.id }));
+        const itemRes = await ItemsService.createItem(itemPayload);
+        if (itemRes?.status === 200 || itemRes?.status === 201) {
+          itemId = itemRes.data.id;
+          setFormData(prev => ({ ...prev, itemId }));
+        } else {
+          throw new Error('Failed to create item');
         }
-
-        // Report
-        const reportPayload = {
-          itemId: formData.itemId,
-          itemDetailsId: formData.itemDetailsId,
-          locationId: formData.locationId,
-          contactId: contactRes.data.id,
-          reportType,
-        };
-        const reportRes = await ItemsService.createReport(reportPayload) as { data?: { id?: number } };
-        if (!reportRes?.data?.id) throw new Error('Failed to create report');
-
-        toast.current?.show({
-          severity: 'success',
-          summary: 'Success',
-          detail: `${reportType === 'lost' ? 'Lost' : 'Found'} item report submitted successfully!`,
-          life: 3000
-        });
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
-        navigate('/');
-      } catch (error) {
-        toast.current?.show({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to save contact or report. Please try again.',
-          life: 5000
-        });
-        setIsSubmitting(false);
-        return;
       }
-      setIsSubmitting(false);
-      return;
-    }
 
-    // Move to next step if not final
-    setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
-  };
+      // 2. ITEM DETAILS (use reportId from formData, which should be set by handleProceed)
+      let itemDetailsId = formData.itemDetailsId;
+      if (!itemDetailsId) {
+        const conditionMap: Record<string, number> = {
+          new: 1,
+          excellent: 2,
+          good: 3,
+          fair: 4,
+          poor: 5,
+          damaged: 6,
+        };
+        const handoverMap: Record<string, number> = {
+          meet: 1,
+          pickup: 2,
+          mail: 3,
+          courier: 4,
+          dropoff: 5,
+          policestation: 6,
+        };
+
+        const imageUrls: string[] = [];
+
+        const itemDetailsPayload = {
+          reportId,
+          standardSpecification: formData.standardSpecs,
+          color: formData.color,
+          condition: conditionMap[formData.condition] ?? 1,
+          distinguishingMarks: formData.additionalInfo.identifyingFeatures,
+          handoverPreference: handoverMap[formData.handoverPreference] ?? 1,
+          storageLocation: formData.additionalInfo.storageLocation,
+          rewardAmount: Number(formData.additionalInfo.reward) || 0,
+          imageUrls,
+        };
+
+        const itemDetailsRes = await ItemsService.createItemDetails(itemDetailsPayload);
+        const newItemDetailsId = itemDetailsRes?.data?.data;
+        if (newItemDetailsId) {
+          setFormData(prev => {
+            const updated = { ...prev, itemDetailsId: newItemDetailsId };
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+            return updated;
+          });
+          // Immediately proceed to next step
+          setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
+          return;
+        } else {
+          throw new Error('Failed to create item details');
+        }
+      }
+      // If itemDetailsId already exists, just proceed
+      setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
+    } catch (error) {
+      console.log('Error in transaction:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+    return;
+  }
+
+  if (currentStep === 2) {
+    setIsSubmitting(true);
+    try {
+      const locationPayload = {
+        reportId: formData.reportId,
+        incidentLocation: formData.location,
+        incidentDate: formData.date ? new Date(formData.date).toISOString() : null,
+        incidentTime: formData.time,
+        circumstances: formData.additionalInfo.circumstances,
+        latitude: formData.latitude, 
+        longitude: formData.longitude, 
+        city: "", 
+        state: "Philippines", 
+      };
+
+      const locationRes = await ItemsService.createLocation(locationPayload);
+      const newLocationId = locationRes?.data?.data;
+      if (newLocationId) {
+        setFormData(prev => {
+          const updated = { ...prev, locationId: newLocationId };
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+          return updated;
+        });
+
+        // --- Fetch latest profile and update contact info ---
+        try {
+          const userProfile = await AuthService.getCurrentUserProfile();
+          const data = userProfile?.data;
+          if (data) {
+            setFormData(prev => ({
+              ...prev,
+              contactInfo: {
+                ...prev.contactInfo,
+                name: prev.contactInfo.name || data.fullName || data.name || data.userName || '',
+                email: prev.contactInfo.email || data.email || '',
+                phone: prev.contactInfo.phone || data.phoneNumber || '',
+                address: prev.contactInfo.address || data.address || ''
+              }
+            }));
+          }
+        } catch (profileError) {
+          // Optionally handle profile fetch error
+        }
+        // --- End profile fetch ---
+
+        // Proceed to next step (Contact & Submit)
+        setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
+        return;
+      } else {
+        throw new Error('Failed to create location info');
+      }
+    } catch (error) {
+      console.log('Error saving location info:', error);
+      toast.current?.show({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to save location info. Please try again.',
+        life: 5000
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+    return;
+  }
+
+  // Step 2 and beyond: just advance step if valid
+  if (!validateStep(currentStep)) return;
+  setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
+};
 
   const handlePrevious = () => setCurrentStep(prev => Math.max(prev - 1, 0));
 
@@ -544,111 +607,39 @@ function ReportPage() {
     }
     setIsSubmitting(true);
     try {
-      let itemId = formData.itemId;
-      if (!itemId) {
-        const itemPayload = {
-          name: formData.name,
-          brand: formData.brand,
-          model: formData.model,
-          categoryId: formData.categoryId,
-          description: formData.description,
-          manufacturer: formData.manufacturer,
-          productType: formData.productType,
-          standardSpecs: formData.standardSpecs,
-          color: formData.color,
-        };
-        const itemRes = await ItemsService.createItem(itemPayload);
-        if (itemRes?.status === 200 || itemRes?.status === 201) {
-          // Success: show notification and proceed
-          // toast.current?.show({
-          //   severity: 'success',
-          //   summary: 'Success',
-          //   detail: 'Item created successfully!',
-          //   life: 3000
-          // });
-          console.log('createItem response:', itemRes);
-          itemId = itemRes.data.id;
-          setFormData(prev => ({ ...prev, itemId }));
-        } else {
-          // Error: show error notification
-          throw new Error('Failed to create item. Please try again.');
-        }
-      }
-      if (formData.images.length > 0 && typeof itemId === 'number') {
-        const uploadPromises = formData.images.map(file => ItemsService.uploadImage(file, itemId));
-        const uploadResults = await Promise.all(uploadPromises);
-        console.log('uploadImage results:', uploadResults);
-      }
-      const itemDetailsPayload = {
-        itemId,
-        images: formData.images,
-        identifyingFeatures: formData.additionalInfo.identifyingFeatures,
-        standardSpecs: formData.standardSpecs,
-        brand: formData.brand,
-        model: formData.model,
-        manufacturer: formData.manufacturer,
-        productType: formData.productType,
-        color: formData.color,
-        condition: formData.condition,
-      };
-      const itemDetailsRes = await ItemsService.createItemDetails(itemDetailsPayload) as unknown as { data?: { id?: number } };
-      console.log('createItemDetails response:', itemDetailsRes);
-      if (!itemDetailsRes?.data?.id) throw new Error('Failed to create item details');
-      const itemDetailsId = itemDetailsRes.data.id;
-
-      const locationPayload = {
-        itemId,
-        location: formData.location,
-        currentLocation: formData.currentLocation,
-        date: formData.date,
-        time: formData.time,
-        circumstances: formData.additionalInfo.circumstances,
-        storageLocation: formData.additionalInfo.storageLocation,
-      };
-      const locationRes = await ItemsService.createLocation(locationPayload) as unknown as { data?: { id?: number } };
-      console.log('createLocation response:', locationRes);
-      if (!locationRes?.data?.id) throw new Error('Failed to create location');
-      const locationId = locationRes.data.id;
-
+      // Only submit contact info
       const contactPayload = {
-        itemId,
+        reportId: formData.reportId,
         name: formData.contactInfo.name,
         phone: formData.contactInfo.phone,
         email: formData.contactInfo.email,
+        address: formData.contactInfo.address,
         preferredContact: formData.contactInfo.preferredContact,
         handoverPreference: formData.handoverPreference,
         reward: formData.additionalInfo.reward,
       };
-      const contactRes = await ItemsService.createContact(contactPayload) as unknown as { data?: { id?: number } };
-      console.log('createContact response:', contactRes);
-      if (!contactRes?.data?.id) throw new Error('Failed to create contact');
-      const contactId = contactRes.data.id;
+      const contactRes = await ItemsService.createContact(contactPayload);
+      if (!contactRes?.data?.id && !contactRes?.data?.data) throw new Error('Failed to create contact');
 
-      const reportPayload = {
-        itemId,
-        itemDetailsId,
-        locationId,
-        contactId,
-        reportType,
-      };
-      const reportRes = await ItemsService.createReport(reportPayload) as { data?: { id?: number } };
-      console.log('createReport response:', reportRes);
-      if (!reportRes?.data?.id) throw new Error('Failed to create report');
-
+      // Show success notification
       toast.current?.show({
         severity: 'success',
         summary: 'Success',
-        detail: `${reportType === 'lost' ? 'Lost' : 'Found'} item report submitted successfully!`,
+        detail: 'Report has successfully made!',
         life: 3000
       });
+
+      // Clear report data from localStorage
       localStorage.removeItem(LOCAL_STORAGE_KEY);
-      navigate('/');
+
+      // Redirect to main report page (adjust path if needed)
+      navigate('/report');
     } catch (error) {
-      console.error('Error submitting report:', error);
+      console.error('Error submitting contact info:', error);
       toast.current?.show({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to submit report. Please try again.',
+        detail: 'Failed to submit contact info. Please try again.',
         life: 5000
       });
     } finally {
@@ -672,7 +663,7 @@ function ReportPage() {
   };
 
 // --- Suggestions ---
-const [filteredCategorySuggestions, setFilteredCategorySuggestions] = useState<Category[]>([]);
+const [filteredCategorySuggestions, setFilteredCategorySuggestions] = useState<Category[]>();
 
 const searchCategorySuggestions = useCallback(
   async (event: any) => {
@@ -737,7 +728,6 @@ const searchCategorySuggestions = useCallback(
       label: 'Logout',
       icon: 'pi pi-sign-out',
       command: () => {
-        localStorage.removeItem('publicUserToken');
         localStorage.removeItem('publicUserData');
         navigate('/');
       }
@@ -1296,7 +1286,7 @@ const isFormDirty = () => {
           <InputText
             value={formData.contactInfo.name}
             onChange={(e) => updateFormData('contactInfo.name', e.target.value)}
-            placeholder="Full name"
+            placeholder={profileSuggestion.name ? `e.g. ${profileSuggestion.name}` : "Full name"}
             className="w-full"
           />
         </div>
@@ -1308,7 +1298,7 @@ const isFormDirty = () => {
           <InputText
             value={formData.contactInfo.phone}
             onChange={(e) => updateFormData('contactInfo.phone', e.target.value)}
-            placeholder="Your phone number"
+            placeholder={profileSuggestion.phone ? `e.g. ${profileSuggestion.phone}` : "Your phone number"}
             className="w-full"
           />
         </div>
@@ -1320,7 +1310,7 @@ const isFormDirty = () => {
           <InputText
             value={formData.contactInfo.email}
             onChange={(e) => updateFormData('contactInfo.email', e.target.value)}
-            placeholder="Your email address"
+            placeholder={profileSuggestion.email ? `e.g. ${profileSuggestion.email}` : "Your email address"}
             className="w-full"
             type="email"
           />
@@ -1480,43 +1470,7 @@ const isFormDirty = () => {
                 label={isSubmitting ? "Checking..." : "Proceed"}
                 icon="pi pi-check"
                 loading={isSubmitting}
-                onClick={async () => {
-                  setIsSubmitting(true);
-                  try {
-                    let itemId = formData.itemId;
-                    if (!itemId) {
-                      const itemPayload = {
-                        name: formData.name,
-                        brand: formData.brand,
-                        model: formData.model,
-                        categoryId: formData.categoryId,
-                      };
-                      const itemRes = await ItemsService.createItem(itemPayload);
-                      if (itemRes?.status === 200 || itemRes?.status === 201) {
-                        itemId = itemRes.data.id;
-                        setFormData((prev) => ({ ...prev, itemId }));
-                      } else {
-                        throw new Error('Failed to create item. Please try again.');
-                      }
-                    }
-                    setItemChecked(true);
-                    toast.current?.show({
-                      severity: 'success',
-                      summary: 'Success',
-                      detail: 'Item checked/created successfully!',
-                      life: 2000,
-                    });
-                  } catch (error) {
-                    toast.current?.show({
-                      severity: 'error',
-                      summary: 'Error',
-                      detail: 'Failed to check/create item. Please try again.',
-                      life: 4000,
-                    });
-                  } finally {
-                    setIsSubmitting(false);
-                  }
-                }}
+                onClick={handleProceed}
                 disabled={!validateStep(currentStep)}
               />
             ) : (

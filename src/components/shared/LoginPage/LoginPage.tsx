@@ -88,9 +88,7 @@ const LoginPage: React.FC = () => {
         if (setUserData) setUserData(user);
         if (setToken) setToken(token);
         // Use public keys for public login
-        localStorage.setItem('publicUserToken', token);
         localStorage.setItem('publicUserData', JSON.stringify(user));
-        document.cookie = `publicUserToken=${token}; path=/; max-age=${60 * 60 * 24 * 7}`;
         if (auth) {
           auth.login(token, user, false);
         }

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_APP_API_BASE_URL || 'http://localhost:7008',
+  baseURL: import.meta.env.VITE_APP_API_BASE_URL || 'http://localhost:7003' || 'https://resqhub-be.onrender.com',
   timeout: Number(import.meta.env.VITE_APP_API_TIMEOUT) || 10000,
   headers: {
     'Content-Type': 'application/json',
