@@ -202,10 +202,6 @@ const PublicLayout = () => {
           start={start}
           end={end}
           className="border-none shadow-2"
-          style={{ 
-            backgroundColor: '#ffffff',
-            borderBottom: '1px solid #e5e7eb'
-          }}
         />
       )}
 
@@ -227,13 +223,7 @@ const PublicLayout = () => {
 
       {/* Conditional Footer - Hide on home and hub pages */}
       {!shouldHideNavBar() && (
-        <footer 
-          className="w-full p-4 text-center"
-          style={{ 
-            backgroundColor: '#1e293b', 
-            color: '#f1f5f9' 
-          }}
-        >
+        <footer>
           <div className="container mx-auto">
             <div className="flex flex-column md:flex-row justify-content-between align-items-center gap-3">
               <div className="flex align-items-center gap-2">

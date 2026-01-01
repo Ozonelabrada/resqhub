@@ -1,5 +1,5 @@
 import mainApiClient from '../api/client';
-import type { Category } from '../types/api';
+import type { Category, CategoryResponse } from '../types/api';
 
 export interface BackendCategoryResponse {
   message: string;
@@ -24,15 +24,13 @@ export class CategoryService {
       const queryParams = new URLSearchParams(query).toString();
       const url = queryParams ? `/categories?${queryParams}` : '/categories';
 
-      const response = await mainApiClient.request<BackendCategoryResponse>({
+      const response = await mainApiClient.request<CategoryResponse>({
         url,
         method: 'GET',
       });
-      if (Array.isArray(response.data)) {
-        return response.data;
-      }
-      if (response.data && Array.isArray((response.data as any).data)) {
-        return (response.data as any).data;
+      const resultData = response.data.data;
+      if (Array.isArray(resultData)) {
+        return resultData;
       }
       return [];
     } catch (error) {
@@ -48,7 +46,7 @@ export class CategoryService {
         method: 'GET',
       });
       if (response.data && !Array.isArray(response.data)) {
-        return response.data as unknown as Category;
+        return response.data.data as unknown as Category;
       }
       return null;
     } catch (error) {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 
 // Public Pages
 import HubHomePage from './components/pages/public/HubHomePage/HubHomePage';
@@ -19,10 +19,11 @@ import OAuth2RegisterPage from './components/pages/Auth/OAuth2RegisterPage';
 // Layouts
 import PublicLayout from './layouts/PublicLayout';
 import AdminLayout from './layouts/AdminLayout';
-import ReportPage from './components/pages/ReportsPage/ReportPage';
 import ProfilePage from './components/pages/ProfilePage/ProfilePage';
 import LoginPage from './components/shared/LoginPage/LoginPage';
 import DashboardPage from './components/pages/admin/DashboardPage/DashboardPage';
+
+import { AuthService } from './services/authService';
 
 const AppRouter = () => {
   return (
@@ -34,9 +35,6 @@ const AppRouter = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signin" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
-        <Route path="/report" element={<ReportPage />} />
-        <Route path="/lost" element={<ReportPage />} />
-        <Route path="/found" element={<ReportPage />} />
         <Route path="/hub" element={<PersonalHubPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         
@@ -65,6 +63,7 @@ const AppRouter = () => {
 const App = () => {
   const [isOnline, setIsOnline] = useState(window.navigator.onLine);
   const [showOnlineBanner, setShowOnlineBanner] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleOnline = () => {
@@ -85,6 +84,24 @@ const App = () => {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
+  useEffect(() => {
+    const checkToken = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          await AuthService.getCurrentUserProfile();
+        } catch (error: any) {
+          if (error?.response?.status === 401) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('publicUserData');
+            navigate('/signin', { replace: true });
+          }
+        }
+      }
+    };
+    checkToken();
+  }, [navigate]);
 
   return (
     <div className="App">

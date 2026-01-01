@@ -232,5 +232,10 @@ export interface CategoryResponse {
     pageNumber: number;
     succeeded: boolean;
     data: Category[];
+    errorMessage: string;
+    loadMore: boolean;
+    baseEntity: any;
   };
+  errors: any;
+  baseEntity: any;
 }

@@ -14,7 +14,7 @@ const itemsService = ItemsService;
 const SearchItemsPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(searchParams.get('category') || null);
   const [isMobile, setIsMobile] = useState(false);
   
   // Modal state
@@ -32,12 +32,15 @@ const SearchItemsPage: React.FC = () => {
 
   // Fetch items from API service
   const fetchItems = useCallback(
-    async (page: number, searchQuery?: string) => {
+    async (page: number, searchQuery?: string, categoryId?: string | null) => {
       setLoading(true);
       try {
-        // Only include search if not empty string
         const query = (typeof searchQuery === 'string' && searchQuery.trim() === '') ? undefined : searchQuery;
-        const response = await itemsService.getReportsSearch(page, query ?? '');
+        const params: any = {};
+        if (query) params.search = query;
+        if (categoryId) params.categoryId = categoryId;
+
+        const response = await itemsService.getReportsSearch(page, params);
         let apiItems = response.data?.data?.data ?? [];
         if (!Array.isArray(apiItems)) apiItems = [];
         const hasMoreData = apiItems.length === ITEMS_PER_PAGE;
@@ -67,7 +70,8 @@ const SearchItemsPage: React.FC = () => {
       
       fetchItems(
         1,
-        searchTerm ?? undefined
+        searchTerm ?? undefined,
+        selectedCategory
       ).then(result => {
         setItems(result.items);
         setHasMore(result.hasMore);
@@ -90,7 +94,7 @@ const SearchItemsPage: React.FC = () => {
     if (loading || !hasMore) return;
 
     const nextPage = currentPage + 1;
-    const result = await fetchItems(nextPage, searchTerm ?? undefined);
+    const result = await fetchItems(nextPage, searchTerm ?? undefined, selectedCategory);
     if (result.items.length > 0) {
       setItems(prev => [...prev, ...result.items]);
       setCurrentPage(nextPage);
@@ -136,10 +140,11 @@ const SearchItemsPage: React.FC = () => {
     const fetchCategories = async () => {
       try {
         const response = await itemsService.getCategories?.();
-        const apiCategories = response?.data?.data || response?.data || [];
+        // Correct extraction for your API response
+        const apiCategories = response?.data?.data?.data || [];
         const formatted = apiCategories.map((cat: any) => ({
-          label: cat.name, 
-          value: cat.name  
+          label: cat.name,
+          value: String(cat.id)
         }));
         setCategories([{ label: 'All Categories', value: null }, ...formatted]);
       } catch (err) {
@@ -173,6 +178,8 @@ const SearchItemsPage: React.FC = () => {
     setIsModalVisible(false);
     setSelectedItem(null);
   };
+
+  const selectedCategoryLabel = categories.find(cat => cat.value === selectedCategory)?.label;
 
   return (
     <div style={{ minHeight: '100vh',
@@ -222,7 +229,7 @@ const SearchItemsPage: React.FC = () => {
           <h3 className="text-lg font-bold text-gray-800 m-0">
             {items.length > 0 ? `Found ${items.length}${hasMore ? '+' : ''} items` : 'No items found'}
             {searchTerm && ` for "${searchTerm}"`}
-            {selectedCategory && ` in ${selectedCategory}`}
+            {selectedCategory && selectedCategoryLabel && ` in ${selectedCategoryLabel}`}
           </h3>
           <div className="flex gap-2">
             <Button 

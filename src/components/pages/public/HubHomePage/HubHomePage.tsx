@@ -14,10 +14,11 @@ import { Chart } from 'primereact/chart';
 import { Logo } from '../../../ui';
 import { useStatistics } from '../../../../hooks/useStatistics';
 import { useTrendingReports } from '../../../../hooks/useTrendingReports';
+import { useCategories } from '../../../../hooks/useCategories';
 import { CSSTransition } from 'react-transition-group';
 import { Dialog } from 'primereact/dialog';
-import CategoryService from '../../../../services/categoryService';
 import { useAuth } from '../../../../context/AuthContext';
+import { ReportModal } from '../../../modals';
 
 const HubHomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -26,14 +27,13 @@ const HubHomePage: React.FC = () => {
   const [isBelowDesktop, setIsBelowDesktop] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userData, setUserData] = useState<any>(null);
-  const [categories, setCategories] = useState<{ label: string; value: string | null }[]>(
-    [
-      { label: 'All Categories', value: null }
-    ]
-  );
   const accountMenuRef = useRef<Menu>(null);
   const toast = useRef<Toast>(null);
   const guestMenuRef = useRef<Menu>(null);
+
+  // Modal states
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportType, setReportType] = useState<'lost' | 'found'>('lost');
 
   // Use custom hooks for statistics and trending reports
   const bottomBarRef = useRef<HTMLDivElement>(null);
@@ -45,6 +45,12 @@ const HubHomePage: React.FC = () => {
     calculateAndRefresh 
   } = useTrendingReports();
 
+  const { 
+    categories: fetchedCategories, 
+    loading: categoriesLoading,
+    error: categoriesError
+  } = useCategories();
+  console.log('Fetched categories in HubHomePage:', fetchedCategories);
   // Auto-refresh trending data periodically (optional)
   useEffect(() => {
     const interval = setInterval(() => {
@@ -108,25 +114,6 @@ const HubHomePage: React.FC = () => {
     return () => window.removeEventListener('resize', checkScreen);
   }, []);
 
-  useEffect(() => {
-    // Fetch categories from backend
-    const getCategories = async () => {
-      try {
-        const cats = await CategoryService.getCategories({ isActive: true });
-        setCategories([
-          { label: 'All Categories', value: null },
-          ...cats.map((cat: any) => ({
-            label: cat.name,
-            value: cat.name
-          }))
-        ]);
-      } catch (err) {
-        // Optionally show a toast or log error
-      }
-    };
-    getCategories();
-  }, []);
-  
   const recentSuccesses = [
     { 
       id: 1, 
@@ -228,10 +215,10 @@ const HubHomePage: React.FC = () => {
 
   const handleReportAction = (type: 'lost' | 'found') => {
     if (isAuthenticated) {
-      navigate(`/report?type=${type}`);
+      setReportType(type);
+      setShowReportModal(true);
     } else {
       localStorage.setItem('intendedAction', `report_${type}`);
-      localStorage.setItem('returnPath', `/report?type=${type}`);
       navigate('/login');
     }
   };
@@ -547,8 +534,8 @@ const HubHomePage: React.FC = () => {
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                 />
                 <Dropdown
-                  value={selectedCategory}
-                  options={categories}
+                  value={categoriesLoading ? null : selectedCategory}
+                  options={fetchedCategories}
                   onChange={(e) => setSelectedCategory(e.value)}
                   placeholder="Category"
                   className={isBelowDesktop ? 'w-full' : 'w-12rem'}
@@ -1253,6 +1240,16 @@ const HubHomePage: React.FC = () => {
           </div>
         </Card>
       </div>
+
+      {/* Report Modal */}
+      <ReportModal
+        visible={showReportModal}
+        onHide={() => setShowReportModal(false)}
+        reportType={reportType}
+        onSuccess={() => {
+          // Optionally refresh data or show success message
+        }}
+      />
     </div>
   );
 };
