@@ -6,6 +6,7 @@ import HubHomePage from './components/pages/public/HubHomePage/HubHomePage';
 import SearchItemsPage from './components/pages/public/SearchItemPage/SearchItemsPage';
 import SignUpPage from './components/pages/public/SignUpPage/SignUpPage';
 import PersonalHubPage from './components/pages/public/PersonalHubPage/PersonalHubPage';
+import NewsFeedPage from './components/pages/public/NewsFeedPage/NewsFeedPage';
 
 // Admin Pages
 import AdminLoginPage from './components/shared/LoginPage/LoginPage';
@@ -19,7 +20,6 @@ import OAuth2RegisterPage from './components/pages/Auth/OAuth2RegisterPage';
 // Layouts
 import PublicLayout from './layouts/PublicLayout';
 import AdminLayout from './layouts/AdminLayout';
-import ProfilePage from './components/pages/ProfilePage/ProfilePage';
 import LoginPage from './components/shared/LoginPage/LoginPage';
 import DashboardPage from './components/pages/admin/DashboardPage/DashboardPage';
 
@@ -36,7 +36,8 @@ const AppRouter = () => {
         <Route path="/signin" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/hub" element={<PersonalHubPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/feed" element={<NewsFeedPage />} />
+        <Route path="/profile" element={<PersonalHubPage />} />
         
         {/* OAuth2 Routes - Handle frontend callback */}
         <Route path="/signin-google" element={<AuthCallbackPage />} />

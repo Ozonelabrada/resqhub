@@ -64,6 +64,11 @@ const PublicLayout = () => {
       icon: 'pi pi-users',
       items: [
         {
+          label: 'News Feed',
+          icon: 'pi pi-list',
+          command: () => navigate('/feed')
+        },
+        {
           label: 'Recent Activity',
           icon: 'pi pi-clock',
           command: () => navigate('/activity')

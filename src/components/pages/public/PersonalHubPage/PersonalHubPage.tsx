@@ -1,10 +1,5 @@
 
-import { ItemsService } from '../../../../services/itemsService';
-import { UserService } from '../../../../services/userService';
-import { useAuth } from '../../../../context/AuthContext';
-
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
 import { ProgressSpinner } from 'primereact/progressspinner';
@@ -20,7 +15,6 @@ import { EditProfileModal } from '../../../personalHub/EditProfileModal';
 
 
 const PersonalHubPage: React.FC = () => {
-  const navigate = useNavigate();
   const toast = useRef<Toast>(null);
 
   // State
