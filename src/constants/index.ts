@@ -45,7 +45,7 @@ export const TOAST_MESSAGES = {
 // Menu Items Factory Functions
 // These functions create menu items with proper navigation commands
 export const createAccountMenuItems = (navigate: (path: string) => void, handleLogout: () => void) => [
-  { label: 'My Profile', icon: 'pi pi-user', command: () => navigate(ROUTES.PROFILE) },
+  { label: 'News Feed', icon: 'pi pi-user', command: () => navigate(ROUTES.FEED) },
   { label: 'Personal Hub', icon: 'pi pi-home', command: () => navigate(ROUTES.HUB) },
   { label: 'My Reports', icon: 'pi pi-list', command: () => navigate(`${ROUTES.HUB}?tab=reports`) },
   { label: 'Notifications', icon: 'pi pi-bell', command: () => navigate(ROUTES.NOTIFICATIONS) },
@@ -69,6 +69,7 @@ export const ROUTES = {
   ADMIN_LOGIN: '/admin/login',
   PROFILE: '/profile',
   HUB: '/hub',
+  FEED: '/feed',
   NOTIFICATIONS: '/notifications',
   SETTINGS: '/settings',
   HELP: '/help',

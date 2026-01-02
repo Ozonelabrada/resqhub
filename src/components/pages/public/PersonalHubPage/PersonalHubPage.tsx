@@ -8,10 +8,10 @@ import { useUserProfile } from '../../../../hooks/useUserProfile';
 import { useUserReports } from '../../../../hooks/useUserReports';
 import { useWatchList } from '../../../../hooks/useWatchList';
 import type { EditProfileForm, UserReport, UserStats } from '../../../../types/personalHub';
-import { ProfileHeader } from '../../../personalHub/ProfileHeader';
-import { StatsCards } from '../../../personalHub/StatsCards';
-import { ReportsList } from '../../../personalHub/ReportsList';
-import { EditProfileModal } from '../../../personalHub/EditProfileModal';
+import { ProfileHeader } from '../personalHub/ProfileHeader';
+import { StatsCards } from '../personalHub/StatsCards';
+import { ReportsList } from '../personalHub/ReportsList';
+import { EditProfileModal } from '../personalHub/EditProfileModal';
 
 
 const PersonalHubPage: React.FC = () => {
@@ -157,11 +157,10 @@ const PersonalHubPage: React.FC = () => {
             userStats={userStats}
             onEditProfile={handleEditProfile}
             onProfilePictureUpload={handleProfilePictureUpload}
-            isMobile={isMobile}
           />
 
           {/* Stats Cards */}
-          <StatsCards stats={userStats} />
+          {/* <StatsCards stats={userStats} /> */}
 
           {/* Main Content Layout */}
           <div className="grid">

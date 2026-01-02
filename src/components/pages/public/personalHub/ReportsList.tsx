@@ -4,7 +4,7 @@ import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
 import { Badge } from 'primereact/badge';
 import { ProgressSpinner } from 'primereact/progressspinner';
-import type { UserReport } from '../../types/personalHub';
+import type { UserReport } from '../../../../types/personalHub';
 
 interface ReportsListProps {
   reports: UserReport[];

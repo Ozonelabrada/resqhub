@@ -50,9 +50,9 @@ export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
   // Menu configurations
   const accountMenuItems = [
     {
-      label: 'My Profile',
+      label: 'News Feed',
       icon: 'pi pi-user',
-      command: () => navigate('/profile')
+      command: () => navigate('/feed')
     },
     {
       label: 'Personal Hub',

@@ -1,7 +1,7 @@
 // components/personalHub/StatsCards.tsx
 import React from 'react';
 import { Card } from 'primereact/card';
-import type { UserStats } from '../../types/personalHub';
+import type { UserStats } from '../../../../types/personalHub';
 
 interface StatsCardsProps {
   stats: UserStats;

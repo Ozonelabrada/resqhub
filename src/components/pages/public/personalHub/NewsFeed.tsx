@@ -6,7 +6,7 @@ import { ProgressSpinner } from 'primereact/progressspinner';
 import { Badge } from 'primereact/badge';
 import { Chip } from 'primereact/chip';
 import { Image } from 'primereact/image';
-import type { UserReport } from '../../types/personalHub';
+import type { UserReport } from '../../../../types/personalHub';
 
 export interface NewsFeedItem extends UserReport {
   user: {

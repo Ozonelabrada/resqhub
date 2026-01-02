@@ -3,15 +3,13 @@ import React from 'react';
 import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
 import { Avatar } from 'primereact/avatar';
-import { Badge } from 'primereact/badge';
-import type { UserProfile, UserStats } from '../../types/personalHub';
+import type { UserProfile, UserStats } from '../../../../types/personalHub';
 
 interface ProfileHeaderProps {
   userData: UserProfile;
   userStats: UserStats;
   onEditProfile: () => void;
   onProfilePictureUpload: (event: any) => void;
-  isMobile: boolean;
 }
 
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
@@ -19,7 +17,6 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   userStats,
   onEditProfile,
   onProfilePictureUpload,
-  isMobile
 }) => {
   return (
     <Card className="mb-4 p-0" style={{ overflow: 'hidden' }}>

@@ -4,8 +4,7 @@ import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { useNewsFeed } from '../../../../hooks/useNewsFeed';
-import { NewsFeed } from '../../../personalHub/NewsFeed';
-import type { NewsFeedItem } from '../../../personalHub/NewsFeed';
+import { NewsFeed, type NewsFeedItem } from '../personalHub/NewsFeed';
 
 const NewsFeedPage: React.FC = () => {
   const navigate = useNavigate();
