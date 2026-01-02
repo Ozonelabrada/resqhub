@@ -15,17 +15,17 @@ import { confirmDialog } from 'primereact/confirmdialog';
 const AdminLayout = () => {
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
-  const auth = useAuth();
-  const isAuthenticated = auth?.isAuthenticated;
-  const userData = auth?.userData;
-  const logout = auth?.logout;
+  const { isAuthenticated, isLoading, user: userData, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const userMenuRef = useRef<Menu>(null);
   const toast = useRef<Toast>(null);
 
-  // Only allow admins
+  // Only allow admins - wait for auth to load first
   useEffect(() => {
+    // Don't redirect while auth is still loading
+    if (isLoading) return;
+
     // Only redirect to /admin/login if the user is on an /admin route and not authenticated as admin
     if (
       location.pathname.startsWith('/admin') &&
@@ -38,7 +38,7 @@ const AdminLayout = () => {
     ) {
       navigate('/admin/login', { replace: true });
     }
-  }, [isAuthenticated, userData, navigate, location.pathname]);
+  }, [isAuthenticated, isLoading, userData, navigate, location.pathname]);
 
   // Logout handler with confirmation dialog
   const handleLogout = () => {
@@ -50,11 +50,7 @@ const AdminLayout = () => {
       rejectLabel: 'Cancel',
       acceptClassName: 'p-button-danger',
       accept: () => {
-        if (logout) logout();
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('adminUserData');
-        localStorage.removeItem('adminUserId');
-        document.cookie = 'adminToken=; Max-Age=0; path=/;';
+        logout();
         navigate('/', { replace: true });
       }
     });

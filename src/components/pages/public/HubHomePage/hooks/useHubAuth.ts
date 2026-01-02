@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../../../../context/AuthContext';
+import { AuthService } from '../../../../../services/authService';
 
 export const useHubAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -23,12 +24,18 @@ export const useHubAuth = () => {
     }
   }, [token, authUserData]);
 
-  const logout = () => {
-    localStorage.removeItem('publicUserToken');
-    localStorage.removeItem('publicUserData');
-    setIsAuthenticated(false);
-    setUserData(null);
-    window.location.reload();
+  const logout = async () => {
+    try {
+      await AuthService.signOut();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      localStorage.removeItem('publicUserToken');
+      localStorage.removeItem('publicUserData');
+      setIsAuthenticated(false);
+      setUserData(null);
+      window.location.reload();
+    }
   };
 
   return {

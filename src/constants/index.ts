@@ -20,8 +20,8 @@ export const API_CONSTANTS = {
 
 // Local Storage Keys
 export const STORAGE_KEYS = {
-  PUBLIC_USER_TOKEN: 'publicUserToken', // JWT token for public user authentication
-  PUBLIC_USER_DATA: 'publicUserData', // User data for public user session
+  TOKEN: 'resqhub_token', // JWT token for authentication
+  USER_DATA: 'resqhub_user', // User data for session
   INTENDED_ACTION: 'intendedAction', // Action user was trying to perform before login
   RETURN_PATH: 'returnPath', // Path to redirect to after login
 } as const;

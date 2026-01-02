@@ -1,5 +1,5 @@
 import mainApiClient from '../api/client';
-import type { Category, CategoryResponse } from '../types/api';
+import type { Category, CategoryResponse } from '../types';
 
 export interface BackendCategoryResponse {
   message: string;

@@ -23,40 +23,71 @@ import AdminLayout from './layouts/AdminLayout';
 import LoginPage from './components/shared/LoginPage/LoginPage';
 import DashboardPage from './components/pages/admin/DashboardPage/DashboardPage';
 
+// Auth Components
+import AuthGuard from './components/common/AuthGuard';
+
 import { AuthService } from './services/authService';
 
 const AppRouter = () => {
   return (
     <Routes>
       {/* 🌐 PUBLIC ROUTES - No authentication required */}
-      <Route path="/" element={<PublicLayout />}>
+      <Route path="/" element={
+        <AuthGuard requireAuth={false}>
+          <PublicLayout />
+        </AuthGuard>
+      }>
         <Route index element={<HubHomePage />} />
         <Route path="search" element={<SearchItemsPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signin" element={<LoginPage />} />
-        <Route path="/signup" element={<SignUpPage />} />
-        <Route path="/hub" element={<PersonalHubPage />} />
-        <Route path="/feed" element={<NewsFeedPage />} />
-        <Route path="/profile" element={<PersonalHubPage />} />
-        
+        <Route path="login" element={<LoginPage />} />
+        <Route path="signin" element={<LoginPage />} />
+        <Route path="signup" element={<SignUpPage />} />
+
         {/* OAuth2 Routes - Handle frontend callback */}
-        <Route path="/signin-google" element={<AuthCallbackPage />} />
-        <Route path="/auth/signin-google" element={<AuthCallbackPage />} />
-        <Route path="/auth/callback" element={<AuthCallbackPage />} />
-        <Route path="/auth/register" element={<OAuth2RegisterPage />} />
+        <Route path="signin-google" element={<AuthCallbackPage />} />
+        <Route path="auth/signin-google" element={<AuthCallbackPage />} />
+        <Route path="auth/callback" element={<AuthCallbackPage />} />
+        <Route path="auth/register" element={<OAuth2RegisterPage />} />
+      </Route>
+
+      {/* 🔐 PROTECTED USER ROUTES - Authentication required */}
+      <Route path="/" element={
+        <AuthGuard requireAuth={true}>
+          <PublicLayout />
+        </AuthGuard>
+      }>
+        <Route path="hub" element={<PersonalHubPage />} />
+        <Route path="feed" element={<NewsFeedPage />} />
+        <Route path="profile" element={<PersonalHubPage />} />
       </Route>
 
       {/* 🔐 ADMIN LOGIN - Standalone without layout */}
-        <Route path="/admin/login" element={<AdminLoginPage />} />
-        
-      {/* 🔐 ADMIN ROUTES - Authentication required with layout */}
-      <Route path="/admin" element={<AdminLayout />}>
+      <Route path="/admin/login" element={
+        <AuthGuard requireAuth={false}>
+          <AdminLoginPage />
+        </AuthGuard>
+      } />
+
+      {/* 🔐 ADMIN ROUTES - Authentication + Admin role required */}
+      <Route path="/admin" element={
+        <AuthGuard requireAuth={true} requireAdmin={true}>
+          <AdminLayout />
+        </AuthGuard>
+      }>
         <Route path="dashboard" element={<DashboardPage />} />
       </Route>
 
       {/* 🚧 UTILITY ROUTES */}
-      <Route path="/maintenance" element={<UnderMaintenancePage />} />
-      <Route path="*" element={<NotFoundPage />} />
+      <Route path="/maintenance" element={
+        <AuthGuard requireAuth={false}>
+          <UnderMaintenancePage />
+        </AuthGuard>
+      } />
+      <Route path="*" element={
+        <AuthGuard requireAuth={false}>
+          <NotFoundPage />
+        </AuthGuard>
+      } />
     </Routes>
   );
 };
@@ -88,14 +119,12 @@ const App = () => {
 
   useEffect(() => {
     const checkToken = async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
+      if (authManager.isAuthenticated()) {
         try {
-          await AuthService.getCurrentUserProfile();
+          await AuthService.getCurrentUser();
         } catch (error: any) {
           if (error?.response?.status === 401) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('publicUserData');
+            authManager.logout();
             navigate('/signin', { replace: true });
           }
         }

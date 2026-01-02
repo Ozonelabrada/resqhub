@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { Button } from 'primereact/button';
+import { authManager } from '../../../utils/sessionManager';
 
 const AuthCallbackPage: React.FC = () => {
   const navigate = useNavigate();
@@ -78,26 +79,21 @@ const AuthCallbackPage: React.FC = () => {
 
           // After successful login API call
           const user = {
-            id: userId,
-            name: userName,
-            email: userEmail,
-            token: token || '',
+            id: userId || '',
+            name: userName || '',
+            email: userEmail || '',
             picture: searchParams.get('user_picture') || ''
           };
 
-          if (user.token) {
-            localStorage.setItem('Token', user.token);
+          if (token) {
+            authManager.setSession(token, user as any);
           }
-
-          // Exclude token from userData
-          const { token: _, ...userDataWithoutToken } = user;
-          localStorage.setItem('publicUserData', JSON.stringify(userDataWithoutToken));
 
           setSuccess(true);
           
           // Check for intended destination and redirect
           const returnPath = localStorage.getItem('returnPath') || '/';
-          
+          localStorage.removeItem('returnPath');
           setTimeout(() => {
             localStorage.removeItem('returnPath');
             localStorage.removeItem('intendedAction');

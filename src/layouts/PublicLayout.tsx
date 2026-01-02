@@ -5,11 +5,12 @@ import { Button } from 'primereact/button';
 import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
 import { useAuth } from '../context/AuthContext';
+import { AuthService } from '../services/authService';
 
 const PublicLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, userData: user, setIsAuthenticated, setUserData } = useAuth() ?? {};
+  const { isAuthenticated, user, logout } = useAuth();
 
   // Use useRef instead of useState for menu references
   const userMenuRef = useRef<Menu>(null);
@@ -98,12 +99,15 @@ const PublicLayout = () => {
     {
       label: 'Sign Out',
       icon: 'pi pi-sign-out',
-      command: () => {
-        localStorage.removeItem('publicUserToken');
-        localStorage.removeItem('publicUserData');
-        if (setIsAuthenticated) setIsAuthenticated(false);
-        if (setUserData) setUserData(null);
-        setTimeout(() => navigate('/'), 0);
+      command: async () => {
+        try {
+          await AuthService.signOut();
+        } catch (error) {
+          console.error('Logout error:', error);
+        } finally {
+          logout();
+          navigate('/');
+        }
       }
     }
   ];

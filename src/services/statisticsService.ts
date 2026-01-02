@@ -1,5 +1,5 @@
 import  mainApiClient  from '../api/client';
-import type { StatisticsResponse, StatisticsData } from '.././types/api';
+import type { StatisticsResponse, StatisticsData } from '../types';
 
 export class StatisticsService {
   static async getStatistics(): Promise<StatisticsData> {

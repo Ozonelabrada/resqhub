@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserService } from '../services/userService';
 import { useAuth } from '../context/AuthContext';
+import { authManager } from '../utils/sessionManager';
+import { STORAGE_KEYS } from '../constants';
 import type { UserProfile } from '../types/personalHub';
 
 export const useUserProfile = () => {
@@ -32,21 +34,18 @@ export const useUserProfile = () => {
       const transformedUserData = UserService.transformUserData(backendUserData);
 
       setUserData(transformedUserData);
-      localStorage.setItem('publicUserData', JSON.stringify(transformedUserData));
+      // Update authManager with fresh user data
+      if (auth?.token) {
+        authManager.setSession(auth.token, transformedUserData as any);
+      }
 
     } catch (err) {
       console.error('Error fetching user data:', err);
 
-      // Fallback to localStorage
-      const localUserData = localStorage.getItem('publicUserData');
-      if (localUserData) {
-        try {
-          const parsedUser = JSON.parse(localUserData);
-          setUserData(parsedUser);
-        } catch (parseError) {
-          console.error('Error parsing local user data:', parseError);
-          navigate('/signin');
-        }
+      // Fallback to authManager
+      const localUser = authManager.getUser();
+      if (localUser) {
+        setUserData(localUser as any);
       } else {
         setError('Failed to load user profile');
         navigate('/signin');
@@ -64,7 +63,10 @@ export const useUserProfile = () => {
       const transformedUserData = UserService.transformUserData(updatedUser);
 
       setUserData(transformedUserData);
-      localStorage.setItem('publicUserData', JSON.stringify(transformedUserData));
+      // Update authManager with fresh user data
+      if (auth?.token) {
+        authManager.setSession(auth.token, transformedUserData as any);
+      }
       return true;
     } catch (err) {
       console.error('Error updating profile:', err);
@@ -77,7 +79,7 @@ export const useUserProfile = () => {
 
     // Listen for storage changes
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'publicUserToken') {
+      if (e.key === STORAGE_KEYS.TOKEN) {
         if (!e.newValue) {
           navigate('/signin');
         } else {
@@ -87,7 +89,7 @@ export const useUserProfile = () => {
     };
 
     const handleFocus = () => {
-      if (!auth?.token) {
+      if (!authManager.isAuthenticated()) {
         navigate('/signin');
       }
     };

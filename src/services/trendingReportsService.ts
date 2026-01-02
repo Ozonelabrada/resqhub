@@ -1,5 +1,5 @@
 import mainApiClient from '../api/client';
-import type { TrendingReportItem } from '../types/api';
+import type { TrendingReportItem } from '../types';
 
 interface PaginatedTrendingReportsResponse {
   message: string;
@@ -28,7 +28,7 @@ export class TrendingReportsService {
         url: '/trending-reports/all'
       });
       
-      console.log('Trending reports API response:', response);
+      console.log('Trending reports API response received');
       
       const responseData = response.data;
       if (responseData.succeeded && responseData.data) {

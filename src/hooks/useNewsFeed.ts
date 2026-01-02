@@ -1,48 +1,92 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { NewsFeedItem } from '../components/pages/public/PersonalHubPage/personalHub/NewsFeed';
-import { ItemsService } from '../services';
-import { mockNewsFeedItems } from '../mocks';
+import { ReportsService } from '../services/reportsService';
+import { useAuth } from '../context/AuthContext';
 
 interface UseNewsFeedReturn {
   items: NewsFeedItem[];
   loading: boolean;
+  error: string | null;
   hasMore: boolean;
   loadMore: () => void;
-  refresh: () => void;
+  refetch: () => void;
 }
 
 export const useNewsFeed = (): UseNewsFeedReturn => {
   const [items, setItems] = useState<NewsFeedItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const { isLoading: authLoading } = useAuth();
 
   const fetchNewsFeed = useCallback(async (page: number = 1, isLoadMore: boolean = false) => {
     if (loading) return;
 
     setLoading(true);
+    setError(null);
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Return mock data instead of API call
       const pageSize = 10;
-      const startIndex = (page - 1) * pageSize;
-      const endIndex = startIndex + pageSize;
-      const newItems = mockNewsFeedItems.slice(startIndex, endIndex);
+      const reports = await ReportsService.getReports({ page, pageSize });
+
+      // Transform LostFoundItem[] to NewsFeedItem[]
+      const transformedItems: NewsFeedItem[] = reports.map(report => ({
+        id: report.id.toString(),
+        title: report.title,
+        category: report.category,
+        location: report.location,
+        currentLocation: report.specificLocation || '',
+        date: report.date,
+        time: report.timeReported || '',
+        status: report.status === 'matched' ? 'reunited' : report.status,
+        views: 0, // API doesn't provide views
+        type: report.status === 'lost' ? 'lost' : 'found',
+        description: report.description || '',
+        circumstances: '', // Not available in API
+        identifyingFeatures: [report.itemColor, report.itemBrand, report.itemSize].filter(Boolean).join(', '),
+        condition: 'good', // Default, API doesn't specify
+        handoverPreference: 'meet', // Default
+        contactInfo: {
+          name: report.reportedBy,
+          phone: typeof report.contactInfo === 'string' ? report.contactInfo : '',
+          email: '',
+          preferredContact: 'phone'
+        },
+        reward: {
+          amount: typeof report.reward === 'string' ? parseFloat(report.reward.replace('$', '')) || 0 : 0,
+          description: typeof report.reward === 'string' ? report.reward : ''
+        },
+        images: report.image ? [report.image] : [],
+        storageLocation: '',
+        createdAt: report.date,
+        updatedAt: report.date,
+        expiresAt: '',
+        reportTypeDescription: '',
+        verificationStatus: '',
+        potentialMatches: report.matchedWith ? 1 : 0,
+        user: {
+          id: report.reportedBy.toLowerCase().replace(/\s+/g, '_'),
+          fullName: report.reportedBy,
+          username: report.reportedBy.toLowerCase().replace(/\s+/g, '_'),
+          profilePicture: '',
+          isVerified: false
+        },
+        timeAgo: getTimeAgo(report.date)
+      }));
 
       if (isLoadMore) {
-        setItems(prev => [...prev, ...newItems]);
+        setItems(prev => [...prev, ...transformedItems]);
       } else {
-        setItems(newItems);
+        setItems(transformedItems);
       }
 
-      // Check if there are more items
-      setHasMore(endIndex < mockNewsFeedItems.length);
+      // Check if there are more items (assuming API returns full pageSize when there are more)
+      setHasMore(transformedItems.length === pageSize);
       setCurrentPage(page);
 
     } catch (error) {
       console.error('Error fetching newsfeed:', error);
+      setError('Failed to load news feed');
       setHasMore(false);
     } finally {
       setLoading(false);
@@ -55,22 +99,26 @@ export const useNewsFeed = (): UseNewsFeedReturn => {
     }
   }, [hasMore, loading, currentPage, fetchNewsFeed]);
 
-  const refresh = useCallback(() => {
+  const refetch = useCallback(() => {
     setCurrentPage(1);
     fetchNewsFeed(1, false);
   }, [fetchNewsFeed]);
 
   // Initial load
   useEffect(() => {
-    fetchNewsFeed(1, false);
-  }, []);
+    // Only fetch news feed after authentication has been initialized
+    if (!authLoading) {
+      fetchNewsFeed(1, false);
+    }
+  }, [authLoading]);
 
   return {
     items,
-    loading,
+    loading: loading || authLoading,
+    error,
     hasMore,
     loadMore,
-    refresh
+    refetch
   };
 };
 

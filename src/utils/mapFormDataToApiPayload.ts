@@ -1,15 +1,11 @@
+import { authManager } from './sessionManager';
 
 const mapFormDataToApiPayload = (reportType: string, formData: any) => {
   // Get the current user ID
   const getCurrentUserId = (): string => {
-    const userData = localStorage.getItem('publicUserData');
-    if (userData) {
-      try {
-        const parsedUser = JSON.parse(userData);
-        return parsedUser.id;
-      } catch (error) {
-        console.error('Error parsing user data:', error);
-      }
+    const user = authManager.getUser();
+    if (user && user.id) {
+      return String(user.id);
     }
     throw new Error('User not authenticated. Please sign in to create a report.');
   };

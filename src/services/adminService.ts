@@ -1,4 +1,5 @@
 import api from '../api/client';
+import { authManager } from '../utils/sessionManager';
 
 export interface BackendAdminData {
   id: string;
@@ -28,14 +29,9 @@ export class AdminService {
     try {
       let adminIdToUse = adminId;
       if (!adminIdToUse) {
-        const adminData = localStorage.getItem('adminUserData');
-        if (adminData) {
-          try {
-            const parsedAdmin = JSON.parse(adminData);
-            adminIdToUse = parsedAdmin.id;
-          } catch (error) {
-            console.error('Error parsing admin data from localStorage:', error);
-          }
+        const user = authManager.getUser();
+        if (user) {
+          adminIdToUse = String(user.id);
         }
       }
       if (!adminIdToUse) {
@@ -79,16 +75,8 @@ export class AdminService {
   }
 
   static getCurrentAdminId(): string | null {
-    try {
-      const adminData = localStorage.getItem('adminUserData');
-      if (adminData) {
-        const parsedAdmin = JSON.parse(adminData);
-        return parsedAdmin.id || null;
-      }
-    } catch (error) {
-      console.error('Error getting current admin ID:', error);
-    }
-    return null;
+    const user = authManager.getUser();
+    return user ? String(user.id) : null;
   }
 }
 

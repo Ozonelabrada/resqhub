@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Category } from '../types';
 import { CategoryService} from '../services/categoryService';
+import { useAuth } from '../context/AuthContext';
 
 interface UseCategoriesReturn {
   categories: { label: string; value: string | null }[];
@@ -14,6 +15,7 @@ export const useCategories = (): UseCategoriesReturn => {
   const [categories, setCategories] = useState<{ label: string; value: string | null }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isLoading: authLoading } = useAuth();
 
   const fetchCategories = async () => {
     try {
@@ -51,12 +53,15 @@ export const useCategories = (): UseCategoriesReturn => {
   };
 
   useEffect(() => {
-    fetchCategories();
-  }, []);
+    // Only fetch categories after authentication has been initialized
+    if (!authLoading) {
+      fetchCategories();
+    }
+  }, [authLoading]);
 
   return {
     categories,
-    loading,
+    loading: loading || authLoading,
     error,
     refetch: fetchCategories,
   };

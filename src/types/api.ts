@@ -35,10 +35,8 @@ export interface StatisticsData {
   totalRewardFormatted: string;
 }
 
-export interface StatisticsResponse {
-  message: string;
-  succeeded: boolean;
-  statusCode: number;
+// Statistics API response
+export interface StatisticsResponse extends BaseApiResponse {
   data: StatisticsData;
 }
 
@@ -65,27 +63,15 @@ export interface SignUpRequest {
 export interface AuthResponse extends BaseApiResponse {
   data?: {
     user: UserData;
-    token: string;
-    refreshToken?: string;
   };
+  token?: string;
+  refreshToken?: string;
   // Alternative structure for backward compatibility
   user?: UserData;
-  token?: string;
 }
 
-export interface OAuth2CallbackResponse extends BaseApiResponse {
-  data?: {
-    user: UserData;
-    token: string;
-  };
-  user?: UserData;
-  token?: string;
-  requiresRegistration?: boolean; // If user needs to complete registration
-  isNewUser?: boolean;
-}
-
-export interface UserData {
-  id: number;
+export type UserData = {
+  id: number | string;
   name: string;
   email: string;
   phone?: string;
@@ -94,13 +80,16 @@ export interface UserData {
   profilePicture?: string;
   provider?: 'google' | 'local';
   googleId?: string;
-  role: 'user' | 'admin';
+  role: 'user' | 'admin' | string;
   createdAt: string;
   updatedAt: string;
-}
+};
 
 // OAuth2 specific types
 export interface OAuth2CallbackResponse extends BaseApiResponse {
+  data?: {
+    user: UserData;
+  };
   user?: UserData;
   token?: string;
   requiresRegistration?: boolean; // If user needs to complete registration

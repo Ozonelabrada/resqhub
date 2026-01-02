@@ -27,7 +27,7 @@ export const ReportsService = {
       if (params?.status) query.append('status', params.status);
       if (params?.page) query.append('page', String(params.page));
       if (params?.pageSize) query.append('pageSize', String(params.pageSize));
-      const url = `/reports${query.toString() ? '?' + query.toString() : ''}`;
+      const url = `/reports/all${query.toString() ? '?' + query.toString() : ''}`;
       const response = await api.get<{ data: LostFoundItem[] }>(url);
       return response.data?.data || [];
     } catch (error) {

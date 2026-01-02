@@ -15,7 +15,7 @@ import { NewsFeed, type NewsFeedItem } from '../personalHub/NewsFeed';
 
 const NewsFeedPage: React.FC = () => {
   const navigate = useNavigate();
-  const { items: newsFeedItems, loading: newsFeedLoading, hasMore: newsFeedHasMore, loadMore: loadMoreNewsFeed } = useNewsFeed();
+  const { items: newsFeedItems, loading: newsFeedLoading, error: newsFeedError, hasMore: newsFeedHasMore, loadMore: loadMoreNewsFeed, refetch: refetchNewsFeed } = useNewsFeed();
   const [filter, setFilter] = useState<'all' | 'lost' | 'found' | 'reunited' | 'myarea' | 'myposts' | 'saved'>('all');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [dateRange, setDateRange] = useState<Date[]>([]);
@@ -269,6 +269,15 @@ const NewsFeedPage: React.FC = () => {
               <div className="flex justify-center items-center py-12">
                 <ProgressSpinner />
               </div>
+            ) : newsFeedError ? (
+              <Card className="text-center py-12">
+                <div className="text-red-500">
+                  <i className="pi pi-exclamation-triangle text-4xl mb-4"></i>
+                  <h3 className="text-lg font-semibold mb-2">Failed to load news feed</h3>
+                  <p>{newsFeedError}</p>
+                  <Button label="Try Again" className="mt-4" onClick={refetchNewsFeed} />
+                </div>
+              </Card>
             ) : (
               <NewsFeed
                 items={filteredItems}

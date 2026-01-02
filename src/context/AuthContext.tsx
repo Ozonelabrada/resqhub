@@ -1,106 +1,81 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { authManager } from '../utils/sessionManager';
+import { AuthService } from '../services/authService';
+import type { UserData as User } from '../types';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  userData: any;
-  token: string | null;
-  setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
-  setUserData: React.Dispatch<React.SetStateAction<any>>;
-  setToken: React.Dispatch<React.SetStateAction<string | null>>;
-  login: (token: string, user: any, isAdmin?: boolean) => void;
+  isLoading: boolean;
+  user: User | null;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [token, setToken] = useState(() => localStorage.getItem('publicUserToken'));
-  const [userData, setUserData] = useState(() => {
-    const data = localStorage.getItem('publicUserData');
-    try {
-      return data ? JSON.parse(data) : null;
-    } catch {
-      return null;
-    }
-  });
-  const location = useLocation();
+  const [isAuthenticated, setIsAuthenticated] = useState(authManager.isAuthenticated());
+  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(authManager.getUser());
 
   useEffect(() => {
-    const fetchAuth = () => {
-      // Check for admin first, then public
-      const adminToken =
-        localStorage.getItem('adminToken') ||
-        document.cookie.split('; ').find(row => row.startsWith('adminToken='))?.split('=')[1] ||
-        null;
-      const adminUser = localStorage.getItem('adminUserData') || null;
-
-      const publicToken =
-        localStorage.getItem('publicUserToken') ||
-        document.cookie.split('; ').find(row => row.startsWith('publicUserToken='))?.split('=')[1] ||
-        null;
-      const publicUser = localStorage.getItem('publicUserData') || null;
-
-      if (adminToken && adminUser) {
-        const parsedUser = JSON.parse(adminUser);
-        if (parsedUser.role && parsedUser.role.toLowerCase() === 'admin') {
-          setToken(adminToken);
-          setUserData(parsedUser);
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
-          setUserData(null);
-          setToken(null);
-        }
-      } else if (publicToken && publicUser) {
-        setToken(publicToken);
-        setUserData(JSON.parse(publicUser));
-        setIsAuthenticated(true);
-      } else {
-        setIsAuthenticated(false);
-        setUserData(null);
-        setToken(null);
-      }
+    // Initialize auth state
+    const initAuth = () => {
+      setIsAuthenticated(authManager.isAuthenticated());
+      setUser(authManager.getUser());
+      setIsLoading(false);
     };
 
-    fetchAuth();
-    window.addEventListener('storage', fetchAuth);
-    return () => window.removeEventListener('storage', fetchAuth);
-  }, [location]);
+    initAuth();
 
-  const login = (token: string, user: any, isAdmin = false) => {
-    setIsAuthenticated(true);
-    setUserData(user);
-    setToken(token);
-    if (isAdmin) {
-      localStorage.setItem('adminToken', token);
-      localStorage.setItem('adminUserData', JSON.stringify(user));
-      document.cookie = `adminToken=${token}; path=/; max-age=${60 * 60 * 24 * 7}`;
-    } else {
-      localStorage.setItem('publicUserToken', token);
-      localStorage.setItem('publicUserData', JSON.stringify(user));
-      document.cookie = `publicUserToken=${token}; path=/; max-age=${60 * 60 * 24 * 7}`;
+    // Listen for auth changes
+    const handleAuthChange = (updatedUser: User | null) => {
+      setIsAuthenticated(!!updatedUser);
+      setUser(updatedUser);
+    };
+
+    authManager.addListener(handleAuthChange);
+
+    return () => {
+      authManager.removeListener(handleAuthChange);
+    };
+  }, []);
+
+  const login = async (email: string, password: string): Promise<void> => {
+    try {
+      const response = await AuthService.signIn({ email, password });
+      
+      if (response?.token && response?.user) {
+        authManager.setSession(response.token, response.user);
+      } else {
+        throw new Error('Invalid login response');
+      }
+    } catch (error) {
+      throw error;
     }
   };
 
-  const logout = () => {
-    setIsAuthenticated(false);
-    setUserData(null);
-    setToken(null);
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminUserData');
-    localStorage.removeItem('publicUserToken');
-    localStorage.removeItem('publicUserData');
-    document.cookie = 'adminToken=; Max-Age=0; path=/;';
-    document.cookie = 'publicUserToken=; Max-Age=0; path=/;';
+  const logout = (): void => {
+    authManager.logout();
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, userData, token, setIsAuthenticated, setUserData, setToken, login, logout }}>
+    <AuthContext.Provider value={{
+      isAuthenticated,
+      isLoading,
+      user,
+      login,
+      logout
+    }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};

@@ -7,23 +7,14 @@ import { Button } from 'primereact/button';
 import { Checkbox } from 'primereact/checkbox';
 import { Message } from 'primereact/message';
 import { ProgressSpinner } from 'primereact/progressspinner';
-import { AuthService } from '../../../services/authService';
 import { useAuth } from '../../../context/AuthContext'; 
-
-type LoginResponse = {
-  succeeded: boolean;
-  message?: string;
-  [key: string]: any;
-};
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isAdmin = location.pathname.startsWith('/admin');
   const auth = useAuth();
-  const setIsAuthenticated = auth?.setIsAuthenticated;
-  const setUserData = auth?.setUserData;
-  const setToken = auth?.setToken;
+  const { login } = auth;
 
   const [formData, setFormData] = useState({
     email: '',
@@ -41,62 +32,13 @@ const LoginPage: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    try {
-      let response: LoginResponse;
-      if (isAdmin) {
-        const axiosResponse = await AuthService.login({
-          email: formData.email,
-          password: formData.password
-        });
-        response = axiosResponse.data as LoginResponse;
 
-        // Check for admin role and store token/user
-        const user = response?.data?.user;
-        const token = response?.data?.user.token;
-        if (
-          response &&
-          response.succeeded === true &&
-          user &&
-          user.role &&
-          user.role.toLowerCase() === 'admin'
-        ) {
-          if (setIsAuthenticated) setIsAuthenticated(true);
-          if (setUserData) setUserData(user);
-          if (setToken) setToken(user.token);
-          localStorage.setItem('adminToken', user.token);
-          localStorage.setItem('adminUserData', JSON.stringify(user));
-          localStorage.setItem('adminUserId', user.id);
-          if (auth) {
-            auth.login(token, user, true);
-          }
-          navigate('/admin/dashboard', { replace: true });
-          return;
-        } else {
-          setError('You do not have admin access.');
-          return;
-        }
-      } else {
-        response = await AuthService.signIn({
-          email: formData.email,
-          password: formData.password
-        });
-      }
-      if (response && response.succeeded === true) {
-        const user = response?.data?.user;
-        const token = response?.data?.token;
-        if (setIsAuthenticated) setIsAuthenticated(true);
-        if (setUserData) setUserData(user);
-        if (setToken) setToken(token);
-        // Use public keys for public login
-        localStorage.setItem('publicUserData', JSON.stringify(user));
-        if (auth) {
-          auth.login(token, user, false);
-        }
-        navigate('/');
-        return;
-      } else {
-        setError(response?.message || 'Login failed. Please try again.');
-      }
+    try {
+      await login(formData.email, formData.password);
+      
+      // Explicitly navigate after successful login
+      const from = location.state?.from?.pathname || (isAdmin ? '/admin/dashboard' : '/hub');
+      navigate(from, { replace: true });
     } catch (err: any) {
       setError(err?.message || 'Login failed. Please try again.');
     } finally {
