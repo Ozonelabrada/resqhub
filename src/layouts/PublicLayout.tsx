@@ -44,22 +44,6 @@ const PublicLayout = () => {
       command: () => navigate('/search')
     },
     {
-      label: 'Report Found/Lost',
-      icon: 'pi pi-plus-circle',
-      items: [
-        {
-          label: 'Report Lost Item',
-          icon: 'pi pi-minus-circle',
-          command: () => handleProtectedNavigation('/report?type=lost', 'report')
-        },
-        {
-          label: 'Report Found Item',
-          icon: 'pi pi-plus-circle',
-          command: () => handleProtectedNavigation('/report?type=found', 'report')
-        }
-      ]
-    },
-    {
       label: 'Community',
       icon: 'pi pi-users',
       items: [
