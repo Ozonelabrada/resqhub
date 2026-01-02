@@ -6,7 +6,7 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import { Dropdown } from 'primereact/dropdown';
 import { Button } from 'primereact/button';
 import { FileUpload } from 'primereact/fileupload';
-import type { EditProfileForm, UserProfile } from '../../../../types/personalHub';
+import type { EditProfileForm, UserProfile } from '../../../../../types/personalHub';
 
 interface EditProfileModalProps {
   visible: boolean;

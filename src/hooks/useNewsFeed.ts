@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { NewsFeedItem } from '../components/personalHub/NewsFeed';
+import type { NewsFeedItem } from '../components/pages/public/PersonalHubPage/personalHub/NewsFeed';
 import { ItemsService } from '../services';
+import { mockNewsFeedItems } from '../mocks';
 
 interface UseNewsFeedReturn {
   items: NewsFeedItem[];
@@ -21,61 +22,14 @@ export const useNewsFeed = (): UseNewsFeedReturn => {
 
     setLoading(true);
     try {
-      // Fetch all reports (lost items) for the newsfeed
-      const response = await ItemsService.getReportsSearch(page, {
-        reportType: 1, // 1 for lost items
-        pageSize: 10
-      });
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      let newItems: NewsFeedItem[] = [];
-
-      if (response && response.data) {
-        // Handle different response structures
-        const reportsData = response.data.data || response.data || [];
-
-        newItems = reportsData.map((report: any) => ({
-          id: report.id || report.reportId,
-          title: report.title || report.itemName || 'Untitled Report',
-          category: report.category || report.itemCategory || 'Other',
-          location: report.incidentLocation || report.location || 'Unknown Location',
-          currentLocation: report.currentLocation || '',
-          date: report.incidentDate !== '0001-01-01T00:00:00' ? report.incidentDate : report.createdAt || new Date().toISOString(),
-          time: report.incidentTime || '',
-          status: report.statusDescription?.toLowerCase() || 'active',
-          views: report.viewsCount || report.views || 0,
-          type: 'lost' as const,
-          description: report.description || '',
-          circumstances: report.circumstances || '',
-          identifyingFeatures: report.identifyingFeatures || '',
-          condition: getConditionLabel(report.condition || 2),
-          handoverPreference: getHandoverLabel(report.handoverPreference || 1),
-          contactInfo: {
-            name: report.contactName || 'Unknown',
-            phone: report.contactPhone || '',
-            email: report.contactEmail || '',
-            preferredContact: getContactMethodLabel(report.preferredContactMethod || 1)
-          },
-          reward: {
-            amount: report.rewardAmount || 0,
-            description: report.rewardDescription || ''
-          },
-          images: report.imageUrls || [],
-          storageLocation: report.storageLocation || '',
-          createdAt: report.createdAt || new Date().toISOString(),
-          updatedAt: report.dateModified || report.updatedAt || new Date().toISOString(),
-          expiresAt: report.expiresAt,
-          reportTypeDescription: report.reportTypeDescription,
-          verificationStatus: report.verificationStatusDescription,
-          potentialMatches: report.potentialMatchesCount || 0,
-          user: {
-            id: report.userId || report.user?.id || '',
-            fullName: report.user?.fullName || report.contactName || 'Anonymous',
-            username: report.user?.username || '',
-            profilePicture: report.user?.profilePicture
-          },
-          timeAgo: getTimeAgo(report.createdAt || new Date().toISOString())
-        }));
-      }
+      // Return mock data instead of API call
+      const pageSize = 10;
+      const startIndex = (page - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const newItems = mockNewsFeedItems.slice(startIndex, endIndex);
 
       if (isLoadMore) {
         setItems(prev => [...prev, ...newItems]);
@@ -84,7 +38,7 @@ export const useNewsFeed = (): UseNewsFeedReturn => {
       }
 
       // Check if there are more items
-      setHasMore(newItems.length === 10); // Assuming pageSize is 10
+      setHasMore(endIndex < mockNewsFeedItems.length);
       setCurrentPage(page);
 
     } catch (error) {

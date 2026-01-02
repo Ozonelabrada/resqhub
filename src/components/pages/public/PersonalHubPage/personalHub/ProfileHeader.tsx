@@ -3,7 +3,7 @@ import React from 'react';
 import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
 import { Avatar } from 'primereact/avatar';
-import type { UserProfile, UserStats } from '../../../../types/personalHub';
+import type { UserProfile, UserStats } from '../../../../../types/personalHub';
 
 interface ProfileHeaderProps {
   userData: UserProfile;

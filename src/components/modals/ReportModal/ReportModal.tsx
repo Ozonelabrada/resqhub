@@ -10,6 +10,7 @@ import { ProgressSpinner } from 'primereact/progressspinner';
 
 import { ItemsService } from '../../../services/itemsService';
 import { CategoryService } from '../../../services/categoryService';
+import { useAuth } from '../../../context/AuthContext';
 
 interface ReportModalProps {
   visible: boolean;
@@ -21,11 +22,9 @@ interface ReportModalProps {
 interface FormData {
   title: string;
   description: string;
-  category: string;
+  categoryId: number | null;
   location: string;
-  contactName: string;
-  contactPhone: string;
-  contactEmail: string;
+  contactInfo: string;
   reward: string;
   images: File[];
 }
@@ -36,14 +35,13 @@ export const ReportModal: React.FC<ReportModalProps> = ({
   reportType,
   onSuccess
 }) => {
+  const { userData } = useAuth() || {};
   const [formData, setFormData] = useState<FormData>({
     title: '',
     description: '',
-    category: '',
+    categoryId: null,
     location: '',
-    contactName: '',
-    contactPhone: '',
-    contactEmail: '',
+    contactInfo: '',
     reward: '',
     images: []
   });
@@ -63,7 +61,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
       const cats = await CategoryService.getCategories();
       setCategories(cats.map((cat: any) => ({
         label: cat.name,
-        value: cat.name
+        value: cat.id
       })));
     } catch (error) {
       console.error('Failed to load categories:', error);
@@ -80,7 +78,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
 
   const handleSubmit = async () => {
     // Validation
-    if (!formData.title || !formData.description || !formData.category || !formData.location) {
+    if (!formData.title || !formData.description || !formData.categoryId || !formData.location || !formData.contactInfo) {
       toast?.current?.show({
         severity: 'error',
         summary: 'Validation Error',
@@ -92,18 +90,14 @@ export const ReportModal: React.FC<ReportModalProps> = ({
     setLoading(true);
     try {
       const reportData = {
+        userId: userData?.id,
+        categoryId: formData.categoryId,
         title: formData.title,
         description: formData.description,
-        category: formData.category,
         location: formData.location,
-        type: reportType,
-        contactInfo: {
-          name: formData.contactName,
-          phone: formData.contactPhone,
-          email: formData.contactEmail
-        },
-        reward: formData.reward || undefined,
-        images: formData.images // Handle images separately if needed
+        contactInfo: formData.contactInfo,
+        rewardDetails: formData.reward,
+        reportType: reportType === 'lost' ? 1 : 2
       };
 
       await ItemsService.createReport(reportData);
@@ -118,11 +112,9 @@ export const ReportModal: React.FC<ReportModalProps> = ({
       setFormData({
         title: '',
         description: '',
-        category: '',
+        categoryId: null,
         location: '',
-        contactName: '',
-        contactPhone: '',
-        contactEmail: '',
+        contactInfo: '',
         reward: '',
         images: []
       });
@@ -211,9 +203,9 @@ export const ReportModal: React.FC<ReportModalProps> = ({
               </label>
               <Dropdown
                 id="category"
-                value={formData.category}
+                value={formData.categoryId}
                 options={categories}
-                onChange={(e) => handleInputChange('category', e.value)}
+                onChange={(e) => handleInputChange('categoryId', e.value)}
                 placeholder="Select a category"
                 className="w-full"
               />
@@ -233,40 +225,15 @@ export const ReportModal: React.FC<ReportModalProps> = ({
             </div>
 
             <div className="field">
-              <label htmlFor="contactName" className="block text-900 font-medium mb-2">
-                Contact Name
+              <label htmlFor="contactInfo" className="block text-900 font-medium mb-2">
+                Contact Information *
               </label>
-              <InputText
-                id="contactName"
-                value={formData.contactName}
-                onChange={(e) => handleInputChange('contactName', e.target.value)}
-                placeholder="Your name"
-                className="w-full"
-              />
-            </div>
-
-            <div className="field">
-              <label htmlFor="contactPhone" className="block text-900 font-medium mb-2">
-                Contact Phone
-              </label>
-              <InputText
-                id="contactPhone"
-                value={formData.contactPhone}
-                onChange={(e) => handleInputChange('contactPhone', e.target.value)}
-                placeholder="Your phone number"
-                className="w-full"
-              />
-            </div>
-
-            <div className="field">
-              <label htmlFor="contactEmail" className="block text-900 font-medium mb-2">
-                Contact Email
-              </label>
-              <InputText
-                id="contactEmail"
-                value={formData.contactEmail}
-                onChange={(e) => handleInputChange('contactEmail', e.target.value)}
-                placeholder="Your email address"
+              <InputTextarea
+                id="contactInfo"
+                value={formData.contactInfo}
+                onChange={(e) => handleInputChange('contactInfo', e.target.value)}
+                placeholder="How can people reach you? (e.g., Name, Phone, Email)"
+                rows={2}
                 className="w-full"
               />
             </div>

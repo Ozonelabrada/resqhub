@@ -6,7 +6,7 @@ import HubHomePage from './components/pages/public/HubHomePage/HubHomePage';
 import SearchItemsPage from './components/pages/public/SearchItemPage/SearchItemsPage';
 import SignUpPage from './components/pages/public/SignUpPage/SignUpPage';
 import PersonalHubPage from './components/pages/public/PersonalHubPage/PersonalHubPage';
-import NewsFeedPage from './components/pages/public/NewsFeedPage/NewsFeedPage';
+import NewsFeedPage from './components/pages/public/PersonalHubPage/NewsFeedPage/NewsFeedPage';
 
 // Admin Pages
 import AdminLoginPage from './components/shared/LoginPage/LoginPage';
