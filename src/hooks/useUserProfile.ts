@@ -15,8 +15,7 @@ export const useUserProfile = () => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchUserProfile = async () => {
-    if (!auth?.token) {
-      navigate('/signin');
+    if (!authManager.isAuthenticated()) {
       return;
     }
 
@@ -26,17 +25,14 @@ export const useUserProfile = () => {
     try {
       const currentUserId = UserService.getCurrentUserId();
 
-      if (!currentUserId) {
-        throw new Error('No user ID found');
-      }
-
-      const backendUserData = await UserService.getCurrentUser(currentUserId);
+      const backendUserData = await UserService.getCurrentUser(currentUserId || undefined);
       const transformedUserData = UserService.transformUserData(backendUserData);
 
       setUserData(transformedUserData);
       // Update authManager with fresh user data
-      if (auth?.token) {
-        authManager.setSession(auth.token, transformedUserData as any);
+      const token = authManager.getToken();
+      if (token) {
+        authManager.setSession(token, transformedUserData as any);
       }
 
     } catch (err) {
@@ -48,7 +44,6 @@ export const useUserProfile = () => {
         setUserData(localUser as any);
       } else {
         setError('Failed to load user profile');
-        navigate('/signin');
       }
     } finally {
       setLoading(false);
@@ -80,26 +75,16 @@ export const useUserProfile = () => {
     // Listen for storage changes
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === STORAGE_KEYS.TOKEN) {
-        if (!e.newValue) {
-          navigate('/signin');
-        } else {
+        if (e.newValue) {
           fetchUserProfile();
         }
       }
     };
 
-    const handleFocus = () => {
-      if (!authManager.isAuthenticated()) {
-        navigate('/signin');
-      }
-    };
-
     window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('focus', handleFocus);
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('focus', handleFocus);
     };
   }, [navigate, auth?.token]);
 

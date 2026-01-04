@@ -114,11 +114,6 @@ const PublicLayout = () => {
 
   const authMenuItems = [
     {
-      label: 'Sign In',
-      icon: 'pi pi-sign-in',
-      command: () => navigate('/signin')
-    },
-    {
       label: 'Sign Up',
       icon: 'pi pi-user-plus',
       command: () => navigate('/signup')
@@ -171,6 +166,12 @@ const PublicLayout = () => {
       ) : (
         // Unauthenticated user menu
         <div className="flex align-items-center gap-2">
+          <Button
+            label="Sign In"
+            icon="pi pi-sign-in"
+            className="p-button-rounded p-button-outlined p-button-sm"
+            onClick={() => navigate('/signin')}
+          />
           <Button
             icon="pi pi-ellipsis-v"
             className="p-button-text p-button-rounded"

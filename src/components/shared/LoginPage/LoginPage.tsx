@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link, Navigate } from 'react-router-dom';
 import { Card } from 'primereact/card';
 import { InputText } from 'primereact/inputtext';
 import { Password } from 'primereact/password';
@@ -13,8 +13,13 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isAdmin = location.pathname.startsWith('/admin');
-  const auth = useAuth();
-  const { login } = auth;
+  const { isAuthenticated, isLoading, user, login } = useAuth();
+
+  // Redirect authenticated users away from login page
+  if (isAuthenticated && !isLoading) {
+    const from = location.state?.from?.pathname || (isAdmin ? '/admin/dashboard' : '/hub');
+    return <Navigate to={from} replace />;
+  }
 
   const [formData, setFormData] = useState({
     email: '',

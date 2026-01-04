@@ -54,9 +54,12 @@ export class AuthService {
     }
   }
 
-  static async getCurrentUser(): Promise<any> {
+  static async getCurrentUser(userId?: string): Promise<any> {
     try {
-      const response = await api.get('/me');
+      // If userId is not provided, the backend should ideally have a /me endpoint
+      // but for now we'll use the provided ID or fallback to a default if absolutely necessary
+      const idToUse = userId || 'me'; 
+      const response = await api.get('/users/' + idToUse);
       return response.data;
     } catch (error) {
       console.error('Get current user error:', error);

@@ -6,6 +6,7 @@ import HubHomePage from './components/pages/public/HubHomePage/HubHomePage';
 import SearchItemsPage from './components/pages/public/SearchItemPage/SearchItemsPage';
 import SignUpPage from './components/pages/public/SignUpPage/SignUpPage';
 import PersonalHubPage from './components/pages/public/PersonalHubPage/PersonalHubPage';
+import ProfilePage from './components/pages/public/PersonalHubPage/ProfilePage';
 import NewsFeedPage from './components/pages/public/PersonalHubPage/NewsFeedPage/NewsFeedPage';
 
 // Admin Pages
@@ -27,6 +28,8 @@ import DashboardPage from './components/pages/admin/DashboardPage/DashboardPage'
 import AuthGuard from './components/common/AuthGuard';
 
 import { AuthService } from './services/authService';
+import { authManager } from './utils/sessionManager';
+import { useAuth } from './context/AuthContext';
 
 const AppRouter = () => {
   return (
@@ -58,7 +61,7 @@ const AppRouter = () => {
       }>
         <Route path="hub" element={<PersonalHubPage />} />
         <Route path="feed" element={<NewsFeedPage />} />
-        <Route path="profile" element={<PersonalHubPage />} />
+        <Route path="profile" element={<ProfilePage />} />
       </Route>
 
       {/* 🔐 ADMIN LOGIN - Standalone without layout */}
@@ -96,6 +99,7 @@ const App = () => {
   const [isOnline, setIsOnline] = useState(window.navigator.onLine);
   const [showOnlineBanner, setShowOnlineBanner] = useState(false);
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   useEffect(() => {
     const handleOnline = () => {
@@ -116,22 +120,6 @@ const App = () => {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
-
-  useEffect(() => {
-    const checkToken = async () => {
-      if (authManager.isAuthenticated()) {
-        try {
-          await AuthService.getCurrentUser();
-        } catch (error: any) {
-          if (error?.response?.status === 401) {
-            authManager.logout();
-            navigate('/signin', { replace: true });
-          }
-        }
-      }
-    };
-    checkToken();
-  }, [navigate]);
 
   return (
     <div className="App">

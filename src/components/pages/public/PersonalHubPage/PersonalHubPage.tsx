@@ -12,6 +12,8 @@ import { ProfileHeader } from './personalHub/ProfileHeader';
 import { StatsCards } from './personalHub/StatsCards';
 import { ReportsList } from './personalHub/ReportsList';
 import { EditProfileModal } from './personalHub/EditProfileModal';
+import { NewsFeed } from './personalHub/NewsFeed';
+import { useNewsFeed } from '../../../../hooks/useNewsFeed';
 
 
 const PersonalHubPage: React.FC = () => {
@@ -26,6 +28,7 @@ const PersonalHubPage: React.FC = () => {
   const { userData, loading: userLoading, updateProfile } = useUserProfile();
   const { reports, loading: reportsLoading, hasMore: reportsHasMore, loadMore: loadMoreReports } = useUserReports(userData?.id || null);
   const { items: watchList, loading: watchListLoading, hasMore: watchListHasMore, loadMore: loadMoreWatchList } = useWatchList();
+  const { items: newsFeedItems, loading: newsFeedLoading, hasMore: newsFeedHasMore, loadMore: loadMoreNewsFeed } = useNewsFeed();
 
   // Mobile detection
   useEffect(() => {
@@ -178,40 +181,14 @@ const PersonalHubPage: React.FC = () => {
             {/* Center Content - Activity Feed */}
             <div className="col-12 lg:col-4 mb-4">
               <Card className="h-full">
-                <h3 className="text-lg font-semibold mb-3">Recent Activity</h3>
-                <div className="space-y-3">
-                  {/* Mock activity items */}
-                  {[
-                    {
-                      id: 1,
-                      type: 'match',
-                      message: 'New potential match found for your iPhone 13 Pro',
-                      time: '2 hours ago',
-                      icon: 'pi pi-eye'
-                    },
-                    {
-                      id: 2,
-                      type: 'view',
-                      message: 'Your Blue Backpack report was viewed 5 times today',
-                      time: '4 hours ago',
-                      icon: 'pi pi-chart-line'
-                    },
-                    {
-                      id: 3,
-                      type: 'resolved',
-                      message: 'Your Car Keys case has been marked as resolved',
-                      time: '1 day ago',
-                      icon: 'pi pi-check-circle'
-                    }
-                  ].map((activity) => (
-                    <div key={activity.id} className="flex align-items-start gap-3 p-3 border-1 border-gray-200 border-round">
-                      <i className={`${activity.icon} text-blue-500 mt-1`}></i>
-                      <div className="flex-1">
-                        <p className="text-sm text-gray-800 m-0">{activity.message}</p>
-                        <span className="text-xs text-gray-500">{activity.time}</span>
-                      </div>
-                    </div>
-                  ))}
+                <h3 className="text-lg font-semibold mb-3">News Feed</h3>
+                <div style={{ maxHeight: '800px', overflowY: 'auto' }}>
+                  <NewsFeed
+                    items={newsFeedItems}
+                    loading={newsFeedLoading}
+                    hasMore={newsFeedHasMore}
+                    onLoadMore={loadMoreNewsFeed}
+                  />
                 </div>
               </Card>
             </div>

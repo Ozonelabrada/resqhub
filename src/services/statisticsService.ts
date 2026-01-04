@@ -1,10 +1,10 @@
-import  mainApiClient  from '../api/client';
+import  publicApiClient  from '../api/publicClient';
 import type { StatisticsResponse, StatisticsData } from '../types';
 
 export class StatisticsService {
   static async getStatistics(): Promise<StatisticsData> {
     try {
-      const response = await mainApiClient.request<StatisticsResponse>({ url: '/statistics' });
+      const response = await publicApiClient.request<StatisticsResponse>({ url: '/statistics' });
       const responseData = response.data;
       
       if (!responseData.succeeded) {
@@ -20,7 +20,7 @@ export class StatisticsService {
 
   static async getLocationStats(cityId: number): Promise<any> {
     try {
-      return await mainApiClient.request({ url: `/statistics/city/${cityId}` });
+      return await publicApiClient.request({ url: `/statistics/city/${cityId}` });
     } catch (error) {
       console.error('Error fetching location stats:', error);
       throw error;

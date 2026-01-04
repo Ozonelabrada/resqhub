@@ -20,9 +20,28 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
 
   useEffect(() => {
     // Initialize auth state
-    const initAuth = () => {
-      setIsAuthenticated(authManager.isAuthenticated());
-      setUser(authManager.getUser());
+    const initAuth = async () => {
+      if (authManager.isAuthenticated()) {
+        try {
+          const userData = authManager.getUser();
+          if (userData) {
+            // Verify token by fetching user data - pass the actual ID
+            const response = await AuthService.getCurrentUser(String(userData.id));
+            
+            // If successful, update the session with fresh data
+            if (response?.succeeded && response?.data) {
+              const token = authManager.getToken();
+              if (token) {
+                authManager.setSession(token, response.data);
+              }
+            }
+          }
+        } catch (error: any) {
+          // If 401, the interceptor already called authManager.logout()
+          // which will trigger handleAuthChange via the listener
+          console.warn('Token validation failed on init');
+        }
+      }
       setIsLoading(false);
     };
 
@@ -45,10 +64,25 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
     try {
       const response = await AuthService.signIn({ email, password });
       
-      if (response?.token && response?.user) {
-        authManager.setSession(response.token, response.user);
+      // Check if the response indicates success
+      if (!response?.succeeded) {
+        throw new Error(response?.message || 'Login failed');
+      }
+      
+      // Extract token and user from the response structure
+      const user = response?.data?.user;
+      const token = user?.token;
+      
+      if (token && user) {
+        // Remove token from user object before storing and normalize role
+        const { token: _, ...userWithoutToken } = user;
+        const normalizedUser = {
+          ...userWithoutToken,
+          role: userWithoutToken.role === '0' ? 'user' : userWithoutToken.role
+        };
+        authManager.setSession(token, normalizedUser);
       } else {
-        throw new Error('Invalid login response');
+        throw new Error('Invalid login response: missing token or user data');
       }
     } catch (error) {
       throw error;

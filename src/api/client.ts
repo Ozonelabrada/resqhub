@@ -32,13 +32,7 @@ api.interceptors.response.use(
       console.warn('Authentication error - logging out user');
       authManager.logout();
       
-      // Redirect to login page if not already there
-      const currentPath = window.location.pathname;
-      if (!currentPath.includes('/login') && 
-          !currentPath.includes('/signin') && 
-          !currentPath.includes('/signup')) {
-        window.location.href = '/login';
-      }
+      // We don't do a hard redirect here to avoid loops and let the app handle it via AuthGuard or local catch blocks
     }
     return Promise.reject(error);
   }

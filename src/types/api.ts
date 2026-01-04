@@ -62,7 +62,7 @@ export interface SignUpRequest {
 
 export interface AuthResponse extends BaseApiResponse {
   data?: {
-    user: UserData;
+    user: UserData & { token: string }; // User with token included
   };
   token?: string;
   refreshToken?: string;
@@ -74,6 +74,8 @@ export type UserData = {
   id: number | string;
   name: string;
   email: string;
+  firstName?: string;
+  lastName?: string;
   phone?: string;
   location?: string;
   bio?: string;
@@ -81,6 +83,7 @@ export type UserData = {
   provider?: 'google' | 'local';
   googleId?: string;
   role: 'user' | 'admin' | string;
+  emailVerified?: boolean;
   createdAt: string;
   updatedAt: string;
 };

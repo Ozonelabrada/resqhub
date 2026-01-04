@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from 'primereact/card';
 import { Avatar } from 'primereact/avatar';
 import { Button } from 'primereact/button';
@@ -6,6 +7,7 @@ import { useAuth } from '../../../../context/AuthContext';
 
 const ProfilePage: React.FC = () => {
   const { userData: user } = useAuth() ?? {};
+  const navigate = useNavigate();
 
   if (!user) {
     return (
@@ -15,7 +17,7 @@ const ProfilePage: React.FC = () => {
             <Avatar icon="pi pi-user" size="xlarge" style={{ backgroundColor: '#3B82F6', color: 'white' }} />
             <h2 className="text-xl font-bold">Not Signed In</h2>
             <p className="text-gray-600 text-center">Please sign in to view your profile.</p>
-            <Button label="Sign In" icon="pi pi-sign-in" className="p-button-primary" onClick={() => window.location.href = '/signin'} />
+            <Button label="Sign In" icon="pi pi-sign-in" className="p-button-primary" onClick={() => navigate('/signin')} />
           </div>
         </Card>
       </div>
@@ -61,8 +63,8 @@ const ProfilePage: React.FC = () => {
           </div>
         </div>
         <div className="flex justify-content-end mt-4 gap-2">
-          <Button label="Edit Profile" icon="pi pi-pencil" className="p-button-outlined" onClick={() => window.location.href = '/settings'} />
-          <Button label="My Reports" icon="pi pi-file" className="p-button-secondary" onClick={() => window.location.href = '/hub'} />
+          <Button label="Edit Profile" icon="pi pi-pencil" className="p-button-outlined" onClick={() => navigate('/settings')} />
+          <Button label="My Reports" icon="pi pi-file" className="p-button-secondary" onClick={() => navigate('/hub')} />
         </div>
       </Card>
     </div>

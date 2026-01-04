@@ -1,4 +1,4 @@
-import mainApiClient from '../api/client';
+import publicApiClient from '../api/publicClient';
 import type { TrendingReportItem } from '../types';
 
 interface PaginatedTrendingReportsResponse {
@@ -24,7 +24,7 @@ interface PaginatedTrendingReportsResponse {
 export class TrendingReportsService {
   static async getTrendingReports(): Promise<TrendingReportItem[]> {
     try {
-      const response = await mainApiClient.request<PaginatedTrendingReportsResponse>({
+      const response = await publicApiClient.request<PaginatedTrendingReportsResponse>({
         url: '/trending-reports/all'
       });
       

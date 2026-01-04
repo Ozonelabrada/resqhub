@@ -18,8 +18,8 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
   const { isAuthenticated, isLoading, user } = useAuth();
   const location = useLocation();
 
-  // Show loading spinner while checking authentication
-  if (isLoading) {
+  // Show loading spinner while checking authentication (only for protected routes)
+  if (isLoading && requireAuth) {
     return (
       <div className="min-h-screen flex align-items-center justify-content-center">
         <div className="text-center">
@@ -32,20 +32,13 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
 
   // Handle authentication requirements
   if (requireAuth && !isAuthenticated) {
-    // Redirect to login with return path
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    // Redirect to signin with return path
+    return <Navigate to="/signin" state={{ from: location }} replace />;
   }
 
   // Handle admin requirements
   if (requireAdmin && (!user || user.role?.toLowerCase() !== 'admin')) {
     return <Navigate to="/unauthorized" replace />;
-  }
-
-  // Handle redirect for authenticated users trying to access login/signup pages
-  const authPages = ['/login', '/signin', '/signup', '/admin/login'];
-  if (!requireAuth && isAuthenticated && authPages.includes(location.pathname)) {
-    const from = location.state?.from?.pathname || (user?.role?.toLowerCase() === 'admin' ? '/admin/dashboard' : '/hub');
-    return <Navigate to={from} replace />;
   }
 
   return <>{children}</>;
