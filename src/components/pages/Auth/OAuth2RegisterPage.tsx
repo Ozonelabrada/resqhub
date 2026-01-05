@@ -196,7 +196,7 @@ const OAuth2RegisterPage: React.FC = () => {
         
         navigate(returnPath, { 
           state: { 
-            message: `Welcome to ResQHub, ${user?.name || googleUserData.name}! Your account has been created successfully.` 
+            message: `Welcome to SHERRA, ${user?.name || googleUserData.name}! Your account has been created successfully.` 
           }
         });
       } else {
@@ -410,7 +410,7 @@ const OAuth2RegisterPage: React.FC = () => {
                   disabled={loading}
                 />
                 <label htmlFor="agreeToNewsletter" className="ml-2 text-sm text-gray-700">
-                  I'd like to receive updates and news about ResQHub
+                  I'd like to receive updates and news about SHERRA
                 </label>
               </div>
             </div>

@@ -34,8 +34,8 @@ const Logo: React.FC<LogoProps> = ({
   // Use your uploaded logo image
   const LogoImage = () => (
     <img 
-      src="/assets/images/logo/resqhub-logo.png" // Replace with your actual filename
-      alt="ResQHub Logo"
+      src="/assets/images/logo/sherra-logo.png" // Replace with your actual filename
+      alt="SHERRA Logo"
       width={width}
       height={height}
       style={{ objectFit: 'contain' }}
@@ -52,7 +52,7 @@ const Logo: React.FC<LogoProps> = ({
         letterSpacing: '-0.02em'
       }}
     >
-      ResQHub
+      SHERRA
     </span>
   );
 

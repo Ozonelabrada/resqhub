@@ -78,15 +78,6 @@ export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
       separator: true
     },
     {
-      label: 'Admin Panel',
-      icon: 'pi pi-shield',
-      command: () => navigate('/admin/login'),
-      className: 'text-orange-600'
-    },
-    {
-      separator: true
-    },
-    {
       label: 'Help & Support',
       icon: 'pi pi-question-circle',
       command: () => navigate('/help')
@@ -104,11 +95,6 @@ export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
       label: 'Sign In',
       icon: 'pi pi-sign-in',
       command: () => navigate('/login')
-    },
-    {
-      label: 'Admin Login',
-      icon: 'pi pi-shield',
-      command: () => navigate('/admin/login')
     }
   ];
 

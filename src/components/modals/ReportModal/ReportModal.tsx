@@ -11,6 +11,8 @@ import { ProgressSpinner } from 'primereact/progressspinner';
 import { ItemsService } from '../../../services/itemsService';
 import { CategoryService } from '../../../services/categoryService';
 import { useAuth } from '../../../context/AuthContext';
+import { getGeolocation, type GeolocationData } from '../../../utils/geolocation';
+import { sanitizeInput } from '../../../utils/validation';
 
 interface ReportModalProps {
   visible: boolean;
@@ -27,6 +29,7 @@ interface FormData {
   contactInfo: string;
   reward: string;
   images: File[];
+  geolocation?: GeolocationData;
 }
 
 export const ReportModal: React.FC<ReportModalProps> = ({
@@ -35,7 +38,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
   reportType,
   onSuccess
 }) => {
-  const { userData } = useAuth() || {};
+  const { user } = useAuth();
   const [formData, setFormData] = useState<FormData>({
     title: '',
     description: '',
@@ -53,6 +56,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
   useEffect(() => {
     if (visible) {
       loadCategories();
+      handleGetLocation();
     }
   }, [visible]);
 
@@ -68,12 +72,44 @@ export const ReportModal: React.FC<ReportModalProps> = ({
     }
   };
 
+  const handleGetLocation = async () => {
+    try {
+      const geo = await getGeolocation();
+      setFormData(prev => ({ ...prev, geolocation: geo }));
+      if (geo.city && !formData.location) {
+        setFormData(prev => ({ ...prev, location: `${geo.city}, ${geo.state}, ${geo.country}` }));
+      }
+    } catch (error) {
+      console.warn('Failed to get geolocation:', error);
+    }
+  };
+
   const handleInputChange = (field: keyof FormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleFileSelect = (e: any) => {
-    setFormData(prev => ({ ...prev, images: e.files }));
+    const files = e.files;
+    // Validation: Max 5 images, max 2MB each
+    if (files.length > 5) {
+      toast?.current?.show({
+        severity: 'warn',
+        summary: 'Validation Warning',
+        detail: 'You can only upload up to 5 images'
+      });
+      return;
+    }
+    
+    const validFiles = Array.from(files).filter((file: any) => file.size <= 2 * 1024 * 1024);
+    if (validFiles.length < files.length) {
+      toast?.current?.show({
+        severity: 'warn',
+        summary: 'Validation Warning',
+        detail: 'Some images were skipped because they exceed 2MB'
+      });
+    }
+
+    setFormData(prev => ({ ...prev, images: validFiles as File[] }));
   };
 
   const handleSubmit = async () => {
@@ -89,18 +125,31 @@ export const ReportModal: React.FC<ReportModalProps> = ({
 
     setLoading(true);
     try {
-      const reportData = {
-        userId: userData?.id,
+      const reportPayload = {
+        userId: user?.id,
         categoryId: formData.categoryId,
-        title: formData.title,
-        description: formData.description,
-        location: formData.location,
-        contactInfo: formData.contactInfo,
-        rewardDetails: formData.reward,
-        reportType: reportType === 'lost' ? 1 : 2
+        title: sanitizeInput(formData.title),
+        description: sanitizeInput(formData.description),
+        location: sanitizeInput(formData.location),
+        contactInfo: sanitizeInput(formData.contactInfo),
+        rewardDetails: sanitizeInput(formData.reward),
+        reportType: reportType === 'lost' ? 1 : 2,
+        latitude: formData.geolocation?.latitude || 0,
+        longitude: formData.geolocation?.longitude || 0,
+        city: sanitizeInput(formData.geolocation?.city || ''),
+        state: sanitizeInput(formData.geolocation?.state || ''),
+        country: sanitizeInput(formData.geolocation?.country || '')
       };
 
-      await ItemsService.createReport(reportData);
+      const response = await ItemsService.createReport(reportPayload);
+      const reportId = response.data?.id;
+
+      // Upload images if any
+      if (reportId && formData.images.length > 0) {
+        await Promise.all(formData.images.map(image => 
+          ItemsService.uploadReportImage(image, reportId)
+        ));
+      }
 
       toast?.current?.show({
         severity: 'success',
@@ -121,12 +170,12 @@ export const ReportModal: React.FC<ReportModalProps> = ({
 
       onHide();
       onSuccess?.();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create report:', error);
       toast?.current?.show({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to submit report. Please try again.'
+        detail: error?.response?.data?.message || 'Failed to submit report. Please try again.'
       });
     } finally {
       setLoading(false);

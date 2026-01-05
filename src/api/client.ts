@@ -2,7 +2,7 @@ import axios from 'axios';
 import { authManager } from '../utils/sessionManager';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_APP_API_BASE_URL || 'http://localhost:7003' || 'https://resqhub-be.onrender.com',
+  baseURL: import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com',
   timeout: Number(import.meta.env.VITE_APP_API_TIMEOUT) || 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -32,7 +32,19 @@ api.interceptors.response.use(
       console.warn('Authentication error - logging out user');
       authManager.logout();
       
-      // We don't do a hard redirect here to avoid loops and let the app handle it via AuthGuard or local catch blocks
+      if ((window as any).showToast) {
+        (window as any).showToast('error', 'Session Expired', 'Please log in again.');
+      }
+    } else if (error.response) {
+      // Other API errors
+      if ((window as any).showToast) {
+        (window as any).showToast('error', 'API Error', error.response.data?.message || 'Something went wrong.');
+      }
+    } else if (error.request) {
+      // Network errors
+      if ((window as any).showToast) {
+        (window as any).showToast('error', 'Network Error', 'Please check your internet connection.');
+      }
     }
     return Promise.reject(error);
   }

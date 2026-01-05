@@ -12,12 +12,11 @@ import { useAuth } from '../../../context/AuthContext';
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const isAdmin = location.pathname.startsWith('/admin');
   const { isAuthenticated, isLoading, user, login } = useAuth();
 
   // Redirect authenticated users away from login page
   if (isAuthenticated && !isLoading) {
-    const from = location.state?.from?.pathname || (isAdmin ? '/admin/dashboard' : '/hub');
+    const from = location.state?.from?.pathname || '/hub';
     return <Navigate to={from} replace />;
   }
 
@@ -42,7 +41,7 @@ const LoginPage: React.FC = () => {
       await login(formData.email, formData.password);
       
       // Explicitly navigate after successful login
-      const from = location.state?.from?.pathname || (isAdmin ? '/admin/dashboard' : '/hub');
+      const from = location.state?.from?.pathname || '/hub';
       navigate(from, { replace: true });
     } catch (err: any) {
       setError(err?.message || 'Login failed. Please try again.');
@@ -86,11 +85,9 @@ const LoginPage: React.FC = () => {
             width: '100%',
             maxWidth: '420px',
             margin: '0 auto',
-            border: isAdmin ? '2px solid #475a4bff' : '2px solid #10b981',
+            border: '2px solid #10b981',
             borderRadius: 24,
-            boxShadow: isAdmin
-              ? '0 8px 32px 0 rgba(185,28,28,0.15)'
-              : '0 8px 32px 0 rgba(16,185,129,0.15)'
+            boxShadow: '0 8px 32px 0 rgba(16,185,129,0.15)'
           }}
         >
           <div className="text-center mb-6">
@@ -99,35 +96,31 @@ const LoginPage: React.FC = () => {
                 width: 64,
                 height: 64,
                 borderRadius: '16px',
-                background: isAdmin
-                  ? 'linear-gradient(135deg, #475a4bff 0%, #1c7d17ff 100%)'
-                  : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 margin: '0 auto 24px',
-                boxShadow: isAdmin
-                  ? '0 10px 15px -3px rgba(185,28,28,0.15)'
-                  : '0 10px 15px -3px rgba(16,185,129,0.15)'
+                boxShadow: '0 10px 15px -3px rgba(16,185,129,0.15)'
               }}
             >
               <i
-                className={isAdmin ? "pi pi-shield" : "pi pi-user"}
+                className="pi pi-user"
                 style={{ color: 'white', fontSize: 28 }}
               ></i>
             </div>
             <h2
-              className={isAdmin ? "text-orange-700" : "text-green-700"}
+              className="text-green-700"
               style={{
                 fontWeight: 800,
                 fontSize: '1.7rem',
                 marginBottom: 0
               }}
             >
-              {isAdmin ? "Admin Login" : "Welcome to ResQHub"}
+              Welcome to SHERRA
             </h2>
             <p className="text-sm text-gray-600" style={{ marginTop: 8 }}>
-              {isAdmin ? "Please log in as admin to continue" : "Please log in to continue"}
+              Please log in to continue
             </p>
           </div>
           {error && <Message severity="error" text={error} className="mb-3" />}
@@ -164,12 +157,10 @@ const LoginPage: React.FC = () => {
                 <Checkbox inputId="remember" checked={formData.rememberMe} onChange={e => handleInputChange('rememberMe', e.checked ?? false)} />
                 <label htmlFor="remember" className="ml-2 text-sm text-gray-700">Remember me</label>
               </div>
-              {!isAdmin && (
-                <Link to="/forgot-password" className="text-sm text-green-600 hover:underline">Forgot password?</Link>
-              )}
+              <Link to="/forgot-password" className="text-sm text-green-600 hover:underline">Forgot password?</Link>
             </div>
             <Button
-              label={loading ? "" : (isAdmin ? "Admin Login" : "Login")}
+              label={loading ? "" : "Login"}
               icon={loading ? <ProgressSpinner style={{ width: '18px', height: '18px' }} strokeWidth="3" /> : "pi pi-sign-in"}
               className="w-full p-button-lg"
               type="submit"
@@ -178,18 +169,14 @@ const LoginPage: React.FC = () => {
                 fontWeight: 700,
                 fontSize: '1.1rem',
                 borderRadius: 10,
-                background: isAdmin
-                  ? 'linear-gradient(135deg, #39ab76ff 0%, #475a4bff 100%)'
-                  : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                 border: 'none'
               }}
             />
           </form>
-          {!isAdmin && (
-            <p className="mt-4 text-center text-sm text-gray-500">
-              Don’t have an account? <Link to="/signup" className="text-green-600 hover:underline font-semibold">Sign up</Link>
-            </p>
-          )}
+          <p className="mt-4 text-center text-sm text-gray-500">
+            Don’t have an account? <Link to="/signup" className="text-green-600 hover:underline font-semibold">Sign up</Link>
+          </p>
         </Card>
       </div>
     </div>

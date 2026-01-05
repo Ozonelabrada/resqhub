@@ -59,11 +59,11 @@ const mapFormDataToApiPayload = (reportType: string, formData: any) => {
     incidentDate: formData.date ? formData.date.toISOString() : new Date().toISOString(),
     incidentTime: formData.time || "",
     circumstances: formData.additionalInfo.circumstances || "",
-    latitude: 0, // TODO: Implement geolocation if needed
-    longitude: 0, // TODO: Implement geolocation if needed
-    city: "", // TODO: Extract from location if needed
-    state: "", // TODO: Extract from location if needed
-    country: "" // TODO: Extract from location if needed
+    latitude: formData.latitude || 0,
+    longitude: formData.longitude || 0,
+    city: formData.city || "",
+    state: formData.state || "",
+    country: formData.country || ""
   };
 
   return {

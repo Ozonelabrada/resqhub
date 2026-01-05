@@ -1,6 +1,6 @@
-# ResQHub Authentication System
+# SHERRA Authentication System
 
-A comprehensive, secure, and user-friendly authentication system for ResQHub built with React, TypeScript, and modern security practices.
+A comprehensive, secure, and user-friendly authentication system for SHERRA built with React, TypeScript, and modern security practices.
 
 ## Features
 
@@ -106,10 +106,6 @@ function App() {
       <AuthGuard requireAuth={false}>{/* Public routes */}</AuthGuard>
 
       <AuthGuard requireAuth={true}>{/* Protected routes */}</AuthGuard>
-
-      <AuthGuard requireAuth={true} requireAdmin={true}>
-        {/* Admin-only routes */}
-      </AuthGuard>
     </AuthProvider>
   );
 }
@@ -148,7 +144,6 @@ import { Routes, Route } from "react-router-dom";
 import AuthGuard from "./components/common/AuthGuard";
 import LoginPage from "./components/shared/LoginPage";
 import Dashboard from "./pages/Dashboard";
-import AdminDashboard from "./pages/admin/Dashboard";
 
 function AppRoutes() {
   return (
@@ -167,15 +162,6 @@ function AppRoutes() {
         element={
           <AuthGuard requireAuth={true}>
             <Dashboard />
-          </AuthGuard>
-        }
-      />
-
-      <Route
-        path="/admin/dashboard"
-        element={
-          <AuthGuard requireAuth={true} requireAdmin={true}>
-            <AdminDashboard />
           </AuthGuard>
         }
       />
@@ -362,11 +348,11 @@ describe("Authentication", () => {
    ```tsx
    // Old
    const { login: oldLogin } = useAuth();
-   await oldLogin(token, user, isAdmin);
+   await oldLogin(token, user);
 
    // New
    const { login } = useAuth();
-   await login(email, password, isAdmin);
+   await login(email, password);
    ```
 
 2. **Replace route guards**:
@@ -410,7 +396,7 @@ describe("Authentication", () => {
 Enable debug logging:
 
 ```typescript
-localStorage.setItem("resqhub_debug", "true");
+localStorage.setItem("sherra_debug", "true");
 ```
 
 This enables detailed logging for:
@@ -432,4 +418,4 @@ When contributing to the authentication system:
 
 ## License
 
-This authentication system is part of the ResQHub project.
+This authentication system is part of the SHERRA project.

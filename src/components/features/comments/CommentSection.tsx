@@ -8,19 +8,7 @@ import { Divider } from 'primereact/divider';
 import { Message } from 'primereact/message';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
-
-interface Comment {
-  id: number;
-  userId: number;
-  userName: string;
-  userAvatar?: string;
-  content: string;
-  timestamp: string;
-  isOwner: boolean;
-  isHelpful: boolean;
-  likesCount: number;
-  isLikedByUser: boolean;
-}
+import { CommentsService, type Comment } from '../../../services/commentsService';
 
 interface CommentSectionProps {
   itemId: number;
@@ -30,20 +18,12 @@ interface CommentSectionProps {
 
 const CommentSection: React.FC<CommentSectionProps> = ({ itemId, itemType, itemOwnerId }) => {
   const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
-
-  // Check authentication status
-  useEffect(() => {
-    const auth = useAuth();
-    if (auth?.token && auth?.userData) {
-      setIsAuthenticated(true);
-      setCurrentUser(JSON.parse(auth.userData));
-    }
-  }, []);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Load comments on component mount
   useEffect(() => {
@@ -51,43 +31,17 @@ const CommentSection: React.FC<CommentSectionProps> = ({ itemId, itemType, itemO
   }, [itemId]);
 
   const loadComments = async () => {
-    // TODO: Replace with actual API call
-    const mockComments: Comment[] = [
-      {
-        id: 1,
-        userId: 2,
-        userName: 'Sarah Johnson',
-        content: 'I think I saw this item near the coffee shop on Main Street yesterday around 3 PM. You might want to check there!',
-        timestamp: '2025-01-20T14:30:00Z',
-        isOwner: false,
-        isHelpful: true,
-        likesCount: 5,
-        isLikedByUser: false
-      },
-      {
-        id: 2,
-        userId: 3,
-        userName: 'Mike Chen',
-        content: 'Have you checked with the lost and found at the library? They usually keep items for a few weeks.',
-        timestamp: '2025-01-20T16:45:00Z',
-        isOwner: false,
-        isHelpful: true,
-        likesCount: 3,
-        isLikedByUser: true
-      },
-      {
-        id: 3,
-        userId: itemOwnerId,
-        userName: 'John Doe',
-        content: 'Thank you everyone for the suggestions! I will check those locations.',
-        timestamp: '2025-01-20T18:20:00Z',
-        isOwner: true,
-        isHelpful: false,
-        likesCount: 8,
-        isLikedByUser: false
-      }
-    ];
-    setComments(mockComments);
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await CommentsService.getComments(itemId);
+      setComments(data);
+    } catch (err: any) {
+      setError('Failed to load comments. Please try again later.');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSubmitComment = async () => {
@@ -95,43 +49,43 @@ const CommentSection: React.FC<CommentSectionProps> = ({ itemId, itemType, itemO
 
     setIsSubmitting(true);
     try {
-      // TODO: Replace with actual API call
-      const comment: Comment = {
-        id: Date.now(),
-        userId: currentUser.id,
-        userName: currentUser.name,
-        content: newComment.trim(),
-        timestamp: new Date().toISOString(),
-        isOwner: currentUser.id === itemOwnerId,
-        isHelpful: false,
-        likesCount: 0,
-        isLikedByUser: false
-      };
-
-      setComments(prev => [comment, ...prev]);
+      const addedComment = await CommentsService.addComment(itemId, newComment);
+      setComments(prev => [addedComment, ...prev]);
       setNewComment('');
-    } catch (error) {
-      console.error('Error submitting comment:', error);
+    } catch (err: any) {
+      setError('Failed to post comment. Please try again.');
+      console.error(err);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleLikeComment = async (commentId: number) => {
+  const handleToggleHelpful = async (commentId: number) => {
     if (!isAuthenticated) return;
+    try {
+      await CommentsService.toggleHelpful(commentId);
+      setComments(prev => prev.map(c => 
+        c.id === commentId ? { ...c, isHelpful: !c.isHelpful } : c
+      ));
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-    // TODO: Replace with actual API call
-    setComments(prev => prev.map(comment => 
-      comment.id === commentId 
-        ? {
-            ...comment,
-            isLikedByUser: !comment.isLikedByUser,
-            likesCount: comment.isLikedByUser 
-              ? comment.likesCount - 1 
-              : comment.likesCount + 1
-          }
-        : comment
-    ));
+  const handleToggleLike = async (commentId: number) => {
+    if (!isAuthenticated) return;
+    try {
+      await CommentsService.toggleLike(commentId);
+      setComments(prev => prev.map(c => 
+        c.id === commentId ? { 
+          ...c, 
+          isLikedByUser: !c.isLikedByUser,
+          likesCount: c.isLikedByUser ? c.likesCount - 1 : c.likesCount + 1
+        } : c
+      ));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const formatTimestamp = (timestamp: string) => {
@@ -162,12 +116,14 @@ const CommentSection: React.FC<CommentSectionProps> = ({ itemId, itemType, itemO
         />
       </div>
 
+      {error && <Message severity="error" text={error} className="mb-4 w-full" />}
+
       {/* Comment Input Section */}
       {isAuthenticated ? (
         <Card className="mb-4" style={{ backgroundColor: '#f8fafc' }}>
           <div className="flex align-items-start gap-3">
             <Avatar
-              label={currentUser?.name?.charAt(0) || 'U'}
+              label={user?.name?.charAt(0) || 'U'}
               shape="circle"
               style={{ backgroundColor: '#3b82f6', color: 'white' }}
             />
@@ -223,7 +179,12 @@ const CommentSection: React.FC<CommentSectionProps> = ({ itemId, itemType, itemO
 
       {/* Comments List */}
       <div className="space-y-4">
-        {comments.length === 0 ? (
+        {isLoading ? (
+          <div className="text-center py-6">
+            <i className="pi pi-spin pi-spinner text-4xl text-green-600 mb-3"></i>
+            <p className="text-gray-500">Loading comments...</p>
+          </div>
+        ) : comments.length === 0 ? (
           <div className="text-center py-6">
             <i className="pi pi-comments text-4xl text-gray-400 mb-3"></i>
             <p className="text-gray-500">
@@ -271,7 +232,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ itemId, itemType, itemO
                         color: comment.isLikedByUser ? '#ef4444' : '#6b7280',
                         padding: '0.25rem 0.5rem'
                       }}
-                      onClick={() => handleLikeComment(comment.id)}
+                      onClick={() => handleToggleLike(comment.id)}
                       disabled={!isAuthenticated}
                     />
                     {isAuthenticated && (

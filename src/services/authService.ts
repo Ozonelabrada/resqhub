@@ -1,11 +1,20 @@
 import api from "../api/client";
-import type { SignInRequest, SignUpRequest, AuthResponse, OAuth2CallbackResponse } from "../types";
+import type { SignInRequest, SignUpRequest, AuthResponse } from "../types";
 
 export class AuthService {
   static async signIn(credentials: SignInRequest): Promise<AuthResponse> {
     try {
-      const response = await api.post<AuthResponse>('/auth/login', credentials);
-      return response.data;
+      // Try /auth/login first, then fallback to /login if it fails with 404
+      try {
+        const response = await api.post<AuthResponse>('/auth/login', credentials);
+        return response.data;
+      } catch (error: any) {
+        if (error.response?.status === 404) {
+          const response = await api.post<AuthResponse>('/login', credentials);
+          return response.data;
+        }
+        throw error;
+      }
     } catch (error) {
       console.error('Sign in error:', error);
       throw error;
@@ -14,34 +23,19 @@ export class AuthService {
 
   static async signUp(userData: SignUpRequest): Promise<AuthResponse> {
     try {
-      const response = await api.post<AuthResponse>('/register', userData);
-      return response.data;
+      // Try /register first, then fallback to /auth/register
+      try {
+        const response = await api.post<AuthResponse>('/register', userData);
+        return response.data;
+      } catch (error: any) {
+        if (error.response?.status === 404) {
+          const response = await api.post<AuthResponse>('/auth/register', userData);
+          return response.data;
+        }
+        throw error;
+      }
     } catch (error) {
       console.error('Sign up error:', error);
-      throw error;
-    }
-  }
-
-  static async startGoogleLogin(): Promise<void> {
-    window.location.href = `${import.meta.env.VITE_APP_API_BASE_URL}/auth/google`;
-  }
-
-  static async handleOAuth2Callback(code: string, state?: string): Promise<OAuth2CallbackResponse> {
-    try {
-      const response = await api.post<OAuth2CallbackResponse>('/callback', { code, state });
-      return response.data;
-    } catch (error) {
-      console.error('OAuth2 callback error:', error);
-      throw error;
-    }
-  }
-
-  static async completeOAuth2Registration(userData: SignUpRequest): Promise<AuthResponse> {
-    try {
-      const response = await api.post<AuthResponse>('/oauth2/complete', userData);
-      return response.data;
-    } catch (error) {
-      console.error('OAuth2 registration completion error:', error);
       throw error;
     }
   }

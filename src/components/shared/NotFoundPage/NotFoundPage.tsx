@@ -1,20 +1,10 @@
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const NotFoundPage: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
 
-  // Detect if user was in admin section
-  const isAdminContext = location.pathname.startsWith('/admin');
-  
-  // Check if user is authenticated (for admin context)
-  const isPublicAuthenticated = useAuth()?.token;
-  // Alias for admin context authentication
-  const isAdminAuthenticated = isPublicAuthenticated;
-
-  console.log('NotFoundPage is rendering, admin context:', isAdminContext); // Debug log
+  console.log('NotFoundPage is rendering'); // Debug log
 
   // Simple inline styles that will definitely work
   const pageStyle: React.CSSProperties = {
@@ -69,50 +59,24 @@ const NotFoundPage: React.FC = () => {
     border: '2px solid #667eea'
   };
 
-  // Context-aware navigation handlers
+  // Navigation handlers
   const handlePrimaryNavigation = () => {
-    if (isAdminContext) {
-      if (isAdminAuthenticated) {
-        navigate('/admin/dashboard');
-      } else {
-        navigate('/admin/login');
-      }
-    } else {
-      navigate('/'); // Public home page
-    }
+    navigate('/'); // Public home page
   };
 
   const handleSecondaryNavigation = () => {
-    if (isAdminContext) {
-      // If in admin context, offer to go to public site
-      navigate('/');
-    } else {
-      // If in public context, just go back
-      window.history.back();
-    }
+    window.history.back();
   };
 
-  // Context-aware content
+  // Content
   const getContextContent = () => {
-    if (isAdminContext) {
-      return {
-        title: isAdminAuthenticated ? 'Admin Page Not Found' : 'Admin Access Required',
-        description: isAdminAuthenticated 
-          ? 'The admin page you\'re looking for doesn\'t exist. It might have been moved or you may not have permission to access it.'
-          : 'You need to be logged in as an administrator to access this page.',
-        primaryButton: isAdminAuthenticated ? 'Go to Admin Dashboard' : 'Admin Login',
-        secondaryButton: 'Go to Public Site',
-        badge: 'Admin Area'
-      };
-    } else {
-      return {
-        title: 'Page Not Found',
-        description: 'The page you\'re looking for doesn\'t exist. It might have been moved or deleted.',
-        primaryButton: 'Go to Home',
-        secondaryButton: 'Go Back',
-        badge: 'ResQHub'
-      };
-    }
+    return {
+      title: 'Page Not Found',
+      description: 'The page you\'re looking for doesn\'t exist. It might have been moved or deleted.',
+      primaryButton: 'Go to Home',
+      secondaryButton: 'Go Back',
+      badge: 'SHERRA'
+    };
   };
 
   const content = getContextContent();
@@ -124,7 +88,7 @@ const NotFoundPage: React.FC = () => {
         <div style={{ 
           display: 'inline-block', 
           padding: '4px 12px', 
-          backgroundColor: isAdminContext ? '#fbbf24' : '#3b82f6', 
+          backgroundColor: '#3b82f6', 
           color: 'white', 
           borderRadius: '20px', 
           fontSize: '12px', 
@@ -170,69 +134,30 @@ const NotFoundPage: React.FC = () => {
           </button>
         </div>
 
-        {/* Additional context-specific options */}
-        {isAdminContext && (
-          <div style={{ marginTop: '20px' }}>
-            <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '10px' }}>
-              Quick Admin Actions:
-            </p>
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button
-                style={{ ...secondaryButtonStyle, fontSize: '14px', padding: '8px 16px' }}
-                onClick={() => navigate('/admin/dashboard')}
-              >
-                Dashboard
-              </button>
-              <button
-                style={{ ...secondaryButtonStyle, fontSize: '14px', padding: '8px 16px' }}
-                onClick={() => navigate('/admin/items')}
-              >
-                Manage Items
-              </button>
-              <button
-                style={{ ...secondaryButtonStyle, fontSize: '14px', padding: '8px 16px' }}
-                onClick={() => navigate('/admin/analytics')}
-              >
-                Analytics
-              </button>
-            </div>
+        {/* Additional helpful links */}
+        <div style={{ marginTop: '20px' }}>
+          <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '10px' }}>
+            Helpful Links:
+          </p>
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button
+              style={{ ...secondaryButtonStyle, fontSize: '14px', padding: '8px 16px' }}
+              onClick={() => navigate('/')}
+            >
+              Home
+            </button>
+            <button
+              style={{ ...secondaryButtonStyle, fontSize: '14px', padding: '8px 16px' }}
+              onClick={() => navigate('/login')}
+            >
+              Sign In
+            </button>
           </div>
-        )}
-
-        {!isAdminContext && (
-          <div style={{ marginTop: '20px' }}>
-            <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '10px' }}>
-              Helpful Links:
-            </p>
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button
-                style={{ ...secondaryButtonStyle, fontSize: '14px', padding: '8px 16px' }}
-                onClick={() => navigate('/search')}
-              >
-                Search Items
-              </button>
-              <button
-                style={{ ...secondaryButtonStyle, fontSize: '14px', padding: '8px 16px' }}
-                onClick={() => navigate('/report')}
-              >
-                Report Item
-              </button>
-              {!isPublicAuthenticated && (
-                <button
-                  style={{ ...secondaryButtonStyle, fontSize: '14px', padding: '8px 16px' }}
-                  onClick={() => navigate('/signup')}
-                >
-                  Sign Up
-                </button>
-              )}
-            </div>
-          </div>
-        )}
+        </div>
         
         <div style={{ marginTop: '32px', padding: '16px', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
           <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
-            <strong>ResQHub</strong> - Lost & Found Platform
-            {isAdminContext && <span style={{ marginLeft: '8px', color: '#f59e0b' }}>• Admin Portal</span>}
+            <strong>SHERRA</strong> - Lost & Found Platform
           </p>
         </div>
       </div>

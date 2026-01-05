@@ -20,8 +20,8 @@ export const API_CONSTANTS = {
 
 // Local Storage Keys
 export const STORAGE_KEYS = {
-  TOKEN: 'resqhub_token', // JWT token for authentication
-  USER_DATA: 'resqhub_user', // User data for session
+  TOKEN: 'sherra_token', // JWT token for authentication
+  USER_DATA: 'sherra_user', // User data for session
   INTENDED_ACTION: 'intendedAction', // Action user was trying to perform before login
   RETURN_PATH: 'returnPath', // Path to redirect to after login
 } as const;
@@ -51,22 +51,18 @@ export const createAccountMenuItems = (navigate: (path: string) => void, handleL
   { label: 'Notifications', icon: 'pi pi-bell', command: () => navigate(ROUTES.NOTIFICATIONS) },
   { label: 'Settings', icon: 'pi pi-cog', command: () => navigate(ROUTES.SETTINGS) },
   { separator: true },
-  { label: 'Admin Panel', icon: 'pi pi-shield', command: () => navigate(ROUTES.ADMIN_LOGIN), className: 'text-orange-600' },
-  { separator: true },
   { label: 'Help & Support', icon: 'pi pi-question-circle', command: () => navigate(ROUTES.HELP) },
   { label: 'Logout', icon: 'pi pi-sign-out', command: handleLogout, className: 'text-red-600' }
 ];
 
 export const createGuestMenuItems = (navigate: (path: string) => void) => [
-  { label: 'Sign In', icon: 'pi pi-user', command: () => navigate(ROUTES.LOGIN) },
-  { label: 'Admin Login', icon: 'pi pi-shield', command: () => navigate(ROUTES.ADMIN_LOGIN) }
+  { label: 'Sign In', icon: 'pi pi-user', command: () => navigate(ROUTES.LOGIN) }
 ];
 
 // Navigation Routes
 export const ROUTES = {
   HOME: '/',
   LOGIN: '/login',
-  ADMIN_LOGIN: '/admin/login',
   PROFILE: '/profile',
   HUB: '/hub',
   FEED: '/feed',

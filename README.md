@@ -1,69 +1,69 @@
-# React + TypeScript + Vite
+# SHERRA - Lost and Found Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+SHERRA is a React-based platform focused on helping communities reunite lost items with their owners.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Report Lost/Found Items**: Easily create reports with descriptions, categories, and images.
+- **Community Comments**: Share tips and information on reports to help others.
+- **Geolocation**: Automatically detect location for more accurate reporting.
+- **Personal Hub**: Manage your reports and track their status.
+- **Manual Authentication**: Secure email/password login and signup with JWT validation.
+- **Production Ready**: Optimized with lazy loading, security headers, and global error handling.
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Frontend**: React, TypeScript, Vite
+- **UI Components**: PrimeReact, PrimeFlex, PrimeIcons
+- **API Client**: Axios
+- **State Management**: React Context API
+- **Routing**: React Router DOM
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Getting Started
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+### Prerequisites
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- Node.js (v18 or higher)
+- npm or yarn
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Installation
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1. Clone the repository:
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+   ```bash
+   git clone https://github.com/Ozonelabrada/resqhub.git
+   cd resqhub
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Create a `.env` file in the root directory:
+
+   ```env
+   VITE_APP_API_BASE_URL=https://resqhub-be.onrender.com
+   VITE_APP_API_TIMEOUT=10000
+   ```
+
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+## Deployment
+
+The app is configured for deployment on Vercel. Simply connect your repository to Vercel and it will automatically deploy using the `vercel.json` configuration.
+
+## Security
+
+- **CSP**: Content Security Policy implemented in `index.html`.
+- **Headers**: Security headers (XSS, Frame Options, etc.) configured in `vercel.json`.
+- **Sanitization**: Input sanitization implemented for all user-generated content.
+- **JWT**: Secure token management with expiration checks.
+
+## License
+
+This project is licensed under the MIT License.

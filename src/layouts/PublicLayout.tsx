@@ -117,15 +117,6 @@ const PublicLayout = () => {
       label: 'Sign Up',
       icon: 'pi pi-user-plus',
       command: () => navigate('/signup')
-    },
-    {
-      separator: true
-    },
-    {
-      label: 'Admin Login',
-      icon: 'pi pi-cog',
-      command: () => navigate('/admin/login'),
-      className: 'text-gray-600'
     }
   ];
 
@@ -137,7 +128,7 @@ const PublicLayout = () => {
         className="flex align-items-center gap-2"
       >
         <i className="pi pi-shield text-primary text-2xl"></i>
-        <span className="text-xl font-bold text-primary">ResQHub</span>
+        <span className="text-xl font-bold text-primary">SHERRA</span>
       </button>
     </div>
   );
@@ -222,7 +213,7 @@ const PublicLayout = () => {
             <div className="flex flex-column md:flex-row justify-content-between align-items-center gap-3">
               <div className="flex align-items-center gap-2">
                 <i className="pi pi-shield text-primary"></i>
-                <span className="font-semibold">ResQHub</span>
+                <span className="font-semibold">SHERRA</span>
                 <span className="text-sm opacity-75">- Reuniting Communities</span>
               </div>
               
@@ -239,7 +230,7 @@ const PublicLayout = () => {
               </div>
               
               <div className="text-sm opacity-75">
-                © {new Date().getFullYear()} ResQHub. All rights reserved.
+                © {new Date().getFullYear()} SHERRA. All rights reserved.
               </div>
             </div>
           </div>

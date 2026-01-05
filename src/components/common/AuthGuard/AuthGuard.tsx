@@ -5,14 +5,12 @@ import { useAuth } from '../../../context/AuthContext';
 interface AuthGuardProps {
   children: React.ReactNode;
   requireAuth?: boolean;
-  requireAdmin?: boolean;
   redirectTo?: string;
 }
 
 const AuthGuard: React.FC<AuthGuardProps> = ({
   children,
   requireAuth = true,
-  requireAdmin = false,
   redirectTo
 }) => {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -34,11 +32,6 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
   if (requireAuth && !isAuthenticated) {
     // Redirect to signin with return path
     return <Navigate to="/signin" state={{ from: location }} replace />;
-  }
-
-  // Handle admin requirements
-  if (requireAdmin && (!user || user.role?.toLowerCase() !== 'admin')) {
-    return <Navigate to="/unauthorized" replace />;
   }
 
   return <>{children}</>;

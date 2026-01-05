@@ -102,7 +102,7 @@ const AuthCallbackPage: React.FC = () => {
             navigate(returnPath, { 
               replace: true,
               state: { 
-                message: userName ? `Welcome back, ${userName}!` : 'Welcome back to ResQHub!' 
+                message: userName ? `Welcome back, ${userName}!` : 'Welcome back to SHERRA!' 
               } 
             });
           }, 1500);
@@ -220,7 +220,7 @@ const AuthCallbackPage: React.FC = () => {
               <i className="pi pi-check" style={{ color: 'white', fontSize: 36 }}></i>
             </div>
             <h2 style={{ color: '#059669', marginBottom: '1rem', fontSize: '1.5rem', fontWeight: 600 }}>
-              Welcome to ResQHub!
+              Welcome to SHERRA!
             </h2>
             <p style={{ color: '#6b7280', margin: 0, fontSize: '1rem' }}>
               Successfully signed in. Redirecting you now...

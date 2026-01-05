@@ -24,12 +24,27 @@ class AuthManager {
       const userStr = localStorage.getItem(STORAGE_KEYS.USER_DATA);
 
       if (token && userStr) {
+        if (this.isTokenExpired(token)) {
+          this.clearStoredAuth();
+          return;
+        }
         this.token = token;
         this.user = JSON.parse(userStr);
       }
     } catch (error) {
       console.warn('Failed to load stored auth:', error);
       this.clearStoredAuth();
+    }
+  }
+
+  private isTokenExpired(token: string): boolean {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      if (!payload.exp) return false;
+      const now = Math.floor(Date.now() / 1000);
+      return payload.exp < now;
+    } catch (e) {
+      return true;
     }
   }
 

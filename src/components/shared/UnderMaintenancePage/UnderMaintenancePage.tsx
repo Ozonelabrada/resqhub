@@ -133,7 +133,7 @@ const UnderMaintenancePage: React.FC = () => {
             lineHeight: '1.6',
             marginBottom: '1rem'
           }}>
-            We're currently performing some maintenance to improve your ResQHub experience. 
+            We're currently performing some maintenance to improve your SHERRA experience. 
             This page will be available soon!
           </p>
           
@@ -155,7 +155,7 @@ const UnderMaintenancePage: React.FC = () => {
             />
           </div>
           
-          {/* ResQHub themed message */}
+          {/* SHERRA themed message */}
           <div style={infoBoxStyle}>
             <div style={{ 
               display: 'flex', 

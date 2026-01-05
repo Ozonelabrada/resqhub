@@ -150,7 +150,7 @@ const LeftSideBarPage: React.FC = () => {
             style={{ backgroundColor: '#3b82f6' }}
           />
         </div>
-        <h4 className="font-bold mb-1" style={{ color: '#1e293b' }}>ResQHub</h4>
+        <h4 className="font-bold mb-1" style={{ color: '#1e293b' }}>SHERRA</h4>
         <small style={{ color: '#64748b' }}>Lost & Found Platform</small>
         
         {/* Status indicator */}

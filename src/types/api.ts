@@ -49,14 +49,11 @@ export interface SignInRequest {
 export interface SignUpRequest {
   name: string;
   email: string;
-  password?: string; // Optional for OAuth2 users
+  password: string;
   phone?: string;
   location?: string;
   bio?: string;
   agreeToNewsletter?: boolean;
-  // OAuth2 specific fields
-  provider?: 'google' | 'local';
-  googleId?: string;
   profilePicture?: string;
 }
 
@@ -80,24 +77,11 @@ export type UserData = {
   location?: string;
   bio?: string;
   profilePicture?: string;
-  provider?: 'google' | 'local';
-  googleId?: string;
   role: 'user' | 'admin' | string;
   emailVerified?: boolean;
   createdAt: string;
   updatedAt: string;
 };
-
-// OAuth2 specific types
-export interface OAuth2CallbackResponse extends BaseApiResponse {
-  data?: {
-    user: UserData;
-  };
-  user?: UserData;
-  token?: string;
-  requiresRegistration?: boolean; // If user needs to complete registration
-  isNewUser?: boolean;
-}
 
 // Items/Reports types
 export interface SearchParams {

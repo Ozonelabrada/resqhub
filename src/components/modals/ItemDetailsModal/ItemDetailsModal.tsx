@@ -35,7 +35,7 @@ const ItemDetailsModal: React.FC<ItemDetailsModalProps> = ({ visible, onHide, it
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [showContactInfo, setShowContactInfo] = useState(false);
 
-  // Detect if user is logged in (public or admin)
+  // Detect if user is logged in
   const auth = useAuth();
   const isAuthenticated = auth?.isAuthenticated ?? false;
 

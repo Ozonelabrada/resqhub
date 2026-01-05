@@ -9,10 +9,11 @@ import { Dropdown } from 'primereact/dropdown';
 import { InputMask } from 'primereact/inputmask';
 import { Checkbox } from 'primereact/checkbox';
 import { ProgressSpinner } from 'primereact/progressspinner';
-import { AuthService } from '../../../../services/authService';
+import { useAuth } from '../../../../context/AuthContext';
 
 const SignUpPage = () => {
   const navigate = useNavigate();
+  const { signup } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
     name: '',
@@ -109,22 +110,17 @@ const SignUpPage = () => {
         password: formData.password,
         userType: formData.userType,
         organization: formData.organization,
-        agreeToNewsletter: formData.subscribeNewsletter,
-        provider: 'local' as const
+        agreeToNewsletter: formData.subscribeNewsletter
       };
-      const response = await AuthService.signUp(registrationData);
-      if (response && response.succeeded) {
-        navigate('/login', {
-          state: {
-            message: 'Account created successfully! Please sign in to continue.'
-          }
-        });
-      } else {
-        setError(response?.message || 'Registration failed. Please try again.');
-      }
-    } catch (err) {
+      await signup(registrationData);
+      navigate('/login', {
+        state: {
+          message: 'Account created successfully! Please sign in to continue.'
+        }
+      });
+    } catch (err: any) {
       console.error('Registration error:', err);
-      setError('Something went wrong. Please try again.');
+      setError(err?.message || 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -267,7 +263,7 @@ const SignUpPage = () => {
                   disabled={loading}
                 />
                 <label htmlFor="subscribeNewsletter" className="ml-2 text-sm text-gray-700">
-                  I'd like to receive updates and news about ResQHub
+                  I'd like to receive updates and news about SHERRA
                 </label>
               </div>
             </div>

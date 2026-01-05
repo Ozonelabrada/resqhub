@@ -131,7 +131,7 @@ export class TrendingReportsService {
   }
 
   /**
-   * Calculate/update trending reports (Admin action)
+   * Calculate/update trending reports
    */
   static async calculateTrendingReports(): Promise<void> {
     try {

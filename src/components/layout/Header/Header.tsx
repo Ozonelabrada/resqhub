@@ -8,7 +8,7 @@ const Header: React.FC = () => {
   return (
     <header className="header" style={{ padding: 12, background: '#f4f4f4', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
       <div>
-        <strong>ResQHub</strong>
+        <strong>SHERRA</strong>
       </div>
       <div>
         {isAuthenticated ? (
