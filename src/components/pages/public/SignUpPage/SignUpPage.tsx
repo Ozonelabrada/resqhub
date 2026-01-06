@@ -1,19 +1,31 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Card } from 'primereact/card';
-import { InputText } from 'primereact/inputtext';
-import { Button } from 'primereact/button';
-import { Message } from 'primereact/message';
-import { Steps } from 'primereact/steps';
-import { Dropdown } from 'primereact/dropdown';
-import { InputMask } from 'primereact/inputmask';
-import { Checkbox } from 'primereact/checkbox';
-import { ProgressSpinner } from 'primereact/progressspinner';
+import { 
+  User, 
+  Mail, 
+  Lock, 
+  Phone, 
+  Building2, 
+  ShieldCheck, 
+  ArrowRight, 
+  ArrowLeft,
+  CheckCircle2,
+  AlertCircle
+} from 'lucide-react';
+import { 
+  Card, 
+  Button, 
+  Input, 
+  Select, 
+  Container, 
+  Spinner,
+  Alert
+} from '../../../ui';
 import { useAuth } from '../../../../context/AuthContext';
 
 const SignUpPage = () => {
   const navigate = useNavigate();
-  const { signup } = useAuth();
+  const { signup, openLoginModal } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
     name: '',
@@ -113,9 +125,10 @@ const SignUpPage = () => {
         agreeToNewsletter: formData.subscribeNewsletter
       };
       await signup(registrationData);
-      navigate('/login', {
-        state: {
-          message: 'Account created successfully! Please sign in to continue.'
+      navigate('/', {
+        state: { 
+          openLogin: true,
+          message: 'Account created successfully! Please sign in to continue.' 
         }
       });
     } catch (err: any) {
@@ -130,142 +143,116 @@ const SignUpPage = () => {
     switch (currentStep) {
       case 0:
         return (
-          <div className="grid">
-            <div className="col-12">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Full Name *
-              </label>
-              <InputText
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Enter your full name"
-                className="w-full"
-                disabled={loading}
-              />
-            </div>
-            <div className="col-12">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Email Address *
-              </label>
-              <InputText
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                placeholder="Enter your email address"
-                className="w-full"
-                disabled={loading}
-              />
-            </div>
-            <div className="col-12">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Phone Number (Optional)
-              </label>
-              <InputMask
-                mask="(999) 999-9999"
-                value={formData.phone}
-                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.value || '' }))}
-                placeholder="(123) 456-7890"
-                className="w-full"
-                disabled={loading}
-              />
-            </div>
+          <div className="space-y-6">
+            <Input
+              label="Full Name"
+              icon={<User size={18} />}
+              value={formData.name}
+              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              placeholder="Enter your full name"
+              disabled={loading}
+              required
+            />
+            <Input
+              label="Email Address"
+              type="email"
+              icon={<Mail size={18} />}
+              value={formData.email}
+              onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+              placeholder="Enter your email address"
+              disabled={loading}
+              required
+            />
+            <Input
+              label="Phone Number"
+              icon={<Phone size={18} />}
+              value={formData.phone}
+              onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+              placeholder="(123) 456-7890"
+              disabled={loading}
+            />
           </div>
         );
       case 1:
         return (
-          <div className="grid">
-            <div className="col-12">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Password *
-              </label>
-              <InputText
-                type="password"
-                value={formData.password}
-                onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                placeholder="Create a strong password"
-                className="w-full"
-                disabled={loading}
-              />
-              <small className="text-gray-500">
-                Password must be at least 6 characters long
-              </small>
-            </div>
-            <div className="col-12">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Confirm Password *
-              </label>
-              <InputText
-                type="password"
-                value={formData.confirmPassword}
-                onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                placeholder="Confirm your password"
-                className="w-full"
-                disabled={loading}
-              />
-            </div>
+          <div className="space-y-6">
+            <Input
+              label="Password"
+              type="password"
+              icon={<Lock size={18} />}
+              value={formData.password}
+              onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+              placeholder="Create a strong password"
+              disabled={loading}
+              required
+              helperText="Password must be at least 6 characters long"
+            />
+            <Input
+              label="Confirm Password"
+              type="password"
+              icon={<ShieldCheck size={18} />}
+              value={formData.confirmPassword}
+              onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+              placeholder="Confirm your password"
+              disabled={loading}
+              required
+            />
           </div>
         );
       case 2:
         return (
-          <div className="grid">
-            <div className="col-12">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                User Type *
-              </label>
-              <Dropdown
-                value={formData.userType}
-                options={userTypes}
-                onChange={(e) => setFormData(prev => ({ ...prev, userType: e.value }))}
-                placeholder="Select your role"
-                className="w-full"
+          <div className="space-y-6">
+            <Select
+              label="User Type"
+              value={formData.userType}
+              options={userTypes}
+              onChange={(value) => setFormData(prev => ({ ...prev, userType: value }))}
+              placeholder="Select your role"
+              disabled={loading}
+              required
+            />
+            {formData.userType === 'organization' && (
+              <Input
+                label="Organization Name"
+                icon={<Building2 size={18} />}
+                value={formData.organization}
+                onChange={(e) => setFormData(prev => ({ ...prev, organization: e.target.value }))}
+                placeholder="Enter your organization name"
                 disabled={loading}
               />
-            </div>
-            {formData.userType === 'organization' && (
-              <div className="col-12">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Organization Name
-                </label>
-                <InputText
-                  value={formData.organization}
-                  onChange={(e) => setFormData(prev => ({ ...prev, organization: e.target.value }))}
-                  placeholder="Enter your organization name"
-                  className="w-full"
-                  disabled={loading}
-                />
-              </div>
             )}
-            <div className="col-12 mt-4">
-              <div className="flex align-items-center mb-3">
-                <Checkbox
-                  id="agreeToTerms"
-                  checked={formData.agreeToTerms}
-                  onChange={(e) => setFormData(prev => ({ ...prev, agreeToTerms: e.checked || false }))}
-                  disabled={loading}
-                />
-                <label htmlFor="agreeToTerms" className="ml-2 text-sm text-gray-700">
-                  I agree to the{' '}
-                  <Link to="/terms" className="text-green-600 hover:text-green-700 no-underline">
-                    Terms of Service
-                  </Link>{' '}
-                  and{' '}
-                  <Link to="/privacy" className="text-green-600 hover:text-green-700 no-underline">
-                    Privacy Policy
-                  </Link>{' '}
-                  *
-                </label>
-              </div>
-              <div className="flex align-items-center">
-                <Checkbox
-                  id="subscribeNewsletter"
-                  checked={formData.subscribeNewsletter}
-                  onChange={(e) => setFormData(prev => ({ ...prev, subscribeNewsletter: e.checked || false }))}
-                  disabled={loading}
-                />
-                <label htmlFor="subscribeNewsletter" className="ml-2 text-sm text-gray-700">
-                  I'd like to receive updates and news about SHERRA
-                </label>
-              </div>
+            <div className="space-y-4 pt-4">
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <div className="relative flex items-center">
+                  <input
+                    type="checkbox"
+                    className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-slate-300 checked:bg-teal-600 checked:border-teal-600 transition-all"
+                    checked={formData.agreeToTerms}
+                    onChange={(e) => setFormData(prev => ({ ...prev, agreeToTerms: e.target.checked }))}
+                    disabled={loading}
+                  />
+                  <CheckCircle2 className="absolute h-5 w-5 text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none p-0.5" />
+                </div>
+                <span className="text-sm text-slate-600 group-hover:text-slate-900 transition-colors">
+                  I agree to the <Link to="/terms" className="text-teal-600 font-bold hover:underline">Terms of Service</Link> and <Link to="/privacy" className="text-teal-600 font-bold hover:underline">Privacy Policy</Link>
+                </span>
+              </label>
+
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <div className="relative flex items-center">
+                  <input
+                    type="checkbox"
+                    className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-slate-300 checked:bg-teal-600 checked:border-teal-600 transition-all"
+                    checked={formData.subscribeNewsletter}
+                    onChange={(e) => setFormData(prev => ({ ...prev, subscribeNewsletter: e.target.checked }))}
+                    disabled={loading}
+                  />
+                  <CheckCircle2 className="absolute h-5 w-5 text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none p-0.5" />
+                </div>
+                <span className="text-sm text-slate-600 group-hover:text-slate-900 transition-colors">
+                  I'd like to receive updates and news about ResQHub
+                </span>
+              </label>
             </div>
           </div>
         );
@@ -275,133 +262,125 @@ const SignUpPage = () => {
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        width: '100%',
-        background: 'linear-gradient(135deg, #353333ff 0%, #475a4bff 50%, #888887ff 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '2rem 1rem',
-        position: 'relative',
-        zIndex: 1 // Ensure it does not overlay the header
-      }}
-    >
-      <Card
-        className="w-full shadow-lg border-0"
-        style={{
-          maxWidth: '500px',
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(20px)',
-          borderRadius: 24,
-          border: '1px solid rgba(229, 231, 235, 0.8)'
-        }}
-      >
-        <div className="p-6">
-          <div className="text-center mb-6">
-            <div
-              style={{
-                width: 64,
-                height: 64,
-                borderRadius: '16px',
-                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 24px',
-                boxShadow: '0 10px 15px -3px rgba(16, 185, 129, 0.2)'
-              }}
-            >
-              <i className="pi pi-user-plus" style={{ color: 'white', fontSize: 28 }}></i>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6 relative overflow-hidden">
+      {/* Background Glows */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] bg-teal-600/10 blur-[120px] rounded-full" />
+        <div className="absolute -bottom-[20%] -right-[10%] w-[60%] h-[60%] bg-emerald-600/10 blur-[120px] rounded-full" />
+      </div>
+
+      <Container size="sm" className="relative z-10">
+        <Card className="border-none shadow-2xl rounded-[3rem] bg-white/95 backdrop-blur-xl overflow-hidden">
+          <div className="p-10 md:p-16">
+            <div className="text-center mb-12">
+              <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-teal-600 to-teal-700 flex items-center justify-center text-white shadow-2xl shadow-teal-200 mx-auto mb-8">
+                <User size={36} />
+              </div>
+              <h1 className="text-4xl font-black text-slate-900 tracking-tight mb-3">Create Account</h1>
+              <p className="text-slate-500 font-medium">Join ResQHub to start making a difference</p>
             </div>
-            <p className="text-gray-600">Create your account to get started</p>
-          </div>
-          <style>
-            {`
-              .custom-steps {
-                --p-steps-item-active-color: #10b981;
-                --p-steps-item-color: #9ca3af;
-              }
-            `}
-          </style>
-          <div className="mb-6">
-            <Steps
-              model={steps}
-              activeIndex={currentStep}
-              className="w-full custom-steps"
-            />
-          </div>
-          {error && <Message severity="error" text={error} className="w-full mb-4" />}
-          <form onSubmit={handleSubmit}>
-            <div className="mb-6">{renderStepContent()}</div>
-            <div className="flex justify-content-between align-items-center">
-              {currentStep > 0 ? (
-                <Button
-                  type="button"
-                  label="Previous"
-                  icon="pi pi-arrow-left"
-                  className="p-button-text"
-                  onClick={handlePrevious}
-                  disabled={loading}
-                />
-              ) : (
-                <div></div>
-              )}
-              <div>
+            {/* Custom Stepper */}
+            <div className="flex items-center justify-between mb-12 relative">
+              <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-100 -translate-y-1/2" />
+              <div 
+                className="absolute top-1/2 left-0 h-0.5 bg-teal-600 -translate-y-1/2 transition-all duration-500" 
+                style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
+              />
+              {steps.map((step, idx) => (
+                <div key={idx} className="relative z-10 flex flex-col items-center gap-2">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-black transition-all duration-500 ${
+                    idx <= currentStep 
+                      ? 'bg-teal-600 text-white shadow-lg shadow-teal-200 scale-110' 
+                      : 'bg-white text-slate-400 border-2 border-slate-100'
+                  }`}>
+                    {idx < currentStep ? <CheckCircle2 size={20} /> : idx + 1}
+                  </div>
+                  <span className={`text-[10px] font-black uppercase tracking-widest transition-colors duration-500 ${
+                    idx <= currentStep ? 'text-teal-600' : 'text-slate-400'
+                  }`}>
+                    {step.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+            {error && (
+              <Alert 
+                variant="error" 
+                title="Registration Error"
+                className="mb-8 rounded-3xl"
+              >
+                {error}
+              </Alert>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-10">
+              <div className="min-h-[300px]">
+                {renderStepContent()}
+              </div>
+
+              <div className="flex items-center justify-between pt-8 border-t border-slate-100">
+                {currentStep > 0 ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="rounded-2xl px-8 py-4 h-auto font-black uppercase tracking-widest text-xs flex items-center gap-3"
+                    onClick={handlePrevious}
+                    disabled={loading}
+                  >
+                    <ArrowLeft size={18} />
+                    Back
+                  </Button>
+                ) : (
+                  <div />
+                )}
+
                 {currentStep < steps.length - 1 ? (
                   <Button
                     type="button"
-                    label="Next"
-                    icon="pi pi-arrow-right"
-                    iconPos="right"
+                    className="rounded-2xl px-10 py-4 h-auto font-black uppercase tracking-widest text-xs flex items-center gap-3 shadow-xl shadow-teal-200 bg-teal-600 hover:bg-teal-700"
                     onClick={handleNext}
                     disabled={loading}
-                    style={{
-                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                      border: 'none',
-                      padding: '12px 24px',
-                      borderRadius: 12,
-                      fontWeight: 600
-                    }}
-                  />
+                  >
+                    Next Step
+                    <ArrowRight size={18} />
+                  </Button>
                 ) : (
                   <Button
                     type="submit"
-                    label={loading ? '' : 'Create Account'}
-                    icon={loading ? '' : 'pi pi-check'}
+                    className="rounded-2xl px-10 py-4 h-auto font-black uppercase tracking-widest text-xs flex items-center gap-3 shadow-xl shadow-teal-200 bg-teal-600 hover:bg-teal-700"
                     disabled={loading}
-                    style={{
-                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                      border: 'none',
-                      padding: '12px 24px',
-                      borderRadius: 12,
-                      fontWeight: 600
-                    }}
                   >
-                    {loading && (
-                      <ProgressSpinner
-                        style={{ width: '16px', height: '16px' }}
-                        strokeWidth="3"
-                        animationDuration="1s"
-                      />
+                    {loading ? (
+                      <>
+                        <Spinner size="sm" variant="white" />
+                        Creating...
+                      </>
+                    ) : (
+                      <>
+                        Complete Sign Up
+                        <CheckCircle2 size={18} />
+                      </>
                     )}
                   </Button>
                 )}
               </div>
+            </form>
+
+            <div className="text-center mt-12 pt-8 border-t border-slate-100">
+              <p className="text-slate-500 font-medium">
+                Already have an account?{' '}
+                <button
+                  type="button"
+                  onClick={() => openLoginModal()}
+                  className="text-teal-600 hover:text-teal-700 font-black transition-colors"
+                >
+                  Sign In
+                </button>
+              </p>
             </div>
-          </form>
-          <div className="text-center mt-6 pt-4 border-top-1 surface-border">
-            <span className="text-gray-600">Already have an account? </span>
-            <Link
-              to="/signin"
-              className="text-green-600 hover:text-green-700 no-underline font-semibold"
-            >
-              Sign In
-            </Link>
           </div>
-        </div>
-      </Card>
+        </Card>
+      </Container>
     </div>
   );
 };

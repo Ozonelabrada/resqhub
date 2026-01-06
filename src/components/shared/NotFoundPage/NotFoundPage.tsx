@@ -1,166 +1,69 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { 
+  Container, 
+  Card, 
+  Button, 
+  Logo 
+} from '../../ui';
+import { 
+  Home, 
+  ArrowLeft, 
+  Search,
+  AlertCircle
+} from 'lucide-react';
 
 const NotFoundPage: React.FC = () => {
   const navigate = useNavigate();
 
-  console.log('NotFoundPage is rendering'); // Debug log
-
-  // Simple inline styles that will definitely work
-  const pageStyle: React.CSSProperties = {
-    minHeight: '100vh',
-    backgroundColor: '#667eea',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '20px',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    color: 'white'
-  };
-
-  const containerStyle: React.CSSProperties = {
-    backgroundColor: 'white',
-    borderRadius: '16px',
-    padding: '40px',
-    textAlign: 'center',
-    maxWidth: '500px',
-    width: '100%',
-    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-    color: '#333'
-  };
-
-  const titleStyle: React.CSSProperties = {
-    fontSize: '72px',
-    fontWeight: 'bold',
-    color: '#e5e7eb',
-    margin: '0 0 20px 0',
-    letterSpacing: '-2px'
-  };
-
-  const buttonStyle: React.CSSProperties = {
-    backgroundColor: '#667eea',
-    color: 'white',
-    border: 'none',
-    padding: '12px 24px',
-    borderRadius: '8px',
-    fontSize: '16px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    margin: '10px',
-    textDecoration: 'none',
-    display: 'inline-block'
-  };
-
-  const secondaryButtonStyle: React.CSSProperties = {
-    ...buttonStyle,
-    backgroundColor: 'transparent',
-    color: '#667eea',
-    border: '2px solid #667eea'
-  };
-
-  // Navigation handlers
-  const handlePrimaryNavigation = () => {
-    navigate('/'); // Public home page
-  };
-
-  const handleSecondaryNavigation = () => {
-    window.history.back();
-  };
-
-  // Content
-  const getContextContent = () => {
-    return {
-      title: 'Page Not Found',
-      description: 'The page you\'re looking for doesn\'t exist. It might have been moved or deleted.',
-      primaryButton: 'Go to Home',
-      secondaryButton: 'Go Back',
-      badge: 'SHERRA'
-    };
-  };
-
-  const content = getContextContent();
-
   return (
-    <div style={pageStyle}>
-      <div style={containerStyle}>
-        {/* Context Badge */}
-        <div style={{ 
-          display: 'inline-block', 
-          padding: '4px 12px', 
-          backgroundColor: '#3b82f6', 
-          color: 'white', 
-          borderRadius: '20px', 
-          fontSize: '12px', 
-          fontWeight: '600', 
-          marginBottom: '20px',
-          textTransform: 'uppercase',
-          letterSpacing: '0.5px'
-        }}>
-          {content.badge}
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 md:p-8">
+      <Container size="sm">
+        <div className="text-center mb-8">
+          <Logo className="mx-auto mb-6 opacity-50 grayscale" />
         </div>
 
-        <h1 style={titleStyle}>404</h1>
-        <h2 style={{ fontSize: '24px', marginBottom: '16px', color: '#1f2937' }}>
-          {content.title}
-        </h2>
-        <p style={{ fontSize: '16px', color: '#6b7280', marginBottom: '32px', lineHeight: '1.5' }}>
-          {content.description}
-        </p>
-        
-        <div>
-          <button 
-            style={buttonStyle}
-            onClick={handlePrimaryNavigation}
-            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#5a67d8'}
-            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#667eea'}
-          >
-            {content.primaryButton}
-          </button>
+        <Card className="p-8 md:p-16 border-none shadow-2xl shadow-slate-200 rounded-[3rem] bg-white text-center relative overflow-hidden">
+          {/* Decorative background element */}
+          <div className="absolute -top-24 -left-24 w-64 h-64 bg-slate-50 rounded-full blur-3xl opacity-50"></div>
           
-          <button 
-            style={secondaryButtonStyle}
-            onClick={handleSecondaryNavigation}
-            onMouseOver={(e) => {
-              e.currentTarget.style.backgroundColor = '#667eea';
-              e.currentTarget.style.color = 'white';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.color = '#667eea';
-            }}
-          >
-            {content.secondaryButton}
-          </button>
-        </div>
+          <div className="relative z-10">
+            <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-slate-100 mb-8">
+              <Search className="w-10 h-10 text-slate-400" />
+            </div>
 
-        {/* Additional helpful links */}
-        <div style={{ marginTop: '20px' }}>
-          <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '10px' }}>
-            Helpful Links:
-          </p>
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button
-              style={{ ...secondaryButtonStyle, fontSize: '14px', padding: '8px 16px' }}
-              onClick={() => navigate('/')}
-            >
-              Home
-            </button>
-            <button
-              style={{ ...secondaryButtonStyle, fontSize: '14px', padding: '8px 16px' }}
-              onClick={() => navigate('/login')}
-            >
-              Sign In
-            </button>
+            <h1 className="text-8xl font-black text-slate-200 mb-4 tracking-tighter">404</h1>
+            <h2 className="text-3xl font-black text-slate-800 mb-4">Page Not Found</h2>
+            <p className="text-slate-500 text-lg mb-12 max-w-md mx-auto leading-relaxed">
+              The page you're looking for doesn't exist or has been moved to another location.
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Button
+                onClick={() => navigate('/')}
+                className="w-full sm:w-auto px-8 py-6 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white shadow-xl shadow-teal-100 font-bold"
+              >
+                <Home className="w-5 h-5 mr-2" />
+                Back to Home
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => window.history.back()}
+                className="w-full sm:w-auto px-8 py-6 rounded-2xl border-slate-200 hover:bg-slate-50 text-slate-600 font-bold"
+              >
+                <ArrowLeft className="w-5 h-5 mr-2" />
+                Go Back
+              </Button>
+            </div>
           </div>
-        </div>
-        
-        <div style={{ marginTop: '32px', padding: '16px', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
-          <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
-            <strong>SHERRA</strong> - Lost & Found Platform
-          </p>
-        </div>
-      </div>
+
+          <div className="mt-16 pt-8 border-t border-slate-50 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-300">
+            <AlertCircle className="w-4 h-4" />
+            ResQHub System Resource
+          </div>
+        </Card>
+      </Container>
     </div>
   );
 };

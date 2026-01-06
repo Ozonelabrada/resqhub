@@ -1,25 +1,32 @@
 import React from 'react';
 import { useAuth } from '../../../context/AuthContext';
+import { Logo } from '../../ui';
 
 const Header: React.FC = () => {
   const auth = useAuth();
   const { isAuthenticated, userData } = auth || {};
 
   return (
-    <header className="header" style={{ padding: 12, background: '#f4f4f4', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <header className="header flex items-center justify-between px-6 py-4 bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-50">
       <div>
-        <strong>SHERRA</strong>
+        <Logo size="small" variant="full" />
       </div>
       <div>
         {isAuthenticated ? (
-          <span style={{ color: '#059669', fontWeight: 600 }}>
-            Logged in as: {userData?.email || userData?.name || 'User'}
-            {userData?.role && ` (${userData.role})`}
-          </span>
+          <div className="flex items-center gap-3">
+            <div className="text-right hidden sm:block">
+              <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Authenticated</div>
+              <div className="text-sm font-bold text-slate-700">{userData?.name || userData?.email?.split('@')[0]}</div>
+            </div>
+            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100 font-bold">
+              {(userData?.name || userData?.email || 'U')[0].toUpperCase()}
+            </div>
+          </div>
         ) : (
-          <span style={{ color: '#b91c1c', fontWeight: 600 }}>
-            Not logged in
-          </span>
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
+            <div className="w-2 h-2 rounded-full bg-slate-300 animate-pulse" />
+            Guest Mode
+          </div>
         )}
       </div>
     </header>

@@ -1,9 +1,6 @@
 import React from 'react';
-import { Card } from 'primereact/card';
-import { Chip } from 'primereact/chip';
-import { Badge } from 'primereact/badge';
-import { ProgressSpinner } from 'primereact/progressspinner';
-import { Chart } from 'primereact/chart';
+import { TrendingUp, TrendingDown, Activity, Package } from 'lucide-react';
+import { Card, Grid, Container, Spinner } from '../../../../ui';
 
 interface TrendingItem {
   categoryId: string;
@@ -21,159 +18,104 @@ interface TrendingSectionProps {
   isBelowDesktop: boolean;
 }
 
+const Sparkline: React.FC<{ data: number[], color: string }> = ({ data, color }) => {
+  if (!data || data.length < 2) return null;
+  
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const range = max - min || 1;
+  const width = 100;
+  const height = 40;
+  
+  const points = data.map((val, i) => {
+    const x = (i / (data.length - 1)) * width;
+    const y = height - ((val - min) / range) * height;
+    return `${x},${y}`;
+  }).join(' ');
+
+  return (
+    <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
+      <polyline
+        fill="none"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        points={points}
+      />
+    </svg>
+  );
+};
+
 const TrendingSection: React.FC<TrendingSectionProps> = ({
   trendingReports,
   trendingLoading,
   isBelowDesktop
 }) => {
-  // Generate chart options for trending items
-  const getChartOptions = () => ({
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false
-      },
-      tooltip: {
-        enabled: false
-      }
-    },
-    scales: {
-      x: {
-        display: false,
-        grid: {
-          display: false
-        }
-      },
-      y: {
-        display: false,
-        grid: {
-          display: false
-        }
-      }
-    },
-    elements: {
-      point: {
-        radius: 0,
-        hoverRadius: 0
-      },
-      line: {
-        tension: 0.3,
-        borderWidth: 2
-      }
-    },
-    interaction: {
-      intersect: false
-    }
-  });
-
-  const getChartData = (item: TrendingItem) => {
-    const isPositiveTrend = item.trend.startsWith('+');
-    return {
-      labels: item.labels,
-      datasets: [
-        {
-          data: item.weeklyData,
-          borderColor: isPositiveTrend ? '#16a34a' : '#dc2626',
-          backgroundColor: isPositiveTrend ? 'rgba(22, 163, 74, 0.1)' : 'rgba(220, 38, 38, 0.1)',
-          fill: true,
-          tension: 0.3
-        }
-      ]
-    };
-  };
-
   return (
-    <div className={`${isBelowDesktop ? 'px-4' : 'px-8'} py-6`} style={{ backgroundColor: '#f8fafc', color: '#4b5563' }}>
-      <div className="text-center mb-6">
-        <h3 className="text-2xl font-bold text-gray-800 mb-2">Trending Lost Items 📈</h3>
-        <p className="text-gray-600">Most reported items this week with real-time trend analysis</p>
-      </div>
+    <div className="bg-slate-50 py-24">
+      <Container>
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-100 text-blue-600 text-sm font-bold mb-6">
+            <Activity size={16} />
+            Live Market Trends
+          </div>
+          <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-4">Trending Lost Items</h2>
+          <p className="text-slate-500 text-lg font-medium max-w-2xl mx-auto">
+            Real-time analysis of the most frequently reported items in your community this week.
+          </p>
+        </div>
 
-      <div className="flex justify-content-center">
-        <div className="grid max-w-6xl w-full">
-          {Array.isArray(trendingReports) && trendingReports.length > 0 ? (
-            trendingReports.map((item) => (
-              <div key={`${item.categoryId}-${item.title}`} className="col-12 md:col-6 lg:col-3">
-                <Card className="h-full border-0 shadow-2" style={{ backgroundColor: 'white' }}>
-                  <div className="p-3">
-                    {/* Header with title and trend */}
-                    <div className="flex align-items-center justify-content-between mb-3">
-                      <div>
-                        <div className="font-semibold text-gray-800">{item.title}</div>
-                        <div className="text-sm text-gray-600">{item.category}</div>
-                      </div>
-                      <Chip
-                        label={item.trend}
-                        style={{
-                          backgroundColor: item.trend.startsWith('+') ? '#dcfce7' : '#fee2e2',
-                          color: item.trend.startsWith('+') ? '#15803d' : '#dc2626'
-                        }}
-                      />
+        {trendingLoading ? (
+          <div className="flex justify-center py-20">
+            <Spinner size="lg" />
+          </div>
+        ) : (
+          <Grid cols={4} gap={6}>
+            {trendingReports.map((item) => {
+              const isPositiveTrend = item.trend.startsWith('+');
+              const trendColor = isPositiveTrend ? '#10b981' : '#ef4444';
+              
+              return (
+                <Card key={`${item.categoryId}-${item.title}`} className="p-6 border-none shadow-xl rounded-3xl bg-white hover:scale-105 transition-all group">
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+                      <Package size={24} />
                     </div>
-
-                    {/* Line Chart */}
-                    {Array.isArray(item.weeklyData) && item.weeklyData.length > 0 && (
-                      <div className="mb-3" style={{ height: '80px' }}>
-                        <Chart
-                          type="line"
-                          data={getChartData(item)}
-                          options={getChartOptions()}
-                          style={{ height: '100%' }}
-                        />
-                      </div>
-                    )}
-
-                    {/* Weekly Summary */}
-                    <div className="text-center mb-2">
-                      <div className="text-xs text-gray-500 mb-1">This Week's Progress</div>
-                      <div className="flex align-items-center justify-content-center gap-2">
-                        <Badge
-                          value={item.reports || 0}
-                          style={{ backgroundColor: '#3b82f6', color: 'white' }}
-                        />
-                        <span className="text-sm text-gray-600">total reports</span>
-                      </div>
+                    <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-black ${
+                      isPositiveTrend ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+                    }`}>
+                      {isPositiveTrend ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                      {item.trend}
                     </div>
+                  </div>
 
-                    {/* Week Range */}
-                    {Array.isArray(item.labels) && item.labels.length > 0 && (
-                      <div className="text-center">
-                        <div className="text-xs text-gray-400">
-                          {item.labels[0]} - {item.labels[item.labels.length - 1]}
-                        </div>
-                      </div>
-                    )}
+                  <h4 className="text-lg font-black text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">{item.title}</h4>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-6">{item.category}</p>
+
+                  <div className="mb-6">
+                    <div className="flex items-end justify-between mb-2">
+                      <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">7D Activity</span>
+                      <span className="text-sm font-black text-slate-900">{item.reports || 0} Reports</span>
+                    </div>
+                    <div className="h-10 w-full">
+                      <Sparkline data={item.weeklyData} color={trendColor} />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    {item.labels.slice(0, 2).map((label, idx) => (
+                      <span key={idx} className="text-[10px] font-bold px-2 py-1 bg-slate-50 text-slate-500 rounded-md">
+                        {label}
+                      </span>
+                    ))}
                   </div>
                 </Card>
-              </div>
-            ))
-          ) : (
-            <div className="col-12">
-              <Card className="text-center p-6" style={{ backgroundColor: 'white' }}>
-                <div className="text-gray-500">
-                  {trendingLoading ? (
-                    <>
-                      <ProgressSpinner style={{ width: '30px', height: '30px' }} />
-                      <p className="mt-2">Loading trending reports...</p>
-                    </>
-                  ) : (
-                    <p>No trending reports available at the moment.</p>
-                  )}
-                </div>
-              </Card>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Legend/Info */}
-      <div className="text-center mt-4">
-        <div className="text-xs text-gray-500">
-          <i className="pi pi-info-circle mr-1"></i>
-          Charts show daily report counts for the past 7 days • Auto-updated every 5 minutes
-        </div>
-      </div>
+              );
+            })}
+          </Grid>
+        )}
+      </Container>
     </div>
   );
 };

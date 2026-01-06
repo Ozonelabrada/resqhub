@@ -10,6 +10,9 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   signup: (userData: SignUpRequest) => Promise<void>;
   logout: () => void;
+  openLoginModal: () => void;
+  closeLoginModal: () => void;
+  isLoginModalOpen: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -18,6 +21,10 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
   const [isAuthenticated, setIsAuthenticated] = useState(authManager.isAuthenticated());
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(authManager.getUser());
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+
+  const openLoginModal = () => setIsLoginModalOpen(true);
+  const closeLoginModal = () => setIsLoginModalOpen(false);
 
   useEffect(() => {
     // Initialize auth state
@@ -130,7 +137,10 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
       user,
       login,
       signup,
-      logout
+      logout,
+      openLoginModal,
+      closeLoginModal,
+      isLoginModalOpen
     }}>
       {children}
     </AuthContext.Provider>

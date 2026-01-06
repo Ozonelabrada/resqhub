@@ -1,8 +1,23 @@
 import React, { useState } from 'react';
-import { Button } from 'primereact/button';
-import { Divider } from 'primereact/divider';
-import { Badge } from 'primereact/badge';
-import { Avatar } from 'primereact/avatar';
+import { 
+  Button, 
+  Badge, 
+  Avatar 
+} from '../../ui';
+import { 
+  Home, 
+  LayoutGrid, 
+  FileText, 
+  MinusCircle, 
+  PlusCircle, 
+  Calendar, 
+  User, 
+  Settings, 
+  LogOut, 
+  ChevronRight,
+  Bell,
+  ShieldCheck
+} from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const LeftSideBarPage: React.FC = () => {
@@ -27,14 +42,14 @@ const LeftSideBarPage: React.FC = () => {
       items: [
         {
           label: 'Dashboard',
-          icon: 'pi pi-home',
+          icon: <Home className="w-5 h-5" />,
           path: '/dashboard',
           description: 'Overview & statistics',
           badge: null
         },
         {
           label: 'Main Hub',
-          icon: 'pi pi-th-large',
+          icon: <LayoutGrid className="w-5 h-5" />,
           path: '/mainhub',
           description: 'Central workspace',
           badge: null
@@ -46,14 +61,14 @@ const LeftSideBarPage: React.FC = () => {
       items: [
         {
           label: 'All Reports',
-          icon: 'pi pi-file',
+          icon: <FileText className="w-5 h-5" />,
           path: '/reports',
           description: 'Browse all items',
           badge: notifications.newReports
         },
         {
           label: 'Report Lost Item',
-          icon: 'pi pi-minus-circle',
+          icon: <MinusCircle className="w-5 h-5" />,
           path: '/reports/lost',
           description: 'I lost something',
           badge: null,
@@ -61,7 +76,7 @@ const LeftSideBarPage: React.FC = () => {
         },
         {
           label: 'Report Found Item',
-          icon: 'pi pi-plus-circle',
+          icon: <PlusCircle className="w-5 h-5" />,
           path: '/reports/found',
           description: 'I found something',
           badge: null,
@@ -74,14 +89,14 @@ const LeftSideBarPage: React.FC = () => {
       items: [
         {
           label: 'Events',
-          icon: 'pi pi-calendar',
+          icon: <Calendar className="w-5 h-5" />,
           path: '/events',
           description: 'Community events',
           badge: null
         },
         {
           label: 'Profile',
-          icon: 'pi pi-user',
+          icon: <User className="w-5 h-5" />,
           path: '/profile',
           description: 'Your account',
           badge: null
@@ -94,118 +109,94 @@ const LeftSideBarPage: React.FC = () => {
     const active = isActive(item.path);
     
     return (
-      <div key={item.path} className="relative">
+      <div key={item.path} className="relative group">
         <Button
-          label={item.label}
-          icon={item.icon}
+          variant={active ? 'primary' : 'ghost'}
+          onClick={() => handleNavigation(item.path, item.label)}
           className={`
-            w-full justify-content-start mb-1 transition-all transition-duration-200
+            w-full justify-start mb-1 px-4 py-3 rounded-xl transition-all duration-200
             ${active 
-              ? 'border-none' 
-              : 'p-button-text hover:surface-hover'
+              ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' 
+              : 'text-slate-600 hover:bg-slate-100 hover:text-blue-600'
             }
           `}
-          style={{
-            backgroundColor: active ? '#3b82f6' : 'transparent',
-            color: active ? '#ffffff' : '#475569',
-            borderRadius: '8px',
-            padding: '0.75rem 1rem',
-            fontSize: '0.875rem'
-          }}
-          onClick={() => handleNavigation(item.path, item.label)}
-          tooltip={item.description}
-          tooltipOptions={{ position: 'right', showDelay: 500 }}
-        />
-        
-        {/* Notification badges */}
-        {item.badge && (
-          <Badge 
-            value={item.badge} 
-            severity="danger"
-            className="absolute"
-            style={{ 
-              top: '8px', 
-              right: '8px',
-              fontSize: '0.65rem',
-              minWidth: '1.2rem',
-              height: '1.2rem',
-              backgroundColor: '#ef4444'
-            }}
-          />
-        )}
+        >
+          <div className="flex items-center gap-3 w-full">
+            <div className={`${active ? 'text-white' : 'text-slate-400 group-hover:text-blue-500'}`}>
+              {item.icon}
+            </div>
+            <span className="font-semibold text-sm flex-1 text-left">{item.label}</span>
+            {item.badge && (
+              <Badge variant="danger" className="rounded-full px-2 py-0.5 text-[10px]">
+                {item.badge}
+              </Badge>
+            )}
+            {active && <ChevronRight className="w-4 h-4 opacity-50" />}
+          </div>
+        </Button>
       </div>
     );
   };
 
   return (
-    <div className="p-3 h-full flex flex-column" style={{ backgroundColor: '#ffffff' }}>
+    <div className="p-4 h-full flex flex-col bg-white border-r border-slate-100">
       {/* Enhanced Header */}
-      <div className="mb-4 text-center">
-        <div className="mb-2">
-          <Avatar 
-            icon="pi pi-search" 
-            className="text-white" 
-            size="large"
-            shape="circle"
-            style={{ backgroundColor: '#3b82f6' }}
-          />
+      <div className="mb-8 text-center space-y-3">
+        <div className="relative inline-block">
+          <div className="p-3 bg-teal-50 rounded-2xl">
+            <Heart className="w-8 h-8 text-teal-600" />
+          </div>
+          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full animate-pulse" />
         </div>
-        <h4 className="font-bold mb-1" style={{ color: '#1e293b' }}>SHERRA</h4>
-        <small style={{ color: '#64748b' }}>Lost & Found Platform</small>
-        
-        {/* Status indicator */}
-        <div className="flex align-items-center justify-content-center gap-1 mt-2 text-xs">
-          <div className="w-2 h-2 border-round animation-pulse" style={{ backgroundColor: '#10b981' }}></div>
-          <span style={{ color: '#64748b' }}>Online</span>
+        <div>
+          <h4 className="text-xl font-black tracking-tighter text-slate-800">ResQHub</h4>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Community Hub</p>
         </div>
       </div>
 
       {/* Quick stats */}
-      <div className="mb-3 p-3 border-round" style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
-        <div className="grid text-center">
-          <div className="col-4">
-            <div className="font-bold" style={{ color: '#3b82f6' }}>{notifications.newReports}</div>
-            <div className="text-xs" style={{ color: '#64748b' }}>New</div>
+      <div className="mb-6 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div className="space-y-1">
+            <div className="text-lg font-bold text-teal-600">{notifications.newReports}</div>
+            <div className="text-[10px] font-bold text-slate-400 uppercase">New</div>
           </div>
-          <div className="col-4">
-            <div className="font-bold" style={{ color: '#10b981' }}>{notifications.newMatches}</div>
-            <div className="text-xs" style={{ color: '#64748b' }}>Matches</div>
+          <div className="space-y-1 border-x border-slate-200">
+            <div className="text-lg font-bold text-green-600">{notifications.newMatches}</div>
+            <div className="text-[10px] font-bold text-slate-400 uppercase">Matches</div>
           </div>
-          <div className="col-4">
-            <div className="font-bold" style={{ color: '#f59e0b' }}>{notifications.messages}</div>
-            <div className="text-xs" style={{ color: '#64748b' }}>Messages</div>
+          <div className="space-y-1">
+            <div className="text-lg font-bold text-amber-600">{notifications.messages}</div>
+            <div className="text-[10px] font-bold text-slate-400 uppercase">Inbox</div>
           </div>
         </div>
       </div>
 
       {/* Enhanced Navigation Menu */}
-      <div className="flex-grow-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto space-y-6 pr-2 custom-scrollbar">
         {menuSections.map((section, index) => (
-          <div key={section.title} className="mb-4">
-            <h6 className="text-sm font-bold mb-2 px-2 uppercase tracking-wide" style={{ color: '#64748b' }}>
+          <div key={section.title} className="space-y-2">
+            <h6 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-4">
               {section.title}
             </h6>
             
-            <div className="flex flex-column">
+            <div className="flex flex-col">
               {section.items.map(renderMenuItem)}
             </div>
-            
-            {index < menuSections.length - 1 && (
-              <Divider className="my-3" style={{ borderColor: '#e2e8f0' }} />
-            )}
           </div>
         ))}
       </div>
 
-      {/* Quick actions footer */}
-      <div className="mt-auto pt-3" style={{ borderTop: '1px solid #e2e8f0' }}>
-        <Button
-          label="Need Help?"
-          icon="pi pi-question-circle"
-          className="w-full p-button-text p-button-sm"
-          style={{ color: '#64748b' }}
-          onClick={() => handleNavigation('/help', 'Help Center')}
-        />
+      {/* Footer Actions */}
+      <div className="mt-auto pt-6 space-y-2">
+        <Button variant="ghost" className="w-full justify-start text-slate-500 hover:text-blue-600 rounded-xl">
+          <Settings className="w-5 h-5 mr-3" />
+          <span className="font-semibold text-sm">Settings</span>
+        </Button>
+        <Button variant="ghost" className="w-full justify-start text-red-500 hover:bg-red-50 rounded-xl">
+          <LogOut className="w-5 h-5 mr-3" />
+          <span className="font-semibold text-sm">Logout</span>
+        </Button>
       </div>
     </div>
   );

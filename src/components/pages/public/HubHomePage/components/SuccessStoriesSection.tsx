@@ -1,8 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card } from 'primereact/card';
-import { Button } from 'primereact/button';
-import { Badge } from 'primereact/badge';
+import { PartyPopper, ArrowRight, ExternalLink, MapPin, Clock } from 'lucide-react';
+import { Card, Button, StatusBadge, Grid, Container } from '../../../../ui';
 
 interface SuccessStory {
   id: number;
@@ -27,129 +26,82 @@ const SuccessStoriesSection: React.FC<SuccessStoriesSectionProps> = ({
   const renderSuccessCard = (item: SuccessStory) => (
     <Card
       key={item.id}
-      className="h-full border-0 shadow-4"
-      style={{
-        background: 'linear-gradient(135deg, #f8fafc 60%, #e0e7ef 100%)',
-        borderRadius: '18px',
-        overflow: 'hidden',
-        minHeight: 220,
-        color: '#222'
-      }}
+      className="group h-full border-none shadow-xl rounded-[2rem] bg-white overflow-hidden hover:scale-[1.02] transition-all duration-500"
     >
-      <div className="flex flex-column align-items-center p-4">
-        <img
-          src={item.image}
-          alt={item.title}
-          className="mb-3"
-          style={{
-            width: 72,
-            height: 72,
-            objectFit: 'cover',
-            borderRadius: '50%',
-            border: '3px solid #16a34a',
-            boxShadow: '0 2px 8px rgba(22,163,74,0.08)'
-          }}
-        />
-        <div className="font-bold text-lg mb-1">{item.title}</div>
-        <div className="flex align-items-center gap-2 mb-2">
-          <Badge
-            value={item.type === 'lost' ? 'Lost' : 'Found'}
-            severity={item.type === 'lost' ? 'danger' : 'success'}
-            className="text-xs"
+      <div className="p-8 flex flex-col items-center text-center">
+        <div className="relative mb-6">
+          <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-xl group-hover:blur-2xl transition-all"></div>
+          <img
+            src={item.image}
+            alt={item.title}
+            className="relative w-24 h-24 object-cover rounded-full border-4 border-white shadow-lg"
           />
-          <span className="text-gray-500 text-sm">{item.location}</span>
+          <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white p-2 rounded-full shadow-lg">
+            <PartyPopper size={16} />
+          </div>
         </div>
-        <div className="text-xs text-gray-400 mb-2">{item.timeAgo}</div>
+
+        <h4 className="text-xl font-black text-slate-900 mb-2 group-hover:text-emerald-600 transition-colors">{item.title}</h4>
+        
+        <div className="flex items-center gap-3 mb-4">
+          <StatusBadge status={item.type === 'lost' ? 'lost' : 'found'} />
+          <div className="flex items-center gap-1 text-slate-400 text-xs font-bold">
+            <MapPin size={12} /> {item.location}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1 text-slate-300 text-[10px] font-black uppercase tracking-widest mb-6">
+          <Clock size={10} /> {item.timeAgo}
+        </div>
+
         <Button
-          label="View Details"
-          icon="pi pi-external-link"
-          className="p-button-text p-button-sm"
-          style={{
-            color: '#2563eb',
-            fontWeight: 600
-          }}
+          variant="ghost"
+          size="sm"
+          className="w-full rounded-xl bg-slate-50 hover:bg-emerald-50 hover:text-emerald-600 font-bold group/btn"
           onClick={() => navigate(`/success-stories/${item.id}`)}
-        />
+        >
+          Read Story
+          <ExternalLink size={14} className="ml-2 opacity-0 group-hover/btn:opacity-100 transition-all" />
+        </Button>
       </div>
     </Card>
   );
 
   return (
-    <div className={`${isBelowDesktop ? 'px-4' : 'px-8'} py-6`} style={{ backgroundColor: '#3c5547ff', color: 'white' }}>
-      <div className="text-center mb-6">
-        <h3 className="text-2xl font-bold text-white mb-2">Recent Success Stories 🎉</h3>
-        <p className="text-gray-200 mb-4">See how our community helps reunite people with their belongings</p>
-        <Button
-          label="View All Success Stories"
-          icon="pi pi-arrow-right"
-          iconPos="right"
-          className="p-button-outlined p-button-sm"
-          style={{
-            color: '#fff',
-            borderColor: '#fff',
-            backgroundColor: 'transparent'
-          }}
-          onClick={() => navigate('/success-stories')}
-        />
+    <div className="bg-slate-900 py-24 relative overflow-hidden">
+      {/* Decorative Background Elements */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-10">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500 rounded-full blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500 rounded-full blur-[120px]"></div>
       </div>
 
-      {/* Responsive grid for desktop, stacked for mobile */}
-      {isBelowDesktop ? (
-        <div className="grid gap-4">
-          {recentSuccesses.map((item) => (
-            <div key={item.id} className="col-12">
-              {renderSuccessCard(item)}
+      <Container className="relative z-10">
+        <div className="flex flex-col md:flex-row items-end justify-between mb-16 gap-8">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-bold mb-6">
+              <PartyPopper size={16} />
+              Community Success
             </div>
-          ))}
+            <h2 className="text-4xl md:text-5xl font-black text-white mb-4">Recent Success Stories</h2>
+            <p className="text-slate-400 text-lg font-medium">
+              Every match is a victory. See how our community helps reunite people with their most valued belongings.
+            </p>
+          </div>
+          
+          <Button
+            variant="ghost"
+            className="text-white border-white/20 hover:bg-white/10 rounded-2xl px-8 h-14 font-bold"
+            onClick={() => navigate('/success-stories')}
+          >
+            View All Stories
+            <ArrowRight size={18} className="ml-2" />
+          </Button>
         </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', alignItems: 'center', width: '100%' }}>
-          {/* Desktop custom layout */}
-          {recentSuccesses.length === 1 && (
-            <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-              <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-                {renderSuccessCard(recentSuccesses[0])}
-              </div>
-            </div>
-          )}
-          {recentSuccesses.length === 2 && (
-            <div style={{ display: 'flex', gap: '1.5rem', width: '100%' }}>
-              {recentSuccesses.map((item) => (
-                <div key={item.id} style={{ flex: 1 }}>
-                  {renderSuccessCard(item)}
-                </div>
-              ))}
-            </div>
-          )}
-          {(recentSuccesses.length === 3 || recentSuccesses.length === 4) && (
-            <div style={{ display: 'flex', gap: '1.5rem', width: '100%' }}>
-              {recentSuccesses.map((item) => (
-                <div key={item.id} style={{ flex: 1 }}>
-                  {renderSuccessCard(item)}
-                </div>
-              ))}
-            </div>
-          )}
-          {recentSuccesses.length === 5 && (
-            <>
-              <div style={{ display: 'flex', gap: '1.5rem', width: '100%' }}>
-                {recentSuccesses.slice(0, 3).map((item) => (
-                  <div key={item.id} style={{ flex: 1 }}>
-                    {renderSuccessCard(item)}
-                  </div>
-                ))}
-              </div>
-              <div style={{ display: 'flex', gap: '1.5rem', width: '100%', marginTop: '1.5rem' }}>
-                {recentSuccesses.slice(3, 5).map((item) => (
-                  <div key={item.id} style={{ flex: 1 }}>
-                    {renderSuccessCard(item)}
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      )}
+
+        <Grid cols={3} gap={8}>
+          {recentSuccesses.map((item) => renderSuccessCard(item))}
+        </Grid>
+      </Container>
     </div>
   );
 };

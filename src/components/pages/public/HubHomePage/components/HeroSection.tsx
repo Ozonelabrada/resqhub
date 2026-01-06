@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from 'primereact/button';
-import { Logo } from '../../../../ui';
+import { User, LogIn } from 'lucide-react';
+import { Button, Logo } from '../../../../ui';
 
 interface HeroSectionProps {
   isAuthenticated: boolean;
@@ -46,7 +46,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
         }
         .hero-wrapper {
-          background: linear-gradient(-45deg, #4A90E2, #50C878, #FFB347, #4A90E2);
+          background: linear-gradient(-45deg, #0d9488, #059669, #ea580c, #0d9488);
           background-size: 400% 400%;
           animation: gradientShift 18s ease infinite;
         }
@@ -86,22 +86,24 @@ const HeroSection: React.FC<HeroSectionProps> = ({
             <div className="flex items-center gap-3 bg-white/10 p-2 rounded-full border border-white/20">
               <div className="text-right hidden sm:block pl-2">
                 <div className="text-[10px] uppercase font-bold text-white/70">Account</div>
-                <div className="text-sm font-semibold">{userData?.email?.split('@')[0]}</div>
+                <div className="text-sm font-semibold text-white">{userData?.email?.split('@')[0]}</div>
               </div>
               <div 
                 className="w-10 h-10 rounded-full bg-white flex items-center justify-center cursor-pointer shadow-lg hover:scale-105 transition-transform"
                 onClick={onShowAccountMenu}
               >
-                <i className="pi pi-user text-blue-600"></i>
+                <User size={20} className="text-teal-600" />
               </div>
             </div>
           ) : (
             <Button 
-              label={isBelowDesktop ? "" : "Sign In"} 
-              icon="pi pi-user" 
-              className="p-button-rounded p-button-text text-white bg-white/10 border-white/30"
+              variant="ghost"
+              className="bg-white/10 hover:bg-white/20 text-white border-white/20"
               onClick={onShowGuestMenu}
-            />
+            >
+              <User size={18} className={isBelowDesktop ? '' : 'mr-2'} />
+              {!isBelowDesktop && "Sign In"}
+            </Button>
           )}
         </div>
       </nav>
@@ -136,23 +138,19 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         {/* CTA Buttons */}
         <div className={`flex gap-4 w-full justify-center ${isBelowDesktop ? 'flex-col' : ''}`}>
           <Button
-            label="I Lost Something"
-            icon="pi pi-exclamation-circle"
+            size="lg"
             onClick={() => onReportAction('lost')}
-            className="p-button-lg px-8 py-4 bg-[#E74C3C] border-none rounded-xl shadow-xl hover:-translate-y-1 transition-all"
-          />
+            className="px-8 py-4 bg-[#E74C3C] border-none rounded-xl shadow-xl hover:-translate-y-1 transition-all text-white"
+          >
+            I Lost Something
+          </Button>
           <Button
-            label="I Found Something"
-            icon="pi pi-heart-fill"
+            size="lg"
             onClick={() => onReportAction('found')}
-            className="p-button-lg px-8 py-4 bg-[#27AE60] border-none rounded-xl shadow-xl hover:-translate-y-1 transition-all"
-          />
-          <Button
-            label="Search Database"
-            icon="pi pi-search"
-            onClick={() => navigate('/search')}
-            className="p-button-lg px-8 py-4 bg-[#4A90E2] border-none rounded-xl shadow-xl hover:-translate-y-1 transition-all"
-          />
+            className="px-8 py-4 bg-[#27AE60] border-none rounded-xl shadow-xl hover:-translate-y-1 transition-all text-white"
+          >
+            I Found Something
+          </Button>
         </div>
       </div>
 

@@ -1,13 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { Dialog } from 'primereact/dialog';
-import { InputText } from 'primereact/inputtext';
-import { InputTextarea } from 'primereact/inputtextarea';
-import { Dropdown } from 'primereact/dropdown';
-import { Button } from 'primereact/button';
-import { FileUpload } from 'primereact/fileupload';
-import { Toast } from 'primereact/toast';
-import { ProgressSpinner } from 'primereact/progressspinner';
-
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  Modal, 
+  ModalHeader, 
+  ModalBody, 
+  ModalFooter, 
+  Button, 
+  Input, 
+  Textarea, 
+  Select, 
+  Spinner,
+  Alert,
+  Toast
+} from '../../ui';
+import { 
+  Camera, 
+  MapPin, 
+  Tag, 
+  Info, 
+  DollarSign, 
+  Phone, 
+  X, 
+  Upload, 
+  CheckCircle2,
+  AlertCircle,
+  Navigation
+} from 'lucide-react';
 import { ItemsService } from '../../../services/itemsService';
 import { CategoryService } from '../../../services/categoryService';
 import { useAuth } from '../../../context/AuthContext';
@@ -182,140 +199,159 @@ export const ReportModal: React.FC<ReportModalProps> = ({
     }
   };
 
-  const footer = (
-    <div className="flex justify-end gap-2">
-      <Button
-        label="Cancel"
-        icon="pi pi-times"
-        onClick={onHide}
-        className="p-button-text"
-      />
-      <Button
-        label="Submit Report"
-        icon="pi pi-check"
-        onClick={handleSubmit}
-        loading={loading}
-        className="p-button-primary"
-      />
-    </div>
-  );
-
   return (
-    <>
+    <Modal 
+      isOpen={visible} 
+      onClose={onHide} 
+      title={`Report ${reportType === 'lost' ? 'Lost' : 'Found'} Item`}
+      size="lg"
+    >
       <Toast ref={setToast} />
-      <Dialog
-        header={`Report ${reportType === 'lost' ? 'Lost' : 'Found'} Item`}
-        visible={visible}
-        onHide={onHide}
-        style={{ width: '600px' }}
-        footer={footer}
-        modal
-        closable={!loading}
-      >
+      
+      <ModalBody className="p-6 md:p-8 space-y-6">
         {loading ? (
-          <div className="flex flex-column align-items-center p-4">
-            <ProgressSpinner />
-            <p className="mt-3">Submitting your report...</p>
+          <div className="flex flex-col items-center justify-center py-12 space-y-4">
+            <Spinner size="xl" variant="primary" />
+            <p className="text-slate-500 animate-pulse">Submitting your report...</p>
           </div>
         ) : (
-          <div className="flex flex-column gap-3">
-            <div className="field">
-              <label htmlFor="title" className="block text-900 font-medium mb-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="md:col-span-2 space-y-2">
+              <label htmlFor="title" className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                <Tag className="w-4 h-4 text-blue-500" />
                 Title *
               </label>
-              <InputText
+              <Input
                 id="title"
                 value={formData.title}
                 onChange={(e) => handleInputChange('title', e.target.value)}
                 placeholder="Brief title for your report"
-                className="w-full"
+                className="rounded-2xl"
               />
             </div>
 
-            <div className="field">
-              <label htmlFor="description" className="block text-900 font-medium mb-2">
+            <div className="md:col-span-2 space-y-2">
+              <label htmlFor="description" className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                <Info className="w-4 h-4 text-teal-600" />
                 Description *
               </label>
-              <InputTextarea
+              <Textarea
                 id="description"
                 value={formData.description}
                 onChange={(e) => handleInputChange('description', e.target.value)}
                 placeholder="Detailed description of the item"
                 rows={4}
-                className="w-full"
+                className="rounded-2xl shadow-sm focus:ring-teal-600 focus:border-teal-600"
               />
             </div>
 
-            <div className="field">
-              <label htmlFor="category" className="block text-900 font-medium mb-2">
+            <div className="space-y-2">
+              <label htmlFor="category" className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                <Tag className="w-4 h-4 text-emerald-600" />
                 Category *
               </label>
-              <Dropdown
+              <Select
                 id="category"
-                value={formData.categoryId}
-                options={categories}
-                onChange={(e) => handleInputChange('categoryId', e.value)}
+                value={formData.categoryId?.toString() || ''}
+                options={categories.map(cat => ({ label: cat.label, value: cat.value.toString() }))}
+                onChange={(value) => handleInputChange('categoryId', parseInt(value))}
                 placeholder="Select a category"
-                className="w-full"
+                className="rounded-2xl shadow-sm focus:ring-emerald-600 focus:border-emerald-600"
               />
             </div>
 
-            <div className="field">
-              <label htmlFor="location" className="block text-900 font-medium mb-2">
+            <div className="space-y-2">
+              <label htmlFor="location" className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-orange-600" />
                 Location *
               </label>
-              <InputText
+              <Input
                 id="location"
                 value={formData.location}
                 onChange={(e) => handleInputChange('location', e.target.value)}
                 placeholder="Where was the item lost/found?"
-                className="w-full"
+                className="rounded-2xl shadow-sm focus:ring-orange-600 focus:border-orange-600"
               />
             </div>
 
-            <div className="field">
-              <label htmlFor="contactInfo" className="block text-900 font-medium mb-2">
+            <div className="md:col-span-2 space-y-2">
+              <label htmlFor="contactInfo" className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                <Phone className="w-4 h-4 text-teal-600" />
                 Contact Information *
               </label>
-              <InputTextarea
+              <Textarea
                 id="contactInfo"
                 value={formData.contactInfo}
                 onChange={(e) => handleInputChange('contactInfo', e.target.value)}
                 placeholder="How can people reach you? (e.g., Name, Phone, Email)"
                 rows={2}
-                className="w-full"
+                className="rounded-2xl shadow-sm focus:ring-teal-600 focus:border-teal-600"
               />
             </div>
 
-            <div className="field">
-              <label htmlFor="reward" className="block text-900 font-medium mb-2">
+            <div className="space-y-2">
+              <label htmlFor="reward" className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                <DollarSign className="w-4 h-4 text-orange-600" />
                 Reward (Optional)
               </label>
-              <InputText
+              <Input
                 id="reward"
                 value={formData.reward}
                 onChange={(e) => handleInputChange('reward', e.target.value)}
                 placeholder="Any reward offered?"
-                className="w-full"
+                className="rounded-2xl"
               />
             </div>
 
-            <div className="field">
-              <label className="block text-900 font-medium mb-2">
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                <Camera className="w-4 h-4 text-teal-600" />
                 Images (Optional)
               </label>
-              <FileUpload
-                mode="basic"
-                accept="image/*"
-                maxFileSize={1000000}
-                onSelect={handleFileSelect}
-                chooseLabel="Choose Images"
-                multiple
-              />
+              <div className="relative">
+                <input
+                  type="file"
+                  id="images"
+                  multiple
+                  accept="image/*"
+                  onChange={(e) => {
+                    const files = e.target.files;
+                    if (files) {
+                      handleFileSelect({ files: Array.from(files) });
+                    }
+                  }}
+                  className="hidden"
+                />
+                <label 
+                  htmlFor="images"
+                  className="flex items-center justify-center gap-2 w-full p-3 border-2 border-dashed border-slate-200 rounded-2xl hover:border-teal-400 hover:bg-teal-50 transition-all cursor-pointer text-slate-500"
+                >
+                  <Upload className="w-5 h-5" />
+                  <span>{formData.images.length > 0 ? `${formData.images.length} images selected` : 'Choose Images'}</span>
+                </label>
+              </div>
             </div>
           </div>
         )}
-      </Dialog>
-    </>
+      </ModalBody>
+
+      <ModalFooter className="bg-slate-50/50 p-6 flex justify-end gap-4">
+        <Button 
+          variant="ghost" 
+          onClick={onHide}
+          disabled={loading}
+          className="rounded-xl px-6 font-bold"
+        >
+          Cancel
+        </Button>
+        <Button 
+          onClick={handleSubmit}
+          isLoading={loading}
+          className="rounded-xl px-8 bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-100 font-bold transition-all active:scale-95"
+        >
+          Submit Report
+        </Button>
+      </ModalFooter>
+    </Modal>
   );
 };

@@ -34,5 +34,28 @@ export const ReportsService = {
       console.error('Error fetching reports:', error);
       return [];
     }
+  },
+
+  async createReport(payload: {
+    userId: string;
+    categoryId: number;
+    title: string;
+    description: string;
+    location: string;
+    contactInfo: string;
+    rewardDetails: string;
+    reportType: number;
+    images?: string[];
+  }): Promise<{ success: boolean; data?: any; message?: string }> {
+    try {
+      const response = await api.post('/reports', payload);
+      return { success: true, data: response.data };
+    } catch (error: any) {
+      console.error('Error creating report:', error);
+      return { 
+        success: false, 
+        message: error?.response?.data?.message || 'Failed to create report' 
+      };
+    }
   }
 };

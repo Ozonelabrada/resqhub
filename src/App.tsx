@@ -1,13 +1,14 @@
-import { useEffect, useState, lazy, Suspense } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { useEffect, useState, lazy, Suspense, useRef } from 'react';
+import { Routes, Route } from 'react-router-dom';
+
+// UI Components
+import { Toast, Spinner } from './components/ui';
 
 // Public Pages (Lazy Loaded)
 const HubHomePage = lazy(() => import('./components/pages/public/HubHomePage/HubHomePage'));
-const SearchItemsPage = lazy(() => import('./components/pages/public/SearchItemPage/SearchItemsPage'));
 const SignUpPage = lazy(() => import('./components/pages/public/SignUpPage/SignUpPage'));
 const PersonalHubPage = lazy(() => import('./components/pages/public/PersonalHubPage/PersonalHubPage'));
-const ProfilePage = lazy(() => import('./components/pages/public/PersonalHubPage/ProfilePage'));
-const NewsFeedPage = lazy(() => import('./components/pages/public/PersonalHubPage/NewsFeedPage/NewsFeedPage'));
+const NewsFeedPage = lazy(() => import('./components/pages/public/NewsFeedPage/NewsFeedPage'));
 
 // Shared Pages
 import NotFoundPage from './components/shared/NotFoundPage/NotFoundPage';
@@ -15,21 +16,13 @@ import UnderMaintenancePage from './components/shared/UnderMaintenancePage/Under
 
 // Layouts
 import PublicLayout from './layouts/PublicLayout';
-import LoginPage from './components/shared/LoginPage/LoginPage';
 
 // Auth Components
 import AuthGuard from './components/common/AuthGuard';
 
-import { AuthService } from './services/authService';
-import { authManager } from './utils/sessionManager';
-import { useAuth } from './context/AuthContext';
-import { Toast } from 'primereact/toast';
-import { useRef } from 'react';
-import { ProgressSpinner } from 'primereact/progressspinner';
-
 const LoadingFallback = () => (
-  <div className="flex align-items-center justify-content-center min-h-screen">
-    <ProgressSpinner />
+  <div className="flex items-center justify-center min-h-screen bg-slate-50">
+    <Spinner size="lg" />
   </div>
 );
 
@@ -44,9 +37,6 @@ const AppRouter = () => {
           </AuthGuard>
         }>
           <Route index element={<HubHomePage />} />
-          <Route path="search" element={<SearchItemsPage />} />
-          <Route path="login" element={<LoginPage />} />
-          <Route path="signin" element={<LoginPage />} />
           <Route path="signup" element={<SignUpPage />} />
         </Route>
 
@@ -56,9 +46,9 @@ const AppRouter = () => {
             <PublicLayout />
           </AuthGuard>
         }>
-          <Route path="hub" element={<PersonalHubPage />} />
+          <Route path="hub" element={<NewsFeedPage />} />
           <Route path="feed" element={<NewsFeedPage />} />
-          <Route path="profile" element={<ProfilePage />} />
+          <Route path="profile" element={<PersonalHubPage />} />
         </Route>
 
         {/* 🚧 UTILITY ROUTES */}

@@ -1,11 +1,34 @@
 import React, { useState } from 'react';
-import { Dialog } from 'primereact/dialog';
-import { Button } from 'primereact/button';
-import { Badge } from 'primereact/badge';
-import { Divider } from 'primereact/divider';
-import { Card } from 'primereact/card';
-import { Timeline } from 'primereact/timeline';
-import { Avatar } from 'primereact/avatar';
+import { 
+  Modal, 
+  ModalHeader, 
+  ModalBody, 
+  ModalFooter, 
+  Button, 
+  Badge, 
+  StatusBadge,
+  Avatar,
+  Card,
+  Grid,
+  GridItem,
+  Timeline
+} from '../../ui';
+import { 
+  MapPin, 
+  Calendar, 
+  Tag, 
+  User, 
+  Phone, 
+  Mail, 
+  MessageSquare, 
+  Share2, 
+  Flag,
+  ChevronLeft,
+  ChevronRight,
+  Info,
+  CheckCircle2,
+  Clock
+} from 'lucide-react';
 import CommentSection from '../../features/comments/CommentSection';
 import { useAuth } from '../../../context/AuthContext';
 
@@ -51,209 +74,210 @@ const ItemDetailsModal: React.FC<ItemDetailsModalProps> = ({ visible, onHide, it
     setShowContactInfo(true);
   };
 
-  const getStatusSeverity = (status: string) => {
-    switch (status) {
-      case 'active': return 'info';
-      case 'claimed': return 'warning';
-      case 'returned': return 'success';
-      default: return 'info';
+  const nextImage = () => {
+    if (item.images.length > 0) {
+      setActiveImageIndex((prev) => (prev + 1) % item.images.length);
     }
   };
 
-  const formatStatus = (status: string) => {
-    return status.charAt(0).toUpperCase() + status.slice(1);
-  };
-
-  // Simple timeline events
-  const timelineEvents = [
-    {
-      status: 'Item Reported',
-      date: item.date,
-      icon: 'pi pi-flag',
-      color: '#3b82f6'
-    },
-    {
-      status: 'Under Investigation',
-      date: new Date(new Date(item.date).getTime() + 2 * 60 * 60 * 1000).toISOString(),
-      icon: 'pi pi-search',
-      color: '#f59e0b'
+  const prevImage = () => {
+    if (item.images.length > 0) {
+      setActiveImageIndex((prev) => (prev - 1 + item.images.length) % item.images.length);
     }
-  ];
+  };
 
   return (
-    <Dialog
-      header={item.title}
-      visible={visible}
-      onHide={onHide}
-      style={{ width: '90vw', maxWidth: '800px' }}
-      modal
-      maximizable
+    <Modal 
+      isOpen={visible} 
+      onClose={onHide} 
+      title={item.title}
+      size="xl"
     >
-      <div className="p-3">
-        {/* Header Info */}
-        <div className="flex align-items-center gap-3 mb-4">
-          <Badge 
-            value={item.type.toUpperCase()} 
-            severity={item.type === 'lost' ? 'danger' : 'success'}
-          />
-          <Badge 
-            value={formatStatus(item.status)} 
-            severity={getStatusSeverity(item.status)}
-          />
-          <span className="text-gray-500">•</span>
-          <span className="text-gray-500">{item.category}</span>
-        </div>
-
-        {/* Image */}
-        <div className="mb-4">
-          <img
-            src={item.images[activeImageIndex] || '/placeholder-image.jpg'}
-            alt={item.title}
-            className="w-full border-round"
-            style={{ height: '300px', objectFit: 'cover' }}
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik0xNTAgMTIwSDE1OFYxMjhIMTY2VjEzNkgxNzRWMTQ0SDE4MlYxNTJIMTkwVjE2MEgxOThWMTY4SDIwNlYxNzZIMjE0VjE4NEgyMjJWMTkySDIzMFYyMDBIMjM4VjIwOEgyNDZWMjE2SDI1NFYyMjRIMjYyVjIzMkgyNzBWMjQwSDI3OFYyNDhIMjg2VjI1NkgyOTRWMjY0SDMwMlYyNzJIMzEwVjI4MEgzMThWMjg4SDMyNlYyOTZIMzM0VjMwNEgzNDJWMzEySDM1MFYzMjBIMzU4VjMyOEgzNjZWMzM2SDM3NFYzNDRIMzgyVjM1MkgzODBWMzQ0SDM3MlYzMzZIMzY0VjMyOEgzNTZWMzIwSDM0OFYzMTJIMzQwVjMwNEgzMzJWMjk2SDMyNFYyODhIMzE2VjI4MEgzMDhWMjcySDMwMFYyNjRIMjkyVjI1NkgyODRWMjQ4SDI3NlYyNDBIMjY4VjIzMkgyNjBWMjI0SDI1MlYyMTZIMjQ0VjIwOEgyMzZWMjAwSDIyOFYxOTJIMjIwVjE4NEgyMTJWMTc2SDIwNFYxNjhIMTk2VjE2MEgxODhWMTUySDI4MFYxNDRIMTcyVjEzNkgxNjRWMTI4SDE1NlYxMjBIMTUwWiIgZmlsbD0iI0M0QzRDNCIvPgo8L3N2Zz4K';
-            }}
-          />
-          
-          {item.images.length > 1 && (
-            <div className="flex gap-2 justify-content-center mt-2">
-              {item.images.map((_, index) => (
-                <Button
-                  key={index}
-                  className={`p-button-rounded p-button-sm ${index === activeImageIndex ? 'p-button-primary' : 'p-button-outlined'}`}
-                  style={{ width: '10px', height: '10px' }}
-                  onClick={() => setActiveImageIndex(index)}
+      <ModalBody className="p-0">
+        <div className="flex flex-col lg:flex-row">
+          {/* Left Side: Image Gallery */}
+          <div className="lg:w-1/2 bg-slate-900 relative group min-h-[400px] flex items-center justify-center">
+            {item.images && item.images.length > 0 ? (
+              <>
+                <img 
+                  src={item.images[activeImageIndex]} 
+                  alt={item.title}
+                  className="w-full h-full object-contain max-h-[600px]"
                 />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Description */}
-        <div className="mb-4">
-          <h3 className="mb-2">Description</h3>
-          <p className="text-gray-700 line-height-3">{item.description}</p>
-        </div>
-
-        {/* Details Grid */}
-        <div className="grid mb-4">
-          <div className="col-6">
-            <div className="mb-3">
-              <strong>Location:</strong>
-              <div className="flex align-items-center gap-2 mt-1">
-                <i className="pi pi-map-marker text-primary"></i>
-                <span>{item.location}</span>
-              </div>
-            </div>
-          </div>
-          <div className="col-6">
-            <div className="mb-3">
-              <strong>Date:</strong>
-              <div className="flex align-items-center gap-2 mt-1">
-                <i className="pi pi-calendar text-primary"></i>
-                <span>{new Date(item.date).toLocaleDateString()}</span>
-              </div>
-            </div>
-          </div>
-          <div className="col-6">
-            <div className="mb-3">
-              <strong>Case ID:</strong>
-              <div className="flex align-items-center gap-2 mt-1">
-                <i className="pi pi-hashtag text-primary"></i>
-                <span>#{item.id.toString().padStart(6, '0')}</span>
-              </div>
-            </div>
-          </div>
-          <div className="col-6">
-            <div className="mb-3">
-              <strong>Status:</strong>
-              <div className="mt-1">
-                <Badge 
-                  value={formatStatus(item.status)} 
-                  severity={getStatusSeverity(item.status)}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Timeline */}
-        <div className="mb-4">
-          <h3 className="mb-3">Timeline</h3>
-          <Timeline 
-            value={timelineEvents} 
-            align="left"
-            content={(event) => (
-              <div>
-                <div className="font-semibold">{event.status}</div>
-                <div className="text-sm text-gray-500">
-                  {new Date(event.date).toLocaleString()}
-                </div>
+                
+                {item.images.length > 1 && (
+                  <>
+                    <button 
+                      onClick={prevImage}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/20 hover:bg-black/40 text-white transition-all opacity-0 group-hover:opacity-100"
+                    >
+                      <ChevronLeft className="w-6 h-6" />
+                    </button>
+                    <button 
+                      onClick={nextImage}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/20 hover:bg-black/40 text-white transition-all opacity-0 group-hover:opacity-100"
+                    >
+                      <ChevronRight className="w-6 h-6" />
+                    </button>
+                    
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                      {item.images.map((_, idx) => (
+                        <div 
+                          key={idx}
+                          className={`w-2 h-2 rounded-full transition-all ${idx === activeImageIndex ? 'bg-white w-4' : 'bg-white/40'}`}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </>
+            ) : (
+              <div className="flex flex-col items-center text-slate-500">
+                <ImageIcon className="w-16 h-16 mb-2 opacity-20" />
+                <p>No images available</p>
               </div>
             )}
-            marker={(event) => (
-              <div 
-                className="flex align-items-center justify-content-center text-white border-circle"
-                style={{ 
-                  backgroundColor: event.color,
-                  width: '32px',
-                  height: '32px'
-                }}
-              >
-                <i className={event.icon}></i>
-              </div>
-            )}
-          />
-        </div>
+            
+            <div className="absolute top-4 left-4 flex gap-2">
+              <Badge variant={item.type === 'lost' ? 'danger' : 'success'} className="px-3 py-1 rounded-full shadow-lg">
+                {item.type.toUpperCase()}
+              </Badge>
+              <StatusBadge status={item.status} className="shadow-lg" />
+            </div>
+          </div>
 
-        <Divider />
-
-        {/* Contact Section */}
-        <div className="text-center">
-          <Button
-            label={showContactInfo ? 'Hide Contact Info' : 'Contact Owner'}
-            icon="pi pi-envelope"
-            className="p-button-primary"
-            onClick={handleContactOwner}
-          />
-
-          {showContactInfo && item.contactInfo && (
-            <Card className="mt-3 bg-green-50">
-              <div className="flex align-items-center gap-3 justify-content-center">
-                <Avatar 
-                  icon="pi pi-user" 
-                  shape="circle" 
-                  style={{ backgroundColor: '#10b981', color: 'white' }} 
-                />
-                <div className="text-left">
-                  <div className="font-semibold">{item.contactInfo.name}</div>
-                  {item.contactInfo.phone && (
-                    <div className="text-sm">📞 {item.contactInfo.phone}</div>
-                  )}
-                  {item.contactInfo.email && (
-                    <div className="text-sm">✉️ {item.contactInfo.email}</div>
-                  )}
+          {/* Right Side: Details */}
+          <div className="lg:w-1/2 p-6 md:p-10 space-y-8 overflow-y-auto max-h-[80vh]">
+            <div className="space-y-4">
+              <div className="flex justify-between items-start">
+                <h2 className="text-3xl font-bold text-slate-800">{item.title}</h2>
+                <div className="flex gap-2">
+                  <Button variant="ghost" size="sm" className="rounded-full w-10 h-10 p-0">
+                    <Share2 className="w-5 h-5" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="rounded-full w-10 h-10 p-0 text-red-500 hover:bg-red-50">
+                    <Flag className="w-5 h-5" />
+                  </Button>
                 </div>
               </div>
-            </Card>
-          )}
-        </div>
 
-        <Divider className="my-4" />
+              <div className="flex flex-wrap gap-4 text-sm font-medium text-slate-500">
+                <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full">
+                  <MapPin className="w-4 h-4 text-blue-500" />
+                  {item.location}
+                </div>
+                <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full">
+                  <Calendar className="w-4 h-4 text-blue-500" />
+                  {new Date(item.date).toLocaleDateString()}
+                </div>
+                <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full">
+                  <Tag className="w-4 h-4 text-blue-500" />
+                  {item.category}
+                </div>
+              </div>
+            </div>
 
-        {/* Comments Section */}
-        <div>
-          <h3 className="mb-3">Community Comments</h3>
-          <CommentSection 
-            itemId={item.id}
-            itemType={item.type}
-            itemOwnerId={item.ownerId}
-          />
+            <div className="space-y-3">
+              <h4 className="text-lg font-bold text-slate-800">Description</h4>
+              <p className="text-slate-600 leading-relaxed">
+                {item.description}
+              </p>
+            </div>
+
+            {/* Contact Section */}
+            <div className="bg-blue-50/50 rounded-[2rem] p-6 border border-blue-100/50">
+              {!showContactInfo ? (
+                <div className="text-center space-y-4">
+                  <p className="text-slate-600 font-medium">Need to get in touch with the owner?</p>
+                  <Button 
+                    onClick={handleContactOwner}
+                    className="w-full rounded-2xl bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200 py-6"
+                  >
+                    <MessageSquare className="w-5 h-5 mr-2" />
+                    Contact Owner
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <h4 className="font-bold text-blue-900 flex items-center gap-2">
+                    <User className="w-5 h-5" />
+                    Contact Information
+                  </h4>
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="flex items-center gap-3 bg-white p-3 rounded-xl border border-blue-100">
+                      <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                        <User className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-400 font-medium">Name</p>
+                        <p className="font-bold text-slate-700">{item.contactInfo?.name || 'Anonymous'}</p>
+                      </div>
+                    </div>
+                    {item.contactInfo?.phone && (
+                      <div className="flex items-center gap-3 bg-white p-3 rounded-xl border border-blue-100">
+                        <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                          <Phone className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-400 font-medium">Phone</p>
+                          <p className="font-bold text-slate-700">{item.contactInfo.phone}</p>
+                        </div>
+                      </div>
+                    )}
+                    {item.contactInfo?.email && (
+                      <div className="flex items-center gap-3 bg-white p-3 rounded-xl border border-blue-100">
+                        <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                          <Mail className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-400 font-medium">Email</p>
+                          <p className="font-bold text-slate-700">{item.contactInfo.email}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Timeline Section */}
+            <div className="space-y-4">
+              <h4 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <Clock className="w-5 h-5 text-blue-500" />
+                Item History
+              </h4>
+              <Timeline 
+                items={[
+                  {
+                    title: 'Item Reported',
+                    description: `Reported as ${item.type} in ${item.location}`,
+                    time: new Date(item.date).toLocaleDateString(),
+                    icon: <Flag className="w-4 h-4" />,
+                    status: 'completed'
+                  },
+                  {
+                    title: 'Under Review',
+                    description: 'Our team is verifying the report details',
+                    time: 'Processing',
+                    icon: <Info className="w-4 h-4" />,
+                    status: 'current'
+                  }
+                ]}
+              />
+            </div>
+
+            {/* Comments Section */}
+            <div className="pt-6 border-t border-slate-100">
+              <CommentSection 
+                itemId={item.id}
+                itemType={item.type}
+                itemOwnerId={item.ownerId}
+              />
+            </div>
+          </div>
         </div>
-      </div>
-    </Dialog>
+      </ModalBody>
+    </Modal>
   );
 };
 

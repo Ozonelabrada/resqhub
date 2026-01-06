@@ -19,7 +19,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
   // Show loading spinner while checking authentication (only for protected routes)
   if (isLoading && requireAuth) {
     return (
-      <div className="min-h-screen flex align-items-center justify-content-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
@@ -30,8 +30,9 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
 
   // Handle authentication requirements
   if (requireAuth && !isAuthenticated) {
-    // Redirect to signin with return path
-    return <Navigate to="/signin" state={{ from: location }} replace />;
+    // Redirect to home with return path
+    // The PublicLayout or specific hooks will notice if we need to open the login modal
+    return <Navigate to="/" state={{ from: location, openLogin: true }} replace />;
   }
 
   return <>{children}</>;

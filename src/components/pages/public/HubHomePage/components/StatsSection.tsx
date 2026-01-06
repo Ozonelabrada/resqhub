@@ -1,5 +1,6 @@
 import React from 'react';
-import { Card } from 'primereact/card';
+import { Package, CheckCircle2, FileText, MapPin, Users, Clock, ShieldCheck } from 'lucide-react';
+import { Card, Grid, Container } from '../../../../ui';
 
 interface StatsSectionProps {
   stats: any;
@@ -10,109 +11,105 @@ const StatsSection: React.FC<StatsSectionProps> = ({ stats, isBelowDesktop }) =>
   if (!stats) return null;
 
   return (
-    <div className={`${isBelowDesktop ? 'px-4' : 'px-8'} py-6`} style={{ backgroundColor: '#f1f5f9' }}>
-      <div className="grid">
-        <div className="col-6 md:col-3">
-          <Card className="text-center h-full border-0 shadow-2"
-                style={{ backgroundColor: '#dbeafe', borderLeft: '4px solid #3b82f6' }}>
-            <div className="p-3">
-              <div className="text-2xl font-bold text-blue-700 mb-2">
-                {stats.totalItems.toLocaleString()}
-              </div>
-              <div className="text-gray-700 font-medium">Total Items</div>
-              <div className="text-xs text-gray-500 mt-1">
-                {stats.lostItemsCount} lost, {stats.foundItemsCount} found
+    <div className="bg-slate-50 py-20">
+      <Container>
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-4">Platform Impact</h2>
+          <p className="text-slate-500 font-bold uppercase tracking-widest text-sm">Real-time statistics from our community</p>
+        </div>
+
+        <Grid cols={4} gap={6}>
+          <Card className="p-8 border-none shadow-xl rounded-3xl bg-white hover:scale-105 transition-transform group">
+            <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-600 transition-colors">
+              <Package className="text-blue-600 group-hover:text-white transition-colors" size={28} />
+            </div>
+            <div className="text-4xl font-black text-slate-900 mb-2">
+              {stats.totalItems.toLocaleString()}
+            </div>
+            <div className="text-slate-500 font-bold text-sm uppercase tracking-wider">Total Items</div>
+            <div className="mt-4 pt-4 border-t border-slate-50 flex gap-4">
+              <div className="text-[10px] font-black text-rose-500 uppercase bg-rose-50 px-2 py-1 rounded-md">{stats.lostItemsCount} Lost</div>
+              <div className="text-[10px] font-black text-emerald-500 uppercase bg-emerald-50 px-2 py-1 rounded-md">{stats.foundItemsCount} Found</div>
+            </div>
+          </Card>
+
+          <Card className="p-8 border-none shadow-xl rounded-3xl bg-white hover:scale-105 transition-transform group">
+            <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-emerald-600 transition-colors">
+              <CheckCircle2 className="text-emerald-600 group-hover:text-white transition-colors" size={28} />
+            </div>
+            <div className="text-4xl font-black text-slate-900 mb-2">
+              {stats.successfulMatches.toLocaleString()}
+            </div>
+            <div className="text-slate-500 font-bold text-sm uppercase tracking-wider">Successful Matches</div>
+            <div className="mt-4 pt-4 border-t border-slate-50">
+              <div className="text-[10px] font-black text-emerald-600 uppercase bg-emerald-50 px-2 py-1 rounded-md inline-block">
+                {stats.successRate.toFixed(1)}% Success Rate
               </div>
             </div>
           </Card>
-        </div>
-        <div className="col-6 md:col-3">
-          <Card className="text-center h-full border-0 shadow-2"
-                style={{ backgroundColor: '#dcfce7', borderLeft: '4px solid #16a34a' }}>
-            <div className="p-3">
-              <div className="text-2xl font-bold text-green-700 mb-2">
-                {stats.successfulMatches.toLocaleString()}
-              </div>
-              <div className="text-gray-700 font-medium">Successful Matches</div>
-              <div className="text-xs text-gray-500 mt-1">
-                {stats.successRate.toFixed(1)}% success rate
+
+          <Card className="p-8 border-none shadow-xl rounded-3xl bg-white hover:scale-105 transition-transform group">
+            <div className="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-orange-600 transition-colors">
+              <FileText className="text-orange-600 group-hover:text-white transition-colors" size={28} />
+            </div>
+            <div className="text-4xl font-black text-slate-900 mb-2">
+              {stats.activeReports.toLocaleString()}
+            </div>
+            <div className="text-slate-500 font-bold text-sm uppercase tracking-wider">Active Reports</div>
+            <div className="mt-4 pt-4 border-t border-slate-50">
+              <div className="text-[10px] font-black text-orange-600 uppercase bg-orange-50 px-2 py-1 rounded-md inline-block">
+                {stats.pendingReports} Pending Verification
               </div>
             </div>
           </Card>
-        </div>
-        <div className="col-6 md:col-3">
-          <Card className="text-center h-full border-0 shadow-2"
-                style={{ backgroundColor: '#fed7aa', borderLeft: '4px solid #ea580c' }}>
-            <div className="p-3">
-              <div className="text-2xl font-bold text-orange-700 mb-2">
-                {stats.activeReports.toLocaleString()}
-              </div>
-              <div className="text-gray-700 font-medium">Active Reports</div>
-              <div className="text-xs text-gray-500 mt-1">
-                {stats.pendingReports} pending verification
-              </div>
+
+          <Card className="p-8 border-none shadow-xl rounded-3xl bg-white hover:scale-105 transition-transform group">
+            <div className="w-14 h-14 bg-purple-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-purple-600 transition-colors">
+              <MapPin className="text-purple-600 group-hover:text-white transition-colors" size={28} />
             </div>
-          </Card>
-        </div>
-        <div className="col-6 md:col-3">
-          <Card className="text-center h-full border-0 shadow-2"
-                style={{ backgroundColor: '#e9d5ff', borderLeft: '4px solid #9333ea' }}>
-            <div className="p-3">
-              <div className="text-2xl font-bold text-purple-700 mb-2">
-                {stats.citiesCovered || 0}
-              </div>
-              <div className="text-gray-700 font-medium">Cities Covered</div>
-              <div className="text-xs text-gray-500 mt-1">
+            <div className="text-4xl font-black text-slate-900 mb-2">
+              {stats.citiesCovered || 0}
+            </div>
+            <div className="text-slate-500 font-bold text-sm uppercase tracking-wider">Cities Covered</div>
+            <div className="mt-4 pt-4 border-t border-slate-50">
+              <div className="text-[10px] font-black text-purple-600 uppercase bg-purple-50 px-2 py-1 rounded-md inline-block">
                 {stats.mostActiveCity ? `Most active: ${stats.mostActiveCity}` : 'Growing daily'}
               </div>
             </div>
           </Card>
-        </div>
-      </div>
+        </Grid>
 
-      {/* Additional Stats Row */}
-      <div className="grid mt-4">
-        <div className="col-12 md:col-4">
-          <Card className="text-center h-full border-0 shadow-1"
-                style={{ backgroundColor: '#f0f9ff', borderLeft: '3px solid #0ea5e9' }}>
-            <div className="p-3">
-              <div className="text-lg font-bold text-sky-700 mb-1">
-                {stats.totalUsers.toLocaleString()}
-              </div>
-              <div className="text-gray-600 text-sm">Total Users</div>
+        {/* Secondary Stats */}
+        <Grid cols={3} gap={6} className="mt-8">
+          <div className="flex items-center gap-4 p-6 bg-white rounded-3xl shadow-sm border border-slate-100">
+            <div className="w-12 h-12 bg-sky-50 rounded-xl flex items-center justify-center text-sky-600">
+              <Users size={24} />
             </div>
-          </Card>
-        </div>
-        <div className="col-12 md:col-4">
-          <Card className="text-center h-full border-0 shadow-1"
-                style={{ backgroundColor: '#f0f9ff', borderLeft: '3px solid #0ea5e9' }}>
-            <div className="p-3">
-              <div className="text-lg font-bold text-sky-700 mb-1">
-                {stats.averageMatchTimeFormatted}
-              </div>
-              <div className="text-gray-600 text-sm">Avg. Match Time</div>
+            <div>
+              <div className="text-xl font-black text-slate-900">{stats.totalUsers.toLocaleString()}</div>
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Users</div>
             </div>
-          </Card>
-        </div>
-        <div className="col-12 md:col-4">
-          <Card className="text-center h-full border-0 shadow-1"
-                style={{ backgroundColor: '#f0f9ff', borderLeft: '3px solid #0ea5e9' }}>
-            <div className="p-3">
-              <div className="text-lg font-bold text-sky-700 mb-1">
-                {stats.totalRewardFormatted}
-              </div>
-              <div className="text-gray-600 text-sm">Total Rewards</div>
+          </div>
+          <div className="flex items-center gap-4 p-6 bg-white rounded-3xl shadow-sm border border-slate-100">
+            <div className="w-12 h-12 bg-sky-50 rounded-xl flex items-center justify-center text-sky-600">
+              <Clock size={24} />
             </div>
-          </Card>
-        </div>
-      </div>
-
-      {/* Last Updated Info */}
-      <div className="text-center mt-3">
-        <div className="text-xs text-gray-500">
-          Statistics last updated: {new Date(stats.calculatedAt).toLocaleString()}
-        </div>
-      </div>
+            <div>
+              <div className="text-xl font-black text-slate-900">{stats.averageMatchTimeFormatted}</div>
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Avg. Match Time</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 p-6 bg-white rounded-3xl shadow-sm border border-slate-100">
+            <div className="w-12 h-12 bg-sky-50 rounded-xl flex items-center justify-center text-sky-600">
+              <ShieldCheck size={24} />
+            </div>
+            <div>
+              <div className="text-xl font-black text-slate-900">100%</div>
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Verified Reports</div>
+            </div>
+          </div>
+        </Grid>
+      </Container>
     </div>
   );
 };

@@ -159,7 +159,7 @@ export const mockNewsFeedItems: NewsFeedItem[] = [
     title: 'Found Keys - House and Car',
     category: 'Keys',
     location: 'Union Square, New York',
-    currentLocation: 'ResqHub Office',
+    currentLocation: 'SHERRA Office',
     date: '2024-01-12T16:20:00Z',
     time: '4:20 PM',
     status: 'found',
@@ -171,9 +171,9 @@ export const mockNewsFeedItems: NewsFeedItem[] = [
     condition: 'good',
     handoverPreference: 'pickup',
     contactInfo: {
-      name: 'ResqHub Team',
+      name: 'SHERRA Team',
       phone: '+1-555-0000',
-      email: 'team@resqhub.com',
+      email: 'team@sherra.com',
       preferredContact: 'email'
     },
     reward: {
@@ -183,7 +183,7 @@ export const mockNewsFeedItems: NewsFeedItem[] = [
     images: [
       'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400'
     ],
-    storageLocation: 'ResqHub Office - 123 Main St, NY',
+    storageLocation: 'SHERRA Office - 123 Main St, NY',
     createdAt: '2024-01-12T17:00:00Z',
     updatedAt: '2024-01-12T17:00:00Z',
     expiresAt: '2024-02-12T17:00:00Z',
@@ -192,8 +192,8 @@ export const mockNewsFeedItems: NewsFeedItem[] = [
     potentialMatches: 1,
     user: {
       id: 'user4',
-      fullName: 'ResqHub Team',
-      username: 'resqhub',
+      fullName: 'SHERRA Team',
+      username: 'sherra',
       profilePicture: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=100',
       isVerified: true
     },

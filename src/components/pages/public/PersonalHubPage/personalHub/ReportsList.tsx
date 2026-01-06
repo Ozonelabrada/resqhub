@@ -1,9 +1,6 @@
-// components/personalHub/ReportsList.tsx
 import React, { useEffect, useRef } from 'react';
-import { Card } from 'primereact/card';
-import { Button } from 'primereact/button';
-import { Badge } from 'primereact/badge';
-import { ProgressSpinner } from 'primereact/progressspinner';
+import { Card, Button, StatusBadge, Badge, Spinner } from '../../../ui';
+import { Plus, MapPin, Calendar, Eye, ChevronRight, Filter } from 'lucide-react';
 import type { UserReport } from '../../../../../types/personalHub';
 
 interface ReportsListProps {
@@ -40,65 +37,105 @@ export const ReportsList: React.FC<ReportsListProps> = ({
     return () => container.removeEventListener('scroll', handleScroll);
   }, [hasMore, loading, onLoadMore]);
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      active: { severity: 'info', label: 'Active' },
-      matched: { severity: 'warning', label: 'Matched' },
-      resolved: { severity: 'success', label: 'Resolved' },
-      expired: { severity: 'danger', label: 'Expired' }
-    };
-
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.active;
-    return <Badge value={config.label} severity={config.severity as any} />;
-  };
-
-  const getTypeBadge = (type: string) => {
-    return (
-      <Badge
-        value={type.toUpperCase()}
-        severity={type === 'lost' ? 'danger' : 'success'}
-        className="text-xs"
-      />
-    );
-  };
-
   return (
-    <Card className="h-full">
-      <div className="flex align-items-center justify-content-between mb-3">
-        <h3 className="text-lg font-semibold m-0">My Reports</h3>
+    <Card className="h-full border-none shadow-xl rounded-3xl overflow-hidden flex flex-col">
+      <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10">
+        <div>
+          <h3 className="text-xl font-black text-slate-900">My Reports</h3>
+          <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mt-1">Manage your submissions</p>
+        </div>
         <Button
-          label="Create Report"
-          icon="pi pi-plus"
-          className="p-button-sm"
-          style={{ backgroundColor: '#3b82f6', borderColor: '#3b82f6' }}
-        />
+          variant="primary"
+          size="sm"
+          className="rounded-xl shadow-md shadow-blue-100 flex items-center gap-2"
+        >
+          <Plus size={16} />
+          <span className="hidden sm:inline">Create New</span>
+        </Button>
       </div>
 
       <div
         ref={scrollRef}
-        style={{ maxHeight: '600px', overflowY: 'auto' }}
-        className="space-y-3"
+        className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar"
+        style={{ maxHeight: '600px' }}
       >
-        {reports.map((report) => (
-          <Card
-            key={report.id}
-            className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
-            onClick={() => onReportClick(report)}
-          >
-            <div className="flex align-items-start justify-content-between">
-              <div className="flex-1">
-                <div className="flex align-items-center gap-2 mb-2">
-                  <h4 className="font-semibold text-gray-800 m-0">{report.title}</h4>
-                  {getTypeBadge(report.type)}
-                </div>
+        {reports.length === 0 && !loading ? (
+          <div className="py-12 text-center">
+            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Filter size={32} className="text-slate-300" />
+            </div>
+            <p className="text-slate-500 font-bold">No reports found</p>
+          </div>
+        ) : (
+          reports.map((report) => (
+            <div
+              key={report.id}
+              className="group relative bg-white border border-slate-100 rounded-2xl p-4 hover:border-blue-200 hover:shadow-md transition-all duration-300 cursor-pointer"
+              onClick={() => onReportClick(report)}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h4 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                      {report.title}
+                    </h4>
+                    <StatusBadge status={report.type as any} className="text-[10px] px-2 py-0.5" />
+                  </div>
 
-                <div className="flex align-items-center gap-3 text-sm text-gray-600 mb-2">
-                  <span><i className="pi pi-map-marker"></i> {report.location}</span>
-                  <span><i className="pi pi-calendar"></i> {new Date(report.date).toLocaleDateString()}</span>
-                  <span><i className="pi pi-eye"></i> {report.views} views</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 mt-3">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+                      <MapPin size={12} className="text-blue-500" />
+                      <span className="truncate">{report.location}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+                      <Calendar size={12} className="text-blue-500" />
+                      {new Date(report.date).toLocaleDateString()}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+                      <Eye size={12} className="text-blue-500" />
+                      {report.views} views
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+                      <div className={`w-2 h-2 rounded-full ${
+                        report.status === 'active' ? 'bg-emerald-500' : 
+                        report.status === 'matched' ? 'bg-amber-500' : 'bg-slate-300'
+                      }`} />
+                      <span className="capitalize">{report.status}</span>
+                    </div>
+                  </div>
                 </div>
+                <div className="self-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <ChevronRight size={20} className="text-blue-600" />
+                </div>
+              </div>
+            </div>
+          ))
+        )}
 
-                <div className="flex align-items-center gap-2">
+        {loading && (
+          <div className="flex justify-center py-6">
+            <Spinner size="sm" />
+          </div>
+        )}
+
+        {hasMore && !loading && (
+          <div className="text-center pt-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onLoadMore}
+              className="text-blue-600 font-bold hover:bg-blue-50"
+            >
+              Load More Reports
+            </Button>
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+};
+
+                <div className="flex items-center gap-2">
                   {getStatusBadge(report.status)}
                   <span className="text-xs text-gray-500">
                     {report.potentialMatches} potential matches
@@ -119,7 +156,7 @@ export const ReportsList: React.FC<ReportsListProps> = ({
         ))}
 
         {loading && (
-          <div className="flex justify-content-center py-3">
+          <div className="flex justify-center py-3">
             <ProgressSpinner style={{ width: '30px', height: '30px' }} />
           </div>
         )}

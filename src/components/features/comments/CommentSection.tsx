@@ -1,14 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { Card } from 'primereact/card';
-import { Button } from 'primereact/button';
-import { InputTextarea } from 'primereact/inputtextarea';
-import { Avatar } from 'primereact/avatar';
-import { Badge } from 'primereact/badge';
-import { Divider } from 'primereact/divider';
-import { Message } from 'primereact/message';
+import { 
+  Card, 
+  Button, 
+  Textarea, 
+  Avatar, 
+  Badge, 
+  Alert,
+  Spinner
+} from '../../ui';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { CommentsService, type Comment } from '../../../services/commentsService';
+import { 
+  MessageSquare, 
+  Send, 
+  LogIn, 
+  AlertCircle, 
+  Clock, 
+  ThumbsUp, 
+  ShieldCheck,
+  ChevronDown
+} from 'lucide-react';
+import CommentCard from './CommentCard';
 
 interface CommentSectionProps {
   itemId: number;
@@ -18,7 +31,7 @@ interface CommentSectionProps {
 
 const CommentSection: React.FC<CommentSectionProps> = ({ itemId, itemType, itemOwnerId }) => {
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, openLoginModal } = useAuth();
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -105,155 +118,151 @@ const CommentSection: React.FC<CommentSectionProps> = ({ itemId, itemType, itemO
   };
 
   return (
-    <Card>
-      <div className="flex align-items-center justify-content-between mb-4">
-        <h3 className="text-lg font-semibold m-0">
-          Community Comments ({comments.length})
-        </h3>
-        <Badge 
-          value={itemType === 'lost' ? 'Lost Item' : 'Found Item'} 
-          severity={itemType === 'lost' ? 'danger' : 'success'} 
-        />
-      </div>
-
-      {error && <Message severity="error" text={error} className="mb-4 w-full" />}
-
-      {/* Comment Input Section */}
-      {isAuthenticated ? (
-        <Card className="mb-4" style={{ backgroundColor: '#f8fafc' }}>
-          <div className="flex align-items-start gap-3">
-            <Avatar
-              label={user?.name?.charAt(0) || 'U'}
-              shape="circle"
-              style={{ backgroundColor: '#3b82f6', color: 'white' }}
-            />
-            <div className="flex-1">
-              <InputTextarea
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder={`Share information about this ${itemType} item... Any tips or suggestions?`}
-                rows={3}
-                className="w-full"
-                maxLength={500}
-              />
-              <div className="flex align-items-center justify-content-between mt-2">
-                <small className="text-gray-500">
-                  {newComment.length}/500 characters
-                </small>
-                <Button
-                  label="Post Comment"
-                  icon="pi pi-send"
-                  onClick={handleSubmitComment}
-                  disabled={!newComment.trim() || isSubmitting}
-                  loading={isSubmitting}
-                  size="small"
-                />
-              </div>
+    <Card className="border-none shadow-2xl rounded-[3rem] bg-white overflow-hidden">
+      <div className="p-8 md:p-10">
+        <div className="flex items-center justify-between mb-10">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-100">
+              <MessageSquare size={24} />
+            </div>
+            <div>
+              <h3 className="text-2xl font-black text-slate-900">
+                Community Discussion
+              </h3>
+              <p className="text-slate-500 font-medium text-sm">
+                {comments.length} {comments.length === 1 ? 'comment' : 'comments'} shared by the community
+              </p>
             </div>
           </div>
-        </Card>
-      ) : (
-        <Message 
-          severity="info" 
-          className="w-full mb-4"
-          content={
-            <div className="flex align-items-center justify-content-between">
-              <span>Sign in to join the conversation and help reunite items with their owners.</span>
-              <div className="flex gap-2">
-                <Button
-                  label="Sign In"
-                  size="small"
-                  className="p-button-outlined"
-                  onClick={() => navigate('/signin')}
-                />
-                <Button
-                  label="Sign Up"
-                  size="small"
-                  onClick={() => navigate('/signup')}
-                />
-              </div>
-            </div>
-          }
-        />
-      )}
+          <Badge 
+            variant={itemType === 'lost' ? 'error' : 'success'} 
+            className="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest"
+          >
+            {itemType === 'lost' ? 'Lost Item' : 'Found Item'}
+          </Badge>
+        </div>
 
-      {/* Comments List */}
-      <div className="space-y-4">
-        {isLoading ? (
-          <div className="text-center py-6">
-            <i className="pi pi-spin pi-spinner text-4xl text-green-600 mb-3"></i>
-            <p className="text-gray-500">Loading comments...</p>
-          </div>
-        ) : comments.length === 0 ? (
-          <div className="text-center py-6">
-            <i className="pi pi-comments text-4xl text-gray-400 mb-3"></i>
-            <p className="text-gray-500">
-              No comments yet. Be the first to share information about this item!
-            </p>
-          </div>
-        ) : (
-          comments.map((comment, index) => (
-            <div key={comment.id}>
-              <div className="flex align-items-start gap-3">
-                <Avatar
-                  label={comment.userName.charAt(0)}
-                  shape="circle"
-                  style={{ 
-                    backgroundColor: comment.isOwner ? '#10b981' : '#6b7280', 
-                    color: 'white' 
-                  }}
+        {error && (
+          <Alert variant="error" title="Error" className="mb-8 rounded-3xl">
+            {error}
+          </Alert>
+        )}
+
+        {/* Comment Input Section */}
+        {isAuthenticated ? (
+          <div className="mb-12 p-8 rounded-[2.5rem] bg-slate-50 border border-slate-100 group focus-within:border-blue-200 transition-all">
+            <div className="flex items-start gap-4">
+              <Avatar
+                className="w-12 h-12 rounded-2xl bg-blue-600 text-white font-black text-sm"
+              >
+                {user?.name?.charAt(0) || 'U'}
+              </Avatar>
+              <div className="flex-1">
+                <Textarea
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder={`Share information about this ${itemType} item... Any tips or suggestions?`}
+                  className="bg-transparent border-none focus:ring-0 p-0 text-slate-900 font-medium placeholder:text-slate-400 min-h-[100px] resize-none"
+                  maxLength={500}
                 />
-                <div className="flex-1">
-                  <div className="flex align-items-center gap-2 mb-2">
-                    <span className="font-semibold text-gray-800">
-                      {comment.userName}
-                    </span>
-                    {comment.isOwner && (
-                      <Badge value="Owner" severity="success" />
-                    )}
-                    {comment.isHelpful && (
-                      <Badge value="Helpful" severity="info" />
-                    )}
-                    <span className="text-sm text-gray-500">
-                      {formatTimestamp(comment.timestamp)}
+                <div className="flex items-center justify-between mt-6 pt-6 border-t border-slate-200/60">
+                  <div className="flex items-center gap-2 text-slate-400">
+                    <Clock size={14} />
+                    <span className="text-[10px] font-black uppercase tracking-widest">
+                      {newComment.length}/500 characters
                     </span>
                   </div>
-                  
-                  <p className="text-gray-700 mb-3 line-height-3">
-                    {comment.content}
-                  </p>
-                  
-                  <div className="flex align-items-center gap-3">
-                    <Button
-                      icon={comment.isLikedByUser ? 'pi pi-heart-fill' : 'pi pi-heart'}
-                      label={comment.likesCount.toString()}
-                      className="p-button-text p-button-sm"
-                      style={{ 
-                        color: comment.isLikedByUser ? '#ef4444' : '#6b7280',
-                        padding: '0.25rem 0.5rem'
-                      }}
-                      onClick={() => handleToggleLike(comment.id)}
-                      disabled={!isAuthenticated}
-                    />
-                    {isAuthenticated && (
-                      <Button
-                        icon="pi pi-reply"
-                        label="Reply"
-                        className="p-button-text p-button-sm"
-                        style={{ color: '#6b7280', padding: '0.25rem 0.5rem' }}
-                        onClick={() => {
-                          setNewComment(`@${comment.userName} `);
-                        }}
-                      />
+                  <Button
+                    className="rounded-2xl px-8 py-3 h-auto font-black uppercase tracking-widest text-[10px] flex items-center gap-2 shadow-xl shadow-blue-100"
+                    onClick={handleSubmitComment}
+                    disabled={!newComment.trim() || isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <Spinner size="sm" variant="white" />
+                    ) : (
+                      <Send size={14} />
                     )}
-                  </div>
+                    Post Comment
+                  </Button>
                 </div>
               </div>
-              {index < comments.length - 1 && <Divider />}
             </div>
-          ))
+          </div>
+        ) : (
+          <div className="mb-12 p-8 rounded-[2.5rem] bg-blue-600 text-white shadow-2xl shadow-blue-200 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+              <div className="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] bg-white/10 blur-[80px] rounded-full" />
+            </div>
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center">
+                  <LogIn size={24} />
+                </div>
+                <p className="font-bold text-lg leading-tight max-w-xs">
+                  Sign in to join the conversation and help reunite items.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  variant="ghost"
+                  className="rounded-xl px-6 py-3 h-auto font-black uppercase tracking-widest text-[10px] text-white hover:bg-white/10"
+                  onClick={() => openLoginModal()}
+                >
+                  Sign In
+                </Button>
+                <Button
+                  className="rounded-xl px-6 py-3 h-auto font-black uppercase tracking-widest text-[10px] bg-white text-blue-600 hover:bg-slate-50"
+                  onClick={() => navigate('/signup')}
+                >
+                  Sign Up
+                </Button>
+              </div>
+            </div>
+          </div>
         )}
+
+        {/* Comments List */}
+        <div className="space-y-6">
+          {isLoading ? (
+            <div className="text-center py-20">
+              <Spinner size="lg" className="mx-auto mb-4" />
+              <p className="text-slate-400 font-black uppercase tracking-widest text-xs">Loading comments...</p>
+            </div>
+          ) : comments.length === 0 ? (
+            <div className="text-center py-20 bg-slate-50 rounded-[3rem] border-2 border-dashed border-slate-200">
+              <div className="w-20 h-20 rounded-3xl bg-white flex items-center justify-center text-slate-200 mx-auto mb-6 shadow-sm">
+                <MessageSquare size={40} />
+              </div>
+              <h4 className="text-xl font-black text-slate-900 mb-2">No comments yet</h4>
+              <p className="text-slate-500 font-medium">Be the first to share information about this item!</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {comments.map((comment) => (
+                <CommentCard
+                  key={comment.id}
+                  userName={comment.userName}
+                  content={comment.content}
+                  timestamp={comment.timestamp}
+                  isOwner={comment.isOwner}
+                  isHelpful={comment.isHelpful}
+                  likesCount={comment.likesCount}
+                  isLikedByUser={comment.isLikedByUser}
+                  onLike={() => handleToggleLike(comment.id)}
+                  onReply={() => {
+                    setNewComment(`@${comment.userName} `);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  isAuthenticated={isAuthenticated}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+    </Card>
+  );
+};
 
       {/* Comment Guidelines */}
       <Divider />

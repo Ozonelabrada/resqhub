@@ -1,11 +1,6 @@
-// components/personalHub/EditProfileModal.tsx
 import React, { useState, useEffect } from 'react';
-import { Dialog } from 'primereact/dialog';
-import { InputText } from 'primereact/inputtext';
-import { InputTextarea } from 'primereact/inputtextarea';
-import { Dropdown } from 'primereact/dropdown';
-import { Button } from 'primereact/button';
-import { FileUpload } from 'primereact/fileupload';
+import { Modal, ModalHeader, ModalBody, ModalFooter, Input, Textarea, Select, Button, Avatar } from '../../../ui';
+import { Camera, User, MapPin, Info, Save, X } from 'lucide-react';
 import type { EditProfileForm, UserProfile } from '../../../../../types/personalHub';
 
 interface EditProfileModalProps {
@@ -33,7 +28,6 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   });
 
   const locationOptions = [
-    { label: 'Select Location', value: '' },
     { label: 'New York, NY', value: 'New York, NY' },
     { label: 'Los Angeles, CA', value: 'Los Angeles, CA' },
     { label: 'Chicago, IL', value: 'Chicago, IL' },
@@ -63,25 +57,13 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleProfilePictureUpload = (event: any) => {
-    const file = event.files[0];
+  const handleFileUpload = (field: 'profilePicture' | 'coverPhoto', e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        const dataUrl = e.target?.result as string;
-        setFormData(prev => ({ ...prev, profilePicture: dataUrl }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleCoverPhotoUpload = (event: any) => {
-    const file = event.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const dataUrl = e.target?.result as string;
-        setFormData(prev => ({ ...prev, coverPhoto: dataUrl }));
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result as string;
+        setFormData(prev => ({ ...prev, [field]: dataUrl }));
       };
       reader.readAsDataURL(file);
     }
@@ -91,133 +73,114 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
     await onSave(formData);
   };
 
-  const handleCancel = () => {
-    // Reset form data to original values
-    if (userData) {
-      setFormData({
-        fullName: userData.fullName || '',
-        username: userData.username || '',
-        bio: userData.bio || '',
-        location: userData.location || '',
-        profilePicture: userData.profilePicture || '',
-        coverPhoto: userData.coverPhoto || ''
-      });
-    }
-    onHide();
-  };
-
   return (
-    <Dialog
-      header="Edit Profile"
-      visible={visible}
-      style={{ width: '600px' }}
-      onHide={handleCancel}
-      modal
-      draggable={false}
-      resizable={false}
-    >
-      <div className="p-4">
-        {/* Profile Picture Upload */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Profile Picture
-          </label>
-          <FileUpload
-            mode="basic"
-            accept="image/*"
-            maxFileSize={1000000}
-            onSelect={handleProfilePictureUpload}
-            chooseLabel="Choose Profile Picture"
-            className="w-full"
-          />
+    <Modal isOpen={visible} onClose={onHide} title="Edit Profile" size="lg">
+      <ModalBody className="space-y-8 py-6">
+        {/* Photos Section */}
+        <div className="space-y-4">
+          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Profile Photos</h3>
+          
+          {/* Cover Photo Preview */}
+          <div className="relative h-40 rounded-2xl overflow-hidden bg-slate-100 group">
+            {formData.coverPhoto ? (
+              <img src={formData.coverPhoto} alt="Cover" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-teal-500 to-emerald-600" />
+            )}
+            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-all flex items-center justify-center">
+              <label className="cursor-pointer bg-white/20 backdrop-blur-md text-white p-3 rounded-full hover:bg-white/40 transition-all">
+                <Camera size={24} />
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={(e) => handleFileUpload('coverPhoto', e)} 
+                />
+              </label>
+            </div>
+          </div>
+
+          {/* Profile Picture Preview */}
+          <div className="flex items-center gap-6 -mt-12 px-4 relative z-10">
+            <div className="relative group">
+              <div className="p-1 bg-white rounded-full shadow-xl">
+                <Avatar
+                  src={formData.profilePicture}
+                  fallback={formData.fullName?.charAt(0) || formData.username.charAt(0)}
+                  size="xl"
+                  className="w-24 h-24 border-4 border-white"
+                />
+              </div>
+              <label className="absolute bottom-0 right-0 bg-teal-600 text-white p-2 rounded-full shadow-lg hover:bg-teal-700 transition-all cursor-pointer border-2 border-white">
+                <Camera size={14} />
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={(e) => handleFileUpload('profilePicture', e)} 
+                />
+              </label>
+            </div>
+            <div className="pt-10">
+              <h4 className="font-bold text-slate-900">Profile Picture</h4>
+              <p className="text-xs text-slate-500 font-medium">JPG, GIF or PNG. Max size of 2MB.</p>
+            </div>
+          </div>
         </div>
 
-        {/* Cover Photo Upload */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Cover Photo
-          </label>
-          <FileUpload
-            mode="basic"
-            accept="image/*"
-            maxFileSize={2000000}
-            onSelect={handleCoverPhotoUpload}
-            chooseLabel="Choose Cover Photo"
-            className="w-full"
-          />
-        </div>
-
-        {/* Form Fields */}
-        <div className="grid">
-          <div className="col-12 md:col-6 mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Full Name
-            </label>
-            <InputText
+        {/* Basic Info Section */}
+        <div className="space-y-6">
+          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Basic Information</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Input
+              label="Full Name"
+              placeholder="Enter your full name"
               value={formData.fullName}
               onChange={(e) => handleInputChange('fullName', e.target.value)}
-              className="w-full"
-              placeholder="Enter your full name"
+              leftIcon={<User size={18} className="text-teal-600" />}
             />
-          </div>
-
-          <div className="col-12 md:col-6 mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Username
-            </label>
-            <InputText
+            <Input
+              label="Username"
+              placeholder="Choose a username"
               value={formData.username}
               onChange={(e) => handleInputChange('username', e.target.value)}
-              className="w-full"
-              placeholder="Enter your username"
+              leftIcon={<Info size={18} className="text-emerald-600" />}
             />
           </div>
 
-          <div className="col-12 mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Bio
-            </label>
-            <InputTextarea
-              value={formData.bio}
-              onChange={(e) => handleInputChange('bio', e.target.value)}
-              rows={3}
-              className="w-full"
-              placeholder="Tell us about yourself"
-            />
-          </div>
-
-          <div className="col-12 mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Location
-            </label>
-            <Dropdown
-              value={formData.location}
-              options={locationOptions}
-              onChange={(e) => handleInputChange('location', e.value)}
-              placeholder="Select your location"
-              className="w-full"
-            />
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex justify-content-end gap-2 mt-4">
-          <Button
-            label="Cancel"
-            icon="pi pi-times"
-            className="p-button-outlined"
-            onClick={handleCancel}
-            disabled={loading}
+          <Select
+            label="Location"
+            options={locationOptions}
+            value={formData.location}
+            onChange={(value) => handleInputChange('location', value)}
+            placeholder="Select your location"
+            leftIcon={<MapPin size={18} className="text-orange-600" />}
           />
-          <Button
-            label="Save Changes"
-            icon="pi pi-check"
-            onClick={handleSave}
-            loading={loading}
-            disabled={!formData.fullName || !formData.username}
+
+          <Textarea
+            label="Bio"
+            placeholder="Tell us a little about yourself..."
+            value={formData.bio}
+            onChange={(e) => handleInputChange('bio', e.target.value)}
+            rows={4}
           />
         </div>
-      </div>
-    </Dialog>
+      </ModalBody>
+      <ModalFooter className="bg-slate-50/50">
+        <Button variant="outline" onClick={onHide} disabled={loading} className="rounded-xl px-6">
+          Cancel
+        </Button>
+        <Button 
+          variant="primary" 
+          onClick={handleSave} 
+          loading={loading}
+          className="rounded-xl px-8 bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-100 flex items-center gap-2"
+        >
+          <Save size={18} />
+          Save Changes
+        </Button>
+      </ModalFooter>
+    </Modal>
   );
 };

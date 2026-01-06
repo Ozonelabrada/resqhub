@@ -1,16 +1,40 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Menubar } from 'primereact/menubar';
-import { Button } from 'primereact/button';
-import { Avatar } from 'primereact/avatar';
-import { Menu } from 'primereact/menu';
 import { useAuth } from '../context/AuthContext';
 import { AuthService } from '../services/authService';
+import { Menubar, Menu, Avatar, Button, Logo } from '../components/ui';
+import { LoginModal } from '../components/modals/Auth/LoginModal';
+import { 
+  Shield, 
+  Home, 
+  Users, 
+  List, 
+  Clock, 
+  Heart, 
+  Info, 
+  User, 
+  FileText, 
+  Bell, 
+  Settings, 
+  LogOut, 
+  UserPlus,
+  ChevronDown,
+  LogIn,
+  MoreVertical
+} from 'lucide-react';
 
 const PublicLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user, logout, isLoginModalOpen, openLoginModal, closeLoginModal } = useAuth();
+
+  const [hasOpenedModalFromState, setHasOpenedModalFromState] = useState(false);
+
+  // Open modal if redirected from protected route
+  if (location.state?.openLogin && !isAuthenticated && !isLoginModalOpen && !hasOpenedModalFromState) {
+    setHasOpenedModalFromState(true);
+    openLoginModal();
+  }
 
   // Use useRef instead of useState for menu references
   const userMenuRef = useRef<Menu>(null);
@@ -27,7 +51,7 @@ const PublicLayout = () => {
       // Store the intended action for after login
       localStorage.setItem('intendedAction', actionType);
       localStorage.setItem('returnPath', path);
-      navigate('/signup');
+      openLoginModal();
     } else {
       navigate(path);
     }
@@ -36,36 +60,31 @@ const PublicLayout = () => {
   const items = [
     {
       label: 'Home',
-      icon: 'pi pi-home',
+      icon: <Home className="w-4 h-4 mr-2" />,
       command: () => navigate('/')
     },
     {
-      label: 'Search Items',
-      icon: 'pi pi-search',
-      command: () => navigate('/search')
-    },
-    {
       label: 'Community',
-      icon: 'pi pi-users',
+      icon: <Users className="w-4 h-4 mr-2" />,
       items: [
         {
           label: 'News Feed',
-          icon: 'pi pi-list',
+          icon: <List className="w-4 h-4 mr-2" />,
           command: () => navigate('/feed')
         },
         {
           label: 'Recent Activity',
-          icon: 'pi pi-clock',
+          icon: <Clock className="w-4 h-4 mr-2" />,
           command: () => navigate('/activity')
         },
         {
           label: 'Success Stories',
-          icon: 'pi pi-heart',
+          icon: <Heart className="w-4 h-4 mr-2" />,
           command: () => navigate('/success-stories')
         },
         {
           label: 'Safety Tips',
-          icon: 'pi pi-info-circle',
+          icon: <Info className="w-4 h-4 mr-2" />,
           command: () => navigate('/safety-tips')
         }
       ]
@@ -75,17 +94,17 @@ const PublicLayout = () => {
   const userMenuItems = [
     {
       label: 'My Profile',
-      icon: 'pi pi-user',
+      icon: <User className="w-4 h-4 mr-2" />,
       command: () => navigate('/profile')
     },
     {
       label: 'My Reports',
-      icon: 'pi pi-file',
+      icon: <FileText className="w-4 h-4 mr-2" />,
       command: () => navigate('/hub')
     },
     {
       label: 'Notifications',
-      icon: 'pi pi-bell',
+      icon: <Bell className="w-4 h-4 mr-2" />,
       command: () => navigate('/notifications')
     },
     {
@@ -93,12 +112,12 @@ const PublicLayout = () => {
     },
     {
       label: 'Settings',
-      icon: 'pi pi-cog',
+      icon: <Settings className="w-4 h-4 mr-2" />,
       command: () => navigate('/settings')
     },
     {
       label: 'Sign Out',
-      icon: 'pi pi-sign-out',
+      icon: <LogOut className="w-4 h-4 mr-2" />,
       command: async () => {
         try {
           await AuthService.signOut();
@@ -115,39 +134,37 @@ const PublicLayout = () => {
   const authMenuItems = [
     {
       label: 'Sign Up',
-      icon: 'pi pi-user-plus',
+      icon: <UserPlus className="w-4 h-4 mr-2" />,
       command: () => navigate('/signup')
     }
   ];
 
   const start = (
-    <div className="flex align-items-center gap-2">
-      <button
-        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
-        onClick={() => navigate('/')}
-        className="flex align-items-center gap-2"
-      >
-        <i className="pi pi-shield text-primary text-2xl"></i>
-        <span className="text-xl font-bold text-primary">SHERRA</span>
-      </button>
+    <div className="flex items-center gap-2">
+      <Logo 
+        size="small" 
+        light={true}
+        onClick={() => navigate('/')} 
+        className="hover:opacity-80 transition-opacity"
+      />
     </div>
   );
 
   const end = (
-    <div className="flex align-items-center gap-2">
+    <div className="flex items-center gap-2">
       
       {isAuthenticated ? (
         // Authenticated user menu
-        <div className="flex align-items-center gap-2">
-          <span className="text-sm hidden md:inline">
+        <div className="flex items-center gap-2">
+          <span className="text-sm hidden md:inline text-white/90 font-medium">
             Welcome, {user?.name || 'User'}
           </span>
           <Avatar
-            icon="pi pi-user"
-            className="cursor-pointer"
-            style={{ backgroundColor: '#3B82F6', color: 'white' }}
+            className="cursor-pointer bg-white/20 border-2 border-white/30 hover:bg-white/30 transition-colors"
             onClick={(e) => userMenuRef.current?.toggle(e)}
-          />
+          >
+            <User className="w-5 h-5 text-white" />
+          </Avatar>
           <Menu 
             model={userMenuItems} 
             popup 
@@ -156,18 +173,22 @@ const PublicLayout = () => {
         </div>
       ) : (
         // Unauthenticated user menu
-        <div className="flex align-items-center gap-2">
+        <div className="flex items-center gap-2">
           <Button
-            label="Sign In"
-            icon="pi pi-sign-in"
-            className="p-button-rounded p-button-outlined p-button-sm"
-            onClick={() => navigate('/signin')}
-          />
+            variant="ghost"
+            className="rounded-full text-white hover:bg-white/10 font-bold"
+            onClick={() => openLoginModal()}
+          >
+            <LogIn className="w-4 h-4 mr-2" />
+            Sign In
+          </Button>
           <Button
-            icon="pi pi-ellipsis-v"
-            className="p-button-text p-button-rounded"
+            variant="ghost"
+            className="rounded-full w-10 h-10 p-0 flex items-center justify-center text-white/70 hover:text-white"
             onClick={(e) => authMenuRef.current?.toggle(e)}
-          />
+          >
+            <MoreVertical size={18} />
+          </Button>
           <Menu 
             model={authMenuItems} 
             popup 
@@ -179,58 +200,69 @@ const PublicLayout = () => {
   );
 
   return (
-    <div className="min-h-screen flex flex-column">
+    <div className="min-h-screen flex flex-col">
       {/* Conditional Navigation Bar */}
       {!shouldHideNavBar() && (
         <Menubar
           model={items}
           start={start}
           end={end}
-          className="border-none shadow-2"
+          className=""
         />
       )}
 
+      {/* Login Modal */}
+      <LoginModal 
+        isOpen={isLoginModalOpen} 
+        onClose={closeLoginModal} 
+        onSuccess={() => {
+            const returnPath = localStorage.getItem('returnPath') || '/hub';
+            localStorage.removeItem('returnPath');
+            closeLoginModal();
+            navigate(returnPath);
+        }}
+      />
+
       {/* Authentication Status Banner (optional) */}
-      {!isAuthenticated && !shouldHideNavBar() && (location.pathname === '/search' || location.pathname.includes('/item/')) && (
-        <div className="w-full p-2 text-center" style={{ backgroundColor: '#fef3c7', borderBottom: '1px solid #f59e0b', color: '#000000ff' }}>
-          <span className="text-sm text-yellow-800">
-            <i className="pi pi-info-circle mr-2"></i>
-            You can search items freely. 
-            to claim items or report incidents.
+      {!isAuthenticated && !shouldHideNavBar() && location.pathname.includes('/item/') && (
+        <div className="w-full p-3 text-center bg-orange-50 border-b border-orange-100 shadow-sm">
+          <span className="text-sm text-orange-800 font-semibold flex items-center justify-center gap-2">
+            <Info size={16} className="text-orange-600" />
+            You can view items freely. Sign in to claim items or report incidents.
           </span>
         </div>
       )}
 
       {/* Main Content */}
-      <div className="flex-grow-1" style={{ backgroundColor: '#f8fafc' }}>
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         <Outlet />
-      </div>
+      </main>
 
       {/* Conditional Footer - Hide on home and hub pages */}
       {!shouldHideNavBar() && (
-        <footer>
-          <div className="container mx-auto">
-            <div className="flex flex-column md:flex-row justify-content-between align-items-center gap-3">
-              <div className="flex align-items-center gap-2">
-                <i className="pi pi-shield text-primary"></i>
-                <span className="font-semibold">SHERRA</span>
-                <span className="text-sm opacity-75">- Reuniting Communities</span>
+        <footer className="bg-gray-50 border-t border-gray-100 py-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-8">
+              <div className="flex items-center gap-4">
+                <Logo size="small" variant="full" />
+                <div className="h-8 w-px bg-gray-200 hidden md:block" />
+                <span className="text-sm text-gray-400 font-medium">Reuniting Communities</span>
               </div>
               
-              <div className="flex gap-4 text-sm">
-                <a href="/privacy" className="text-gray-300 hover:text-white no-underline">
+              <div className="flex gap-8 text-sm font-bold text-gray-500">
+                <a href="/privacy" className="hover:text-teal-600 transition-colors">
                   Privacy Policy
                 </a>
-                <a href="/terms" className="text-gray-300 hover:text-white no-underline">
+                <a href="/terms" className="hover:text-teal-600 transition-colors">
                   Terms of Service
                 </a>
-                <a href="/contact" className="text-gray-300 hover:text-white no-underline">
+                <a href="/contact" className="hover:text-teal-600 transition-colors">
                   Contact Us
                 </a>
               </div>
               
-              <div className="text-sm opacity-75">
-                © {new Date().getFullYear()} SHERRA. All rights reserved.
+              <div className="text-sm font-bold text-gray-400">
+                © {new Date().getFullYear()} ResQHub. All rights reserved.
               </div>
             </div>
           </div>
@@ -242,3 +274,4 @@ const PublicLayout = () => {
 
 
 export default PublicLayout;
+

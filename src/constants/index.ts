@@ -45,9 +45,9 @@ export const TOAST_MESSAGES = {
 // Menu Items Factory Functions
 // These functions create menu items with proper navigation commands
 export const createAccountMenuItems = (navigate: (path: string) => void, handleLogout: () => void) => [
-  { label: 'News Feed', icon: 'pi pi-user', command: () => navigate(ROUTES.FEED) },
-  { label: 'Personal Hub', icon: 'pi pi-home', command: () => navigate(ROUTES.HUB) },
-  { label: 'My Reports', icon: 'pi pi-list', command: () => navigate(`${ROUTES.HUB}?tab=reports`) },
+  { label: 'News Feed', icon: 'pi pi-user', command: () => navigate(ROUTES.HUB) },
+  { label: 'Personal Hub', icon: 'pi pi-home', command: () => navigate(ROUTES.PROFILE) },
+  { label: 'My Reports', icon: 'pi pi-list', command: () => navigate(`${ROUTES.PROFILE}?tab=reports`) },
   { label: 'Notifications', icon: 'pi pi-bell', command: () => navigate(ROUTES.NOTIFICATIONS) },
   { label: 'Settings', icon: 'pi pi-cog', command: () => navigate(ROUTES.SETTINGS) },
   { separator: true },
@@ -55,14 +55,9 @@ export const createAccountMenuItems = (navigate: (path: string) => void, handleL
   { label: 'Logout', icon: 'pi pi-sign-out', command: handleLogout, className: 'text-red-600' }
 ];
 
-export const createGuestMenuItems = (navigate: (path: string) => void) => [
-  { label: 'Sign In', icon: 'pi pi-user', command: () => navigate(ROUTES.LOGIN) }
-];
-
 // Navigation Routes
 export const ROUTES = {
   HOME: '/',
-  LOGIN: '/login',
   PROFILE: '/profile',
   HUB: '/hub',
   FEED: '/feed',

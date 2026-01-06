@@ -1,7 +1,6 @@
 import React from 'react';
-import { Button } from 'primereact/button';
-import { Avatar } from 'primereact/avatar';
-import { Badge } from 'primereact/badge';
+import { Button, Avatar, Badge } from '../../ui';
+import { ThumbsUp, Reply, MoreVertical, ShieldCheck, Clock, Heart } from 'lucide-react';
 
 interface CommentCardProps {
   userName: string;
@@ -45,58 +44,69 @@ const CommentCard: React.FC<CommentCardProps> = ({
   };
 
   return (
-    <div className="flex align-items-start gap-3 p-3">
+    <div className="group relative flex items-start gap-4 p-6 rounded-[2rem] bg-white border border-slate-100 hover:border-blue-100 hover:shadow-xl hover:shadow-blue-50/50 transition-all duration-300">
       <Avatar
-        label={userName.charAt(0)}
-        shape="circle"
-        style={{ 
-          backgroundColor: isOwner ? '#10b981' : '#6b7280', 
-          color: 'white' 
-        }}
-      />
-      <div className="flex-1">
-        <div className="flex align-items-center gap-2 mb-2">
-          <span className="font-semibold text-gray-800">
-            {userName}
-          </span>
-          {isOwner && (
-            <Badge value="Owner" severity="success" />
-          )}
-          {isHelpful && (
-            <Badge value="Helpful" severity="info" />
-          )}
-          <span className="text-sm text-gray-500">
-            {formatTimestamp(timestamp)}
-          </span>
+        className={`w-12 h-12 rounded-2xl font-black text-sm ${
+          isOwner ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'
+        }`}
+      >
+        {userName.charAt(0)}
+      </Avatar>
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <span className="font-black text-slate-900 truncate">{userName}</span>
+            {isOwner && (
+              <Badge variant="info" className="bg-blue-50 text-blue-600 border-none text-[10px] font-black uppercase tracking-widest px-2 py-0.5">
+                Author
+              </Badge>
+            )}
+            {isHelpful && (
+              <Badge variant="success" className="bg-emerald-50 text-emerald-600 border-none text-[10px] font-black uppercase tracking-widest px-2 py-0.5 flex items-center gap-1">
+                <ShieldCheck size={10} />
+                Helpful
+              </Badge>
+            )}
+          </div>
+          <div className="flex items-center gap-2 text-slate-400">
+            <Clock size={12} />
+            <span className="text-[10px] font-bold uppercase tracking-wider">{formatTimestamp(timestamp)}</span>
+          </div>
         </div>
-        
-        <p className="text-gray-700 mb-3 line-height-3">
+
+        <p className="text-slate-600 font-medium leading-relaxed mb-4">
           {content}
         </p>
-        
-        <div className="flex align-items-center gap-3">
-          <Button
-            icon={isLikedByUser ? 'pi pi-heart-fill' : 'pi pi-heart'}
-            label={likesCount.toString()}
-            className="p-button-text p-button-sm"
-            style={{ 
-              color: isLikedByUser ? '#ef4444' : '#6b7280',
-              padding: '0.25rem 0.5rem'
-            }}
+
+        <div className="flex items-center gap-6">
+          <button
             onClick={onLike}
             disabled={!isAuthenticated}
-          />
+            className={`flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-colors ${
+              isLikedByUser ? 'text-red-500' : 'text-slate-400 hover:text-slate-600'
+            }`}
+          >
+            <Heart size={14} className={isLikedByUser ? 'fill-current' : ''} />
+            {likesCount > 0 && likesCount}
+            <span className="ml-1">Like</span>
+          </button>
+
           {isAuthenticated && (
-            <Button
-              icon="pi pi-reply"
-              label="Reply"
-              className="p-button-text p-button-sm"
-              style={{ color: '#6b7280', padding: '0.25rem 0.5rem' }}
+            <button
               onClick={onReply}
-            />
+              className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <Reply size={14} />
+              Reply
+            </button>
           )}
         </div>
       </div>
+
+      <button className="absolute top-6 right-6 p-2 text-slate-300 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-all">
+        <MoreVertical size={18} />
+      </button>
     </div>
   );
 };

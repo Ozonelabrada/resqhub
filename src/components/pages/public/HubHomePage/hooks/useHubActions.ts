@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../../../context/AuthContext';
 
 export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
   const navigate = useNavigate();
+  const { openLoginModal } = useAuth();
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportType, setReportType] = useState<'lost' | 'found'>('lost');
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -22,7 +24,7 @@ export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
       setShowReportModal(true);
     } else {
       localStorage.setItem('intendedAction', `report_${type}`);
-      navigate('/login');
+      openLoginModal();
     }
   };
 
@@ -51,27 +53,22 @@ export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
   const accountMenuItems = [
     {
       label: 'News Feed',
-      icon: 'pi pi-user',
       command: () => navigate('/feed')
     },
     {
       label: 'Personal Hub',
-      icon: 'pi pi-home',
       command: () => navigate('/hub')
     },
     {
       label: 'My Reports',
-      icon: 'pi pi-list',
       command: () => navigate('/hub?tab=reports')
     },
     {
       label: 'Notifications',
-      icon: 'pi pi-bell',
       command: () => navigate('/notifications')
     },
     {
       label: 'Settings',
-      icon: 'pi pi-cog',
       command: () => navigate('/settings')
     },
     {
@@ -79,22 +76,19 @@ export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
     },
     {
       label: 'Help & Support',
-      icon: 'pi pi-question-circle',
       command: () => navigate('/help')
     },
     {
-      label: 'Logout',
-      icon: 'pi pi-sign-out',
+        label: 'Logout',
       command: handleLogout,
-      className: 'text-red-600'
+      className: 'text-red-600 font-bold'
     }
   ];
 
   const guestMenuItems = [
     {
       label: 'Sign In',
-      icon: 'pi pi-sign-in',
-      command: () => navigate('/login')
+      command: () => openLoginModal()
     }
   ];
 

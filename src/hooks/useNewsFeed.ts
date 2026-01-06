@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { NewsFeedItem } from '../components/pages/public/PersonalHubPage/personalHub/NewsFeed';
 import { ReportsService } from '../services/reportsService';
 import { useAuth } from '../context/AuthContext';
+import { mockNewsFeedItems } from '../mocks/newsFeedData';
 
 interface UseNewsFeedReturn {
   items: NewsFeedItem[];
@@ -25,63 +26,24 @@ export const useNewsFeed = (): UseNewsFeedReturn => {
 
     setLoading(true);
     setError(null);
-    try {
-      const pageSize = 10;
-      const reports = await ReportsService.getReports({ page, pageSize });
 
-      // Transform LostFoundItem[] to NewsFeedItem[]
-      const transformedItems: NewsFeedItem[] = reports.map(report => ({
-        id: report.id.toString(),
-        title: report.title,
-        category: report.category,
-        location: report.location,
-        currentLocation: report.specificLocation || '',
-        date: report.date,
-        time: report.timeReported || '',
-        status: report.status === 'matched' ? 'reunited' : report.status,
-        views: 0, // API doesn't provide views
-        type: report.status === 'lost' ? 'lost' : 'found',
-        description: report.description || '',
-        circumstances: '', // Not available in API
-        identifyingFeatures: [report.itemColor, report.itemBrand, report.itemSize].filter(Boolean).join(', '),
-        condition: 'good', // Default, API doesn't specify
-        handoverPreference: 'meet', // Default
-        contactInfo: {
-          name: report.reportedBy,
-          phone: typeof report.contactInfo === 'string' ? report.contactInfo : '',
-          email: '',
-          preferredContact: 'phone'
-        },
-        reward: {
-          amount: typeof report.reward === 'string' ? parseFloat(report.reward.replace('$', '')) || 0 : 0,
-          description: typeof report.reward === 'string' ? report.reward : ''
-        },
-        images: report.image ? [report.image] : [],
-        storageLocation: '',
-        createdAt: report.date,
-        updatedAt: report.date,
-        expiresAt: '',
-        reportTypeDescription: '',
-        verificationStatus: '',
-        potentialMatches: report.matchedWith ? 1 : 0,
-        user: {
-          id: report.reportedBy.toLowerCase().replace(/\s+/g, '_'),
-          fullName: report.reportedBy,
-          username: report.reportedBy.toLowerCase().replace(/\s+/g, '_'),
-          profilePicture: '',
-          isVerified: false
-        },
-        timeAgo: getTimeAgo(report.date)
-      }));
+    try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      const pageSize = 6; // Show 6 items per page for better visualization
+      const startIndex = (page - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const paginatedItems = mockNewsFeedItems.slice(startIndex, endIndex);
 
       if (isLoadMore) {
-        setItems(prev => [...prev, ...transformedItems]);
+        setItems(prev => [...prev, ...paginatedItems]);
       } else {
-        setItems(transformedItems);
+        setItems(paginatedItems);
       }
 
-      // Check if there are more items (assuming API returns full pageSize when there are more)
-      setHasMore(transformedItems.length === pageSize);
+      // Check if there are more items
+      setHasMore(endIndex < mockNewsFeedItems.length);
       setCurrentPage(page);
 
     } catch (error) {

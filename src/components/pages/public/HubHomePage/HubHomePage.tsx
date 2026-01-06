@@ -1,13 +1,20 @@
 import React, { useEffect, useRef } from 'react';
-import { Menu } from 'primereact/menu';
-import { ProgressSpinner } from 'primereact/progressspinner';
-import { Toast } from 'primereact/toast';
-import { Dialog } from 'primereact/dialog';
-import { Button } from 'primereact/button';
+import { Activity, LogOut, HelpCircle, FileText, Heart, Rss, User, Bell, Settings, Search } from 'lucide-react';
+import { 
+  Button, 
+  Spinner, 
+  Modal, 
+  Card, 
+  Container, 
+  Grid,
+  Toast,
+  Menu
+} from '../../../ui';
 import { useStatistics } from '../../../../hooks/useStatistics';
 import { useTrendingReports } from '../../../../hooks/useTrendingReports';
 import { useCategories } from '../../../../hooks/useCategories';
 import { ReportModal } from '../../../modals';
+import { CreateReportModal } from '../../../modals/ReportModal/CreateReportModal';
 import {
   HeroSection,
   SearchSection,
@@ -26,9 +33,9 @@ import {
 } from './hooks';
 
 const HubHomePage: React.FC = () => {
-  const accountMenuRef = useRef<Menu>(null);
-  const toast = useRef<Toast>(null);
-  const guestMenuRef = useRef<Menu>(null);
+  const accountMenuRef = useRef<any>(null);
+  const toastRef = useRef<any>(null);
+  const guestMenuRef = useRef<any>(null);
 
   // Custom hooks
   const { isBelowDesktop } = useScreenSize();
@@ -60,7 +67,7 @@ const HubHomePage: React.FC = () => {
   } = useTrendingReports();
   const { categories: fetchedCategories, loading: categoriesLoading } = useCategories();
 
-  const { recentSuccesses } = useHubData(statsError, trendingError, toast);
+  const { recentSuccesses } = useHubData(statsError, trendingError, toastRef);
 
   // Auto-refresh trending data periodically
   useEffect(() => {
@@ -74,41 +81,42 @@ const HubHomePage: React.FC = () => {
   // Show loading spinner while fetching data
   if (statsLoading || trendingLoading) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        backgroundColor: '#f8fafc',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <ProgressSpinner style={{ width: '50px', height: '50px' }} />
-          <p className="mt-3 text-gray-600">Loading platform data...</p>
+          <Spinner size="lg" className="mx-auto" />
+          <p className="mt-4 text-slate-600 font-bold">Loading platform data...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#495560ff' }}>
-      <Toast ref={toast} />
+    <div className="min-h-screen bg-white">
+      <Toast ref={toastRef} />
 
-      {/* Logout Confirmation Dialog */}
-      <Dialog
-        header="Confirm Logout"
+      {/* Modal Components */}
+      <CreateReportModal 
+        isOpen={showReportModal} 
+        onClose={() => setShowReportModal(false)} 
+        initialType={reportType}
+      />
+
+      {/* Logout Confirmation Modal */}
+      <Modal
         visible={showLogoutConfirm}
         onHide={cancelLogout}
-        style={{ width: '350px' }}
+        title="Confirm Logout"
         footer={
-          <div className="flex justify-content-end gap-2">
-            <Button label="Cancel" icon="pi pi-times" className="p-button-text" onClick={cancelLogout} />
-            <Button label="Logout" icon="pi pi-sign-out" className="p-button-danger" onClick={confirmLogout} />
+          <div className="flex justify-end gap-3">
+            <Button variant="ghost" onClick={cancelLogout}>Cancel</Button>
+            <Button variant="danger" onClick={confirmLogout}>Logout</Button>
           </div>
         }
-        modal
       >
-        <div>Are you sure you want to log out?</div>
-      </Dialog>
+        <div className="py-4">
+          <p className="text-slate-600 font-medium">Are you sure you want to log out of your account?</p>
+        </div>
+      </Modal>
 
       {/* Account Menu */}
       <Menu
@@ -116,7 +124,6 @@ const HubHomePage: React.FC = () => {
         popup
         ref={accountMenuRef}
         className="mt-2"
-        style={{ minWidth: '220px' }}
       />
 
       {/* Guest Menu */}
@@ -125,7 +132,6 @@ const HubHomePage: React.FC = () => {
         popup
         ref={guestMenuRef}
         className="mt-2"
-        style={{ minWidth: '160px' }}
       />
 
       {/* Page Sections */}
@@ -136,18 +142,6 @@ const HubHomePage: React.FC = () => {
         onShowAccountMenu={(e) => accountMenuRef.current?.toggle(e)}
         onShowGuestMenu={(e) => guestMenuRef.current?.toggle(e)}
         onReportAction={handleReportAction}
-      />
-
-      <SearchSection
-        searchTerm={searchTerm}
-        selectedCategory={selectedCategory}
-        categories={fetchedCategories}
-        categoriesLoading={categoriesLoading}
-        isBelowDesktop={isBelowDesktop}
-        stats={stats}
-        onSearchTermChange={setSearchTerm}
-        onCategoryChange={setSelectedCategory}
-        onSearch={handleSearch}
       />
 
       <StatsSection
@@ -193,3 +187,4 @@ const HubHomePage: React.FC = () => {
 };
 
 export default HubHomePage;
+
