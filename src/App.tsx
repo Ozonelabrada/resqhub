@@ -6,7 +6,6 @@ import { Toast, Spinner } from './components/ui';
 
 // Public Pages (Lazy Loaded)
 const HubHomePage = lazy(() => import('./components/pages/public/HubHomePage/HubHomePage'));
-const SignUpPage = lazy(() => import('./components/pages/public/SignUpPage/SignUpPage'));
 const PersonalHubPage = lazy(() => import('./components/pages/public/PersonalHubPage/PersonalHubPage'));
 const NewsFeedPage = lazy(() => import('./components/pages/public/NewsFeedPage/NewsFeedPage'));
 
@@ -37,7 +36,6 @@ const AppRouter = () => {
           </AuthGuard>
         }>
           <Route index element={<HubHomePage />} />
-          <Route path="signup" element={<SignUpPage />} />
         </Route>
 
         {/* 🔐 PROTECTED USER ROUTES - Authentication required */}

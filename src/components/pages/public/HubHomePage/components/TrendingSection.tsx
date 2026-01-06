@@ -1,6 +1,7 @@
 import React from 'react';
 import { TrendingUp, TrendingDown, Activity, Package } from 'lucide-react';
 import { Card, Grid, Container, Spinner } from '../../../../ui';
+import { useTranslation } from 'react-i18next';
 
 interface TrendingItem {
   categoryId: string;
@@ -15,7 +16,6 @@ interface TrendingItem {
 interface TrendingSectionProps {
   trendingReports: TrendingItem[];
   trendingLoading: boolean;
-  isBelowDesktop: boolean;
 }
 
 const Sparkline: React.FC<{ data: number[], color: string }> = ({ data, color }) => {
@@ -49,20 +49,21 @@ const Sparkline: React.FC<{ data: number[], color: string }> = ({ data, color })
 
 const TrendingSection: React.FC<TrendingSectionProps> = ({
   trendingReports,
-  trendingLoading,
-  isBelowDesktop
+  trendingLoading
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="bg-slate-50 py-24">
       <Container>
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-100 text-blue-600 text-sm font-bold mb-6">
             <Activity size={16} />
-            Live Market Trends
+            {t('home.trending.badge')}
           </div>
-          <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-4">Trending Lost Items</h2>
+          <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-4">{t('home.trending.title')}</h2>
           <p className="text-slate-500 text-lg font-medium max-w-2xl mx-auto">
-            Real-time analysis of the most frequently reported items in your community this week.
+            {t('home.trending.subtitle')}
           </p>
         </div>
 
@@ -95,8 +96,8 @@ const TrendingSection: React.FC<TrendingSectionProps> = ({
 
                   <div className="mb-6">
                     <div className="flex items-end justify-between mb-2">
-                      <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">7D Activity</span>
-                      <span className="text-sm font-black text-slate-900">{item.reports || 0} Reports</span>
+                      <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{t('home.trending.activity')}</span>
+                      <span className="text-sm font-black text-slate-900">{t('home.trending.reports_count', { count: item.reports || 0 })}</span>
                     </div>
                     <div className="h-10 w-full">
                       <Sparkline data={item.weeklyData} color={trendColor} />

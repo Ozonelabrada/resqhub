@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { User, LogIn } from 'lucide-react';
 import { Button, Logo } from '../../../../ui';
@@ -20,6 +21,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   onShowGuestMenu,
   onReportAction
 }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [scene, setScene] = useState(1);
 
@@ -85,7 +87,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           {isAuthenticated ? (
             <div className="flex items-center gap-3 bg-white/10 p-2 rounded-full border border-white/20">
               <div className="text-right hidden sm:block pl-2">
-                <div className="text-[10px] uppercase font-bold text-white/70">Account</div>
+                <div className="text-[10px] uppercase font-bold text-white/70">{t('home.hero.account')}</div>
                 <div className="text-sm font-semibold text-white">{userData?.email?.split('@')[0]}</div>
               </div>
               <div 
@@ -97,12 +99,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({
             </div>
           ) : (
             <Button 
-              variant="ghost"
+              variant="ghost" 
               className="bg-white/10 hover:bg-white/20 text-white border-white/20"
               onClick={onShowGuestMenu}
             >
-              <User size={18} className={isBelowDesktop ? '' : 'mr-2'} />
-              {!isBelowDesktop && "Sign In"}
+              <LogIn size={18} className={isBelowDesktop ? '' : 'mr-2'} />
+              {!isBelowDesktop && t('home.hero.sign_in')}
             </Button>
           )}
         </div>
@@ -125,14 +127,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         </div>
 
         <h1 className={`${isBelowDesktop ? 'text-3xl' : 'text-6xl'} font-black mb-6 tracking-tight text-white`}>
-          Reuniting You With <br/>
-          <span className="text-yellow-300 typewriter mx-auto inline-block">What Matters.</span>
+          {t('home.hero.title')} <br/>
+          <span className="text-yellow-300 typewriter mx-auto inline-block">{t('home.hero.subtitle')}</span>
         </h1>
 
         <p className="text-lg md:text-xl text-white/90 max-w-2xl mb-10 leading-relaxed font-medium">
-          A platform connecting people who lost items with those who found them. 
-          Promoting <span className="underline decoration-green-300">accountability</span> and 
-          <span className="underline decoration-orange-300"> honesty</span> in our community.
+          {t('home.hero.description')}
         </p>
 
         {/* CTA Buttons */}
@@ -140,25 +140,18 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           <Button
             size="lg"
             onClick={() => onReportAction('lost')}
-            className="px-8 py-4 bg-[#E74C3C] border-none rounded-xl shadow-xl hover:-translate-y-1 transition-all text-white"
+            className="px-8 py-4 bg-[#E74C3C] border-none rounded-xl shadow-xl hover:-translate-y-1 transition-all text-white font-black"
           >
-            I Lost Something
+            {t('home.hero.i_lost')}
           </Button>
           <Button
             size="lg"
             onClick={() => onReportAction('found')}
-            className="px-8 py-4 bg-[#27AE60] border-none rounded-xl shadow-xl hover:-translate-y-1 transition-all text-white"
+            className="px-8 py-4 bg-[#27AE60] border-none rounded-xl shadow-xl hover:-translate-y-1 transition-all text-white font-black"
           >
-            I Found Something
+            {t('home.hero.i_found')}
           </Button>
         </div>
-      </div>
-
-      {/* Bottom Wave Decor */}
-      <div className="absolute bottom-0 w-full overflow-hidden leading-[0]">
-        <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="relative block w-full h-16 fill-[#F8F9FA]">
-          <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V95.8C57.23,74.37,123.06,87.74,182.91,92.83,243.38,98,282.13,67.68,321.39,56.44Z"></path>
-        </svg>
       </div>
     </div>
   );

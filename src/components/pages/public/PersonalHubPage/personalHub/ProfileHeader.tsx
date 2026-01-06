@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, Button, Avatar } from '../../../ui';
 import { Camera, MapPin, User as UserIcon, Edit3, Share2, MoreHorizontal } from 'lucide-react';
 import type { UserProfile, UserStats } from '../../../../../types/personalHub';
@@ -16,6 +17,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   onEditProfile,
   onProfilePictureUpload,
 }) => {
+  const { t } = useTranslation();
   return (
     <Card className="mb-8 overflow-hidden border-none shadow-xl rounded-3xl">
       {/* Cover Photo Area */}
@@ -90,11 +92,11 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                 <div className="flex flex-wrap items-center gap-4 mt-4">
                   <div className="flex items-center gap-1.5 text-slate-600 bg-slate-100 px-3 py-1 rounded-full text-sm font-semibold">
                     <MapPin size={14} className="text-teal-600" />
-                    {userData.location || 'Global Citizen'}
+                    {userData.location || t('common.global_citizen')}
                   </div>
                   <div className="flex items-center gap-1.5 text-slate-600 bg-slate-100 px-3 py-1 rounded-full text-sm font-semibold">
                     <UserIcon size={14} className="text-emerald-600" />
-                    Joined {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                    {t('common.joined')} {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                   </div>
                 </div>
               </div>
@@ -106,7 +108,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                   className="flex-1 md:flex-none rounded-2xl px-6 py-2.5 font-bold shadow-lg shadow-teal-100 flex items-center justify-center gap-2"
                 >
                   <Edit3 size={18} />
-                  Edit Profile
+                  {t('common.edit_profile')}
                 </Button>
                 <Button
                   variant="outline"
@@ -135,15 +137,15 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             <div className="flex md:hidden gap-6 mt-6 pt-6 border-t border-slate-100">
               <div>
                 <div className="text-xl font-bold text-slate-900">{userStats.totalReports}</div>
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-tight">Reports</div>
+                <div className="text-xs font-bold text-slate-400 uppercase tracking-tight">{t('common.reports')}</div>
               </div>
               <div>
                 <div className="text-xl font-bold text-slate-900">{userStats.totalViews}</div>
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-tight">Views</div>
+                <div className="text-xs font-bold text-slate-400 uppercase tracking-tight">{t('common.views')}</div>
               </div>
               <div>
                 <div className="text-xl font-bold text-slate-900">{userStats.resolvedReports}</div>
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-tight">Resolved</div>
+                <div className="text-xs font-bold text-slate-400 uppercase tracking-tight">{t('common.resolved')}</div>
               </div>
             </div>
           </div>

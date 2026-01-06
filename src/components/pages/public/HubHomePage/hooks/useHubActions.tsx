@@ -14,7 +14,7 @@ import {
 
 export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
   const navigate = useNavigate();
-  const { openLoginModal } = useAuth();
+  const { openLoginModal, openSignUpModal } = useAuth();
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportType, setReportType] = useState<'lost' | 'found'>('lost');
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -98,6 +98,11 @@ export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
       label: 'Sign In',
       icon: <LogIn className="w-4 h-4 mr-2" />,
       command: () => openLoginModal()
+    },
+    {
+      label: 'Create Account',
+      icon: <FileText className="w-4 h-4 mr-2" />,
+      command: () => openSignUpModal()
     }
   ];
 

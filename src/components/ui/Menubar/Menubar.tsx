@@ -31,7 +31,7 @@ export const Menubar: React.FC<MenubarProps> = ({
             <span>{item.label}</span>
             <ChevronDown className="w-4 h-4 ml-2 opacity-50" />
           </button>
-          <div className="absolute top-full left-0 bg-white border border-slate-100 rounded-2xl shadow-2xl hidden group-hover:block z-50 min-w-[200px] py-1 mt-1">
+          <div className="absolute top-full left-0 bg-white border border-slate-100 rounded-2xl shadow-2xl hidden group-hover:block z-[110] min-w-[200px] py-1 mt-1">
             {item.items.map((subItem, subIndex) => (
               <div
                 key={subIndex}
@@ -69,7 +69,7 @@ export const Menubar: React.FC<MenubarProps> = ({
 
   return (
     <div
-      className={`flex items-center justify-between bg-teal-600 text-white border-b border-teal-700 px-6 py-3 sticky top-0 z-50 shadow-md ${className}`}
+      className={`flex items-center justify-between bg-teal-600 text-white border-b border-teal-700 px-6 py-3 sticky top-0 z-[100] shadow-md ${className}`}
       style={style}
     >
       <div className="flex items-center">

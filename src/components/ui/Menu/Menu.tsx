@@ -88,7 +88,7 @@ export const Menu = forwardRef<MenuRef, MenuProps>(({ model, popup = false, clas
   return (
     <div
       ref={menuRef}
-      className={`bg-white border border-gray-300 rounded shadow-lg ${popup ? 'absolute z-50' : ''} ${className}`}
+      className={`bg-white border border-gray-300 rounded shadow-lg ${popup ? 'absolute z-[110]' : ''} ${className}`}
       style={popup ? { ...style, top: position.top, left: position.left } : style}
     >
       {model.map((item, index) => renderMenuItem(item, index))}

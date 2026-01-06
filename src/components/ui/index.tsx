@@ -60,6 +60,7 @@ export { default as StatsCard } from "./StatsCard/StatsCard";
 export { default as ItemCard } from "./ItemCard/ItemCard";
 export { Timeline } from "./Timeline/Timeline";
 export { Menu } from "./Menu/Menu";
+export type { MenuRef, MenuItem } from "./Menu/Menu";
 export { Menubar } from "./Menubar/Menubar";
 export { Avatar } from "./Avatar/Avatar";
 export { default as Toast } from "./Toast/Toast";

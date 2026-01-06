@@ -13,6 +13,12 @@ interface AuthContextType {
   openLoginModal: () => void;
   closeLoginModal: () => void;
   isLoginModalOpen: boolean;
+  openSignUpModal: () => void;
+  closeSignUpModal: () => void;
+  isSignUpModalOpen: boolean;
+  openSettingsModal: () => void;
+  closeSettingsModal: () => void;
+  isSettingsModalOpen: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -22,9 +28,23 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(authManager.getUser());
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
-  const openLoginModal = () => setIsLoginModalOpen(true);
+  const openLoginModal = () => {
+    setIsSignUpModalOpen(false);
+    setIsLoginModalOpen(true);
+  };
   const closeLoginModal = () => setIsLoginModalOpen(false);
+
+  const openSignUpModal = () => {
+    setIsLoginModalOpen(false);
+    setIsSignUpModalOpen(true);
+  };
+  const closeSignUpModal = () => setIsSignUpModalOpen(false);
+
+  const openSettingsModal = () => setIsSettingsModalOpen(true);
+  const closeSettingsModal = () => setIsSettingsModalOpen(false);
 
   useEffect(() => {
     // Initialize auth state
@@ -140,7 +160,13 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
       logout,
       openLoginModal,
       closeLoginModal,
-      isLoginModalOpen
+      isLoginModalOpen,
+      openSignUpModal,
+      closeSignUpModal,
+      isSignUpModalOpen,
+      openSettingsModal,
+      closeSettingsModal,
+      isSettingsModalOpen
     }}>
       {children}
     </AuthContext.Provider>

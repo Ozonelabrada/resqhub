@@ -68,7 +68,7 @@ const ItemDetailsModal: React.FC<ItemDetailsModalProps> = ({ visible, onHide, it
     if (!isAuthenticated) {
       localStorage.setItem('intendedAction', 'contact');
       localStorage.setItem('returnPath', window.location.pathname);
-      window.location.href = '/signup';
+      auth?.openSignUpModal?.();
       return;
     }
     setShowContactInfo(true);

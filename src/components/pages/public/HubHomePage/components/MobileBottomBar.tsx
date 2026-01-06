@@ -1,6 +1,7 @@
 import React from 'react';
 import { PlusCircle, MinusCircle } from 'lucide-react';
 import { Button } from '../../../../ui';
+import { useTranslation } from 'react-i18next';
 
 interface MobileBottomBarProps {
   isBelowDesktop: boolean;
@@ -13,6 +14,7 @@ const MobileBottomBar: React.FC<MobileBottomBarProps> = ({
   showBottomBar,
   onReportAction
 }) => {
+  const { t } = useTranslation();
   if (!isBelowDesktop) return null;
 
   return (
@@ -28,7 +30,7 @@ const MobileBottomBar: React.FC<MobileBottomBarProps> = ({
           onClick={() => onReportAction('lost')}
         >
           <MinusCircle size={20} className="mr-2" />
-          Lost
+          {t('home.stats.lost')}
         </Button>
         <Button
           size="lg"
@@ -36,7 +38,7 @@ const MobileBottomBar: React.FC<MobileBottomBarProps> = ({
           onClick={() => onReportAction('found')}
         >
           <PlusCircle size={20} className="mr-2" />
-          Found
+          {t('home.stats.found')}
         </Button>
       </div>
     </div>

@@ -1,5 +1,6 @@
 // components/personalHub/StatsCards.tsx
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, Grid } from '../../../ui';
 import { FileText, Activity, CheckCircle, Eye, TrendingUp, ArrowUpRight } from 'lucide-react';
 import type { UserStats } from '../../../../../types/personalHub';
@@ -9,9 +10,10 @@ interface StatsCardsProps {
 }
 
 export const StatsCards: React.FC<StatsCardsProps> = ({ stats }) => {
+  const { t } = useTranslation();
   const statItems = [
     {
-      label: 'Total Reports',
+      label: t('common.total_reports'),
       value: stats.totalReports,
       icon: <FileText size={24} />,
       color: 'teal',
@@ -21,7 +23,7 @@ export const StatsCards: React.FC<StatsCardsProps> = ({ stats }) => {
       border: 'border-teal-100'
     },
     {
-      label: 'Active Reports',
+      label: t('common.active_reports'),
       value: stats.activeReports,
       icon: <Activity size={24} />,
       color: 'emerald',
@@ -31,7 +33,7 @@ export const StatsCards: React.FC<StatsCardsProps> = ({ stats }) => {
       border: 'border-emerald-100'
     },
     {
-      label: 'Resolved',
+      label: t('common.resolved'),
       value: stats.resolvedReports,
       icon: <CheckCircle size={24} />,
       color: 'orange',
@@ -41,7 +43,7 @@ export const StatsCards: React.FC<StatsCardsProps> = ({ stats }) => {
       border: 'border-orange-100'
     },
     {
-      label: 'Total Views',
+      label: t('common.total_views'),
       value: stats.totalViews,
       icon: <Eye size={24} />,
       color: 'teal',

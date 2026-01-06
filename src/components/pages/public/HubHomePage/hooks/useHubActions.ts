@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
   const navigate = useNavigate();
-  const { openLoginModal } = useAuth();
+  const { t } = useTranslation();
+  const { openLoginModal, openSettingsModal } = useAuth();
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportType, setReportType] = useState<'lost' | 'found'>('lost');
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -52,34 +54,34 @@ export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
   // Menu configurations
   const accountMenuItems = [
     {
-      label: 'News Feed',
+      label: t('common.news_feed'),
       command: () => navigate('/feed')
     },
     {
-      label: 'Personal Hub',
+      label: t('common.my_hub'),
       command: () => navigate('/hub')
     },
     {
-      label: 'My Reports',
+      label: t('common.my_reports'),
       command: () => navigate('/hub?tab=reports')
     },
     {
-      label: 'Notifications',
+      label: t('common.notifications'),
       command: () => navigate('/notifications')
     },
     {
-      label: 'Settings',
-      command: () => navigate('/settings')
+      label: t('common.settings'),
+      command: () => openSettingsModal()
     },
     {
       separator: true
     },
     {
-      label: 'Help & Support',
+      label: t('common.help_support'),
       command: () => navigate('/help')
     },
     {
-        label: 'Logout',
+      label: t('common.logout'),
       command: handleLogout,
       className: 'text-red-600 font-bold'
     }
@@ -87,7 +89,7 @@ export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
 
   const guestMenuItems = [
     {
-      label: 'Sign In',
+      label: t('home.hero.sign_in'),
       command: () => openLoginModal()
     }
   ];

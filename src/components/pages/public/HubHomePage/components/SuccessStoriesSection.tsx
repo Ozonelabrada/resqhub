@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PartyPopper, ArrowRight, ExternalLink, MapPin, Clock } from 'lucide-react';
 import { Card, Button, StatusBadge, Grid, Container } from '../../../../ui';
+import { useTranslation } from 'react-i18next';
 
 interface SuccessStory {
   id: number;
@@ -13,15 +14,15 @@ interface SuccessStory {
 }
 
 interface SuccessStoriesSectionProps {
-  isBelowDesktop: boolean;
   recentSuccesses: SuccessStory[];
 }
 
 const SuccessStoriesSection: React.FC<SuccessStoriesSectionProps> = ({
-  isBelowDesktop,
   recentSuccesses
 }) => {
   const navigate = useNavigate();
+
+  const { t } = useTranslation();
 
   const renderSuccessCard = (item: SuccessStory) => (
     <Card
@@ -60,7 +61,7 @@ const SuccessStoriesSection: React.FC<SuccessStoriesSectionProps> = ({
           className="w-full rounded-xl bg-slate-50 hover:bg-emerald-50 hover:text-emerald-600 font-bold group/btn"
           onClick={() => navigate(`/success-stories/${item.id}`)}
         >
-          Read Story
+          {t('home.success.read_story')}
           <ExternalLink size={14} className="ml-2 opacity-0 group-hover/btn:opacity-100 transition-all" />
         </Button>
       </div>
@@ -80,11 +81,11 @@ const SuccessStoriesSection: React.FC<SuccessStoriesSectionProps> = ({
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-bold mb-6">
               <PartyPopper size={16} />
-              Community Success
+              {t('home.success.tag')}
             </div>
-            <h2 className="text-4xl md:text-5xl font-black text-white mb-4">Recent Success Stories</h2>
+            <h2 className="text-4xl md:text-5xl font-black text-white mb-4">{t('home.success.title')}</h2>
             <p className="text-slate-400 text-lg font-medium">
-              Every match is a victory. See how our community helps reunite people with their most valued belongings.
+              {t('home.success.subtitle')}
             </p>
           </div>
           
@@ -93,7 +94,7 @@ const SuccessStoriesSection: React.FC<SuccessStoriesSectionProps> = ({
             className="text-white border-white/20 hover:bg-white/10 rounded-2xl px-8 h-14 font-bold"
             onClick={() => navigate('/success-stories')}
           >
-            View All Stories
+            {t('home.success.view_all')}
             <ArrowRight size={18} className="ml-2" />
           </Button>
         </div>

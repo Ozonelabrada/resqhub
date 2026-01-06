@@ -1,23 +1,17 @@
 import React, { useEffect, useRef } from 'react';
-import { Activity, LogOut, HelpCircle, FileText, Heart, Rss, User, Bell, Settings, Search } from 'lucide-react';
-import { 
-  Button, 
+import { useTranslation } from 'react-i18next';
+import {
   Spinner, 
-  Modal, 
-  Card, 
-  Container, 
-  Grid,
+  Modal,
   Toast,
   Menu
 } from '../../../ui';
 import { useStatistics } from '../../../../hooks/useStatistics';
 import { useTrendingReports } from '../../../../hooks/useTrendingReports';
-import { useCategories } from '../../../../hooks/useCategories';
 import { ReportModal } from '../../../modals';
 import { CreateReportModal } from '../../../modals/ReportModal/CreateReportModal';
 import {
   HeroSection,
-  SearchSection,
   StatsSection,
   SuccessStoriesSection,
   TrendingSection,
@@ -33,6 +27,7 @@ import {
 } from './hooks';
 
 const HubHomePage: React.FC = () => {
+  const { t } = useTranslation();
   const accountMenuRef = useRef<any>(null);
   const toastRef = useRef<any>(null);
   const guestMenuRef = useRef<any>(null);
@@ -46,13 +41,7 @@ const HubHomePage: React.FC = () => {
     setShowReportModal,
     reportType,
     showLogoutConfirm,
-    searchTerm,
-    selectedCategory,
-    setSearchTerm,
-    setSelectedCategory,
-    handleSearch,
     handleReportAction,
-    confirmLogout,
     cancelLogout,
     accountMenuItems,
     guestMenuItems
@@ -65,7 +54,6 @@ const HubHomePage: React.FC = () => {
     error: trendingError,
     calculateAndRefresh
   } = useTrendingReports();
-  const { categories: fetchedCategories, loading: categoriesLoading } = useCategories();
 
   const { recentSuccesses } = useHubData(statsError, trendingError, toastRef);
 
@@ -84,7 +72,7 @@ const HubHomePage: React.FC = () => {
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
           <Spinner size="lg" className="mx-auto" />
-          <p className="mt-4 text-slate-600 font-bold">Loading platform data...</p>
+          <p className="mt-4 text-slate-600 font-bold">{t('home.loading')}</p>
         </div>
       </div>
     );
@@ -98,23 +86,16 @@ const HubHomePage: React.FC = () => {
       <CreateReportModal 
         isOpen={showReportModal} 
         onClose={() => setShowReportModal(false)} 
-        initialType={reportType}
       />
 
       {/* Logout Confirmation Modal */}
       <Modal
         visible={showLogoutConfirm}
         onHide={cancelLogout}
-        title="Confirm Logout"
-        footer={
-          <div className="flex justify-end gap-3">
-            <Button variant="ghost" onClick={cancelLogout}>Cancel</Button>
-            <Button variant="danger" onClick={confirmLogout}>Logout</Button>
-          </div>
-        }
+        title={t('home.confirm_logout')}
       >
         <div className="py-4">
-          <p className="text-slate-600 font-medium">Are you sure you want to log out of your account?</p>
+          <p className="text-slate-600 font-medium">{t('home.logout_question')}</p>
         </div>
       </Modal>
 
@@ -146,11 +127,9 @@ const HubHomePage: React.FC = () => {
 
       <StatsSection
         stats={stats}
-        isBelowDesktop={isBelowDesktop}
       />
 
       <SuccessStoriesSection
-        isBelowDesktop={isBelowDesktop}
         recentSuccesses={recentSuccesses}
       />
 
@@ -160,7 +139,6 @@ const HubHomePage: React.FC = () => {
           categoryId: String(report.categoryId)
         }))}
         trendingLoading={trendingLoading}
-        isBelowDesktop={isBelowDesktop}
       />
 
       <CallToActionSection

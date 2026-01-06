@@ -114,7 +114,7 @@ const AuthCallbackPage: React.FC = () => {
             navigate(returnPath, { 
               replace: true,
               state: { 
-                message: userName ? `Welcome back, ${userName}!` : 'Welcome back to ResQHub!' 
+                message: userName ? `Welcome back, ${userName}!` : 'Welcome back to SHERRA!' 
               } 
             });
           }, 1500);
@@ -169,7 +169,7 @@ const AuthCallbackPage: React.FC = () => {
               </div>
               <div className="space-y-2">
                 <h2 className="text-2xl font-black text-slate-800">Success!</h2>
-                <p className="text-slate-500">Welcome back to ResQHub. Redirecting you now...</p>
+                <p className="text-slate-500">Welcome back to SHERRA. Redirecting you now...</p>
               </div>
             </div>
           )}

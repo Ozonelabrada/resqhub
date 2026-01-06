@@ -26,7 +26,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const { login, openSignUpModal } = useAuth();
   const navigate = useNavigate();
 
   const handleInputChange = (field: string, value: string) => {
@@ -59,7 +59,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
           <DialogHeader className="relative z-10 space-y-2 mb-8">
             <DialogTitle className="text-3xl font-black text-slate-900 tracking-tight">Welcome Back</DialogTitle>
             <DialogDescription className="text-slate-500 font-medium">
-              Sign in to reunite with your items and community.
+              Sign in to reunite with your items and community on SHERRA.
             </DialogDescription>
           </DialogHeader>
 
@@ -121,7 +121,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
 
             <Button
               type="submit"
-              isLoading={loading}
+              loading={loading}
               className="w-full py-6 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white shadow-xl shadow-teal-100 font-bold transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
               <LogIn className="w-5 h-5 mr-2" />
@@ -137,10 +137,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
                   className="text-teal-600 font-bold hover:underline"
                   onClick={() => {
                     onClose();
-                    navigate('/signup');
+                    openSignUpModal();
                   }}
                 >
-                  Join ResQHub
+                  Join SHERRA
                 </button>
               </p>
             </div>

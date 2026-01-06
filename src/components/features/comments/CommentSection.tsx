@@ -31,7 +31,7 @@ interface CommentSectionProps {
 
 const CommentSection: React.FC<CommentSectionProps> = ({ itemId, itemType, itemOwnerId }) => {
   const navigate = useNavigate();
-  const { isAuthenticated, user, openLoginModal } = useAuth();
+  const { isAuthenticated, user, openLoginModal, openSignUpModal } = useAuth();
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -212,7 +212,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ itemId, itemType, itemO
                 </Button>
                 <Button
                   className="rounded-xl px-6 py-3 h-auto font-black uppercase tracking-widest text-[10px] bg-white text-blue-600 hover:bg-slate-50"
-                  onClick={() => navigate('/signup')}
+                  onClick={() => openSignUpModal()}
                 >
                   Sign Up
                 </Button>
