@@ -74,13 +74,14 @@
     "confirm_logout": "Confirm Logout",
     "logout_question": "Are you sure you want to log out of your account?",
     "hero": {
-      "title": "Reuniting You With",
-      "subtitle": "What Matters.",
+      "title": "Reuniting Communities",
+      "subtitle": "Restoring Hope",
       "description": "A platform connecting people who lost items with those who found them. Promoting accountability and honesty in our community.",
       "i_lost": "I Lost Something",
       "i_found": "I Found Something",
       "account": "Account",
-      "sign_in": "Sign In"
+      "sign_in": "Sign In",
+      "search_placeholder": "Search for lost or found items..."
     },
     "stats": {
       "title": "Platform Impact",
@@ -136,5 +137,59 @@
     "clear_filters": "Clear all filters",
     "loading_rescues": "Loading amazing rescues...",
     "end_of_feed": "You've reached the end of the line! 🎉"
+  },
+  "community": {
+    "create": "Create a Community",
+    "create_description": "Build a space for your neighborhood, school, or workplace to stay connected.",
+    "name": "Community Name",
+    "description": "Description",
+    "privacy": "Privacy Settings",
+    "privacy_public": "Public",
+    "privacy_private": "Private",
+    "invite": "Invite Members",
+    "invite_description": "Select members from your contacts or search by email.",
+    "select_members": "Select Members",
+    "search_placeholder": "Search users...",
+    "send_invites": "Send Invites",
+    "sidebar_title": "Communities"
+  },
+  "report": {
+    "create_title": "Create New Report",
+    "create_subtitle": "Provide details about the item to help the community.",
+    "type_question": "What are you reporting?",
+    "lost_item": "Lost Item",
+    "found_item": "Found Item",
+    "item_title": "Item Title",
+    "item_title_placeholder": "e.g., Lost Golden Retriever, Found Blue Wallet",
+    "category": "Category",
+    "category_placeholder": "Select category",
+    "location": "Location",
+    "location_placeholder": "City, Neighborhood",
+    "description": "Description",
+    "description_placeholder": "Describe the item, including identifying features...",
+    "contact_info": "Contact Info",
+    "contact_placeholder": "Phone or Email",
+    "reward": "Reward Details",
+    "reward_placeholder": "Optional reward (e.g., $50)",
+    "images": "Images (Optional)",
+    "upload": "Upload",
+    "publish": "Publish Report",
+    "success_title": "Report Published",
+    "success_message_lost": "Your lost item report has been published successfully!",
+    "success_message_found": "Your found item report has been published successfully!",
+    "login_required": "You must be logged in to create a report."
+  },
+  "safety": {
+    "title": "Stay Safe!",
+    "subtitle": "Always meet in public places when returning items. Verify ownership before handing over valuables.",
+    "tip1_title": "Public Places",
+    "tip1_desc": "Meet in well-lit, high-traffic locations like police stations or malls.",
+    "tip2_title": "Proof of Ownership",
+    "tip2_desc": "Ask for detailed descriptions or photos not shared in the post.",
+    "tip3_title": "Bring a Friend",
+    "tip3_desc": "Never go to a meeting alone if possible. Tell someone where you are going.",
+    "tip4_title": "Share Location",
+    "tip4_desc": "Use real-time location sharing with a trusted contact.",
+    "full_guide": "Read Full Safety Guide"
   }
 }

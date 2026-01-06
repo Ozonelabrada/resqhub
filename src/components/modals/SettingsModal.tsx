@@ -14,7 +14,7 @@ import {
 import { Button } from '../ui/Button/Button';
 import { User, Bell, Languages, Palette, X, Globe } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { cn } from '../../lib/utils';
+import { cn } from "@/lib/utils";
 
 export const SettingsModal: React.FC = () => {
   const auth = useAuth();

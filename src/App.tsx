@@ -36,6 +36,8 @@ const AppRouter = () => {
           </AuthGuard>
         }>
           <Route index element={<HubHomePage />} />
+          <Route path="feed" element={<NewsFeedPage />} />
+          <Route path="hub" element={<NewsFeedPage />} />
         </Route>
 
         {/* 🔐 PROTECTED USER ROUTES - Authentication required */}
@@ -44,8 +46,6 @@ const AppRouter = () => {
             <PublicLayout />
           </AuthGuard>
         }>
-          <Route path="hub" element={<NewsFeedPage />} />
-          <Route path="feed" element={<NewsFeedPage />} />
           <Route path="profile" element={<PersonalHubPage />} />
         </Route>
 

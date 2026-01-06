@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { User, LogIn } from 'lucide-react';
+import { User, LogIn, Search } from 'lucide-react';
 import { Button, Logo } from '../../../../ui';
 
 interface HeroSectionProps {
@@ -23,134 +23,170 @@ const HeroSection: React.FC<HeroSectionProps> = ({
 }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [scene, setScene] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Central Icon Story Loop (8s cycle)
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setScene((prev) => (prev % 3) + 1);
-    }, 2666); // Roughly 8s total cycle (2s per scene + pause)
-    return () => clearInterval(timer);
-  }, []);
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/feed?search=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      navigate('/feed');
+    }
+  };
 
   return (
-    <div className="hero-wrapper relative overflow-hidden min-h-[600px] flex flex-col">
+    <div className="hero-wrapper relative overflow-hidden min-h-[700px] flex flex-col">
       <style>{`
         @keyframes gradientShift {
           0% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
           100% { background-position: 0% 50%; }
         }
-        @keyframes floatIcon {
-          0% { transform: translateY(0) rotate(0deg); opacity: 0; }
-          10% { opacity: 0.25; }
-          90% { opacity: 0.25; }
-          100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
-        }
         .hero-wrapper {
           background: linear-gradient(-45deg, #0d9488, #059669, #ea580c, #0d9488);
           background-size: 400% 400%;
           animation: gradientShift 18s ease infinite;
         }
-        .drifting-icon {
-          position: absolute;
-          bottom: -50px;
-          animation: floatIcon 20s linear infinite;
-          pointer-events: none;
-          z-index: 1;
-        }
-        .typewriter {
-          overflow: hidden;
-          white-space: nowrap;
-          border-right: 3px solid white;
-          animation: typing 2.5s steps(40, end), blink-caret .75s step-end infinite;
-        }
-        @keyframes typing { from { width: 0 } to { width: 100% } }
-        @keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: white } }
       `}</style>
 
-      {/* Floating Decorative Icons */}
-      {!isBelowDesktop && (
-        <>
-          <span className="drifting-icon text-4xl" style={{ left: '10%', animationDelay: '0s' }}>🎒</span>
-          <span className="drifting-icon text-3xl" style={{ left: '25%', animationDelay: '5s' }}>📱</span>
-          <span className="drifting-icon text-4xl" style={{ left: '60%', animationDelay: '2s' }}>🔑</span>
-          <span className="drifting-icon text-3xl" style={{ left: '85%', animationDelay: '8s' }}>💼</span>
-        </>
-      )}
+      {/* Subtle Illustration - Connected Circles in Background */}
+      <div className="absolute top-0 right-0 -mr-24 -mt-24 opacity-10 pointer-events-none text-white">
+        <svg width="600" height="600" viewBox="0 0 600 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="300" cy="300" r="299" stroke="currentColor" strokeWidth="2" />
+          <circle cx="300" cy="300" r="230" stroke="currentColor" strokeWidth="2" />
+          <circle cx="300" cy="300" r="160" stroke="currentColor" strokeWidth="2" />
+        </svg>
+      </div>
+      
+      <div className="absolute bottom-0 left-0 -ml-24 -mb-24 opacity-10 pointer-events-none text-white">
+        <svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="200" cy="200" r="199" stroke="currentColor" strokeWidth="2" />
+          <circle cx="200" cy="200" r="140" stroke="currentColor" strokeWidth="2" />
+          <circle cx="200" cy="200" r="80" stroke="currentColor" strokeWidth="2" />
+        </svg>
+      </div>
 
       {/* Navigation */}
-      <nav className={`relative z-50 flex items-center justify-between py-6 ${isBelowDesktop ? 'px-6' : 'px-12'}`}>
-        <Logo size={isBelowDesktop ? 'small' : 'medium'} variant="full" onClick={() => navigate('/')} />
+      <nav className="relative z-50 flex items-center justify-between w-full max-w-7xl mx-auto py-8 px-6 md:px-12">
+        <Logo size={isBelowDesktop ? 'small' : 'medium'} variant="full" onClick={() => navigate('/')} light />
         
         <div className="flex items-center gap-4">
           {isAuthenticated ? (
-            <div className="flex items-center gap-3 bg-white/10 p-2 rounded-full border border-white/20">
-              <div className="text-right hidden sm:block pl-2">
-                <div className="text-[10px] uppercase font-bold text-white/70">{t('home.hero.account')}</div>
-                <div className="text-sm font-semibold text-white">{userData?.email?.split('@')[0]}</div>
+            <div className="flex items-center gap-3 bg-white/10 p-1.5 rounded-full border border-white/20 shadow-sm backdrop-blur-md">
+              <div className="text-right hidden sm:block pl-3 pr-1">
+                <div className="text-[10px] uppercase font-bold text-white/70 leading-tight">Member</div>
+                <div className="text-sm font-bold text-white leading-tight">{userData?.email?.split('@')[0]}</div>
               </div>
               <div 
-                className="w-10 h-10 rounded-full bg-white flex items-center justify-center cursor-pointer shadow-lg hover:scale-105 transition-transform"
+                className="w-10 h-10 rounded-full bg-white flex items-center justify-center cursor-pointer shadow-md hover:scale-105 transition-all text-teal-600"
                 onClick={onShowAccountMenu}
               >
-                <User size={20} className="text-teal-600" />
+                <User size={20} />
               </div>
             </div>
           ) : (
             <Button 
               variant="ghost" 
-              className="bg-white/10 hover:bg-white/20 text-white border-white/20"
+              className="bg-white/10 hover:bg-white/20 text-white border border-white/20 shadow-sm font-bold px-6 rounded-full backdrop-blur-md"
               onClick={onShowGuestMenu}
             >
-              <LogIn size={18} className={isBelowDesktop ? '' : 'mr-2'} />
-              {!isBelowDesktop && t('home.hero.sign_in')}
+              <LogIn size={18} className="mr-2" />
+              {t('home.hero.sign_in')}
             </Button>
           )}
         </div>
       </nav>
 
       {/* Hero Body */}
-      <div className="relative z-10 flex-grow flex flex-col items-center justify-center text-center px-6 pb-20 max-w-5xl mx-auto">
+      <div className="relative z-10 w-full max-w-5xl mx-auto flex flex-col items-center text-center px-6 pb-20">
         
-        {/* Central Icon Story */}
-        <div className="h-32 mb-8 flex items-center justify-center">
-          {scene === 1 && (
-            <div className="animate-pulse text-6xl drop-shadow-lg">🔍😟</div>
-          )}
-          {scene === 2 && (
-            <div className="animate-bounce text-6xl drop-shadow-lg">📱✨</div>
-          )}
-          {scene === 3 && (
-            <div className="animate-bounce text-6xl drop-shadow-lg">🤝💖</div>
-          )}
-        </div>
+        {/* Main Brand Identifier */}
+        <div className="max-w-5xl space-y-6 flex flex-col items-center">
+          <h1 className="text-4xl md:text-7xl font-black tracking-tight text-white leading-[1.1]">
+            {t('home.hero.title')} <br/>
+            <span className="text-yellow-300">
+               {t('home.hero.subtitle')}
+            </span>
+          </h1>
 
-        <h1 className={`${isBelowDesktop ? 'text-3xl' : 'text-6xl'} font-black mb-6 tracking-tight text-white`}>
-          {t('home.hero.title')} <br/>
-          <span className="text-yellow-300 typewriter mx-auto inline-block">{t('home.hero.subtitle')}</span>
-        </h1>
+          <p className="text-lg md:text-2xl text-white/90 max-w-2xl leading-relaxed font-medium">
+            {t('home.hero.description')}
+          </p>
 
-        <p className="text-lg md:text-xl text-white/90 max-w-2xl mb-10 leading-relaxed font-medium">
-          {t('home.hero.description')}
-        </p>
+          {/* Search Bar */}
+          <div className="w-full max-w-2xl mt-8 animate-in fade-in slide-in-from-bottom-2 duration-1000 delay-300">
+            <form 
+              onSubmit={handleSearchSubmit}
+              className="relative group h-16 md:h-20"
+            >
+              <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 via-teal-400 to-emerald-400 rounded-2xl blur opacity-25 group-focus-within:opacity-50 transition duration-500"></div>
+              <div className="relative h-full flex items-center bg-white rounded-2xl overflow-hidden px-4 md:px-6 shadow-2xl">
+                <Search className="text-teal-600 w-6 h-6 md:w-8 md:h-8" />
+                <input 
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={t('home.hero.search_placeholder')}
+                  className="flex-1 h-full bg-transparent border-none focus:ring-0 text-slate-800 text-lg md:text-xl font-medium px-4 md:px-6 outline-none"
+                />
+                <Button 
+                  type="submit"
+                  size="lg"
+                  className="hidden md:flex bg-teal-600 hover:bg-teal-700 text-white rounded-xl px-8 h-12 font-bold"
+                >
+                  Search
+                </Button>
+                <Button 
+                  type="submit"
+                  size="sm"
+                  className="md:hidden bg-teal-600 hover:bg-teal-700 text-white p-3 rounded-xl"
+                >
+                  <Search size={20} />
+                </Button>
+              </div>
+            </form>
+          </div>
 
-        {/* CTA Buttons */}
-        <div className={`flex gap-4 w-full justify-center ${isBelowDesktop ? 'flex-col' : ''}`}>
-          <Button
-            size="lg"
-            onClick={() => onReportAction('lost')}
-            className="px-8 py-4 bg-[#E74C3C] border-none rounded-xl shadow-xl hover:-translate-y-1 transition-all text-white font-black"
-          >
-            {t('home.hero.i_lost')}
-          </Button>
-          <Button
-            size="lg"
-            onClick={() => onReportAction('found')}
-            className="px-8 py-4 bg-[#27AE60] border-none rounded-xl shadow-xl hover:-translate-y-1 transition-all text-white font-black"
-          >
-            {t('home.hero.i_found')}
-          </Button>
+          <div className="pt-8 flex flex-col sm:flex-row gap-4 w-full sm:w-auto items-center">
+            <Button
+              size="lg"
+              onClick={() => onReportAction('lost')}
+              className="group relative w-full sm:w-56 h-16 bg-white hover:bg-rose-50 text-rose-600 border-2 border-rose-100 rounded-2xl shadow-xl hover:-translate-y-1 transition-all overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-rose-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+              <span className="relative z-10 font-black text-xl group-hover:text-white transition-colors duration-300">
+                {t('home.hero.i_lost')}
+              </span>
+            </Button>
+            
+            <Button
+              size="lg"
+              onClick={() => onReportAction('found')}
+              className="group relative w-full sm:w-56 h-16 bg-white hover:bg-teal-50 text-teal-700 border-2 border-teal-100 rounded-2xl shadow-xl hover:-translate-y-1 transition-all overflow-hidden"
+            >
+               <div className="absolute inset-0 bg-teal-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+               <span className="relative z-10 font-black text-xl group-hover:text-white transition-colors duration-300">
+                {t('home.hero.i_found')}
+              </span>
+            </Button>
+          </div>
+          
+          <div className="pt-12 flex items-center gap-12 text-white/60">
+             <div className="flex flex-col items-center">
+               <span className="text-2xl font-black text-white">5k+</span>
+               <span className="text-[10px] uppercase font-bold tracking-widest">Items Found</span>
+             </div>
+             <div className="w-px h-8 bg-white/20"></div>
+             <div className="flex flex-col items-center">
+               <span className="text-2xl font-black text-white">12k</span>
+               <span className="text-[10px] uppercase font-bold tracking-widest">Active Users</span>
+             </div>
+             <div className="w-px h-8 bg-white/20"></div>
+             <div className="flex flex-col items-center">
+               <span className="text-2xl font-black text-white">100%</span>
+               <span className="text-[10px] uppercase font-bold tracking-widest">Community</span>
+             </div>
+          </div>
         </div>
       </div>
     </div>

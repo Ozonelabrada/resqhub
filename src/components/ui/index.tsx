@@ -21,6 +21,7 @@ export { Skeleton } from "./skeleton";
 export { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell, TableCaption } from "./table";
 export { Tabs, TabsList, TabsTrigger, TabsContent, TabList, TabTrigger, TabContent } from "./tabs";
 export { Badge as ShadcnBadge } from "./badge";
+export { ScrollArea, ScrollBar } from "./scroll-area";
 
 // Compatibility Shims (The ones used throughout the app)
 export { Button } from "./Button/Button";

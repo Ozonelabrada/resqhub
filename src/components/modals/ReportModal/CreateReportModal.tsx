@@ -9,7 +9,10 @@ import {
   Button, 
   Textarea,
   Select,
-  Alert
+  Alert,
+  Tabs,
+  TabsList,
+  TabsTrigger,
 } from '../../ui';
 import { 
   FileText, 
@@ -26,6 +29,7 @@ import {
 import { useAuth } from '../../../context/AuthContext';
 import { ReportsService } from '../../../services/reportsService';
 import { CategoryService } from '../../../services/categoryService';
+import { useTranslation } from 'react-i18next';
 
 interface CreateReportModalProps {
   isOpen: boolean;
@@ -35,6 +39,7 @@ interface CreateReportModalProps {
 
 export const CreateReportModal: React.FC<CreateReportModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [categories, setCategories] = useState<{ label: string, value: number }[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -93,8 +98,19 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({ isOpen, on
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
-        setError('You must be logged in to create a report.');
+        setError(t('report.login_required'));
         return;
+    }
+
+    // Basic Validation
+    if (formData.title.trim().length < 5) {
+      setError(t('report.error_title_too_short') || 'Title must be at least 5 characters');
+      return;
+    }
+
+    if (!formData.categoryId) {
+      setError(t('report.error_category_required') || 'Please select a category');
+      return;
     }
 
     setLoading(true);
@@ -110,6 +126,15 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({ isOpen, on
 
     const result = await ReportsService.createReport(payload);
     if (result.success) {
+      // Show emerald success toast
+      if ((window as any).showToast) {
+        (window as any).showToast(
+          'success', 
+          t('report.success_title'), 
+          formData.reportType === 1 ? t('report.success_message_lost') : t('report.success_message_found')
+        );
+      }
+      
       if (onSuccess) onSuccess();
       onClose();
       // Reset form
@@ -138,10 +163,10 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({ isOpen, on
               <div className="w-12 h-12 bg-teal-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-teal-100 shrink-0">
                 <FileText size={24} />
               </div>
-              <span>Create New Report</span>
+              <span>{t('report.create_title')}</span>
             </DialogTitle>
             <DialogDescription className="text-slate-500 font-medium text-lg pt-2">
-              Provide details about the item to help the community.
+              {t('report.create_subtitle')}
             </DialogDescription>
           </DialogHeader>
 
@@ -156,45 +181,42 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({ isOpen, on
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Report Type */}
-              <div className="space-y-2 col-span-2">
+              {/* Report Type Selection via Tabs */}
+              <div className="space-y-4 col-span-2">
                 <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
                   <Tag className="w-4 h-4 text-teal-600" />
-                  Report Type
+                  {t('report.type_question')}
                 </label>
-                <div className="flex gap-4">
-                  <button
-                    type="button"
-                    onClick={() => handleInputChange('reportType', 1)}
-                    className={`flex-1 py-3 px-4 rounded-2xl font-bold border-2 transition-all flex items-center justify-center gap-2 ${
-                      formData.reportType === 1 
-                      ? 'bg-teal-600 border-teal-600 text-white shadow-lg shadow-teal-100' 
-                      : 'bg-white border-slate-100 text-slate-500 hover:border-teal-200'
-                    }`}
-                  >
-                    Lost Item
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleInputChange('reportType', 2)}
-                    className={`flex-1 py-3 px-4 rounded-2xl font-bold border-2 transition-all flex items-center justify-center gap-2 ${
-                      formData.reportType === 2 
-                      ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-100' 
-                      : 'bg-white border-slate-100 text-slate-500 hover:border-emerald-200'
-                    }`}
-                  >
-                    Found Item
-                  </button>
-                </div>
+                <Tabs 
+                  defaultValue="lost" 
+                  value={formData.reportType === 1 ? 'lost' : 'found'} 
+                  onValueChange={(val) => handleInputChange('reportType', val === 'lost' ? 1 : 2)}
+                  className="w-full"
+                >
+                  <TabsList className="grid w-full grid-cols-2 p-1 bg-slate-100 rounded-2xl h-14">
+                    <TabsTrigger 
+                      value="lost" 
+                      className="rounded-xl font-bold transition-all data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+                    >
+                      {t('report.lost_item')}
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="found" 
+                      className="rounded-xl font-bold transition-all data-[state=active]:bg-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+                    >
+                      {t('report.found_item')}
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
               </div>
 
               {/* Title */}
               <div className="space-y-2 col-span-2">
-                <label className="text-sm font-bold text-slate-700">Item Title</label>
+                <label className="text-sm font-bold text-slate-700">{t('report.item_title')}</label>
                 <Input
                   value={formData.title}
                   onChange={(e) => handleInputChange('title', e.target.value)}
-                  placeholder="e.g., Lost Golden Retriever, Found Blue Wallet"
+                  placeholder={t('report.item_title_placeholder')}
                   required
                   className="rounded-2xl border-slate-100 bg-slate-50 focus-visible:ring-teal-600"
                 />
@@ -202,12 +224,12 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({ isOpen, on
 
               {/* Category */}
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">Category</label>
+                <label className="text-sm font-bold text-slate-700">{t('report.category')}</label>
                 <Select
                   value={formData.categoryId}
                   options={categories}
                   onChange={(val) => handleInputChange('categoryId', Number(val))}
-                  placeholder="Select category"
+                  placeholder={t('report.category_placeholder')}
                   className="rounded-2xl border-slate-100 bg-slate-50"
                 />
               </div>
@@ -216,12 +238,12 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({ isOpen, on
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-orange-500" />
-                  Location
+                  {t('report.location')}
                 </label>
                 <Input
                   value={formData.location}
                   onChange={(e) => handleInputChange('location', e.target.value)}
-                  placeholder="City, Neighborhood"
+                  placeholder={t('report.location_placeholder')}
                   required
                   className="rounded-2xl border-slate-100 bg-slate-50 focus-visible:ring-teal-600"
                 />
@@ -229,11 +251,11 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({ isOpen, on
 
               {/* Description */}
               <div className="space-y-2 col-span-2">
-                <label className="text-sm font-bold text-slate-700">Description</label>
+                <label className="text-sm font-bold text-slate-700">{t('report.description')}</label>
                 <Textarea
                   value={formData.description}
                   onChange={(e) => handleInputChange('description', e.target.value)}
-                  placeholder="Describe the item, including identifying features..."
+                  placeholder={t('report.description_placeholder')}
                   required
                   className="rounded-2xl border-slate-100 bg-slate-50 focus-visible:ring-teal-600 min-h-[120px]"
                 />
@@ -243,12 +265,12 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({ isOpen, on
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
                   <Phone className="w-4 h-4 text-emerald-600" />
-                  Contact Info
+                  {t('report.contact_info')}
                 </label>
                 <Input
                   value={formData.contactInfo}
                   onChange={(e) => handleInputChange('contactInfo', e.target.value)}
-                  placeholder="Phone or Email"
+                  placeholder={t('report.contact_placeholder')}
                   required
                   className="rounded-2xl border-slate-100 bg-slate-50 focus-visible:ring-teal-600"
                 />
@@ -258,12 +280,12 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({ isOpen, on
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
                   <DollarSign className="w-4 h-4 text-amber-500" />
-                  Reward Details
+                  {t('report.reward')}
                 </label>
                 <Input
                   value={formData.rewardDetails}
                   onChange={(e) => handleInputChange('rewardDetails', e.target.value)}
-                  placeholder="Optional reward (e.g., $50)"
+                  placeholder={t('report.reward_placeholder')}
                   className="rounded-2xl border-slate-100 bg-slate-50 focus-visible:ring-teal-600"
                 />
               </div>
@@ -273,7 +295,7 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({ isOpen, on
             <div className="space-y-4 pt-4 border-t border-slate-100">
               <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
                 <Camera className="w-4 h-4 text-teal-600" />
-                Images (Optional)
+                {t('report.images')}
               </label>
               
               <div className="grid grid-cols-4 gap-4">
@@ -292,7 +314,7 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({ isOpen, on
                 {images.length < 4 && (
                   <label className="aspect-square rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-slate-50 transition-all text-slate-400 hover:text-teal-600 hover:border-teal-200">
                     <Upload size={24} />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">Upload</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest">{t('report.upload')}</span>
                     <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageUpload} />
                   </label>
                 )}
@@ -305,7 +327,7 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({ isOpen, on
                 isLoading={loading}
                 className="w-full py-6 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white shadow-xl shadow-teal-100 font-bold text-lg"
               >
-                Publish Report
+                {t('report.publish')}
                 <ShieldCheck className="w-5 h-5 ml-2" />
               </Button>
             </div>
@@ -315,3 +337,5 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({ isOpen, on
     </Dialog>
   );
 };
+
+export default CreateReportModal;
