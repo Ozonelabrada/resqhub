@@ -21,7 +21,7 @@ export interface CommunityPost {
   authorAvatar?: string;
   title: string;
   content: string;
-  type: 'general' | 'news' | 'announcement';
+  type: 'general' | 'news' | 'announcement' | 'lost' | 'found';
   createdAt: string;
   likesCount: number;
   commentsCount: number;

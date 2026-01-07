@@ -6,11 +6,6 @@ import {
   Card, 
   Button, 
   Avatar, 
-  Tabs, 
-  TabList, 
-  TabTrigger, 
-  TabContent, 
-  Grid, 
   Spinner,
   Badge
 } from '../../../ui';
@@ -28,18 +23,17 @@ import {
   Search,
   ChevronRight,
   TrendingUp,
-  AlertCircle
+  AlertCircle,
+  Settings
 } from 'lucide-react';
 import CommentSection from '../../../features/comments/CommentSection';
-import { useTranslation } from 'react-i18next';
+import { CommunityService } from '../../../../services/communityService';
+import { InviteModal, CreateAnnouncementModal, CommunitySettingsModal, CreateContentModal } from '../../../modals';
 import { cn } from '@/lib/utils';
-
 import { useCommunityDetail } from '../../../../hooks/useCommunities';
 
 const CommunityPage: React.FC = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
-  const { t } = useTranslation();
   const { isAuthenticated, user, openLoginModal } = useAuth();
   
   const { 
@@ -47,14 +41,21 @@ const CommunityPage: React.FC = () => {
     posts, 
     members, 
     loading, 
-    join, 
-    leave,
+    join,
     refresh
   } = useCommunityDetail(id);
 
-  const [activeTab, setActiveTab] = useState<'news'|'announcements'|'discussions'|'members'|'about'>('news');
+  const [activeTab, setActiveTab] = useState<'posts'|'news'|'announcements'|'discussions'|'members'|'about'>('posts');
   const [newPostContent, setNewPostContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const [isAnnouncementOpen, setIsAnnouncementOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isCreateContentOpen, setIsCreateContentOpen] = useState(false);
+  const [postTitle, setPostTitle] = useState('');
+  const [postContentText, setPostContentText] = useState('');
+  const [postTypeSelection, setPostTypeSelection] = useState<'lost'|'found'>('lost');
+  const [postSubmitting, setPostSubmitting] = useState(false);
 
   const safePosts = Array.isArray(posts) ? posts : [];
   const safeMembers = Array.isArray(members) ? members : [];
@@ -62,6 +63,7 @@ const CommunityPage: React.FC = () => {
   const news = safePosts.filter(p => p.type === 'news');
   const announcements = safePosts.filter(p => p.type === 'announcement');
   const discussions = safePosts.filter(p => p.type === 'general');
+  const lostFoundPosts = safePosts.filter(p => p.type === 'lost' || p.type === 'found');
   
   const isMember = community?.isMember || false;
 
@@ -78,8 +80,7 @@ const CommunityPage: React.FC = () => {
     
     setIsSubmitting(true);
     try {
-      await CommunityService.createPost({
-        communityId: id,
+      await CommunityService.createPost(id, {
         title: 'New Discussion', // Simplified for now
         content: newPostContent,
         type: 'general'
@@ -90,6 +91,26 @@ const CommunityPage: React.FC = () => {
       console.error('Failed to create post', error);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleCreateLostFound = async () => {
+    if (!postTitle.trim() || !postContentText.trim() || !id) return;
+    setPostSubmitting(true);
+    try {
+      await CommunityService.createPost(id, {
+        title: postTitle,
+        content: postContentText,
+        type: postTypeSelection
+      });
+      setPostTitle('');
+      setPostContentText('');
+      setPostTypeSelection('lost');
+      refresh();
+    } catch (err) {
+      console.error('Error creating lost/found post', err);
+    } finally {
+      setPostSubmitting(false);
     }
   };
 
@@ -140,13 +161,28 @@ const CommunityPage: React.FC = () => {
 
                 <div className="z-10 mb-4 flex gap-3">
                   {isMember ? (
-                    <Button 
-                      onClick={() => navigate('/hub')}
-                      className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 h-14 rounded-2xl px-8 font-black transition-all"
-                    >
-                      <Plus className="mr-2 w-5 h-5" />
-                      Add Post
-                    </Button>
+                    <div className="flex gap-3">
+                      {user?.role === 'admin' && (
+                        <Button 
+                          onClick={() => setIsSettingsOpen(true)}
+                          className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 h-14 w-14 rounded-2xl flex items-center justify-center transition-all"
+                        >
+                          <Settings />
+                        </Button>
+                      )}
+                      
+                       {activeTab !== 'members' && (
+                         <Button 
+                          onClick={() => setIsCreateContentOpen(true)}
+                          className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 h-14 rounded-2xl px-8 font-black transition-all"
+                        >
+                          <Plus className="mr-2 w-5 h-5" />
+                          {activeTab === 'news' ? 'Post News' : 
+                           activeTab === 'announcements' ? 'Post Announcement' : 
+                           activeTab === 'discussions' ? 'Start Discussion' : 'Post Content'}
+                        </Button>
+                      )}
+                    </div>
                   ) : (
                     <Button 
                       onClick={handleJoin}
@@ -165,6 +201,17 @@ const CommunityPage: React.FC = () => {
           <Container size="full">
             <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6 pb-4">
                <div className="flex items-center gap-8 md:gap-12 overflow-x-auto w-full no-scrollbar pb-2 md:pb-0">
+                  <button 
+                    onClick={() => setActiveTab('posts')}
+                    className={cn(
+                      "flex items-center gap-2 pb-4 text-sm font-black uppercase tracking-widest transition-all relative",
+                      activeTab === 'posts' ? "text-teal-600" : "text-slate-400 hover:text-slate-600"
+                    )}
+                  >
+                    <MessageSquare size={18} />
+                    Posts
+                    {activeTab === 'posts' && <div className="absolute bottom-0 left-0 w-full h-1 bg-teal-600 rounded-full" />}
+                  </button>
                   <button 
                     onClick={() => setActiveTab('news')}
                     className={cn(
@@ -310,19 +357,105 @@ const CommunityPage: React.FC = () => {
           {/* Center: Main Feed Content */}
           <main className="lg:col-span-6 space-y-8">
             {/* Tab Search/Filter Bar */}
-            <Card className="p-4 border-none shadow-sm rounded-3xl bg-white flex items-center gap-4">
-               <div className="flex-1 bg-slate-50 rounded-2xl flex items-center px-4 py-2 border border-slate-100">
-                  <Search className="text-slate-300 w-5 h-5 mr-3" />
-                  <input 
-                    type="text" 
-                    placeholder={`Search within ${activeTab}...`} 
-                    className="bg-transparent border-none focus:outline-none text-sm font-medium text-slate-700 w-full"
-                  />
-               </div>
-               <Button variant="ghost" className="rounded-xl w-11 h-11 p-0 flex items-center justify-center text-slate-400 hover:bg-slate-50">
-                  <Plus className="w-5 h-5" />
-               </Button>
-            </Card>
+            {activeTab !== 'about' && (
+              <Card className="p-4 border-none shadow-sm rounded-3xl bg-white flex items-center gap-4">
+                 <div className="flex-1 bg-slate-50 rounded-2xl flex items-center px-4 py-2 border border-slate-100">
+                    <Search className="text-slate-300 w-5 h-5 mr-3" />
+                    <input 
+                      type="text" 
+                      placeholder={`Search within ${activeTab}...`} 
+                      className="bg-transparent border-none focus:outline-none text-sm font-medium text-slate-700 w-full"
+                    />
+                 </div>
+                 <div className="flex items-center gap-2">
+                   {activeTab === 'members' && (isMember || community.isAdmin) && (
+                     <Button 
+                       variant="ghost"
+                       onClick={() => setIsInviteOpen(true)}
+                       className="rounded-xl h-11 px-4 py-2 bg-slate-100 text-slate-700 font-black hover:bg-slate-200"
+                     >
+                       <Users className="w-4 h-4 mr-2" />
+                       Add Member
+                     </Button>
+                   )}
+
+                   {(activeTab === 'news' || activeTab === 'announcements') && community.isAdmin && (
+                     <Button 
+                       onClick={() => setIsAnnouncementOpen(true)}
+                       className="bg-teal-600 hover:bg-teal-700 text-white rounded-xl h-11 px-4 font-black shadow-lg"
+                     >
+                       <Megaphone className="w-4 h-4 mr-2" />
+                       New Announcement
+                     </Button>
+                   )}
+
+                   {activeTab !== 'members' && activeTab !== 'about' && (
+                     <Button 
+                       onClick={() => {
+                         if (!isAuthenticated) return openLoginModal();
+                         setIsCreateContentOpen(true);
+                       }}
+                       className="rounded-xl h-11 px-4 bg-teal-600 text-white font-black hover:bg-teal-700 shadow-lg shadow-teal-100 transition-all active:scale-95 text-xs"
+                     >
+                       <Plus className="w-4 h-4 mr-2" />
+                       New Post
+                     </Button>
+                   )}
+                 </div>
+              </Card>
+            )}
+
+            {/* TAB CONTENT: POSTS */}
+            {activeTab === 'posts' && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                {isMember && (
+                  <Card className="p-6 border-none shadow-xl shadow-slate-200/50 rounded-[2.5rem] bg-white border border-teal-100">
+                    <div className="flex gap-4">
+                      <Avatar className="w-12 h-12 border-2 border-teal-50">{user?.name?.charAt(0) || 'U'}</Avatar>
+                      <div className="flex-1">
+                        <div className="flex gap-2 mb-3">
+                          <input className="flex-1 p-3 rounded-xl border border-slate-100" placeholder="Item title (e.g. Lost: Wallet)" value={postTitle} onChange={(e) => setPostTitle(e.target.value)} />
+                          <select value={postTypeSelection} onChange={(e) => setPostTypeSelection(e.target.value as 'lost'|'found')} className="rounded-xl border border-slate-100 px-3 py-2 font-black">
+                            <option value="lost">Lost</option>
+                            <option value="found">Found</option>
+                          </select>
+                        </div>
+                        <textarea rows={3} className="w-full p-3 rounded-xl border border-slate-100 resize-none" placeholder="Describe the item and where you last saw it" value={postContentText} onChange={(e) => setPostContentText(e.target.value)} />
+                        <div className="flex items-center justify-between mt-3">
+                          <div className="text-xs text-slate-400">Anyone can comment on posts.</div>
+                          <div className="flex items-center gap-2">
+                            <Button variant="outline" className="h-10 rounded-xl border-slate-200 text-slate-500 px-4 font-bold text-xs">Add Photo</Button>
+                            <Button onClick={handleCreateLostFound} disabled={postSubmitting || !postTitle.trim() || !postContentText.trim()} className="bg-teal-600 hover:bg-teal-700 text-white font-black rounded-xl px-6 h-10 shadow-lg">{postSubmitting ? 'Posting...' : 'Report'}</Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                )}
+
+                {lostFoundPosts.map(post => (
+                  <Card key={post.id} className="p-6 border-none shadow-xl shadow-slate-200/50 rounded-[2.5rem] bg-white">
+                    <div className="flex items-start gap-4">
+                      <Avatar className="w-14 h-14 border-2 border-slate-50 shadow-sm">{post.authorName?.charAt(0)}</Avatar>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-3">
+                            <span className="font-black text-slate-900">{post.authorName}</span>
+                            <Badge className={cn("px-3 py-1 rounded-lg font-black text-[10px] uppercase", post.type === 'lost' ? 'bg-orange-50 text-orange-600 border border-orange-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100')}>{post.type}</Badge>
+                          </div>
+                          <span className="text-xs text-slate-400">{new Date(post.createdAt).toLocaleDateString()}</span>
+                        </div>
+                        <h3 className="font-black text-lg text-slate-900 mb-2">{post.title}</h3>
+                        <p className="text-slate-600 font-medium mb-4">{post.content}</p>
+                        <div className="pt-4 border-t border-slate-50">
+                          <CommentSection itemId={post.id} itemType={post.type} itemOwnerId={post.authorId} />
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
 
             {/* TAB CONTENT: NEWS */}
             {activeTab === 'news' && (
@@ -384,7 +517,7 @@ const CommunityPage: React.FC = () => {
                 {isMember && (
                   <Card className="p-6 border-none shadow-xl shadow-slate-200/50 rounded-[2.5rem] bg-white border border-teal-100">
                     <div className="flex gap-4">
-                      <Avatar className="w-12 h-12 border-2 border-teal-50">{(user as any)?.name?.charAt(0) || 'U'}</Avatar>
+                      <Avatar className="w-12 h-12 border-2 border-teal-50">{user?.name?.charAt(0) || 'U'}</Avatar>
                       <div className="flex-1">
                         <textarea 
                           placeholder="What's on your mind today?" 
@@ -547,6 +680,48 @@ const CommunityPage: React.FC = () => {
           </aside>
         </div>
       </Container>
+    
+      {/* Modals */}
+      <InviteModal 
+        isOpen={isInviteOpen} 
+        onClose={() => setIsInviteOpen(false)} 
+        communityName={community.name || 'Community'} 
+        communityId={id}
+      />
+      
+      <CreateAnnouncementModal 
+        isOpen={isAnnouncementOpen} 
+        onClose={() => setIsAnnouncementOpen(false)} 
+        communityId={id}
+        onSuccess={() => { setIsAnnouncementOpen(false); refresh(); }}
+      />
+
+      <CommunitySettingsModal 
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        community={community}
+        onSuccess={() => { refresh(); }}
+      />
+
+      <CreateContentModal 
+        isOpen={isCreateContentOpen}
+        onClose={() => setIsCreateContentOpen(false)}
+        communityId={id || ''}
+        isAdmin={user?.role === 'admin'}
+        onSuccess={() => { refresh(); }}
+        defaultType={
+          activeTab === 'news' ? 'news' : 
+          activeTab === 'announcements' ? 'announcement' : 
+          activeTab === 'discussions' ? 'discussion' : 'lost'
+        }
+        allowedTypes={
+          activeTab === 'posts' ? ['lost', 'found', 'discussion'] :
+          activeTab === 'news' ? ['news', 'announcement'] :
+          activeTab === 'announcements' ? ['announcement', 'news'] :
+          activeTab === 'discussions' ? ['discussion'] : 
+          undefined
+        }
+      />
     </div>
   );
 };

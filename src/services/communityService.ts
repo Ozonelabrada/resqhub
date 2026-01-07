@@ -75,5 +75,55 @@ export const CommunityService = {
       console.error('Error fetching community members:', error);
       return [];
     }
+  },
+
+  async updateCommunity(id: string, payload: Partial<Community>): Promise<Community | null> {
+    try {
+      const response = await api.put<{ data: Community }>(`/communities/${id}`, payload);
+      return response.data?.data || null;
+    } catch (error) {
+      console.error('Error updating community:', error);
+      return null;
+    }
+  },
+
+  async submitForReview(payload: Partial<Community>): Promise<Community | null> {
+    try {
+      const response = await api.post<{ data: Community }>('/communities', payload);
+      return response.data?.data || null;
+    } catch (error) {
+      console.error('Error submitting community for review:', error);
+      return null;
+    }
+  },
+
+  async getPendingCommunities(): Promise<Community[]> {
+    try {
+      const response = await api.get<{ data: Community[] }>('/admin/communities/pending');
+      return response.data?.data || [];
+    } catch (error) {
+      console.error('Error fetching pending communities:', error);
+      return [];
+    }
+  },
+
+  async updateStatus(id: string, status: 'approved' | 'rejected', reason?: string): Promise<boolean> {
+    try {
+      await api.patch(`/admin/communities/${id}/status`, { status, reason });
+      return true;
+    } catch (error) {
+      console.error('Error updating community status:', error);
+      return false;
+    }
+  },
+
+  async inviteMembers(communityId: string, userIds: string[]): Promise<boolean> {
+    try {
+      await api.post(`/communities/${communityId}/invite`, { userIds });
+      return true;
+    } catch (error) {
+      console.error('Error inviting members:', error);
+      return false;
+    }
   }
 };

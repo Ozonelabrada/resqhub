@@ -6,14 +6,8 @@ import {
   Card, 
   Button, 
   Spinner, 
-  Toast, 
-  Container, 
-  Grid, 
-  Alert,
-  Tabs,
-  TabList,
-  TabTrigger,
-  TabContent
+  Toast,
+  Badge
 } from '../../../ui';
 import { useUserProfile } from '../../../../hooks/useUserProfile';
 import { useUserReports } from '../../../../hooks/useUserReports';
@@ -24,8 +18,10 @@ import { StatsCards } from './personalHub/StatsCards';
 import { ReportsList } from './personalHub/ReportsList';
 import { EditProfileModal } from './personalHub/EditProfileModal';
 import { CreateReportModal } from '../../../modals/ReportModal/CreateReportModal';
+import CreateCommunityModal from '../../../modals/Community/CreateCommunityModal';
 import { NewsFeed } from './personalHub/NewsFeed';
 import { useNewsFeed } from '../../../../hooks/useNewsFeed';
+import { useCommunities } from '../../../../hooks/useCommunities';
 import { 
   User, 
   FileText, 
@@ -40,7 +36,13 @@ import {
   Plus,
   MapPin,
   X,
-  Award
+  Award,
+  Users,
+  Search,
+  ChevronRight,
+  ShieldCheck,
+  Globe,
+  AlertCircle
 } from 'lucide-react';
 
 const PersonalHubPage: React.FC = () => {
@@ -52,13 +54,16 @@ const PersonalHubPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [showProfileEdit, setShowProfileEdit] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isCommunityModalOpen, setIsCommunityModalOpen] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
+  const [communitySearch, setCommunitySearch] = useState('');
 
   // Custom hooks
   const { userData, loading: userLoading, updateProfile } = useUserProfile();
   const { reports, loading: reportsLoading, hasMore: reportsHasMore, loadMore: loadMoreReports } = useUserReports(userData?.id || null);
   const { items: watchList, loading: watchListLoading, hasMore: watchListHasMore, loadMore: loadMoreWatchList } = useWatchList();
   const { items: newsFeedItems, loading: newsFeedLoading, hasMore: newsFeedHasMore, loadMore: loadMoreNewsFeed } = useNewsFeed();
+  const { communities, loading: communitiesLoading, error: communitiesError } = useCommunities();
 
   // Calculate user stats
   const userStats: UserStats = {
@@ -148,6 +153,7 @@ const PersonalHubPage: React.FC = () => {
                 { id: 'overview', label: t('common.overview'), icon: <Activity size={20} /> },
                 { id: 'reports', label: t('common.my_reports'), icon: <FileText size={20} />, count: reports.length },
                 { id: 'watchlist', label: t('common.watchlist'), icon: <Heart size={20} />, count: watchList.length },
+                { id: 'communities', label: 'Communities', icon: <Users size={20} /> },
                 { id: 'feed', label: t('common.local_feed'), icon: <Rss size={20} /> },
               ].map((item) => (
                 <button
@@ -328,6 +334,143 @@ const PersonalHubPage: React.FC = () => {
                       onItemClick={(item) => navigate(`/item/${item.id}`)}
                     />
                   )}
+
+                  {activeTab === 'communities' && (
+                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                      {/* Search & Discovery Bar */}
+                      <Card className="p-4 border-none shadow-sm rounded-[2rem] bg-white flex flex-col lg:flex-row items-center gap-4">
+                        <div className="flex-1 w-full bg-slate-50 rounded-2xl flex items-center px-5 py-3 border border-slate-100 group focus-within:ring-2 focus-within:ring-teal-500/20 transition-all">
+                          <Search className="text-slate-300 w-5 h-5 mr-3 group-focus-within:text-teal-500 transition-colors" />
+                          <input 
+                            type="text" 
+                            placeholder="Find a community to join by city, name, or interest..." 
+                            className="bg-transparent border-none focus:outline-none text-sm font-bold text-slate-700 w-full placeholder:text-slate-300"
+                            value={communitySearch}
+                            onChange={(e) => setCommunitySearch(e.target.value)}
+                          />
+                        </div>
+                        <div className="flex items-center gap-3 w-full lg:w-auto">
+                           <Button 
+                             variant="ghost"
+                             className="flex-1 lg:flex-none border-2 border-slate-100 hover:border-teal-500 hover:bg-teal-50 text-slate-400 hover:text-teal-600 rounded-2xl px-8 h-12 font-black transition-all active:scale-95 flex items-center gap-2"
+                           >
+                             <Globe size={18} />
+                             Browse
+                           </Button>
+                           <Button 
+                             onClick={() => setIsCommunityModalOpen(true)}
+                             className="flex-1 lg:flex-none bg-teal-600 hover:bg-teal-700 text-white rounded-2xl px-8 h-12 font-black shadow-lg shadow-teal-100 transition-all active:scale-95 flex items-center gap-2"
+                           >
+                             <Plus size={18} />
+                             Start Community
+                           </Button>
+                        </div>
+                      </Card>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {communitiesLoading ? (
+                          Array(4).fill(0).map((_, i) => (
+                            <div key={i} className="h-48 bg-slate-100 rounded-[2.5rem] animate-pulse" />
+                          ))
+                        ) : communitiesError ? (
+                          <div className="col-span-full py-20 text-center">
+                            <div className="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                              <AlertCircle size={32} className="text-rose-500" />
+                            </div>
+                            <h4 className="text-xl font-black text-slate-900 mb-2">Something went wrong</h4>
+                            <p className="text-slate-500 font-medium mb-6">{communitiesError}</p>
+                            <Button onClick={() => window.location.reload()} variant="outline" className="rounded-xl font-black">Retry Loading</Button>
+                          </div>
+                        ) : communities.filter(c => c.name.toLowerCase().includes(communitySearch.toLowerCase())).length > 0 ? (
+                          communities
+                            .filter(c => c.name.toLowerCase().includes(communitySearch.toLowerCase()))
+                            .map(community => (
+                            <Card key={community.id} className="p-8 border-none shadow-xl shadow-slate-200/50 rounded-[2.5rem] bg-white group hover:shadow-2xl transition-all flex flex-col justify-between">
+                              <div className="flex items-start justify-between mb-4">
+                                <div className="w-14 h-14 bg-teal-50 rounded-2xl flex items-center justify-center text-teal-600 group-hover:bg-teal-600 group-hover:text-white transition-all duration-300 shadow-inner">
+                                  <Users size={28} />
+                                </div>
+                                <div className="flex flex-col items-end">
+                                  <Badge variant="secondary" className="bg-slate-50 text-slate-400 border-none font-black text-[10px] uppercase px-3 py-1 rounded-full mb-1">
+                                    {community.privacy || 'Public'}
+                                  </Badge>
+                                  {community.isAdmin && (
+                                    <Badge className="bg-amber-100 text-amber-700 border-none font-black text-[10px] uppercase px-3 py-1 rounded-full">
+                                      Owner
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                              <div>
+                                <h4 className="text-xl font-black text-slate-900 mb-2 truncate">{community.name}</h4>
+                                <p className="text-sm font-medium text-slate-500 line-clamp-2 leading-relaxed h-10">
+                                  {community.description || t('community.default_description', 'Connecting members in this community for shared safety and support.')}
+                                </p>
+                              </div>
+                              <div className="mt-8 pt-6 border-t border-slate-50 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <div className="flex -space-x-2">
+                                    {[1, 2, 3].map(i => (
+                                      <div key={i} className="w-6 h-6 rounded-full bg-slate-100 border-2 border-white shadow-sm flex items-center justify-center text-[8px] font-black text-slate-400">U</div>
+                                    ))}
+                                  </div>
+                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{community.membersCount || 24} Members</span>
+                                </div>
+                                <Button 
+                                  onClick={() => navigate(`/community/${community.id}`)}
+                                  variant="ghost" 
+                                  className="h-10 rounded-xl font-black text-teal-600 hover:bg-teal-50 hover:text-teal-700 p-0 px-4"
+                                >
+                                  {community.isMember ? 'Visit Hub' : 'Request Join'}
+                                  <ChevronRight size={16} className="ml-1" />
+                                </Button>
+                              </div>
+                            </Card>
+                          ))
+                        ) : (
+                          <div className="col-span-full py-20 text-center">
+                            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                              <Search size={32} className="text-slate-300" />
+                            </div>
+                            <h4 className="text-xl font-black text-slate-900 mb-2">
+                              {communitySearch ? 'No matches found' : 'No communities joined yet'}
+                            </h4>
+                            <p className="text-slate-500 font-medium mb-8 max-w-sm mx-auto">
+                              {communitySearch 
+                                ? `We couldn't find any communities matching "${communitySearch}". If you just created one, it may still be under review.` 
+                                : 'You haven\'t joined any communities. Once you create or join a community, they will appear here.'}
+                            </p>
+                            {!communitySearch && (
+                              <div className="space-y-4">
+                                <Button 
+                                  onClick={() => setIsCommunityModalOpen(true)}
+                                  className="bg-teal-600 hover:bg-teal-700 text-white rounded-2xl px-10 h-14 font-black shadow-xl shadow-teal-100"
+                                >
+                                  Start Your First Community
+                                </Button>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                  Already requested one? Requests take 24-48h to be reviewed.
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Info section for creation */}
+                      <Card className="p-8 border-none shadow-sm rounded-[2.5rem] bg-emerald-50/50 border border-emerald-100 flex items-center gap-6">
+                        <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 shrink-0">
+                          <ShieldCheck size={24} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-black text-emerald-900 mb-1">Create with Trust</p>
+                          <p className="text-xs font-medium text-emerald-700 leading-relaxed">
+                            Every community creation is reviewed by SHERRA admins to ensure safety. Instant approval is available for premium subscribers.
+                          </p>
+                        </div>
+                      </Card>
+                    </div>
+                  )}
                </div>
             </div>
           </main>
@@ -391,6 +534,19 @@ const PersonalHubPage: React.FC = () => {
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
         onSuccess={handleReportSuccess}
+      />
+
+      <CreateCommunityModal
+        isOpen={isCommunityModalOpen}
+        onClose={() => setIsCommunityModalOpen(false)}
+        onSuccess={() => {
+          toast.current?.show({
+              severity: 'success',
+              summary: 'Request Submitted',
+              detail: 'Your community has been submitted for review.',
+              life: 5000
+          });
+        }}
       />
     </div>
   );

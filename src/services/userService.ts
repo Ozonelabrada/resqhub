@@ -85,6 +85,16 @@ export class UserService {
     }
   }
 
+  static async searchUsers(query: string): Promise<BackendUserData[]> {
+    try {
+      const response = await api.get<{ data: BackendUserData[] }>(`/users/search?q=${encodeURIComponent(query)}`);
+      return response.data?.data || [];
+    } catch (error) {
+      console.error('Error searching users:', error);
+      return [];
+    }
+  }
+
   static transformUserData(backendUser: BackendUserData) {
     return {
       id: backendUser.id,

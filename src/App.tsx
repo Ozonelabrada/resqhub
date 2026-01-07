@@ -10,6 +10,7 @@ const PersonalHubPage = lazy(() => import('./components/pages/public/PersonalHub
 const NewsFeedPage = lazy(() => import('./components/pages/public/NewsFeedPage/NewsFeedPage'));
 const CommunityPage = lazy(() => import('./components/pages/public/CommunityPage/CommunityPage'));
 const ItemDetailPage = lazy(() => import('./components/pages/public/ItemDetailPage/ItemDetailPage'));
+const CommunityManagementPage = lazy(() => import('./components/pages/admin/CommunityManagementPage'));
 
 // Shared Pages
 import NotFoundPage from './components/shared/NotFoundPage/NotFoundPage';
@@ -54,7 +55,16 @@ const AppRouter = () => {
           <Route path="profile" element={<PersonalHubPage />} />
         </Route>
 
-        {/* 🚧 UTILITY ROUTES */}
+        {/* �️ ADMIN ROUTES */}
+        <Route path="/admin" element={
+          <AuthGuard requireAuth={true}>
+            <PublicLayout />
+          </AuthGuard>
+        }>
+          <Route path="communities" element={<CommunityManagementPage />} />
+        </Route>
+
+        {/* �🚧 UTILITY ROUTES */}
         <Route path="/maintenance" element={
           <AuthGuard requireAuth={false}>
             <UnderMaintenancePage />

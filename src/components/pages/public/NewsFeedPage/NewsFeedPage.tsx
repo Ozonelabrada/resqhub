@@ -268,6 +268,7 @@ const NewsFeedPage: React.FC = () => {
               setSelectedCommunityForInvite(communityName);
               setIsInviteModalOpen(true);
             }}
+            onOpenCreateCommunity={() => setIsCommunityModalOpen(true)}
             isSafetyExpanded={isSafetyExpanded}
             setIsSafetyExpanded={setIsSafetyExpanded}
           />

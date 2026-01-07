@@ -27,6 +27,7 @@ interface CommunitySidebarProps {
   isSafetyExpanded: boolean;
   setIsSafetyExpanded: (expanded: boolean) => void;
   onOpenInviteModal: (communityName: string) => void;
+  onOpenCreateCommunity: () => void;
 }
 
 const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
@@ -37,7 +38,8 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
   joinedCommunities,
   isSafetyExpanded,
   setIsSafetyExpanded,
-  onOpenInviteModal
+  onOpenInviteModal,
+  onOpenCreateCommunity
 }) => {
   const { t } = useTranslation();
 
@@ -133,7 +135,7 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
             size="sm" 
             variant="ghost" 
             className="w-10 h-10 p-0 rounded-xl bg-teal-50 text-teal-600 hover:bg-teal-100"
-            onClick={() => navigate('/community/create')}
+            onClick={onOpenCreateCommunity}
           >
             <Plus size={20} />
           </Button>
@@ -167,7 +169,7 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
 
         <Button 
           className="w-full mt-6 bg-teal-600 hover:bg-teal-700 text-white font-black py-4 h-14 rounded-2xl shadow-lg shadow-teal-100"
-          onClick={() => navigate('/community/create')}
+          onClick={onOpenCreateCommunity}
         >
           {t('community.create') || "Create Community"}
         </Button>

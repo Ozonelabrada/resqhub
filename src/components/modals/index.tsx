@@ -5,3 +5,6 @@ export { default as CreateCommunityModal } from './Community/CreateCommunityModa
 export { CommunityProfileModal } from './Community/CommunityProfileModal';
 export { default as InviteModal } from './Community/InviteModal';
 export { ProfilePreviewModal } from './ProfilePreviewModal';
+export { default as CreateAnnouncementModal } from './Community/CreateAnnouncementModal';
+export { default as CommunitySettingsModal } from './Community/CommunitySettingsModal';
+export { default as CreateContentModal } from './Community/CreateContentModal';
