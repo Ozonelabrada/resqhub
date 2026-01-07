@@ -21,7 +21,6 @@ import {
   LogOut, 
   UserPlus,
   LogIn,
-  MoreVertical,
   Languages
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -52,7 +51,6 @@ const PublicLayout = () => {
 
   // Use useRef instead of useState for menu references
   const userMenuRef = useRef<MenuRef>(null);
-  const authMenuRef = useRef<MenuRef>(null);
 
   // Check if current page should hide the navigation bar
   const shouldHideNavBar = () => {
@@ -145,18 +143,7 @@ const PublicLayout = () => {
     }
   ];
 
-  const authMenuItems = [
-    {
-      label: t('common.signup'),
-      icon: <UserPlus className="w-4 h-4 mr-2" />,
-      command: () => openSignUpModal()
-    },
-    {
-      label: t('common.login'),
-      icon: <LogIn className="w-4 h-4 mr-2" />,
-      command: () => openSignInModal()
-    }
-  ];
+  
 
   const start = (
     <div className="flex items-center gap-2">
@@ -170,60 +157,46 @@ const PublicLayout = () => {
   );
 
   const end = (
-    <div className="flex items-center gap-2">
-      {/* Language Quick Switcher */}
-      <Button
-        variant="ghost"
-        className="rounded-full h-10 w-10 p-0 text-white hover:bg-white/10 flex items-center justify-center transition-colors"
-        onClick={() => openSettingsModal()}
-        title={t('common.language')}
-      >
-        <Languages className="w-5 h-5" />
-      </Button>
+          <div className="flex items-center gap-2">
+          {/* Language Quick Switcher */}
+          <Button
+            variant="ghost"
+            className="rounded-full h-10 w-10 p-0 text-white hover:bg-white/10 flex items-center justify-center transition-colors"
+            onClick={() => openSettingsModal()}
+            title={t('common.language')}
+          >
+            <Languages className="w-5 h-5" />
+          </Button>
 
-      {isAuthenticated ? (
-        // Authenticated user menu
-        <div className="flex items-center gap-2">
-          <span className="text-sm hidden md:inline text-white/90 font-medium">
-            {/* {t('common.profile')}, {user?.fullName || user?.username || 'User'} */}
-          </span>
-          <Avatar
-            className="cursor-pointer bg-white/20 border-2 border-white/30 hover:bg-white/30 transition-colors"
-            onClick={(e) => userMenuRef.current?.toggle(e)}
-          >
-            <User className="w-5 h-5 text-white" />
-          </Avatar>
-          <Menu 
-            model={userMenuItems} 
-            popup 
-            ref={userMenuRef}
-          />
-        </div>
-      ) : (
-        // Unauthenticated user menu
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            className="rounded-full text-white hover:bg-white/10 font-bold"
-            onClick={() => openLoginModal()}
-          >
-            <LogIn className="w-4 h-4 mr-2" />
-            {t('common.login')}
-          </Button>
-          <Button
-            variant="ghost"
-            className="rounded-full w-10 h-10 p-0 flex items-center justify-center text-white/70 hover:text-white"
-            onClick={(e) => authMenuRef.current?.toggle(e)}
-          >
-            <MoreVertical size={18} />
-          </Button>
-          <Menu 
-            model={authMenuItems} 
-            popup 
-            ref={authMenuRef}
-          />
-        </div>
-      )}
+          {isAuthenticated ? (
+            // Authenticated user menu
+            <div className="flex items-center gap-2">
+              <span className="text-sm hidden md:inline text-white/90 font-medium" />
+              <Avatar
+                className="cursor-pointer bg-white/20 border-2 border-white/30 hover:bg-white/30 transition-colors"
+                onClick={(e) => userMenuRef.current?.toggle(e)}
+              >
+                <User className="w-5 h-5 text-white" />
+              </Avatar>
+              <Menu 
+                model={userMenuItems} 
+                popup 
+                ref={userMenuRef}
+              />
+            </div>
+          ) : (
+            // Unauthenticated: single, prominent Sign In button (no dropdown)
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                className="rounded-full text-white hover:bg-white/10 font-bold"
+                onClick={() => openLoginModal()}
+              >
+                <LogIn className="w-4 h-4 mr-2" />
+                {t('common.login')}
+              </Button>
+            </div>
+          )}
     </div>
   );
 

@@ -248,7 +248,7 @@ const PersonalHubPage: React.FC = () => {
                           loading={reportsLoading}
                           hasMore={false}
                           onLoadMore={() => {}}
-                          onReportClick={() => {}}
+                          onReportClick={(report) => navigate(`/item/${report.id}`)}
                         />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                            {/* Mini Watchlist */}
@@ -302,7 +302,7 @@ const PersonalHubPage: React.FC = () => {
                       loading={reportsLoading}
                       hasMore={reportsHasMore}
                       onLoadMore={loadMoreReports}
-                      onReportClick={() => {}}
+                      onReportClick={(report) => navigate(`/item/${report.id}`)}
                     />
                   )}
 
@@ -325,6 +325,7 @@ const PersonalHubPage: React.FC = () => {
                       loading={newsFeedLoading}
                       hasMore={newsFeedHasMore}
                       onLoadMore={loadMoreNewsFeed}
+                      onItemClick={(item) => navigate(`/item/${item.id}`)}
                     />
                   )}
                </div>

@@ -98,16 +98,13 @@ const NewsFeedPage: React.FC = () => {
   };
 
   const handleOpenCommunity = (communityName: string) => {
-    const community = joinedCommunities.find(c => c.name === communityName) || {
-      id: 'unknown',
-      name: communityName,
-      icon: '🛡️',
-      members: 450,
-      description: 'A dedicated neighborhood safety group in SHERRA.',
-      location: 'South District'
-    };
-    setSelectedCommunityForPreview(community);
-    setIsCommunityPreviewOpen(true);
+    const community = joinedCommunities.find(c => c.name === communityName);
+    if (community) {
+      navigate(`/community/${community.id}`);
+    } else {
+      // fallback to searching by name
+      navigate(`/community/search?name=${encodeURIComponent(communityName)}`);
+    }
   };
 
   // Capture search query from URL
@@ -267,7 +264,6 @@ const NewsFeedPage: React.FC = () => {
             trendingLoading={trendingLoading}
             navigate={navigate}
             joinedCommunities={joinedCommunities}
-            onOpenCommunityModal={() => setIsCommunityModalOpen(true)}
             onOpenInviteModal={(communityName) => {
               setSelectedCommunityForInvite(communityName);
               setIsInviteModalOpen(true);
@@ -313,11 +309,7 @@ const NewsFeedPage: React.FC = () => {
         user={selectedUserForPreview}
       />
 
-      <CommunityProfileModal
-        isOpen={isCommunityPreviewOpen}
-        onClose={() => setIsCommunityPreviewOpen(false)}
-        community={selectedCommunityForPreview}
-      />
+      {/* Community profile is now a dedicated page at /community/:id */}
     </div>
   );
 };

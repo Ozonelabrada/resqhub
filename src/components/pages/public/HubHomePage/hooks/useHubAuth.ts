@@ -7,22 +7,12 @@ export const useHubAuth = () => {
   const [userData, setUserData] = useState<any>(null);
 
   const auth = useAuth();
-  const token = auth?.token;
-  const authUserData = auth?.userData;
 
+  // Keep in sync with the central AuthContext state
   useEffect(() => {
-    setIsAuthenticated(!!token);
-    if (authUserData) {
-      try {
-        const parsedUser = typeof authUserData === 'string' ? JSON.parse(authUserData) : authUserData;
-        setUserData(parsedUser);
-      } catch (error) {
-        setUserData(null);
-      }
-    } else {
-      setUserData(null);
-    }
-  }, [token, authUserData]);
+    setIsAuthenticated(!!auth?.isAuthenticated);
+    setUserData(auth?.user || null);
+  }, [auth?.isAuthenticated, auth?.user]);
 
   const logout = async () => {
     try {
@@ -30,11 +20,8 @@ export const useHubAuth = () => {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      localStorage.removeItem('publicUserToken');
-      localStorage.removeItem('publicUserData');
-      setIsAuthenticated(false);
-      setUserData(null);
-      window.location.reload();
+      // Delegate session clearing to the central auth context
+      auth.logout();
     }
   };
 

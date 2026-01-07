@@ -29,6 +29,7 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import { UserService, type BackendUserData } from '../../../services/userService';
+import { STORAGE_KEYS } from '../../../constants';
 
 interface EditProfileModalProps {
   visible: boolean;
@@ -286,7 +287,8 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       
       // Transform and update local data
       const transformedUserData = UserService.transformUserData(updatedUser);
-      localStorage.setItem('publicUserData', JSON.stringify(transformedUserData));
+      // Persist using centralized storage key so AuthManager picks it up
+      localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(transformedUserData));
       
       // Call parent update function
       onUserDataUpdate(transformedUserData);

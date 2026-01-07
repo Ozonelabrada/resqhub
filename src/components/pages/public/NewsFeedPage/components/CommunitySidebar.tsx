@@ -26,7 +26,6 @@ interface CommunitySidebarProps {
   joinedCommunities: any[];
   isSafetyExpanded: boolean;
   setIsSafetyExpanded: (expanded: boolean) => void;
-  onOpenCommunityModal: () => void;
   onOpenInviteModal: (communityName: string) => void;
 }
 
@@ -38,7 +37,6 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
   joinedCommunities,
   isSafetyExpanded,
   setIsSafetyExpanded,
-  onOpenCommunityModal,
   onOpenInviteModal
 }) => {
   const { t } = useTranslation();
@@ -135,7 +133,7 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
             size="sm" 
             variant="ghost" 
             className="w-10 h-10 p-0 rounded-xl bg-teal-50 text-teal-600 hover:bg-teal-100"
-            onClick={onOpenCommunityModal}
+            onClick={() => navigate('/community/create')}
           >
             <Plus size={20} />
           </Button>
@@ -143,7 +141,7 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
         
         <div className="space-y-4">
           {joinedCommunities.map(community => (
-            <div key={community.id} className="p-4 rounded-3xl border border-slate-50 hover:border-teal-100 hover:bg-teal-50/30 transition-all group">
+            <div key={community.id} className="p-4 rounded-3xl border border-slate-50 hover:border-teal-100 hover:bg-teal-50/30 transition-all group" onClick={() => navigate(`/community/${community.id}`)}>
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
                   {community.icon}
@@ -158,7 +156,7 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
                     variant="ghost" 
                     size="sm" 
                     className="flex-1 bg-white hover:bg-teal-50 text-teal-600 rounded-xl font-bold border border-slate-100"
-                    onClick={() => onOpenInviteModal(community.name)}
+                    onClick={(e) => { e.stopPropagation(); onOpenInviteModal(community.name); }}
                 >
                   {t('community.invite') || "Invite"}
                 </Button>
@@ -169,7 +167,7 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
 
         <Button 
           className="w-full mt-6 bg-teal-600 hover:bg-teal-700 text-white font-black py-4 h-14 rounded-2xl shadow-lg shadow-teal-100"
-          onClick={onOpenCommunityModal}
+          onClick={() => navigate('/community/create')}
         >
           {t('community.create') || "Create Community"}
         </Button>
@@ -227,14 +225,6 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
         {!isSafetyExpanded && <ShieldAlert className="absolute -right-6 -bottom-6 w-32 h-32 opacity-10 group-hover:scale-110 transition-transform" />}
       </div>
 
-      {/* FOOTER LINKS */}
-      <div className="px-6 flex flex-wrap gap-x-4 gap-y-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest uppercase">
-        <a href="#" className="hover:text-teal-600">Privacy</a>
-        <a href="#" className="hover:text-teal-600">Terms</a>
-        <a href="#" className="hover:text-teal-600">Safety</a>
-        <a href="#" className="hover:text-teal-600">Contact</a>
-        <span>© 2026 SHERRA</span>
-      </div>
     </aside>
   );
 };

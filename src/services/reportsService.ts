@@ -1,4 +1,5 @@
 import api from '../api/client';
+import publicApi from '../api/publicClient';
 
 export interface LostFoundItem {
   id: number;
@@ -21,6 +22,16 @@ export interface LostFoundItem {
 }
 
 export const ReportsService = {
+  async getReportById(id: string | number): Promise<LostFoundItem | null> {
+    try {
+      const response = await publicApi.get<{ data: LostFoundItem }>(`/reports/${id}`);
+      return response.data?.data || null;
+    } catch (error) {
+      console.error('Error fetching report detail:', error);
+      return null;
+    }
+  },
+
   async getReports(params?: { status?: string; page?: number; pageSize?: number }): Promise<LostFoundItem[]> {
     try {
       const query = new URLSearchParams();
@@ -28,7 +39,7 @@ export const ReportsService = {
       if (params?.page) query.append('page', String(params.page));
       if (params?.pageSize) query.append('pageSize', String(params.pageSize));
       const url = `/reports/all${query.toString() ? '?' + query.toString() : ''}`;
-      const response = await api.get<{ data: LostFoundItem[] }>(url);
+      const response = await publicApi.get<{ data: LostFoundItem[] }>(url);
       return response.data?.data || [];
     } catch (error) {
       console.error('Error fetching reports:', error);

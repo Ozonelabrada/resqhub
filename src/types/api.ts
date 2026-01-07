@@ -1,5 +1,5 @@
 // Base API response structure
-export interface BaseApiResponse {
+export type BaseApiResponse = {
   message: string;
   succeeded: boolean;
   statusCode: number;

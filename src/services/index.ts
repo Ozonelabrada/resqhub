@@ -3,3 +3,7 @@ export { AuthService } from './authService';
 export { ItemsService } from './itemsService';
 export { TrendingReportsService } from './trendingReportsService';
 export { UserService } from './userService';
+export { CommunityService } from './communityService';
+export { MessagesService } from './messagesService';
+export { CommentsService } from './commentsService';
+export { ReportsService } from './reportsService';

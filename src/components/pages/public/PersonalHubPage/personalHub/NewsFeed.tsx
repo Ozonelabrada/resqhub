@@ -190,9 +190,10 @@ export const NewsFeed: React.FC<NewsFeedProps> = ({
               }`}
             >
               <Card
-                className={`rounded-3xl border-none shadow-sm overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-1 ${
+                className={`rounded-3xl border-none shadow-sm overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-1 cursor-pointer ${
                   style.border
                 } ${style.bg || 'bg-white'}`}
+                onClick={() => onItemClick?.(item)}
               >
             
             {/* Item Header */}

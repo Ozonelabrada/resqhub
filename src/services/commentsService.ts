@@ -1,5 +1,6 @@
 import api from '../api/client';
-import { BaseApiResponse } from '../types';
+import publicApi from '../api/publicClient';
+import type { BaseApiResponse } from '../types/api';
 
 export interface Comment {
   id: number;
@@ -25,7 +26,8 @@ export interface CommentResponse extends BaseApiResponse {
 export const CommentsService = {
   async getComments(reportId: number): Promise<Comment[]> {
     try {
-      const response = await api.get<CommentsResponse>(`/reports/${reportId}/comments`);
+      // Use publicApi to allow guests to view comments without 401
+      const response = await publicApi.get<CommentsResponse>(`/reports/${reportId}/comments`);
       return response.data?.data || [];
     } catch (error) {
       console.error('Error fetching comments:', error);

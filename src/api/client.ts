@@ -33,7 +33,8 @@ api.interceptors.response.use(
       authManager.logout();
       
       if ((window as any).showToast) {
-        (window as any).showToast('error', 'Session Expired', 'Please log in again.');
+        // Use 'warn' severity for 401 errors as requested (orange toast)
+        (window as any).showToast('warn', 'Session Expired', 'Please log in again.');
       }
     } else if (error.response) {
       // Other API errors

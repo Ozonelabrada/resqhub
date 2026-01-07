@@ -74,9 +74,9 @@
     "confirm_logout": "Konpirmaha ang Pag-logout",
     "logout_question": "Sigurado ka ba nga gusto nimo mo-logout sa imong account?",
     "hero": {
-      "title": "Gidugtong Ka Pag-usab Sa",
-      "subtitle": "Butang nga Importante.",
-      "description": "Usa ka plataporma nga nagkonektar sa mga tawo nga nawad-an og mga butang ngadto sa mga nakakita niini. Nagpasiugda og responsibilidad ug pagkamatinud-anon sa atong komunidad.",
+      "title": "I-Konek Ka Pag-usab sa",
+      "subtitle": "Mga Butang nga Importante.",
+      "description": "Usa ka plataporma nga nagkonektar sa mga tawo nga nawad-an ug mga butang ngadto sa mga nakakita niini. Nagpasiugda ug responsibilidad ug pagkamatinud-anon sa atong komunidad.",
       "i_lost": "Naa Koy Nawala",
       "i_found": "Naa Koy Nakit-an",
       "account": "Account",
@@ -102,23 +102,23 @@
     "success": {
       "tag": "Kadaugan sa Komunidad",
       "title": "Bag-ong mga Sugilanon sa Kalampusan",
-      "subtitle": "Ang matag tugma usa ka kadaugan. Tan-awa kung giunsa pagtabang sa among komunidad nga mahiusa pag-usab ang mga tawo sa ilang labing gipabilhan nga mga butang.",
+      "subtitle": "Ang matag nauli sa tag-iya usa ka kadaugan. Tan-awa kung giunsa pagtabang sa among komunidad nga mahiusa pag-usab ang mga tawo sa ilang labing gipabilhan nga mga butang.",
       "view_all": "Tan-awa ang Tanan nga Sugilanon",
       "read_story": "Basaha ang Sugilanon"
     },
     "trending": {
       "badge": "Live nga Market Trends",
       "title": "Trending nga mga Report",
-      "subtitle": "Tinuod nga oras nga pag-analisa sa pinaka-reported nga mga butang sa imong komunidad karong semanaha.",
+      "subtitle": "Tinuod nga oras nga pag-analisa sa mga gipang report nga mga butang sa imong komunidad karong semanaha.",
       "activity": "7D Activity",
       "reports_count": "{{count}} ka mga Report"
     },
     "cta": {
       "badge": "Gipalihok sa Komunidad",
-      "title_part1": "Andam na ba Motabang",
+      "title_part1": "Andam na ba ka Motabang",
       "title_part2": "sa Imong Komunidad?",
-      "subtitle": "Apil sa liboan ka mga tawo nga nagtabang sa pagbalik sa mga nawala nga butang ngadto sa ilang mga tag-iya. Ang matag report importante.",
-      "button": "Apil sa SHERRA Karon",
+      "subtitle": "Apil sa liboan ka mga tawo nga nagtabang sa pagbalik sa mga nawala nga mga butang ngadto sa ilang mga tag-iya. Ang matag report importante.",
+      "button": "Apil na sa SHERRA Karon",
       "feature_1": "Luwas nga Plataporma",
       "feature_2": "10k+ ka mga Miyembro",
       "feature_3": "Libre sa Kanunay"

@@ -21,6 +21,7 @@ import {
   Globe
 } from 'lucide-react';
 import { AuthService } from '../../../services/authService';
+import { STORAGE_KEYS } from '../../../constants';
 
 const OAuth2RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -194,10 +195,10 @@ const OAuth2RegisterPage: React.FC = () => {
         const user = response.data?.user || response.user;
 
         if (token) {
-          localStorage.setItem('publicUserToken', token);
+          localStorage.setItem(STORAGE_KEYS.TOKEN, token);
         }
         if (user) {
-          localStorage.setItem('publicUserData', JSON.stringify(user));
+          localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
         }
 
         // Clear temporary OAuth2 data

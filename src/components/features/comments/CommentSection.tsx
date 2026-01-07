@@ -14,12 +14,8 @@ import { CommentsService, type Comment } from '../../../services/commentsService
 import { 
   MessageSquare, 
   Send, 
-  LogIn, 
-  AlertCircle, 
-  Clock, 
-  ThumbsUp, 
-  ShieldCheck,
-  ChevronDown
+  LogIn,
+  Clock,
 } from 'lucide-react';
 import CommentCard from './CommentCard';
 
@@ -259,18 +255,6 @@ const CommentSection: React.FC<CommentSectionProps> = ({ itemId, itemType, itemO
             </div>
           )}
         </div>
-      </div>
-    </Card>
-  );
-};
-
-      {/* Comment Guidelines */}
-      <Divider />
-      <div className="text-center">
-        <small className="text-gray-500">
-          💡 <strong>Community Guidelines:</strong> Share helpful information, be respectful, 
-          and avoid sharing personal contact details publicly. Use the contact feature to connect privately.
-        </small>
       </div>
     </Card>
   );

@@ -67,7 +67,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
       </div>
 
       {/* Navigation */}
-      <nav className="relative z-50 flex items-center justify-between w-full max-w-7xl mx-auto py-8 px-6 md:px-12">
+      <nav className="relative z-50 flex items-center justify-between w-full py-8 px-6 md:px-12">
         <Logo size={isBelowDesktop ? 'small' : 'medium'} variant="full" onClick={() => navigate('/')} light />
         
         <div className="flex items-center gap-4">
@@ -98,10 +98,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({
       </nav>
 
       {/* Hero Body */}
-      <div className="relative z-10 w-full max-w-5xl mx-auto flex flex-col items-center text-center px-6 pb-20">
+      <div className="relative z-10 w-full flex flex-col items-center text-center px-6 pb-20">
         
         {/* Main Brand Identifier */}
-        <div className="max-w-5xl space-y-6 flex flex-col items-center">
+        <div className="w-full space-y-6 flex flex-col items-center">
           <h1 className="text-4xl md:text-7xl font-black tracking-tight text-white leading-[1.1]">
             {t('home.hero.title')} <br/>
             <span className="text-yellow-300">

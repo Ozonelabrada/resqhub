@@ -25,17 +25,18 @@ import {
   useHubActions,
   useHubData
 } from './hooks';
+import { useAuth } from '../../../../context/AuthContext';
 
 const HubHomePage: React.FC = () => {
   const { t } = useTranslation();
   const accountMenuRef = useRef<any>(null);
   const toastRef = useRef<any>(null);
-  const guestMenuRef = useRef<any>(null);
 
   // Custom hooks
   const { isBelowDesktop } = useScreenSize();
   const { showBottomBar } = useMobileBottomBar(isBelowDesktop);
   const { isAuthenticated, userData, logout } = useHubAuth();
+  const { openLoginModal } = useAuth();
   const {
     showReportModal,
     setShowReportModal,
@@ -43,8 +44,7 @@ const HubHomePage: React.FC = () => {
     showLogoutConfirm,
     handleReportAction,
     cancelLogout,
-    accountMenuItems,
-    guestMenuItems
+    accountMenuItems
   } = useHubActions(isAuthenticated, logout);
 
   const { statistics: stats, loading: statsLoading, error: statsError } = useStatistics();
@@ -107,21 +107,13 @@ const HubHomePage: React.FC = () => {
         className="mt-2"
       />
 
-      {/* Guest Menu */}
-      <Menu
-        model={guestMenuItems}
-        popup
-        ref={guestMenuRef}
-        className="mt-2"
-      />
-
       {/* Page Sections */}
       <HeroSection
         isAuthenticated={isAuthenticated}
         userData={userData}
         isBelowDesktop={isBelowDesktop}
         onShowAccountMenu={(e) => accountMenuRef.current?.toggle(e)}
-        onShowGuestMenu={(e) => guestMenuRef.current?.toggle(e)}
+        onShowGuestMenu={() => openLoginModal()}
         onReportAction={handleReportAction}
       />
 

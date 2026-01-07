@@ -8,6 +8,8 @@ import { Toast, Spinner } from './components/ui';
 const HubHomePage = lazy(() => import('./components/pages/public/HubHomePage/HubHomePage'));
 const PersonalHubPage = lazy(() => import('./components/pages/public/PersonalHubPage/PersonalHubPage'));
 const NewsFeedPage = lazy(() => import('./components/pages/public/NewsFeedPage/NewsFeedPage'));
+const CommunityPage = lazy(() => import('./components/pages/public/CommunityPage/CommunityPage'));
+const ItemDetailPage = lazy(() => import('./components/pages/public/ItemDetailPage/ItemDetailPage'));
 
 // Shared Pages
 import NotFoundPage from './components/shared/NotFoundPage/NotFoundPage';
@@ -37,6 +39,9 @@ const AppRouter = () => {
         }>
           <Route index element={<HubHomePage />} />
           <Route path="feed" element={<NewsFeedPage />} />
+          <Route path="community/:id" element={<CommunityPage />} />
+          <Route path="item/:id" element={<ItemDetailPage />} />
+          <Route path="success-stories/:id" element={<ItemDetailPage />} /> {/* Unified detail page */}
           <Route path="hub" element={<NewsFeedPage />} />
         </Route>
 
