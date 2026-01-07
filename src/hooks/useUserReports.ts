@@ -85,7 +85,9 @@ export const useUserReports = (userId: string | null) => {
         time: report.incidentTime || '',
         status: report.statusDescription?.toLowerCase() || 'active',
         views: report.viewsCount || report.views || 0,
-        type: report.reportType === 1 ? 'lost' : 'found',
+        type: String(report.reportType).toLowerCase().includes('lost') || report.reportType === 1 ? 'lost' : 
+              String(report.reportType).toLowerCase().includes('found') || report.reportType === 2 ? 'found' :
+              String(report.reportType).toLowerCase(),
         description: report.description || '',
         circumstances: report.circumstances || '',
         identifyingFeatures: report.identifyingFeatures || '',

@@ -9,7 +9,6 @@ import {
 import { useStatistics } from '../../../../hooks/useStatistics';
 import { useTrendingReports } from '../../../../hooks/useTrendingReports';
 import { ReportModal } from '../../../modals';
-import { CreateReportModal } from '../../../modals/ReportModal/CreateReportModal';
 import {
   HeroSection,
   StatsSection,
@@ -43,6 +42,7 @@ const HubHomePage: React.FC = () => {
     reportType,
     showLogoutConfirm,
     handleReportAction,
+    handleSearchAction,
     cancelLogout,
     accountMenuItems
   } = useHubActions(isAuthenticated, logout);
@@ -82,12 +82,6 @@ const HubHomePage: React.FC = () => {
     <div className="min-h-screen bg-white">
       <Toast ref={toastRef} />
 
-      {/* Modal Components */}
-      <CreateReportModal 
-        isOpen={showReportModal} 
-        onClose={() => setShowReportModal(false)} 
-      />
-
       {/* Logout Confirmation Modal */}
       <Modal
         visible={showLogoutConfirm}
@@ -115,6 +109,7 @@ const HubHomePage: React.FC = () => {
         onShowAccountMenu={(e) => accountMenuRef.current?.toggle(e)}
         onShowGuestMenu={() => openLoginModal()}
         onReportAction={handleReportAction}
+        onSearchAction={handleSearchAction}
       />
 
       <StatsSection

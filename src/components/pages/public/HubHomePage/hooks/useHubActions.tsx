@@ -21,10 +21,20 @@ export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
 
   const handleReportAction = (type: 'lost' | 'found') => {
     if (isAuthenticated) {
-      setReportType(type);
-      setShowReportModal(true);
+      // Redirect to Personal Hub (Profile) and trigger the create report modal
+      navigate(`/profile?action=create&type=${type}`);
     } else {
       localStorage.setItem('intendedAction', `report_${type}`);
+      openLoginModal();
+    }
+  };
+
+  const handleSearchAction = (query: string) => {
+    if (isAuthenticated) {
+      // Redirect to Personal Hub with search query if authenticated
+      navigate(`/profile?search=${encodeURIComponent(query)}`);
+    } else {
+      localStorage.setItem('intendedAction', `search_${query}`);
       openLoginModal();
     }
   };
@@ -55,17 +65,17 @@ export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
     {
       label: 'News Feed',
       icon: <Rss className="w-4 h-4 mr-2" />,
-      command: () => navigate('/feed')
+      command: () => navigate('/hub')
     },
     {
       label: 'Personal Hub',
       icon: <User className="w-4 h-4 mr-2" />,
-      command: () => navigate('/hub')
+      command: () => navigate('/profile')
     },
     {
       label: 'My Reports',
       icon: <FileText className="w-4 h-4 mr-2" />,
-      command: () => navigate('/hub?tab=reports')
+      command: () => navigate('/profile?tab=reports')
     },
     {
       label: 'Notifications',
@@ -115,6 +125,7 @@ export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
 
     // Actions
     handleReportAction,
+    handleSearchAction,
     handleLogout,
     confirmLogout,
     cancelLogout,

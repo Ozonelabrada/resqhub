@@ -78,7 +78,7 @@ export const Select: React.FC<SelectProps> = ({
                 : "none"
               }
               disabled={option.disabled}
-              className="rounded-lg focus:bg-blue-50 focus:text-blue-600 cursor-pointer"
+              className="rounded-lg focus:bg-teal-50 focus:text-teal-600 cursor-pointer"
             >
               {option.label}
             </SelectItem>

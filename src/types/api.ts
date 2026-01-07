@@ -121,10 +121,13 @@ export interface PaginatedResponse<T> extends BaseApiResponse {
   };
 }
 // ReportType as a union type and object
-export type ReportType = 1 | 2;
+export type ReportType = "Lost" | "Found" | "News" | "Discussion" | "Announcements";
 export const ReportType = {
-  Lost: 1 as ReportType,
-  Found: 2 as ReportType
+  Lost: "Lost" as ReportType,
+  Found: "Found" as ReportType,
+  News: "News" as ReportType,
+  Discussion: "Discussion" as ReportType,
+  Announcements: "Announcements" as ReportType
 };
 
 // Condition as a union type and object

@@ -65,6 +65,7 @@ export type { MenuRef, MenuItem } from "./Menu/Menu";
 export { Menubar } from "./Menubar/Menubar";
 export { Avatar } from "./Avatar/Avatar";
 export { default as Toast } from "./Toast/Toast";
+export type { ToastRef, ToastMessage } from "./Toast/Toast";
 export { ProgressBar } from "./ProgressBar/ProgressBar";
 export { ImageGallery } from "./ImageGallery/ImageGallery";
 

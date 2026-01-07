@@ -187,6 +187,11 @@
     "tip3_desc": "Ayaw paglakaw og ikaw ra sa pakigkita kung mahimo. Sultihi ang uban kung asa ka moadto.",
     "tip4_title": "I-share ang Lokasyon",
     "tip4_desc": "Gamita ang real-time location sharing sa usa ka sinaligan nga kontak.",
-    "full_guide": "Basaha ang Tibuok Giya sa Kaluwasan"
+    "full_guide": "Basaha ang Tibuok Giya"
+  },
+  "hub": {
+    "news": "Balita",
+    "discussion": "Diskusyon",
+    "announcements": "Pahibalo"
   }
 }

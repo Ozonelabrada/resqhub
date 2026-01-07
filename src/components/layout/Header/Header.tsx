@@ -20,15 +20,15 @@ const Header: React.FC = () => {
             className="flex items-center gap-3 cursor-pointer"
             role="link"
             tabIndex={0}
-            onClick={() => navigate('/hub')}
-            onKeyDown={(e) => { if (e.key === 'Enter') navigate('/hub'); }}
-            aria-label="Open your hub"
+            onClick={() => navigate('/profile')}
+            onKeyDown={(e) => { if (e.key === 'Enter') navigate('/profile'); }}
+            aria-label="Open your profile"
           >
             <div className="text-right hidden sm:block">
               <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Authenticated</div>
               <div className="text-sm font-bold text-slate-700">{userData?.name || userData?.email?.split('@')[0]}</div>
             </div>
-            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100 font-bold">
+            <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center text-teal-600 border border-teal-100 font-bold">
               {(userData?.name || userData?.email || 'U')[0].toUpperCase()}
             </div>
           </div>

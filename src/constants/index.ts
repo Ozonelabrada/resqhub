@@ -60,7 +60,7 @@ export const ROUTES = {
   HOME: '/',
   PROFILE: '/profile',
   HUB: '/hub',
-  FEED: '/feed',
+  FEED: '/hub',
   NOTIFICATIONS: '/notifications',
   SETTINGS: '/settings',
   HELP: '/help',

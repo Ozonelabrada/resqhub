@@ -118,7 +118,7 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
         <Button 
             variant="ghost" 
             className="w-full mt-8 py-6 rounded-2xl border border-gray-100 text-teal-600 font-bold hover:bg-teal-50 transition-colors"
-            onClick={() => navigate('/feed')}
+            onClick={() => navigate('/hub')}
         >
           Explore Global activity
         </Button>

@@ -8,7 +8,7 @@
     "theme": "Theme",
     "save": "Save Changes",
     "search": "Search lost items...",
-    "news_feed": "News Feed",
+    "news_feed": "SHERRA Hub",
     "my_reports": "My Reports",
     "saved_items": "Saved Items",
     "safety_center": "Safety Center",
@@ -23,7 +23,7 @@
     "overview": "Overview",
     "watchlist": "Watch List",
     "local_feed": "Local Feed",
-    "my_hub": "My Hub",
+    "my_hub": "My Profile",
     "personal_dashboard": "Personal Dashboard",
     "account_settings": "Account Settings",
     "my_reports": "My Reports",
@@ -45,6 +45,15 @@
     "success_stories": "Success Stories",
     "help_center": "Help Center",
     "help_support": "Help & Support"
+  },
+  "hub": {
+    "title": "SHERRA Hub",
+    "news": "News",
+    "discussion": "Discussion",
+    "announcements": "Announcements",
+    "success_news": "News posted successfully",
+    "success_discussion": "Discussion started successfully",
+    "success_announcement": "Announcement published successfully"
   },
   "settings": {
     "language_description": "Choose your preferred language for the SHERRA interface.",
@@ -130,6 +139,9 @@
     "lost": "Lost",
     "found": "Found",
     "reunited": "Reunited",
+    "news": "News",
+    "discussion": "Discussion",
+    "announcements": "Announcements",
     "trending": "Trending Now",
     "community_impact": "Community Impact",
     "active_now": "active now",
@@ -191,5 +203,10 @@
     "tip4_title": "Share Location",
     "tip4_desc": "Use real-time location sharing with a trusted contact.",
     "full_guide": "Read Full Safety Guide"
+  },
+  "hub": {
+    "news": "News",
+    "discussion": "Discussion",
+    "announcements": "Announcements"
   }
 }

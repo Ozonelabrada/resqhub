@@ -1,7 +1,7 @@
 // components/personalHub/StatsCards.tsx
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Card, Grid } from '../../../ui';
+import { Card, Grid } from '../../../../ui';
 import { FileText, Activity, CheckCircle, Eye, TrendingUp, ArrowUpRight } from 'lucide-react';
 import type { UserStats } from '../../../../../types/personalHub';
 

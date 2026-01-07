@@ -85,14 +85,43 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
         className="flex flex-col md:flex-row cursor-pointer"
       >
         {/* Image Container */}
-        <div className="relative w-full md:w-80 h-64 md:h-auto overflow-hidden bg-gray-100">
-          {item.images?.[0] ? (
-            <img 
-              loading="lazy"
-              src={item.images[0]} 
-              alt={item.title} 
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-            />
+        <div className="relative w-full md:w-[28rem] h-64 md:h-80 overflow-hidden bg-gray-100 border-r border-gray-50">
+          {item.images && item.images.length > 0 ? (
+            <div className={cn(
+              "w-full h-full grid gap-0.5",
+              item.images.length === 1 ? "grid-cols-1" : 
+              item.images.length === 2 ? "grid-cols-2" :
+              "grid-cols-2" 
+            )}>
+              {item.images.length === 1 ? (
+                <img 
+                  loading="lazy"
+                  src={item.images[0]} 
+                  alt={item.title} 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                />
+              ) : item.images.length === 2 ? (
+                item.images.map((img, idx) => (
+                  <img key={idx} src={img} alt="" className="w-full h-full object-cover" />
+                ))
+              ) : (
+                <>
+                  <div className="h-full">
+                    <img src={item.images[0]} alt="" className="w-full h-full object-cover" />
+                  </div>
+                  <div className={cn(
+                    "grid gap-0.5 h-full",
+                    item.images.length === 3 ? "grid-rows-2" : 
+                    item.images.length === 4 ? "grid-rows-3" : 
+                    "grid-cols-2 grid-rows-2"
+                  )}>
+                    {item.images.slice(1).map((img, idx) => (
+                      <img key={idx} src={img} alt="" className="w-full h-full object-cover" />
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 p-4 text-center">
               <Plus className="w-10 h-10 mb-2 opacity-20" />

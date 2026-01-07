@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Home, 
   PlusCircle, 
@@ -15,6 +15,7 @@ import {
   Avatar
 } from '../../../../ui';
 import { cn } from "@/lib/utils";
+import { MessagesService } from '@/services/messagesService';
 
 interface NewsFeedSidebarProps {
   isAuthenticated: boolean;
@@ -32,6 +33,26 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
   onViewChange
 }) => {
   const { t } = useTranslation();
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      const fetchUnread = async () => {
+        try {
+          const count = await MessagesService.getUnreadCount();
+          setUnreadCount(count);
+        } catch (error) {
+          console.error('Error fetching unread count:', error);
+        }
+      };
+
+      fetchUnread();
+      
+      // Refresh every minute
+      const interval = setInterval(fetchUnread, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated]);
 
   return (
     <aside className="hidden lg:flex lg:col-span-2 flex-col space-y-6 sticky top-24 h-[calc(100vh-120px)] overflow-y-auto pr-2 custom-scrollbar">
@@ -89,9 +110,13 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
         >
           <MessageSquare className={cn("w-5 h-5 mr-3", currentView === 'messages' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
           Messages
-          <Badge className="absolute right-4 bg-orange-500 text-white border-none font-black text-[10px] px-1.5 h-5">2</Badge>
+          {unreadCount > 0 && (
+            <Badge className="absolute right-4 bg-orange-500 text-white border-none font-black text-[10px] px-1.5 h-5">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </Badge>
+          )}
         </Button>
-        <Button onClick={() => navigate('/hub')} variant="ghost" className="w-full justify-start py-4 rounded-2xl text-slate-600 hover:bg-gray-100 hover:text-teal-600 font-bold group">
+        <Button onClick={() => navigate('/profile')} variant="ghost" className="w-full justify-start py-4 rounded-2xl text-slate-600 hover:bg-gray-100 hover:text-teal-600 font-bold group">
           <PlusCircle className="w-5 h-5 mr-3 text-slate-400 group-hover:text-teal-600" />
           {t('common.my_reports')}
         </Button>

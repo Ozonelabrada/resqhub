@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Card, Button, StatusBadge, Badge, Spinner } from '../../../ui';
+import { Card, Button, StatusBadge, Spinner } from '../../../../ui';
 import { Plus, MapPin, Calendar, Eye, ChevronRight, Filter } from 'lucide-react';
 import type { UserReport } from '../../../../../types/personalHub';
 
@@ -9,6 +9,7 @@ interface ReportsListProps {
   hasMore: boolean;
   onLoadMore: () => void;
   onReportClick: (report: UserReport) => void;
+  onCreateReport?: () => void;
 }
 
 export const ReportsList: React.FC<ReportsListProps> = ({
@@ -16,7 +17,8 @@ export const ReportsList: React.FC<ReportsListProps> = ({
   loading,
   hasMore,
   onLoadMore,
-  onReportClick
+  onReportClick,
+  onCreateReport
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -47,7 +49,8 @@ export const ReportsList: React.FC<ReportsListProps> = ({
         <Button
           variant="primary"
           size="sm"
-          className="rounded-xl shadow-md shadow-blue-100 flex items-center gap-2"
+          onClick={onCreateReport}
+          className="rounded-xl shadow-md shadow-teal-100 flex items-center gap-2"
         >
           <Plus size={16} />
           <span className="hidden sm:inline">Create New</span>
@@ -68,15 +71,16 @@ export const ReportsList: React.FC<ReportsListProps> = ({
           </div>
         ) : (
           reports.map((report) => (
-            <div
+            <button
               key={report.id}
-              className="group relative bg-white border border-slate-100 rounded-2xl p-4 hover:border-blue-200 hover:shadow-md transition-all duration-300 cursor-pointer"
+              className="w-full text-left group relative bg-white border border-slate-100 rounded-2xl p-4 hover:border-teal-200 hover:shadow-md transition-all duration-300 cursor-pointer"
               onClick={() => onReportClick(report)}
+              aria-label={`View details for report: ${report.title}`}
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <h4 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                    <h4 className="font-bold text-slate-900 group-hover:text-teal-600 transition-colors">
                       {report.title}
                     </h4>
                     <StatusBadge status={report.type as any} className="text-[10px] px-2 py-0.5" />
@@ -84,15 +88,15 @@ export const ReportsList: React.FC<ReportsListProps> = ({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 mt-3">
                     <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
-                      <MapPin size={12} className="text-blue-500" />
+                      <MapPin size={12} className="text-teal-500" />
                       <span className="truncate">{report.location}</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
-                      <Calendar size={12} className="text-blue-500" />
+                      <Calendar size={12} className="text-teal-500" />
                       {new Date(report.date).toLocaleDateString()}
                     </div>
                     <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
-                      <Eye size={12} className="text-blue-500" />
+                      <Eye size={12} className="text-teal-500" />
                       {report.views} views
                     </div>
                     <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
@@ -105,10 +109,10 @@ export const ReportsList: React.FC<ReportsListProps> = ({
                   </div>
                 </div>
                 <div className="self-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <ChevronRight size={20} className="text-blue-600" />
+                  <ChevronRight size={20} className="text-teal-600" />
                 </div>
               </div>
-            </div>
+            </button>
           ))
         )}
 
@@ -124,58 +128,10 @@ export const ReportsList: React.FC<ReportsListProps> = ({
               variant="ghost"
               size="sm"
               onClick={onLoadMore}
-              className="text-blue-600 font-bold hover:bg-blue-50"
+              className="text-teal-600 font-bold hover:bg-teal-50"
             >
               Load More Reports
             </Button>
-          </div>
-        )}
-      </div>
-    </Card>
-  );
-};
-
-                <div className="flex items-center gap-2">
-                  {getStatusBadge(report.status)}
-                  <span className="text-xs text-gray-500">
-                    {report.potentialMatches} potential matches
-                  </span>
-                </div>
-              </div>
-
-              {report.images.length > 0 && (
-                <img
-                  src={report.images[0]}
-                  alt={report.title}
-                  className="w-4rem h-4rem border-round"
-                  style={{ objectFit: 'cover' }}
-                />
-              )}
-            </div>
-          </Card>
-        ))}
-
-        {loading && (
-          <div className="flex justify-center py-3">
-            <ProgressSpinner style={{ width: '30px', height: '30px' }} />
-          </div>
-        )}
-
-        {!hasMore && reports.length > 0 && (
-          <div className="text-center py-3 text-gray-500">
-            No more reports to load
-          </div>
-        )}
-
-        {reports.length === 0 && !loading && (
-          <div className="text-center py-4 text-gray-500">
-            <i className="pi pi-inbox text-3xl mb-3 block"></i>
-            <p>No reports found</p>
-            <Button
-              label="Create Your First Report"
-              icon="pi pi-plus"
-              className="p-button-sm"
-            />
           </div>
         )}
       </div>

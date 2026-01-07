@@ -42,3 +42,32 @@ export const getGeolocation = (): Promise<GeolocationData> => {
     );
   });
 };
+
+export interface LocationSuggestion {
+    display_name: string;
+    lat: string;
+    lon: string;
+    address: {
+        city?: string;
+        town?: string;
+        village?: string;
+        suburb?: string;
+        state?: string;
+        country?: string;
+    };
+}
+
+export const searchLocations = async (query: string): Promise<LocationSuggestion[]> => {
+    if (!query || query.length < 3) return [];
+    
+    try {
+        const response = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`
+        );
+        const data = await response.json();
+        return data as LocationSuggestion[];
+    } catch (error) {
+        console.error('Location search failed:', error);
+        return [];
+    }
+};

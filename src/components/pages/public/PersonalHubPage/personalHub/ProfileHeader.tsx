@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Card, Button, Avatar } from '../../../ui';
+import { Card, Button, Avatar } from '../../../../ui';
 import { Camera, MapPin, User as UserIcon, Edit3, Share2, MoreHorizontal } from 'lucide-react';
 import type { UserProfile, UserStats } from '../../../../../types/personalHub';
 
@@ -22,9 +22,8 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     <Card className="mb-8 overflow-hidden border-none shadow-xl rounded-3xl">
       {/* Cover Photo Area */}
       <div
-        className="relative h-48 md:h-64 group"
+        className="relative h-48 md:h-64 group bg-gradient-to-br from-teal-600 to-emerald-600"
         style={{
-          background: 'linear-gradient(135deg, #0d9488 0%, #059669 100%)',
           backgroundImage: userData.coverPhoto ? `url(${userData.coverPhoto})` : undefined,
           backgroundSize: 'cover',
           backgroundPosition: 'center'

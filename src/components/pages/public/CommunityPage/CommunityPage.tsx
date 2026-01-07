@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import CommentSection from '../../../features/comments/CommentSection';
 import { CommunityService } from '../../../../services/communityService';
-import { InviteModal, CreateAnnouncementModal, CommunitySettingsModal, CreateContentModal } from '../../../modals';
+import { InviteModal, CreateAnnouncementModal, CommunitySettingsModal, CreateContentModal, CreateReportModal } from '../../../modals';
 import { cn } from '@/lib/utils';
 import { useCommunityDetail } from '../../../../hooks/useCommunities';
 
@@ -51,7 +51,7 @@ const CommunityPage: React.FC = () => {
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [isAnnouncementOpen, setIsAnnouncementOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isCreateContentOpen, setIsCreateContentOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [postTitle, setPostTitle] = useState('');
   const [postContentText, setPostContentText] = useState('');
   const [postTypeSelection, setPostTypeSelection] = useState<'lost'|'found'>('lost');
@@ -173,7 +173,7 @@ const CommunityPage: React.FC = () => {
                       
                        {activeTab !== 'members' && (
                          <Button 
-                          onClick={() => setIsCreateContentOpen(true)}
+                          onClick={() => setIsReportModalOpen(true)}
                           className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 h-14 rounded-2xl px-8 font-black transition-all"
                         >
                           <Plus className="mr-2 w-5 h-5" />
@@ -393,7 +393,7 @@ const CommunityPage: React.FC = () => {
                      <Button 
                        onClick={() => {
                          if (!isAuthenticated) return openLoginModal();
-                         setIsCreateContentOpen(true);
+                         setIsReportModalOpen(true);
                        }}
                        className="rounded-xl h-11 px-4 bg-teal-600 text-white font-black hover:bg-teal-700 shadow-lg shadow-teal-100 transition-all active:scale-95 text-xs"
                      >
@@ -703,23 +703,14 @@ const CommunityPage: React.FC = () => {
         onSuccess={() => { refresh(); }}
       />
 
-      <CreateContentModal 
-        isOpen={isCreateContentOpen}
-        onClose={() => setIsCreateContentOpen(false)}
-        communityId={id || ''}
-        isAdmin={user?.role === 'admin'}
-        onSuccess={() => { refresh(); }}
-        defaultType={
-          activeTab === 'news' ? 'news' : 
-          activeTab === 'announcements' ? 'announcement' : 
-          activeTab === 'discussions' ? 'discussion' : 'lost'
-        }
-        allowedTypes={
-          activeTab === 'posts' ? ['lost', 'found', 'discussion'] :
-          activeTab === 'news' ? ['news', 'announcement'] :
-          activeTab === 'announcements' ? ['announcement', 'news'] :
-          activeTab === 'discussions' ? ['discussion'] : 
-          undefined
+      <CreateReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        onSuccess={() => { setIsReportModalOpen(false); refresh(); }}
+        initialType={
+          activeTab === 'news' ? 'News' : 
+          activeTab === 'discussions' ? 'Discussion' : 
+          activeTab === 'announcements' ? 'Announcements' : 'Lost'
         }
       />
     </div>

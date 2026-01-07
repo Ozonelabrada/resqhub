@@ -32,7 +32,7 @@ const ProfilePage: React.FC = () => {
           <h2 className="text-2xl font-black text-slate-900 mb-3">Not Signed In</h2>
           <p className="text-slate-500 font-medium mb-8">Please sign in to view your profile and manage your reports.</p>
           <Button 
-            className="w-full rounded-2xl py-4 h-auto font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 shadow-xl shadow-blue-200"
+            className="w-full rounded-2xl py-4 h-auto font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 shadow-xl shadow-teal-200"
             onClick={() => openLoginModal()}
           >
             <LogIn size={18} />
@@ -48,12 +48,12 @@ const ProfilePage: React.FC = () => {
       <Container size="sm">
         <Card className="border-none shadow-2xl rounded-[3rem] bg-white overflow-hidden">
           {/* Header Section */}
-          <div className="relative h-32 bg-gradient-to-r from-blue-600 to-blue-700" />
+          <div className="relative h-32 bg-gradient-to-r from-teal-600 to-emerald-700" />
           
           <div className="px-8 pb-10 -mt-16">
             <div className="flex flex-col items-center text-center">
               <div className="w-32 h-32 rounded-[2.5rem] bg-white p-2 shadow-xl mb-6">
-                <div className="w-full h-full rounded-[2rem] bg-slate-100 flex items-center justify-center text-blue-600">
+                <div className="w-full h-full rounded-[2rem] bg-slate-100 flex items-center justify-center text-teal-600">
                   <User size={56} />
                 </div>
               </div>
@@ -67,9 +67,9 @@ const ProfilePage: React.FC = () => {
               </div>
 
               <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6 text-left mb-10">
-                <div className="p-6 rounded-3xl bg-slate-50 border border-slate-100 group hover:border-blue-200 transition-colors">
+                <div className="p-6 rounded-3xl bg-slate-50 border border-slate-100 group hover:border-teal-200 transition-colors">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-600">
+                    <div className="w-10 h-10 rounded-2xl bg-teal-100 flex items-center justify-center text-teal-600">
                       <ShieldCheck size={20} />
                     </div>
                     <span className="font-black uppercase tracking-widest text-[10px] text-slate-400">Full Name</span>
@@ -77,7 +77,7 @@ const ProfilePage: React.FC = () => {
                   <p className="text-slate-900 font-bold">{user.fullName || user.name || '-'}</p>
                 </div>
 
-                <div className="p-6 rounded-3xl bg-slate-50 border border-slate-100 group hover:border-blue-200 transition-colors">
+                <div className="p-6 rounded-3xl bg-slate-50 border border-slate-100 group hover:border-teal-200 transition-colors">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-600">
                       <Phone size={20} />
@@ -87,9 +87,9 @@ const ProfilePage: React.FC = () => {
                   <p className="text-slate-900 font-bold">{user.phone || 'Not provided'}</p>
                 </div>
 
-                <div className="p-6 rounded-3xl bg-slate-50 border border-slate-100 group hover:border-blue-200 transition-colors md:col-span-2">
+                <div className="p-6 rounded-3xl bg-slate-50 border border-slate-100 group hover:border-teal-200 transition-colors md:col-span-2">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-2xl bg-purple-100 flex items-center justify-center text-purple-600">
+                    <div className="w-10 h-10 rounded-2xl bg-orange-100 flex items-center justify-center text-orange-600">
                       <Calendar size={20} />
                     </div>
                     <span className="font-black uppercase tracking-widest text-[10px] text-slate-400">Member Since</span>
@@ -114,8 +114,8 @@ const ProfilePage: React.FC = () => {
                   Edit Profile
                 </Button>
                 <Button 
-                  className="flex-1 rounded-2xl py-4 h-auto font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 shadow-xl shadow-blue-200"
-                  onClick={() => navigate('/hub')}
+                  className="flex-1 rounded-2xl py-4 h-auto font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 shadow-xl shadow-teal-200"
+                  onClick={() => navigate('/profile')}
                 >
                   <FileText size={18} />
                   My Reports

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, ModalHeader, ModalBody, ModalFooter, Input, Textarea, Select, Button, Avatar } from '../../../ui';
+import { Modal, ModalHeader, ModalBody, ModalFooter, Input, Textarea, Select, Button, Avatar } from '../../../../ui';
 import { Camera, User, MapPin, Info, Save, X } from 'lucide-react';
 import type { EditProfileForm, UserProfile } from '../../../../../types/personalHub';
 

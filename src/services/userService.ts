@@ -87,8 +87,15 @@ export class UserService {
 
   static async searchUsers(query: string): Promise<BackendUserData[]> {
     try {
-      const response = await api.get<{ data: BackendUserData[] }>(`/users/search?q=${encodeURIComponent(query)}`);
-      return response.data?.data || [];
+      // Use GET /users?searchTerm= as requested by the API contract
+      const response = await api.get<{ data: { data: BackendUserData[] } | BackendUserData[] }>(`/users?searchTerm=${encodeURIComponent(query)}`);
+      
+      // Handle potential nested structure data.data.data or data.data
+      const rawData = (response.data as any).data;
+      if (Array.isArray(rawData)) return rawData;
+      if (rawData && Array.isArray(rawData.data)) return rawData.data;
+      
+      return [];
     } catch (error) {
       console.error('Error searching users:', error);
       return [];

@@ -20,8 +20,8 @@ import { cn } from "@/lib/utils";
 interface NewsFeedHeaderProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
-  filter: 'all' | 'lost' | 'found' | 'reunited';
-  setFilter: (filter: 'all' | 'lost' | 'found' | 'reunited') => void;
+  filter: 'all' | 'lost' | 'found';
+  setFilter: (filter: 'all' | 'lost' | 'found') => void;
   sortBy: 'recent' | 'popular' | 'distance';
   setSortBy: (sort: 'recent' | 'popular' | 'distance') => void;
   showAdvancedFilters: boolean;
@@ -74,7 +74,7 @@ const NewsFeedHeader: React.FC<NewsFeedHeaderProps> = ({
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between overflow-x-auto pb-2 scrollbar-none gap-2">
             <div className="flex items-center gap-2 flex-nowrap">
-              {(['all', 'lost', 'found', 'reunited'] as const).map((type) => (
+              {(['all', 'lost', 'found'] as const).map((type) => (
                 <button
                   key={type}
                   onClick={() => setFilter(type)}

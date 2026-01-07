@@ -108,8 +108,49 @@ export const mockNewsFeedItems: NewsFeedItem[] = [
     },
     timeAgo: '1d ago'
   },
-  {
-    id: '3',
+  {    id: 'news-1',
+    title: 'New Community Safety Guidelines',
+    category: 'Safety',
+    location: 'SHERRA City',
+    currentLocation: '',
+    date: '2024-01-16T10:00:00Z',
+    time: '10:00 AM',
+    status: 'news',
+    views: 1200,
+    type: 'news',
+    description: 'We have updated our safety guidelines for in-person meetings. Please read the full document on our blog.',
+    circumstances: 'Official update',
+    identifyingFeatures: '',
+    condition: 'excellent',
+    handoverPreference: 'meet',
+    contactInfo: {
+      name: 'Admin Team',
+      phone: '',
+      email: 'admin@resqhub.com',
+      preferredContact: 'email'
+    },
+    reward: {
+      amount: 0,
+      description: ''
+    },
+    images: [],
+    storageLocation: '',
+    createdAt: '2024-01-16T10:00:00Z',
+    updatedAt: '2024-01-16T10:00:00Z',
+    expiresAt: '2024-12-31T23:59:59Z',
+    reportTypeDescription: 'News',
+    verificationStatus: 'verified',
+    potentialMatches: 0,
+    user: {
+      id: 'system',
+      fullName: 'SHERRA Admin',
+      username: 'admin',
+      profilePicture: '',
+      isVerified: true
+    },
+    timeAgo: '1h ago'
+  },
+  {    id: '3',
     title: 'Lost Golden Retriever - Max',
     category: 'Pets',
     location: 'Brooklyn Bridge Park',
@@ -154,8 +195,49 @@ export const mockNewsFeedItems: NewsFeedItem[] = [
     },
     timeAgo: '2d ago'
   },
-  {
-    id: '4',
+  {    id: 'disc-1',
+    title: 'How to better identify lost pets?',
+    category: 'Discussion',
+    location: 'Global',
+    currentLocation: '',
+    date: '2024-01-16T12:00:00Z',
+    time: '12:00 PM',
+    status: 'discussion',
+    views: 450,
+    type: 'discussion',
+    description: 'I was thinking about how we can make pet identification more efficient. What do you think about mandatory microchipping?',
+    circumstances: 'Community Discussion',
+    identifyingFeatures: '',
+    condition: 'excellent',
+    handoverPreference: 'meet',
+    contactInfo: {
+      name: 'Pet Lover',
+      phone: '',
+      email: 'petlover@email.com',
+      preferredContact: 'email'
+    },
+    reward: {
+      amount: 0,
+      description: ''
+    },
+    images: [],
+    storageLocation: '',
+    createdAt: '2024-01-16T12:00:00Z',
+    updatedAt: '2024-01-16T12:00:00Z',
+    expiresAt: '2024-12-31T23:59:59Z',
+    reportTypeDescription: 'Discussion',
+    verificationStatus: 'verified',
+    potentialMatches: 0,
+    user: {
+      id: 'user4',
+      fullName: 'Alex Miller',
+      username: 'alexm',
+      profilePicture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100',
+      isVerified: false
+    },
+    timeAgo: '30m ago'
+  },
+  {    id: '4',
     title: 'Found Keys - House and Car',
     category: 'Keys',
     location: 'Union Square, New York',

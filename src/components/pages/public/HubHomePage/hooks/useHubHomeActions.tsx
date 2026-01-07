@@ -1,31 +1,41 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+// Force reload of useHubActions
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../../context/AuthContext';
-import { useTranslation } from 'react-i18next';
+import { 
+  User, 
+  Rss, 
+  FileText, 
+  Bell, 
+  Settings, 
+  HelpCircle, 
+  LogOut, 
+  LogIn 
+} from 'lucide-react';
 
-export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
+export const useHubHomeActions = (isAuthenticated: boolean, logout: () => void) => {
   const navigate = useNavigate();
-  const { t } = useTranslation();
-  const { openLoginModal, openSettingsModal } = useAuth();
+  const { openLoginModal, openSignUpModal } = useAuth();
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportType, setReportType] = useState<'lost' | 'found'>('lost');
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState(null);
-
-  const handleSearch = () => {
-    const params = new URLSearchParams();
-    if (searchTerm) params.append('search', searchTerm);
-    if (selectedCategory) params.append('category', selectedCategory);
-    navigate(`/search?${params.toString()}`);
-  };
 
   const handleReportAction = (type: 'lost' | 'found') => {
     if (isAuthenticated) {
-      setReportType(type);
-      setShowReportModal(true);
+      // Redirect to Personal Hub (Profile) and trigger the create report modal
+      navigate(`/profile?action=create&type=${type}`);
     } else {
       localStorage.setItem('intendedAction', `report_${type}`);
+      openLoginModal();
+    }
+  };
+
+  const handleSearchAction = (query: string) => {
+    if (isAuthenticated) {
+      // Redirect to Personal Hub with search query if authenticated
+      navigate(`/profile?search=${encodeURIComponent(query)}`);
+    } else {
+      localStorage.setItem('intendedAction', `search_${query}`);
       openLoginModal();
     }
   };
@@ -54,34 +64,41 @@ export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
   // Menu configurations
   const accountMenuItems = [
     {
-      label: t('common.news_feed'),
-      command: () => navigate('/feed')
-    },
-    {
-      label: t('common.my_hub'),
+      label: 'News Feed',
+      icon: <Rss className="w-4 h-4 mr-2" />,
       command: () => navigate('/hub')
     },
     {
-      label: t('common.my_reports'),
-      command: () => navigate('/hub?tab=reports')
+      label: 'Personal Hub',
+      icon: <User className="w-4 h-4 mr-2" />,
+      command: () => navigate('/profile')
     },
     {
-      label: t('common.notifications'),
+      label: 'My Reports',
+      icon: <FileText className="w-4 h-4 mr-2" />,
+      command: () => navigate('/profile?tab=reports')
+    },
+    {
+      label: 'Notifications',
+      icon: <Bell className="w-4 h-4 mr-2" />,
       command: () => navigate('/notifications')
     },
     {
-      label: t('common.settings'),
-      command: () => openSettingsModal()
+      label: 'Settings',
+      icon: <Settings className="w-4 h-4 mr-2" />,
+      command: () => navigate('/settings')
     },
     {
       separator: true
     },
     {
-      label: t('common.help_support'),
+      label: 'Help & Support',
+      icon: <HelpCircle className="w-4 h-4 mr-2" />,
       command: () => navigate('/help')
     },
     {
-      label: t('common.logout'),
+      label: 'Logout',
+      icon: <LogOut className="w-4 h-4 mr-2 text-red-500" />,
       command: handleLogout,
       className: 'text-red-600 font-bold'
     }
@@ -89,8 +106,14 @@ export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
 
   const guestMenuItems = [
     {
-      label: t('home.hero.sign_in'),
+      label: 'Sign In',
+      icon: <LogIn className="w-4 h-4 mr-2" />,
       command: () => openLoginModal()
+    },
+    {
+      label: 'Create Account',
+      icon: <FileText className="w-4 h-4 mr-2" />,
+      command: () => openSignUpModal()
     }
   ];
 
@@ -100,14 +123,10 @@ export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
     setShowReportModal,
     reportType,
     showLogoutConfirm,
-    searchTerm,
-    selectedCategory,
 
     // Actions
-    setSearchTerm,
-    setSelectedCategory,
-    handleSearch,
     handleReportAction,
+    handleSearchAction,
     handleLogout,
     confirmLogout,
     cancelLogout,

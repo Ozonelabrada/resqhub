@@ -163,7 +163,7 @@ export const NewsFeed: React.FC<NewsFeedProps> = ({
     switch (status) {
       case 'lost': return { border: 'border-l-4 border-red-400', variant: 'danger' as const, label: 'LOST', bg: '' };
       case 'found': return { border: 'border-l-4 border-green-400', variant: 'success' as const, label: 'FOUND', bg: '' };
-      case 'reunited': return { border: 'border-l-4 border-blue-400', variant: 'primary' as const, label: 'REUNITED ✨', bg: 'bg-blue-50' };
+      case 'reunited': return { border: 'border-l-4 border-teal-400', variant: 'primary' as const, label: 'REUNITED ✨', bg: 'bg-teal-50' };
       default: return { border: '', variant: 'secondary' as const, label: 'POST', bg: '' };
     }
   };
@@ -203,7 +203,7 @@ export const NewsFeed: React.FC<NewsFeedProps> = ({
                 <div>
                   <div className="flex items-center gap-1">
                     <span className="font-bold text-slate-800 text-sm">{item.user.fullName}</span>
-                    {item.user.isVerified && <CheckCircle size={14} className="text-blue-500" />}
+                    {item.user.isVerified && <CheckCircle size={14} className="text-teal-500" />}
                   </div>
                   <p className="text-xs text-slate-400 font-medium">{item.timeAgo} • {item.location}</p>
                 </div>
@@ -218,20 +218,20 @@ export const NewsFeed: React.FC<NewsFeedProps> = ({
 
               {/* Special Reunited Success Story */}
               {item.status === 'reunited' && (
-                <div className="mx-4 mb-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-4">
+                <div className="mx-4 mb-4 bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-100 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <Star size={16} className="text-blue-500 fill-blue-500" />
-                    <span className="font-bold text-blue-800">Success Story</span>
+                    <Star size={16} className="text-teal-500 fill-teal-500" />
+                    <span className="font-bold text-teal-800">Success Story</span>
                   </div>
-                  <p className="text-sm text-blue-700 mb-3 italic">
+                  <p className="text-sm text-teal-700 mb-3 italic">
                     "Thanks to the amazing community, I got my lost item back! Faith in humanity restored 💚"
                   </p>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-blue-600">32 people celebrated this reunion</span>
+                    <span className="text-xs text-teal-600">32 people celebrated this reunion</span>
                     <Button 
                       variant="ghost"
                       size="sm"
-                      className="text-blue-600 hover:text-blue-700" 
+                      className="text-teal-600 hover:text-teal-700" 
                     >
                       <Heart size={14} className="mr-1" /> Celebrate
                     </Button>
@@ -256,7 +256,7 @@ export const NewsFeed: React.FC<NewsFeedProps> = ({
               <div className="text-slate-600 text-sm leading-relaxed mb-3">
                 {expandedItems.has(item.id) ? item.description : item.description.length > 150 ? `${item.description.substring(0, 150)}...` : item.description}
                 {item.description.length > 150 && (
-                  <button onClick={() => toggleExpanded(item.id)} className="text-blue-600 hover:text-blue-800 ml-1 font-medium">
+                  <button onClick={() => toggleExpanded(item.id)} className="text-teal-600 hover:text-teal-800 ml-1 font-medium underline-offset-4 hover:underline">
                     {expandedItems.has(item.id) ? 'Show less' : 'Read more'}
                   </button>
                 )}
@@ -309,7 +309,7 @@ export const NewsFeed: React.FC<NewsFeedProps> = ({
               <div className="mt-6 flex items-center justify-between pt-4 border-t border-slate-50">
                 <div className="flex gap-4">
                   <button 
-                    className="flex items-center gap-1.5 text-slate-400 hover:text-blue-500 transition-colors" 
+                    className="flex items-center gap-1.5 text-slate-400 hover:text-teal-600 transition-colors" 
                     onClick={() => toggleComments(item.id)}
                   >
                     <MessageSquare size={18} /> 
@@ -327,15 +327,15 @@ export const NewsFeed: React.FC<NewsFeedProps> = ({
                   <Button 
                     variant="ghost"
                     size="sm"
-                    className={`transition-all duration-300 ${isSaved ? 'text-blue-600' : 'text-slate-400'}`} 
+                    className={`transition-all duration-300 ${isSaved ? 'text-teal-600' : 'text-slate-400'}`} 
                     onClick={() => toggleSaved(item.id)} 
                   >
-                    <Bookmark size={18} className={isSaved ? 'fill-blue-600' : ''} />
+                    <Bookmark size={18} className={isSaved ? 'fill-teal-600' : ''} />
                   </Button>
                   <Button 
                     variant="ghost"
                     size="sm"
-                    className="text-blue-600 font-bold" 
+                    className="text-teal-600 font-bold" 
                     onClick={() => handleShare(item)}
                   >
                     <Share2 size={18} className="mr-1" /> Share

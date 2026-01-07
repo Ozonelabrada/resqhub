@@ -34,27 +34,10 @@ const NewsFeedPage: React.FC = () => {
   const { t } = useTranslation();
   const { isAuthenticated, openLoginModal } = useAuth();
   
-  // Hooks
-  const { 
-    items: newsFeedItems, 
-    loading: newsFeedLoading, 
-    hasMore: newsFeedHasMore, 
-    loadMore: loadMoreNewsFeed
-  } = useNewsFeed();
-  
-  const { 
-    statistics 
-  } = useStatistics();
-  
-  const { 
-    trendingReports, 
-    loading: trendingLoading 
-  } = useTrendingReports();
-
   // State
   const [currentView, setCurrentView] = useState<'feed' | 'messages'>('feed');
   const [selectedConversationId, setSelectedConversationId] = useState<string | undefined>(undefined);
-  const [filter, setFilter] = useState<'all' | 'lost' | 'found' | 'reunited'>('all');
+  const [filter, setFilter] = useState<'all' | 'lost' | 'found'>('all');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
@@ -64,6 +47,26 @@ const NewsFeedPage: React.FC = () => {
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [selectedCommunityForInvite, setSelectedCommunityForInvite] = useState<string>('');
   const [isSafetyExpanded, setIsSafetyExpanded] = useState(false);
+
+  // Hooks
+  const { 
+    items: newsFeedItems, 
+    loading: newsFeedLoading, 
+    hasMore: newsFeedHasMore, 
+    loadMore: loadMoreNewsFeed
+  } = useNewsFeed({
+    reportType: filter === 'all' ? undefined : filter.charAt(0).toUpperCase() + filter.slice(1),
+    search: debouncedSearchQuery
+  });
+  
+  const { 
+    statistics 
+  } = useStatistics();
+  
+  const { 
+    trendingReports, 
+    loading: trendingLoading 
+  } = useTrendingReports();
   
   // New States for Profile and Community previews
   const [selectedUserForPreview, setSelectedUserForPreview] = useState<any>(null);
@@ -95,6 +98,14 @@ const NewsFeedPage: React.FC = () => {
     setSelectedConversationId(mockId);
     setIsProfilePreviewOpen(false);
     setCurrentView('messages');
+  };
+
+  const handleOpenPostModal = () => {
+    if (!isAuthenticated) {
+      openLoginModal();
+      return;
+    }
+    setIsPostModalOpen(true);
   };
 
   const handleOpenCommunity = (communityName: string) => {
@@ -133,26 +144,13 @@ const NewsFeedPage: React.FC = () => {
   const filteredItems = useMemo(() => {
     let result = newsFeedItems;
 
-    if (filter !== 'all') {
-      result = result.filter(item => item.status === filter);
-    }
-
-    if (debouncedSearchQuery.trim()) {
-      const query = debouncedSearchQuery.toLowerCase();
-      result = result.filter(item => 
-        item.title.toLowerCase().includes(query) || 
-        item.description.toLowerCase().includes(query) ||
-        item.location.toLowerCase().includes(query)
-      );
-    }
-
     // Sort by recent for now as standard, could add popular logic based on views
     if (sortBy === 'popular') {
       result = [...result].sort((a, b) => b.views - a.views);
     }
 
     return result;
-  }, [newsFeedItems, filter, searchQuery, sortBy]);
+  }, [newsFeedItems, sortBy]);
 
   // Infinite Scroll Handler
   const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
@@ -202,7 +200,7 @@ const NewsFeedPage: React.FC = () => {
                 setShowAdvancedFilters={setShowAdvancedFilters}
                 sortBy={sortBy}
                 setSortBy={setSortBy}
-                onPostClick={() => setIsPostModalOpen(true)}
+                onPostClick={handleOpenPostModal}
               />
 
               {/* MAIN FEED */}
@@ -278,7 +276,7 @@ const NewsFeedPage: React.FC = () => {
       {/* --- FOOTER CTA --- */}
       <div className="md:hidden sticky bottom-4 mx-4 mb-4">
         <Button 
-          onClick={() => navigate('/hub/report')}
+          onClick={handleOpenPostModal}
           className="w-full h-14 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl shadow-xl flex items-center justify-center gap-2 text-lg font-bold transition-transform active:scale-95"
         >
           <Plus className="w-6 h-6 border-2 rounded-md" />
@@ -301,6 +299,11 @@ const NewsFeedPage: React.FC = () => {
       <CreateReportModal
         isOpen={isPostModalOpen}
         onClose={() => setIsPostModalOpen(false)}
+        initialType={
+          filter === 'all' 
+            ? 'Lost' 
+            : filter.charAt(0).toUpperCase() + filter.slice(1)
+        }
       />
 
       <ProfilePreviewModal

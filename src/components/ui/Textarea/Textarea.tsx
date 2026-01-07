@@ -8,15 +8,17 @@ export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextArea
 }
 
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ label, error, className, ...props }, ref) => {
+  ({ label, error, className, id, ...props }, ref) => {
+    const textAreaId = id || (label ? `textarea-${label.replace(/\s+/g, '-').toLowerCase()}` : undefined);
     return (
       <div className="w-full space-y-1.5">
         {label && (
-          <label className="text-sm font-bold text-slate-700 ml-1">
+          <label htmlFor={textAreaId} className="text-sm font-bold text-slate-700 ml-1">
             {label}
           </label>
         )}
         <ShadcnTextarea
+          id={textAreaId}
           ref={ref}
           className={cn(
             "resize-none rounded-xl",

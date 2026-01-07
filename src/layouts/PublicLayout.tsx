@@ -82,7 +82,7 @@ const PublicLayout = () => {
         {
           label: t('common.news_feed'),
           icon: <List className="w-4 h-4 mr-2" />,
-          command: () => navigate('/feed')
+          command: () => navigate('/hub')
         },
         {
           label: t('common.recent_activity'),
@@ -112,7 +112,7 @@ const PublicLayout = () => {
     {
       label: t('common.my_reports'),
       icon: <FileText className="w-4 h-4 mr-2" />,
-      command: () => navigate('/hub')
+      command: () => navigate('/profile')
     },
     {
       label: t('common.notifications'),

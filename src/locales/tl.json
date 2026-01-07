@@ -190,5 +190,10 @@
     "tip4_title": "I-share ang Lokasyon",
     "tip4_desc": "Gamitin ang real-time location sharing sa isang pinagkakatiwalaang contact.",
     "full_guide": "Basahin ang Buong Gabay sa Kaligtasan"
+  },
+  "hub": {
+    "news": "Balita",
+    "discussion": "Talakayan",
+    "announcements": "Anunsyo"
   }
 }

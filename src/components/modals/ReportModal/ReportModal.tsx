@@ -109,7 +109,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
     const files = e.files;
     // Validation: Max 5 images, max 2MB each
     if (files.length > 5) {
-      toast?.current?.show({
+      toast?.show({
         severity: 'warn',
         summary: 'Validation Warning',
         detail: 'You can only upload up to 5 images'
@@ -119,7 +119,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
     
     const validFiles = Array.from(files).filter((file: any) => file.size <= 2 * 1024 * 1024);
     if (validFiles.length < files.length) {
-      toast?.current?.show({
+      toast?.show({
         severity: 'warn',
         summary: 'Validation Warning',
         detail: 'Some images were skipped because they exceed 2MB'
@@ -132,7 +132,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
   const handleSubmit = async () => {
     // Validation
     if (!formData.title || !formData.description || !formData.categoryId || !formData.location || !formData.contactInfo) {
-      toast?.current?.show({
+      toast?.show({
         severity: 'error',
         summary: 'Validation Error',
         detail: 'Please fill in all required fields'
@@ -146,9 +146,9 @@ export const ReportModal: React.FC<ReportModalProps> = ({
         userId: user?.id,
         categoryId: formData.categoryId,
         title: sanitizeInput(formData.title),
-        description: sanitizeInput(formData.description),
+        description: formData.description,
         location: sanitizeInput(formData.location),
-        contactInfo: sanitizeInput(formData.contactInfo),
+        contactInfo: formData.contactInfo,
         rewardDetails: sanitizeInput(formData.reward),
         reportType: reportType === 'lost' ? 1 : 2,
         latitude: formData.geolocation?.latitude || 0,
@@ -168,7 +168,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
         ));
       }
 
-      toast?.current?.show({
+      toast?.show({
         severity: 'success',
         summary: 'Success',
         detail: `Your ${reportType} report has been submitted successfully!`
@@ -189,7 +189,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
       onSuccess?.();
     } catch (error: any) {
       console.error('Failed to create report:', error);
-      toast?.current?.show({
+      toast?.show({
         severity: 'error',
         summary: 'Error',
         detail: error?.response?.data?.message || 'Failed to submit report. Please try again.'
@@ -253,7 +253,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
               <Select
                 id="category"
                 value={formData.categoryId?.toString() || ''}
-                options={categories.map(cat => ({ label: cat.label, value: cat.value.toString() }))}
+                options={categories.map(cat => ({ label: cat.label, value: String(cat.value || '') }))}
                 onChange={(value) => handleInputChange('categoryId', parseInt(value))}
                 placeholder="Select a category"
                 className="rounded-2xl shadow-sm focus:ring-emerald-600 focus:border-emerald-600"

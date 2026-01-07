@@ -1,11 +1,11 @@
 import { useEffect, useState, lazy, Suspense, useRef } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 
 // UI Components
 import { Toast, Spinner } from './components/ui';
+import type { ToastRef } from './components/ui/Toast/Toast';
 
 // Public Pages (Lazy Loaded)
-const HubHomePage = lazy(() => import('./components/pages/public/HubHomePage/HubHomePage'));
 const PersonalHubPage = lazy(() => import('./components/pages/public/PersonalHubPage/PersonalHubPage'));
 const NewsFeedPage = lazy(() => import('./components/pages/public/NewsFeedPage/NewsFeedPage'));
 const CommunityPage = lazy(() => import('./components/pages/public/CommunityPage/CommunityPage'));
@@ -38,12 +38,14 @@ const AppRouter = () => {
             <PublicLayout />
           </AuthGuard>
         }>
-          <Route index element={<HubHomePage />} />
-          <Route path="feed" element={<NewsFeedPage />} />
+          <Route index element={<Navigate to="/hub" replace />} />
+          {/* <Route index element={<HubHomePage />} /> */}
+          <Route path="hub" element={<NewsFeedPage />} />
+          <Route path="feed" element={<Navigate to="/hub" replace />} />
           <Route path="community/:id" element={<CommunityPage />} />
           <Route path="item/:id" element={<ItemDetailPage />} />
           <Route path="success-stories/:id" element={<ItemDetailPage />} /> {/* Unified detail page */}
-          <Route path="hub" element={<NewsFeedPage />} />
+          <Route path="profile" element={<PersonalHubPage />} />
         </Route>
 
         {/* 🔐 PROTECTED USER ROUTES - Authentication required */}
@@ -83,11 +85,11 @@ const AppRouter = () => {
 const App = () => {
   const [isOnline, setIsOnline] = useState(window.navigator.onLine);
   const [showOnlineBanner, setShowOnlineBanner] = useState(false);
-  const toast = useRef<Toast>(null);
+  const toast = useRef<ToastRef>(null);
 
   // Expose toast to window for global access if needed
   useEffect(() => {
-    (window as any).showToast = (severity: string, summary: string, detail: string) => {
+    (window as any).showToast = (severity: 'success' | 'info' | 'warn' | 'error', summary: string, detail: string) => {
       toast.current?.show({ severity, summary, detail, life: 3000 });
     };
   }, []);

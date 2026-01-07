@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Send, 
   Smile, 
@@ -7,31 +7,75 @@ import {
   Paperclip,
   Check,
   CheckCheck,
-  ChevronLeft
+  ChevronLeft,
+  Phone,
+  Video,
+  MessageSquare,
+  Trash2,
+  MailOpen,
+  Mail
 } from 'lucide-react';
 import { 
   Avatar, 
   Button,
-  Input,
-  ScrollArea
+  ScrollArea,
+  Menu
 } from '../../ui';
+import type { MenuItem } from '../../ui';
 import { cn } from "@/lib/utils";
 import type { Conversation, Message } from './types';
+import { useAuth } from '@/context/AuthContext';
 
 interface ChatWindowProps {
   conversation: Conversation | null;
   messages: Message[];
   onSendMessage: (text: string) => void;
+  onDeleteMessage?: (messageId: string) => void;
+  onMarkUnread?: (messageId: string) => void;
   onBack?: () => void;
 }
+
+const TypingIndicator = () => (
+  <div className="flex gap-1.5 px-4 py-3 bg-white rounded-2xl w-fit shadow-sm border border-gray-100 animate-in fade-in slide-in-from-bottom-2 duration-300">
+    <div className="w-1.5 h-1.5 bg-teal-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
+    <div className="w-1.5 h-1.5 bg-teal-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
+    <div className="w-1.5 h-1.5 bg-teal-400 rounded-full animate-bounce" />
+  </div>
+);
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({
   conversation,
   messages,
   onSendMessage,
+  onDeleteMessage,
+  onMarkUnread,
   onBack
 }) => {
+  const { user: currentUser } = useAuth();
   const [inputText, setInputText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [activeMenuMessageId, setActiveMenuMessageId] = useState<string | null>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+      }
+    }
+  }, [messages, isTyping]);
+
+  // Mock typing indicator effect
+  useEffect(() => {
+    if (conversation && !isTyping && messages.length > 0) {
+       const timer = setTimeout(() => {
+         setIsTyping(true);
+         setTimeout(() => setIsTyping(false), 3000);
+       }, 8000);
+       return () => clearTimeout(timer);
+    }
+  }, [conversation, messages.length]);
 
   const handleSend = () => {
     if (inputText.trim()) {
@@ -42,97 +86,192 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
   if (!conversation) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 p-8 text-center">
-        <div className="w-24 h-24 bg-teal-50 rounded-full flex items-center justify-center mb-6 shadow-inner">
-           <Send className="w-10 h-10 text-teal-600 opacity-20" />
+      <div className="flex-1 flex flex-col items-center justify-center bg-gray-50/50 p-8 text-center animate-in fade-in duration-700">
+        <div className="w-32 h-32 bg-teal-50 rounded-[2.5rem] flex items-center justify-center mb-8 shadow-inner rotate-3">
+           <MessageSquare className="w-12 h-12 text-teal-600 opacity-20 -rotate-3" />
         </div>
-        <h3 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">Select a Conversation</h3>
-        <p className="text-slate-500 max-w-xs font-medium">Choose a thread to start coordinating with your community members.</p>
+        <h3 className="text-3xl font-black text-slate-900 mb-3 tracking-tight">Your Inbox</h3>
+        <p className="text-slate-500 max-w-xs font-bold text-xs uppercase tracking-widest leading-relaxed">
+          Select a member to start coordinating or view your chat history.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-50/50 relative">
+    <div className="flex-1 flex flex-col h-full bg-slate-50/50 relative overflow-hidden">
       {/* Chat Header */}
-      <div className="p-4 md:p-6 bg-white border-b border-gray-100 flex items-center justify-between shadow-sm z-10">
+      <div className="p-4 md:p-6 bg-white/80 backdrop-blur-xl border-b border-gray-100 flex items-center justify-between shadow-sm z-10 transition-all">
         <div className="flex items-center gap-4">
           {onBack && (
-            <Button variant="ghost" size="icon" onClick={onBack} className="lg:hidden">
-              <ChevronLeft className="w-5 h-5 text-slate-600" />
+            <Button variant="ghost" size="icon" onClick={onBack} className="lg:hidden rounded-2xl">
+              <ChevronLeft className="w-6 h-6 text-slate-600" />
             </Button>
           )}
-          <div className="relative">
+          <div className="relative group cursor-pointer">
             <Avatar 
               src={conversation.user.profilePicture} 
               alt={conversation.user.fullName}
-              className="w-12 h-12 border-2 border-white shadow-md ring-1 ring-slate-100"
+              className="w-12 h-12 border-2 border-white shadow-md ring-1 ring-slate-100 transition-transform group-hover:scale-105"
             />
             {conversation.user.isOnline && (
               <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full shadow-sm" />
             )}
           </div>
           <div>
-            <h4 className="text-base font-black text-slate-900 leading-none mb-1">{conversation.user.fullName}</h4>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none">
-              {conversation.user.isOnline ? 'Online Now' : 'Last active 2h ago'}
-            </p>
+            <h4 className="text-base font-black text-slate-900 leading-none mb-1.5">{conversation.user.fullName}</h4>
+            <div className="flex items-center gap-2">
+              <div className={cn("w-1.5 h-1.5 rounded-full", conversation.user.isOnline ? "bg-emerald-500 animate-pulse" : "bg-slate-300")} />
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
+                {conversation.user.isOnline ? 'Active Now' : 'Offline'}
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="rounded-xl text-slate-400 hover:text-teal-600 hover:bg-teal-50">
+        <div className="flex items-center gap-1 md:gap-3">
+          <Button variant="ghost" size="icon" className="hidden md:flex rounded-2xl text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-all">
+            <Phone size={18} />
+          </Button>
+          <Button variant="ghost" size="icon" className="hidden md:flex rounded-2xl text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-all">
+            <Video size={18} />
+          </Button>
+          <div className="w-px h-6 bg-slate-100 mx-1 hidden md:block" />
+          <Button variant="ghost" size="icon" className="rounded-2xl text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-all">
             <MoreVertical size={20} />
           </Button>
         </div>
       </div>
 
       {/* Messages area */}
-      <ScrollArea className="flex-1 p-6">
-        <div className="space-y-6">
+      <ScrollArea className="flex-1 p-6" ref={scrollAreaRef}>
+        <div className="space-y-8 pb-4">
+          <div className="flex justify-center">
+            <span className="px-4 py-1.5 bg-white/50 backdrop-blur shadow-sm border border-gray-100 rounded-full text-[9px] font-black text-slate-400 uppercase tracking-widest">
+              Messages are secured with end-to-end encryption
+            </span>
+          </div>
+
           {messages.map((msg, idx) => {
-          const isMe = msg.senderId === 'me';
-          return (
-            <div key={msg.id} className={cn(
-              "flex flex-col max-w-[80%]",
-              isMe ? "ml-auto items-end" : "mr-auto items-start"
-            )}>
-              <div className={cn(
-                "px-6 py-4 rounded-[2rem] text-sm leading-relaxed shadow-sm",
-                isMe 
-                  ? "bg-teal-600 text-white rounded-tr-none shadow-teal-100" 
-                  : "bg-white text-slate-700 rounded-tl-none border border-gray-100"
+            const isMe = String(msg.senderId) === String(currentUser?.id) || msg.senderId === 'me' || msg.senderId === 'current-user';
+            
+            return (
+              <div key={msg.id} className={cn(
+                "flex flex-col max-w-[85%] group animate-in fade-in slide-in-from-bottom-2 duration-500",
+                isMe ? "ml-auto items-end" : "mr-auto items-start"
               )}>
-                {msg.text}
+                <div className="flex items-center gap-2 w-full relative">
+                  {!isMe && (
+                    <>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => setActiveMenuMessageId(activeMenuMessageId === msg.id ? null : msg.id)}
+                      >
+                        <MoreVertical className="h-4 w-4 text-slate-400" />
+                      </Button>
+                      {activeMenuMessageId === msg.id && (
+                        <div className="absolute left-12 top-0 z-50 min-w-[180px] bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                          <button
+                            onClick={() => {
+                              onMarkUnread?.(msg.id);
+                              setActiveMenuMessageId(null);
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left text-sm text-slate-700"
+                          >
+                            <Mail className="h-4 w-4" />
+                            Mark as Unread
+                          </button>
+                          <div className="border-t border-gray-100" />
+                          <button
+                            onClick={() => {
+                              onDeleteMessage?.(msg.id);
+                              setActiveMenuMessageId(null);
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition-colors text-left text-sm text-red-500"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  <div className={cn(
+                    "px-6 py-4 rounded-[2rem] text-sm leading-relaxed shadow-sm transition-all hover:shadow-md",
+                    isMe 
+                      ? "bg-teal-600 text-white rounded-tr-none shadow-teal-100/30" 
+                      : "bg-white text-slate-700 rounded-tl-none border border-gray-50"
+                  )}>
+                    {msg.text}
+                  </div>
+
+                  {isMe && (
+                    <>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => setActiveMenuMessageId(activeMenuMessageId === msg.id ? null : msg.id)}
+                      >
+                        <MoreVertical className="h-4 w-4 text-slate-400" />
+                      </Button>
+                      {activeMenuMessageId === msg.id && (
+                        <div className="absolute right-12 top-0 z-50 min-w-[140px] bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                          <button
+                            onClick={() => {
+                              onDeleteMessage?.(msg.id);
+                              setActiveMenuMessageId(null);
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition-colors text-left text-sm text-red-500"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 mt-2 px-3">
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter opacity-60">
+                    {msg.timestamp}
+                  </span>
+                  {isMe && (
+                    <div className="flex items-center text-teal-500">
+                      {msg.status === 'read' ? <CheckCheck size={12} className="stroke-[3]" /> : <Check size={12} className="stroke-[3]" />}
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center gap-2 mt-2 px-2">
-                <span className="text-[10px] font-black text-slate-400 uppercase">{msg.timestamp}</span>
-                {isMe && (
-                   <span className="text-teal-600">
-                     {msg.status === 'read' ? <CheckCheck size={12} /> : <Check size={12} />}
-                   </span>
-                )}
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+
+          {isTyping && (
+             <div className="mr-auto items-start animate-in fade-in duration-300">
+                <TypingIndicator />
+             </div>
+          )}
         </div>
       </ScrollArea>
 
       {/* Input area */}
-      <div className="p-6 bg-white border-t border-gray-100 shadow-[0_-4px_10px_rgba(0,0,0,0.02)]">
-        <div className="flex items-end gap-3 max-w-6xl mx-auto bg-slate-50 p-2 rounded-[2.5rem] border border-gray-100 focus-within:ring-2 focus-within:ring-teal-500/20 transition-all">
+      <div className="p-6 bg-white border-t border-gray-100 shadow-[0_-4px_10px_rgba(0,0,0,0.02)] transition-all">
+        <div className="flex items-end gap-3 max-w-6xl mx-auto bg-slate-50 p-2 rounded-[2.5rem] border border-gray-100 focus-within:ring-4 focus-within:ring-teal-500/5 focus-within:bg-white transition-all">
           <Button 
             variant="ghost" 
             size="icon" 
-            className="w-12 h-12 rounded-full text-slate-400 hover:text-teal-600 hover:bg-white transition-all shrink-0"
+            className="w-12 h-12 rounded-full text-slate-400 hover:text-teal-600 hover:bg-slate-50 transition-all shrink-0"
           >
             <Paperclip size={20} />
           </Button>
           
           <div className="flex-1 relative pb-1">
             <textarea
-              className="w-full bg-transparent border-none focus:ring-0 text-slate-700 placeholder:text-slate-400 text-sm font-medium py-3 px-2 resize-none max-h-32"
+              className="w-full bg-transparent border-none focus:ring-0 text-slate-700 placeholder:text-slate-400 text-sm font-medium py-3 px-2 resize-none max-h-32 scrollbar-none"
               placeholder="Type your message..."
               rows={1}
               value={inputText}
@@ -150,16 +289,21 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
              <Button 
               variant="ghost" 
               size="icon" 
-              className="w-12 h-12 rounded-full text-slate-400 hover:text-orange-500 hover:bg-white transition-all"
+              className="w-12 h-12 rounded-full text-slate-400 hover:text-orange-500 hover:bg-slate-50 transition-all"
             >
               <Smile size={20} />
             </Button>
             <Button 
               onClick={handleSend}
               disabled={!inputText.trim()}
-              className="w-12 h-12 rounded-full bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-100 transition-all active:scale-90 flex items-center justify-center p-0"
+              className={cn(
+                "w-12 h-12 rounded-full transition-all flex items-center justify-center p-0",
+                inputText.trim() 
+                  ? "bg-teal-600 text-white shadow-lg shadow-teal-100 scale-100 rotate-0" 
+                  : "bg-slate-100 text-slate-300 scale-90 rotate-[-45deg]"
+              )}
             >
-              <Send size={18} className="-mr-0.5 mt-0.5" />
+              <Send size={18} className={cn("transition-transform", inputText.trim() && "translate-x-0.5 -translate-y-0.5")} />
             </Button>
           </div>
         </div>
@@ -167,3 +311,4 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     </div>
   );
 };
+

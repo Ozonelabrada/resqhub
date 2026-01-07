@@ -11,6 +11,7 @@ interface HeroSectionProps {
   onShowAccountMenu: (event: React.MouseEvent) => void;
   onShowGuestMenu: (event: React.MouseEvent) => void;
   onReportAction: (type: 'lost' | 'found') => void;
+  onSearchAction: (query: string) => void;
 }
 
 const HeroSection: React.FC<HeroSectionProps> = ({
@@ -19,7 +20,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   isBelowDesktop,
   onShowAccountMenu,
   onShowGuestMenu,
-  onReportAction
+  onReportAction,
+  onSearchAction
 }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -28,9 +30,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/feed?search=${encodeURIComponent(searchQuery.trim())}`);
-    } else {
-      navigate('/feed');
+      onSearchAction(searchQuery.trim());
     }
   };
 
