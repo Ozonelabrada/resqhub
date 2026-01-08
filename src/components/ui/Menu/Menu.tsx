@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { createPortal } from 'react-dom';
 
 export interface MenuItem {
   label?: string;
@@ -28,11 +29,21 @@ export const Menu = forwardRef<MenuRef, MenuProps>(({ model, popup = false, clas
     toggle: (event: any) => {
       if (popup) {
         const rect = event.currentTarget.getBoundingClientRect();
-        setPosition({
-          top: rect.bottom + window.scrollY,
-          left: rect.left + window.scrollX
-        });
+        
+        // Initial positioning
+        let top = rect.bottom + window.scrollY;
+        let left = rect.left + window.scrollX;
+
+        // Give a tiny delay for visibility to be set before measuring
         setVisible(!visible);
+        
+        // We'll adjust in useEffect if needed, or just set it here
+        // Set slightly better defaults for the profile dropdown (right-aligned)
+        if (rect.left > window.innerWidth / 2) {
+          left = rect.right + window.scrollX - 220; // estimate menu width
+        }
+
+        setPosition({ top, left });
       }
     }
   }));
@@ -44,7 +55,19 @@ export const Menu = forwardRef<MenuRef, MenuProps>(({ model, popup = false, clas
       }
     };
 
-    if (visible) {
+    if (visible && menuRef.current) {
+      // Final adjustment if it overflows
+      const rect = menuRef.current.getBoundingClientRect();
+      const overflowX = rect.right - window.innerWidth;
+      const overflowY = (rect.bottom + window.scrollY) - (window.innerHeight + window.scrollY);
+
+      if (overflowX > 0) {
+        setPosition(prev => ({ ...prev, left: prev.left - overflowX - 10 }));
+      }
+      if (overflowY > 0) {
+        setPosition(prev => ({ ...prev, top: prev.top - rect.height - 40 })); // Show above if overflows bottom
+      }
+      
       document.addEventListener('mousedown', handleClickOutside);
     }
 
@@ -85,13 +108,26 @@ export const Menu = forwardRef<MenuRef, MenuProps>(({ model, popup = false, clas
 
   if (!visible && popup) return null;
 
-  return (
+  const menuContent = (
     <div
       ref={menuRef}
-      className={`bg-white border border-gray-300 rounded shadow-lg ${popup ? 'absolute z-[110]' : ''} ${className}`}
-      style={popup ? { ...style, top: position.top, left: position.left } : style}
+      className={`bg-white border border-gray-100 rounded-lg shadow-xl ${popup ? 'fixed z-[9999]' : ''} ${className}`}
+      style={popup ? { 
+        ...style, 
+        top: position.top - window.scrollY, 
+        left: position.left - window.scrollX,
+        minWidth: '220px'
+      } : style}
     >
-      {model.map((item, index) => renderMenuItem(item, index))}
+      <div className="py-1">
+        {model.map((item, index) => renderMenuItem(item, index))}
+      </div>
     </div>
   );
+
+  if (popup) {
+    return createPortal(menuContent, document.body);
+  }
+
+  return menuContent;
 });

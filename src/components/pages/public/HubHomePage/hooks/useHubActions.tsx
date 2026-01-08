@@ -21,20 +21,21 @@ export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
 
   const handleReportAction = (type: 'lost' | 'found') => {
     if (isAuthenticated) {
-      // Redirect to Personal Hub (Profile) and trigger the create report modal
-      navigate(`/profile?action=create&type=${type}`);
+      // Redirect to News Feed and trigger the create report modal
+      navigate(`/hub?action=create&type=${type}`);
     } else {
       localStorage.setItem('intendedAction', `report_${type}`);
+      localStorage.setItem('returnPath', `/hub?action=create&type=${type}`);
       openLoginModal();
     }
   };
 
   const handleSearchAction = (query: string) => {
     if (isAuthenticated) {
-      // Redirect to Personal Hub with search query if authenticated
-      navigate(`/profile?search=${encodeURIComponent(query)}`);
+      // Redirect to News Feed with search query if authenticated
+      navigate(`/hub?search=${encodeURIComponent(query)}`);
     } else {
-      localStorage.setItem('intendedAction', `search_${query}`);
+      localStorage.setItem('returnPath', `/hub?search=${encodeURIComponent(query)}`);
       openLoginModal();
     }
   };

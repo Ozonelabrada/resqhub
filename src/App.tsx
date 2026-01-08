@@ -7,8 +7,11 @@ import type { ToastRef } from './components/ui/Toast/Toast';
 
 // Public Pages (Lazy Loaded)
 const PersonalHubPage = lazy(() => import('./components/pages/public/PersonalHubPage/PersonalHubPage'));
+const HubHomePage = lazy(() => import('./components/pages/public/HubHomePage/HubHomePage'));
 const NewsFeedPage = lazy(() => import('./components/pages/public/NewsFeedPage/NewsFeedPage'));
+const CommunitiesPage = lazy(() => import('./components/pages/public/CommunitiesPage/CommunitiesPage'));
 const CommunityPage = lazy(() => import('./components/pages/public/CommunityPage/CommunityPage'));
+const MessagesPage = lazy(() => import('./components/pages/public/MessagesPage/MessagesPage'));
 const ItemDetailPage = lazy(() => import('./components/pages/public/ItemDetailPage/ItemDetailPage'));
 const CommunityManagementPage = lazy(() => import('./components/pages/admin/CommunityManagementPage'));
 
@@ -32,32 +35,32 @@ const AppRouter = () => {
   return (
     <Suspense fallback={<LoadingFallback />}>
       <Routes>
-        {/* 🌐 PUBLIC ROUTES - No authentication required */}
-        <Route path="/" element={
-          <AuthGuard requireAuth={false}>
-            <PublicLayout />
-          </AuthGuard>
-        }>
-          <Route index element={<Navigate to="/hub" replace />} />
-          {/* <Route index element={<HubHomePage />} /> */}
+        {/* 🌐 MAIN LAYOUT ROUTES */}
+        <Route path="/" element={<PublicLayout />}>
+          {/* Public Home */}
+          <Route index element={<HubHomePage />} />
+          
+          {/* News Feed / Hub */}
           <Route path="hub" element={<NewsFeedPage />} />
+          <Route path="newsfeed" element={<Navigate to="/hub" replace />} />
+          <Route path="newsfeed/create" element={<Navigate to="/hub?action=create" replace />} />
           <Route path="feed" element={<Navigate to="/hub" replace />} />
+          
+          {/* Communities */}
+          <Route path="communities" element={<CommunitiesPage />} />
           <Route path="community/:id" element={<CommunityPage />} />
+          
+          {/* Items / Details */}
           <Route path="item/:id" element={<ItemDetailPage />} />
-          <Route path="success-stories/:id" element={<ItemDetailPage />} /> {/* Unified detail page */}
-          <Route path="profile" element={<PersonalHubPage />} />
+          <Route path="success-stories/:id" element={<ItemDetailPage />} />
+          
+          {/* Protected Routes */}
+          <Route path="profile" element={<AuthGuard requireAuth={true}><PersonalHubPage /></AuthGuard>} />
+          <Route path="messages" element={<AuthGuard requireAuth={true}><MessagesPage /></AuthGuard>} />
         </Route>
 
-        {/* 🔐 PROTECTED USER ROUTES - Authentication required */}
-        <Route path="/" element={
-          <AuthGuard requireAuth={true}>
-            <PublicLayout />
-          </AuthGuard>
-        }>
-          <Route path="profile" element={<PersonalHubPage />} />
-        </Route>
 
-        {/* �️ ADMIN ROUTES */}
+        {/* Admin Routes */}
         <Route path="/admin" element={
           <AuthGuard requireAuth={true}>
             <PublicLayout />
@@ -66,17 +69,9 @@ const AppRouter = () => {
           <Route path="communities" element={<CommunityManagementPage />} />
         </Route>
 
-        {/* �🚧 UTILITY ROUTES */}
-        <Route path="/maintenance" element={
-          <AuthGuard requireAuth={false}>
-            <UnderMaintenancePage />
-          </AuthGuard>
-        } />
-        <Route path="*" element={
-          <AuthGuard requireAuth={false}>
-            <NotFoundPage />
-          </AuthGuard>
-        } />
+        {/* Utility Routes */}
+        <Route path="/maintenance" element={<UnderMaintenancePage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Suspense>
   );

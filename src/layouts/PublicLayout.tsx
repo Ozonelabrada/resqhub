@@ -19,7 +19,6 @@ import {
   Bell, 
   Settings, 
   LogOut, 
-  UserPlus,
   LogIn,
   Languages
 } from 'lucide-react';
@@ -36,7 +35,6 @@ const PublicLayout = () => {
     openLoginModal, 
     closeLoginModal,
     isSignUpModalOpen,
-    openSignUpModal,
     closeSignUpModal,
     openSettingsModal,
   } = useAuth();
@@ -51,23 +49,6 @@ const PublicLayout = () => {
 
   // Use useRef instead of useState for menu references
   const userMenuRef = useRef<MenuRef>(null);
-
-  // Check if current page should hide the navigation bar
-  const shouldHideNavBar = () => {
-    return location.pathname === '/';
-  };
-
-  // Navigation handler that checks auth for protected actions
-  // const handleProtectedNavigation = (path: string, actionType: 'claim' | 'report') => {
-  //   if (!isAuthenticated) {
-  //     // Store the intended action for after login
-  //     localStorage.setItem('intendedAction', actionType);
-  //     localStorage.setItem('returnPath', path);
-  //     openLoginModal();
-  //   } else {
-  //     navigate(path);
-  //   }
-  // };
 
   const items = [
     {
@@ -202,8 +183,8 @@ const PublicLayout = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Conditional Navigation Bar */}
-      {!shouldHideNavBar() && (
+      {/* Navigation Bar - Hide on HomePage (/) */}
+      {location.pathname !== '/' && (
         <Menubar
           model={items}
           start={start}
@@ -238,7 +219,7 @@ const PublicLayout = () => {
       <SettingsModal />
 
       {/* Authentication Status Banner (optional) */}
-      {!isAuthenticated && !shouldHideNavBar() && location.pathname.includes('/item/') && (
+      {!isAuthenticated && location.pathname.includes('/item/') && (
         <div className="w-full p-3 text-center bg-orange-50 border-b border-orange-100 shadow-sm">
           <span className="text-sm text-orange-800 font-semibold flex items-center justify-center gap-2">
             <Info size={16} className="text-orange-600" />
@@ -252,9 +233,8 @@ const PublicLayout = () => {
         <Outlet />
       </main>
 
-      {/* Conditional Footer - Hide on home and hub pages */}
-      {!shouldHideNavBar() && (
-        <footer className="bg-teal-900 text-white border-t border-teal-800 py-16">
+      {/* Footer */}
+      <footer className="bg-teal-900 text-white border-t border-teal-800 py-16">
           <div className="w-full px-6 md:px-12">
             <div className="flex flex-col md:flex-row justify-between items-center gap-12">
               <div className="flex items-center gap-4">
@@ -281,7 +261,6 @@ const PublicLayout = () => {
             </div>
           </div>
         </footer>
-      )}
     </div>
   );
 };

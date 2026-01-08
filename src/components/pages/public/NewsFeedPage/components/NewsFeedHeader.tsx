@@ -43,87 +43,68 @@ const NewsFeedHeader: React.FC<NewsFeedHeaderProps> = ({
   const { t } = useTranslation();
 
   return (
-    <div className="space-y-6">
-      <div className="flex gap-4 items-center">
-        {/* SEARCH BAR (TOP) */}
-        <div className="flex-1 bg-white p-2 rounded-2xl shadow-sm border border-gray-100 focus-within:ring-2 focus-within:ring-teal-500/20 transition-all">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-orange-600 w-5 h-5" />
-            <Input 
-              placeholder={t('common.search')} 
-              className="pl-12 h-14 bg-transparent border-none text-lg font-medium placeholder:text-gray-400 focus-visible:ring-0 rounded-xl"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              aria-label={t('common.search')}
-            />
-          </div>
-        </div>
-
-        {/* POST BUTTON */}
-        <Button 
-          onClick={onPostClick}
-          className="h-16 px-8 bg-teal-600 hover:bg-teal-700 text-white font-black rounded-2xl shadow-lg shadow-teal-100 transition-all flex items-center gap-3 shrink-0"
-        >
-          <Plus className="w-6 h-6 text-orange-500" />
-          <span className="hidden sm:inline">Post Item</span>
-        </Button>
-      </div>
-
-      {/* FILTER BAR */}
-      <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between overflow-x-auto pb-2 scrollbar-none gap-2">
-            <div className="flex items-center gap-2 flex-nowrap">
-              {(['all', 'lost', 'found'] as const).map((type) => (
-                <button
-                  key={type}
-                  onClick={() => setFilter(type)}
-                  className={cn(
-                    "px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap capitalize",
-                    filter === type 
-                      ? "bg-teal-600 text-white shadow-md shadow-teal-100" 
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  )}
-                >
-                  {t(`newsfeed.${type}`)}
-                </button>
-              ))}
-            </div>
-            
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+    <div className="space-y-4">
+      {/* FILTER BAR - CLEAN & MODERN */}
+      <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border-none flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+          {(['all', 'lost', 'found'] as const).map((type) => (
+            <button
+              key={type}
+              onClick={() => setFilter(type)}
               className={cn(
-                "flex items-center gap-1 transition-colors",
-                showAdvancedFilters ? "text-orange-600" : "text-gray-500 hover:text-teal-600"
+                "px-6 py-2.5 rounded-2xl text-sm font-black transition-all whitespace-nowrap capitalize",
+                filter === type 
+                  ? "bg-teal-600 text-white shadow-lg shadow-teal-100" 
+                  : "bg-slate-50 text-slate-400 hover:bg-slate-100"
               )}
             >
-              <Filter className="w-4 h-4" />
-              <span className="hidden sm:inline">Advanced</span>
-              <ChevronDown className={cn("w-4 h-4 transition-transform", showAdvancedFilters && "rotate-180")} />
-            </Button>
-          </div>
+              {t(`newsfeed.${type}`)}
+            </button>
+          ))}
+        </div>
+        
+        <div className="flex items-center gap-3">
+          <Select value={sortBy} onValueChange={(val: any) => setSortBy(val)}>
+            <SelectTrigger className="w-[140px] h-11 bg-slate-50 border-none rounded-xl font-bold text-slate-600 text-xs">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border-none shadow-xl">
+              <SelectItem value="recent">Most Recent</SelectItem>
+              <SelectItem value="popular">Popular Now</SelectItem>
+              <SelectItem value="distance">Nearest First</SelectItem>
+            </SelectContent>
+          </Select>
 
-          {/* Advanced Controls */}
-          {showAdvancedFilters && (
-            <div className="pt-2 border-t border-gray-100 flex flex-col sm:flex-row gap-4">
-              <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
-                <SelectTrigger className="w-full sm:w-[180px] rounded-xl border-gray-200">
-                  <SelectValue placeholder="Sort By" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="recent">Most Recent</SelectItem>
-                  <SelectItem value="popular">Most Popular</SelectItem>
-                  <SelectItem value="distance">Near Me</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            className={cn(
+              "h-11 px-4 rounded-xl transition-all border-none font-bold text-xs",
+              showAdvancedFilters ? "bg-orange-50 text-orange-600" : "bg-slate-50 text-slate-400 hover:bg-slate-100"
+            )}
+          >
+            <Filter className="w-4 h-4 mr-2" />
+            Filters
+          </Button>
         </div>
       </div>
+
+      {/* SEARCH SUMMARY (Visible when searching) */}
+      {searchQuery && (
+        <div className="flex items-center justify-between px-6 py-2">
+          <p className="text-sm font-bold text-slate-400">
+            Results for "<span className="text-teal-600">{searchQuery}</span>"
+          </p>
+          <button 
+            onClick={() => setSearchQuery('')}
+            className="text-xs font-black text-orange-500 hover:underline"
+          >
+            Clear Search
+          </button>
+        </div>
+      )}
     </div>
   );
 };
-
 export default NewsFeedHeader;

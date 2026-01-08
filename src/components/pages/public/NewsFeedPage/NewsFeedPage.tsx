@@ -118,13 +118,18 @@ const NewsFeedPage: React.FC = () => {
     }
   };
 
-  // Capture search query from URL
+  // Capture search query and actions from URL
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const q = params.get('search');
     if (q) {
       setSearchQuery(q);
       setDebouncedSearchQuery(q);
+    }
+    
+    const action = params.get('action');
+    if (action === 'create') {
+      setIsPostModalOpen(true);
     }
   }, [location.search]);
 
@@ -174,25 +179,35 @@ const NewsFeedPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <main className="flex-1 w-full px-4 md:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-10 gap-8">
-        {/* --- LEFT SIDEBAR: PROFILE & NAVIGATION (20%) --- */}
+      <main className="flex-1 w-full px-4 md:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-10 gap-8 max-h-[calc(100vh-64px)] overflow-hidden">
+        {/* --- LEFT SIDEBAR: PROFILE & NAVIGATION (25%) --- */}
         <NewsFeedSidebar 
           isAuthenticated={isAuthenticated}
           openLoginModal={openLoginModal}
           navigate={navigate}
           currentView={currentView}
           onViewChange={(view) => setCurrentView(view)}
+          onPostClick={handleOpenPostModal}
         />
 
         {/* --- CENTER: MAIN FEED (50%) or MESSAGES --- */}
         <div className={cn(
-          "space-y-6",
+          "space-y-6 overflow-y-auto custom-scrollbar pb-20",
           currentView === 'messages' ? "lg:col-span-8" : "lg:col-span-5"
         )}>
           {currentView === 'feed' ? (
             <>
               <NewsFeedHeader 
                 searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                filter={filter}
+                setFilter={setFilter}
+                showAdvancedFilters={showAdvancedFilters}
+                setShowAdvancedFilters={setShowAdvancedFilters}
+                sortBy={sortBy}
+                setSortBy={setSortBy}
+                onPostClick={handleOpenPostModal}
+              />
                 setSearchQuery={setSearchQuery}
                 filter={filter}
                 setFilter={setFilter}
@@ -269,6 +284,8 @@ const NewsFeedPage: React.FC = () => {
             onOpenCreateCommunity={() => setIsCommunityModalOpen(true)}
             isSafetyExpanded={isSafetyExpanded}
             setIsSafetyExpanded={setIsSafetyExpanded}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
           />
         )}
       </main>

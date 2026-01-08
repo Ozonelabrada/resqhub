@@ -7,14 +7,16 @@ import {
   Plus, 
   Users, 
   ShieldAlert, 
-  ChevronDown 
+  ChevronDown,
+  Search
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   Card,
   Avatar,
   Skeleton,
-  Button
+  Button,
+  Input
 } from '../../../../ui';
 import { cn } from "@/lib/utils";
 
@@ -28,6 +30,8 @@ interface CommunitySidebarProps {
   setIsSafetyExpanded: (expanded: boolean) => void;
   onOpenInviteModal: (communityName: string) => void;
   onOpenCreateCommunity: () => void;
+  searchQuery?: string;
+  setSearchQuery?: (query: string) => void;
 }
 
 const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
@@ -39,37 +43,51 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
   isSafetyExpanded,
   setIsSafetyExpanded,
   onOpenInviteModal,
-  onOpenCreateCommunity
+  onOpenCreateCommunity,
+  searchQuery = '',
+  setSearchQuery
 }) => {
   const { t } = useTranslation();
 
   return (
-    <aside className="hidden lg:block lg:col-span-3 space-y-6 sticky top-24 h-fit">
+    <aside className="hidden lg:flex lg:col-span-3 flex-col space-y-6 sticky top-0 h-full overflow-y-auto custom-scrollbar no-scrollbar py-6 group">
+      {/* SEARCH BAR - HIGH VISIBILITY */}
+      <div className="relative group">
+        <Input
+          type="text"
+          placeholder="Search items, users, etc."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery?.(e.target.value)}
+          className="w-full pl-12 pr-4 h-16 bg-white border-none shadow-sm rounded-[2rem] font-bold text-slate-600 focus:ring-2 focus:ring-teal-500/20 transition-all placeholder:text-slate-300"
+        />
+        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+      </div>
+
       {/* STATS CARD */}
       <Card className="p-8 border-none shadow-sm bg-white rounded-[2.5rem] overflow-hidden relative group">
         <div className="absolute top-0 right-0 w-32 h-32 bg-teal-50 rounded-full -mr-16 -mt-16 group-hover:bg-teal-100 transition-colors" />
-        <h3 className="text-gray-900 font-black text-xl mb-6 flex items-center gap-3">
-          <TrendingUp className="text-teal-600 w-6 h-6" />
+        <h3 className="text-gray-900 font-black text-lg mb-6 flex items-center gap-3">
+          <TrendingUp className="text-teal-600 w-5 h-5" />
           {t('newsfeed.community_impact')}
         </h3>
-        <div className="grid grid-cols-2 gap-6">
-          <div className="space-y-1">
-            <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">{t('newsfeed.total_reports')}</span>
-            <p className="text-3xl font-black text-slate-900">{statistics?.totalItems || 0}</p>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-0.5">
+            <span className="text-slate-300 text-[9px] font-black uppercase tracking-widest">{t('newsfeed.total_reports')}</span>
+            <p className="text-2xl font-black text-slate-800">{statistics?.totalItems || 0}</p>
           </div>
-          <div className="space-y-1">
-            <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">{t('newsfeed.reunited')}</span>
-            <p className="text-3xl font-black text-emerald-600">{statistics?.successfulMatches || 0}</p>
+          <div className="space-y-0.5">
+            <span className="text-slate-300 text-[9px] font-black uppercase tracking-widest">{t('newsfeed.reunited')}</span>
+            <p className="text-2xl font-black text-emerald-500">{statistics?.successfulMatches || 0}</p>
           </div>
         </div>
         
-        <div className="mt-8 p-4 rounded-2xl bg-teal-50/50 flex items-center justify-between">
-          <div className="flex -space-x-3">
-            {[1,2,3,4].map(i => (
-              <Avatar key={i} className="w-8 h-8 border-2 border-white" />
+        <div className="mt-6 p-4 rounded-2xl bg-teal-50/50 flex items-center justify-between">
+          <div className="flex -space-x-2">
+            {[1,2,3].map(i => (
+              <Avatar key={i} className="w-7 h-7 border-2 border-white shadow-sm" />
             ))}
           </div>
-          <span className="text-xs font-bold text-teal-700">+{statistics?.activeReports || 0} {t('newsfeed.active_now')}</span>
+          <span className="text-[10px] font-black text-teal-700">+{statistics?.activeReports || 0} {t('newsfeed.active_now')}</span>
         </div>
       </Card>
 

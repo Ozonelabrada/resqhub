@@ -3,7 +3,6 @@ import {
   X, 
   Search, 
   User as UserIcon,
-  MessageSquare,
   ArrowRight,
   CheckCircle,
   Users
@@ -17,13 +16,13 @@ import {
 } from '../../ui/dialog';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
-import { Avatar } from '../../ui/avatar';
 import { ScrollArea } from '../../ui/scroll-area';
 import { Spinner } from '../../ui/spinner';
 import { UserService } from '@/services/userService';
 import type { BackendUserData } from '@/services/userService';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
+import { Avatar } from '@/components/ui';
 
 interface NewMessageModalProps {
   isOpen: boolean;
