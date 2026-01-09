@@ -7,3 +7,4 @@ export { useUserProfile } from './useUserProfile';
 export { useUserReports } from './useUserReports';
 export { useWatchList } from './useWatchList';
 export { useNewsFeed } from './useNewsFeed';
+export { useFeatureFlags } from './useFeatureFlags';

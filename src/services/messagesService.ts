@@ -4,6 +4,7 @@ import type { Conversation, Message } from '../components/features/messages/type
 export const MessagesService = {
   async getConversations(): Promise<Conversation[]> {
     try {
+      // For the inbox list, we use the direct endpoint without partner filter
       const response = await api.get<{ data: Conversation[] }>('/messages/direct');
       const data = response.data?.data;
       return Array.isArray(data) ? data : [];
@@ -13,14 +14,35 @@ export const MessagesService = {
     }
   },
 
-  async getCommunityMessages(communityId: string | number): Promise<Message[]> {
+  async getDirectMessages(partnerId: string | number, page: number = 1, pageSize: number = 20): Promise<{ messages: Message[], totalPages: number }> {
     try {
-      const response = await api.get<{ data: Message[] }>(`/messages/community/${communityId}`);
+      const response = await api.get<{ data: { messages: Message[], totalPages: number } }>(
+        `/messages/direct?conversationPartnerId=${partnerId}&pageSize=${pageSize}&page=${page}`
+      );
       const data = response.data?.data;
-      return Array.isArray(data) ? data : [];
+      return {
+        messages: Array.isArray(data?.messages) ? data.messages : [],
+        totalPages: data?.totalPages || 1
+      };
+    } catch (error) {
+      console.error('Error fetching direct messages:', error);
+      return { messages: [], totalPages: 1 };
+    }
+  },
+
+  async getCommunityMessages(communityId: string | number, page: number = 1, pageSize: number = 20): Promise<{ messages: Message[], totalPages: number }> {
+    try {
+      const response = await api.get<{ data: { messages: Message[], totalPages: number } }>(
+        `/messages/community/${communityId}?pageSize=${pageSize}&page=${page}`
+      );
+      const data = response.data?.data;
+      return {
+        messages: Array.isArray(data?.messages) ? data.messages : [],
+        totalPages: data?.totalPages || 1
+      };
     } catch (error) {
       console.error('Error fetching community messages:', error);
-      return [];
+      return { messages: [], totalPages: 1 };
     }
   },
 
@@ -34,31 +56,15 @@ export const MessagesService = {
     }
   },
 
-  async getMessages(conversationId: string): Promise<Message[]> {
-    // Keep this for now as most direct chat systems use ID-based fetching
-    // though it wasn't explicitly in the image, /messages/direct usually returns 
-    // the list, and specific IDs return the thread.
+  async sendMessage(payload: {
+    directMessageReceiverId?: string | number;
+    groupMessageCommunityId?: number;
+    content: string;
+    isGroupMessage: boolean;
+  }): Promise<Message | null> {
     try {
-      const response = await api.get<{ data: Message[] }>(`/messages/${conversationId}`);
-      const data = response.data?.data;
-      return Array.isArray(data) ? data : [];
-    } catch (error) {
-      console.error('Error fetching messages:', error);
-      return [];
-    }
-  },
-
-  async sendMessage(receiverId: string, content: string, communityId?: number): Promise<Message | null> {
-    try {
-      const isGroupMessage = communityId !== undefined && communityId !== null;
-      const payload = {
-        directMessageReceiverId: isGroupMessage ? undefined : receiverId,
-        groupMessageCommunityId: isGroupMessage ? communityId : undefined,
-        content,
-        isGroupMessage
-      };
-      
-      const response = await api.post<{ data: Message }>('/messages', payload);
+      // Endpoint is /message as per requirement
+      const response = await api.post<{ data: Message }>('/message', payload);
       return response.data?.data || null;
     } catch (error) {
       console.error('Error sending message:', error);
@@ -66,7 +72,7 @@ export const MessagesService = {
     }
   },
 
-  async markAsRead(messageId: string): Promise<boolean> {
+  async markAsRead(messageId: string | number): Promise<boolean> {
     try {
       await api.put(`/messages/${messageId}/read`);
       return true;

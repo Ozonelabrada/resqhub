@@ -1,7 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { authManager } from '../utils/sessionManager';
 import { AuthService } from '../services/authService';
 import type { UserData as User, SignUpRequest } from '../types';
+import ConfirmationModal from '../components/modals/ConfirmationModal/ConfirmationModal';
+import { useTranslation } from 'react-i18next';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -19,17 +22,23 @@ interface AuthContextType {
   openSettingsModal: () => void;
   closeSettingsModal: () => void;
   isSettingsModalOpen: boolean;
+  openLogoutModal: () => void;
+  closeLogoutModal: () => void;
+  isLogoutModalOpen: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(authManager.isAuthenticated());
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(authManager.getUser());
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const openLoginModal = () => {
     setIsSignUpModalOpen(false);
@@ -45,6 +54,9 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
 
   const openSettingsModal = () => setIsSettingsModalOpen(true);
   const closeSettingsModal = () => setIsSettingsModalOpen(false);
+
+  const openLogoutModal = () => setIsLogoutModalOpen(true);
+  const closeLogoutModal = () => setIsLogoutModalOpen(false);
 
   useEffect(() => {
     // Initialize auth state
@@ -146,8 +158,20 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
     }
   };
 
-  const logout = (): void => {
+  const performLogout = (): void => {
     authManager.logout();
+  };
+
+  const handleConfirmLogout = async () => {
+    try {
+      await AuthService.signOut();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      closeLogoutModal();
+      performLogout();
+      navigate('/');
+    }
   };
 
   return (
@@ -157,7 +181,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
       user,
       login,
       signup,
-      logout,
+      logout: openLogoutModal, // Use confirmation instead of direct logout
       openLoginModal,
       closeLoginModal,
       isLoginModalOpen,
@@ -166,9 +190,22 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
       isSignUpModalOpen,
       openSettingsModal,
       closeSettingsModal,
-      isSettingsModalOpen
+      isSettingsModalOpen,
+      openLogoutModal,
+      closeLogoutModal,
+      isLogoutModalOpen
     }}>
       {children}
+      <ConfirmationModal
+        visible={isLogoutModalOpen}
+        onHide={closeLogoutModal}
+        onConfirm={handleConfirmLogout}
+        title={t('home.confirm_logout')}
+        message={t('home.logout_question')}
+        confirmLabel={t('common.logout')}
+        cancelLabel={t('common.cancel')}
+        severity="danger"
+      />
     </AuthContext.Provider>
   );
 };

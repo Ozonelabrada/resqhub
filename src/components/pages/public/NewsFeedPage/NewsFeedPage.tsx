@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Plus, 
   Search,
+  ArrowUp,
 } from 'lucide-react';
 import { useNewsFeed } from '@/hooks/useNewsFeed';
 import { useStatistics } from '@/hooks/useStatistics';
@@ -17,11 +18,12 @@ import {
   CreateCommunityModal, 
   InviteModal, 
   CreateReportModal,
-  ProfilePreviewModal,
-  CommunityProfileModal
+  ProfilePreviewModal
 } from '../../../modals';
+import { ReportDetailDrawer } from '@/components/features/reports/ReportDetail';
 import { cn } from '@/lib/utils';
 import { MessagesContainer } from '../../../features/messages/MessagesContainer';
+import { CommunitiesContainer } from '../../../features/communities/CommunitiesContainer';
 import NewsFeedSidebar from './components/NewsFeedSidebar';
 import NewsFeedHeader from './components/NewsFeedHeader';
 import NewsFeedSkeleton from './components/NewsFeedSkeleton';
@@ -35,7 +37,7 @@ const NewsFeedPage: React.FC = () => {
   const { isAuthenticated, openLoginModal } = useAuth();
   
   // State
-  const [currentView, setCurrentView] = useState<'feed' | 'messages'>('feed');
+  const [currentView, setCurrentView] = useState<'feed' | 'messages' | 'communities'>('feed');
   const [selectedConversationId, setSelectedConversationId] = useState<string | undefined>(undefined);
   const [filter, setFilter] = useState<'all' | 'lost' | 'found'>('all');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
@@ -68,11 +70,28 @@ const NewsFeedPage: React.FC = () => {
     loading: trendingLoading 
   } = useTrendingReports();
   
-  // New States for Profile and Community previews
+  // New States for Profile previews
   const [selectedUserForPreview, setSelectedUserForPreview] = useState<any>(null);
   const [isProfilePreviewOpen, setIsProfilePreviewOpen] = useState(false);
-  const [selectedCommunityForPreview, setSelectedCommunityForPreview] = useState<any>(null);
-  const [isCommunityPreviewOpen, setIsCommunityPreviewOpen] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  // Implement Scroll Logic
+  useEffect(() => {
+    const handleScroll = () => {
+      // Show button if page scrolled more than 400 pixels
+      setShowScrollTop(window.scrollY > 400);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Refs for Infinite Scroll
+  const observerTarget = useRef<HTMLDivElement>(null);
 
   // Mock Communities
   const joinedCommunities = [
@@ -142,9 +161,6 @@ const NewsFeedPage: React.FC = () => {
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // Refs for Infinite Scroll
-  const observerTarget = useRef<HTMLDivElement>(null);
-
   // Filter and Sort Logic
   const filteredItems = useMemo(() => {
     let result = newsFeedItems;
@@ -170,7 +186,9 @@ const NewsFeedPage: React.FC = () => {
     if (!element) return;
 
     const observer = new IntersectionObserver(handleObserver, {
-      threshold: 1.0,
+      threshold: 0,
+      root: null, // Use the viewport as root
+      rootMargin: '200px', // Load more content before user reaches the end
     });
 
     observer.observe(element);
@@ -178,48 +196,33 @@ const NewsFeedPage: React.FC = () => {
   }, [handleObserver]);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <main className="flex-1 w-full px-4 md:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-10 gap-8 max-h-[calc(100vh-64px)] overflow-hidden">
-        {/* --- LEFT SIDEBAR: PROFILE & NAVIGATION (25%) --- */}
-        <NewsFeedSidebar 
-          isAuthenticated={isAuthenticated}
-          openLoginModal={openLoginModal}
-          navigate={navigate}
-          currentView={currentView}
-          onViewChange={(view) => setCurrentView(view)}
-          onPostClick={handleOpenPostModal}
-        />
-
-        {/* --- CENTER: MAIN FEED (50%) or MESSAGES --- */}
-        <div className={cn(
-          "space-y-6 overflow-y-auto custom-scrollbar pb-20",
-          currentView === 'messages' ? "lg:col-span-8" : "lg:col-span-5"
-        )}>
+    <div className="bg-gray-50">
+      <main className="w-full px-4 md:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-10 gap-8">
+        {/* --- CENTER: MAIN FEED (50%) or MESSAGES (ORDER 1 ON MOBILE) --- */}
+        <div 
+          className={cn(
+            "order-1 pb-20 lg:pb-0 scroll-smooth",
+            currentView === 'feed' ? "lg:col-span-5 lg:order-2" : "lg:col-span-8 lg:order-2"
+          )}
+        >
           {currentView === 'feed' ? (
-            <>
-              <NewsFeedHeader 
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                filter={filter}
-                setFilter={setFilter}
-                showAdvancedFilters={showAdvancedFilters}
-                setShowAdvancedFilters={setShowAdvancedFilters}
-                sortBy={sortBy}
-                setSortBy={setSortBy}
-                onPostClick={handleOpenPostModal}
-              />
-                setSearchQuery={setSearchQuery}
-                filter={filter}
-                setFilter={setFilter}
-                showAdvancedFilters={showAdvancedFilters}
-                setShowAdvancedFilters={setShowAdvancedFilters}
-                sortBy={sortBy}
-                setSortBy={setSortBy}
-                onPostClick={handleOpenPostModal}
-              />
+            <div className="space-y-6 pt-2">
+              <div className="sticky top-[73px] z-10 bg-gray-50/80 backdrop-blur-md pb-4 px-2 -mx-2 rounded-b-3xl">
+                <NewsFeedHeader 
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  filter={filter}
+                  setFilter={setFilter}
+                  showAdvancedFilters={showAdvancedFilters}
+                  setShowAdvancedFilters={setShowAdvancedFilters}
+                  sortBy={sortBy}
+                  setSortBy={setSortBy}
+                  onPostClick={handleOpenPostModal}
+                />
+              </div>
 
               {/* MAIN FEED */}
-              <div className="space-y-6">
+              <div className="space-y-6 px-1">
                 {newsFeedItems.length === 0 && newsFeedLoading ? (
                   Array.from({ length: 3 }).map((_, i) => (
                     <NewsFeedSkeleton key={i} />
@@ -263,15 +266,28 @@ const NewsFeedPage: React.FC = () => {
                   )}
                 </div>
               </div>
-            </>
-          ) : (
+            </div>
+          ) : currentView === 'messages' ? (
             <MessagesContainer initialConversationId={selectedConversationId} />
+          ) : (
+            <CommunitiesContainer />
           )}
         </div>
 
-        {/* --- RIGHT SIDEBAR: COMMUNITY STATS & TRENDING (30%) --- */}
+        {/* --- SIDEBAR: PROFILE & NAVIGATION (ORDER 2 ON MOBILE) --- */}
+        <NewsFeedSidebar 
+          className="order-2 lg:order-1 lg:col-span-2"
+          isAuthenticated={isAuthenticated}
+          openLoginModal={openLoginModal}
+          navigate={navigate}
+          currentView={currentView}
+          onViewChange={(view) => setCurrentView(view)}
+        />
+
+        {/* --- SIDEBAR: COMMUNITY STATS & TRENDING (ORDER 3 ON MOBILE) --- */}
         {currentView === 'feed' && (
           <CommunitySidebar 
+            className="order-3 lg:order-3 lg:col-span-3"
             statistics={statistics}
             trendingReports={trendingReports}
             trendingLoading={trendingLoading}
@@ -331,6 +347,20 @@ const NewsFeedPage: React.FC = () => {
       />
 
       {/* Community profile is now a dedicated page at /community/:id */}
+
+      {/* Floating Scroll to Top */}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-28 md:bottom-10 right-4 md:right-10 z-[100] p-4 bg-teal-600 text-white rounded-2xl shadow-2xl hover:bg-teal-700 hover:scale-110 active:scale-95 transition-all duration-300 animate-in fade-in zoom-in"
+          title="Scroll to top"
+        >
+          <ArrowUp className="w-6 h-6" />
+        </button>
+      )}
+
+      {/* Report Detail Drawer */}
+      <ReportDetailDrawer />
     </div>
   );
 };

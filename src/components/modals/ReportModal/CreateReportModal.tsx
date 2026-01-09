@@ -16,6 +16,7 @@ import {
   TabsTrigger,
 } from '../../ui';
 import { 
+  Plus,
   FileText, 
   MapPin, 
   Tag, 
@@ -28,6 +29,7 @@ import {
   X
 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
+import { Modal } from '../../ui/Modal/Modal';
 import { ReportsService } from '../../../services/reportsService';
 import { CategoryService } from '../../../services/categoryService';
 import { useTranslation } from 'react-i18next';
@@ -39,13 +41,15 @@ interface CreateReportModalProps {
   onClose: () => void;
   onSuccess?: () => void;
   initialType?: string;
+  communityId?: string | number;
 }
 
 export const CreateReportModal: React.FC<CreateReportModalProps> = ({ 
   isOpen, 
   onClose, 
   onSuccess,
-  initialType 
+  initialType,
+  communityId
 }) => {
   const { user } = useAuth();
   const { t } = useTranslation();
@@ -238,20 +242,24 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-white border-none shadow-2xl rounded-[2.5rem] p-0">
+    <Modal 
+      isOpen={isOpen} 
+      onClose={onClose}
+      size="lg"
+      className="p-0 border-none rounded-[2.5rem] overflow-hidden"
+    >
         <div className="p-8 md:p-10 space-y-8">
-          <DialogHeader className="pt-2">
-            <DialogTitle className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+          <div>
+            <h2 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
               <div className="w-12 h-12 bg-teal-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-teal-100 shrink-0">
                 <FileText size={24} />
               </div>
               <span>{t('report.create_title')}</span>
-            </DialogTitle>
-            <DialogDescription className="text-slate-500 font-medium text-lg pt-2">
+            </h2>
+            <p className="text-slate-500 font-medium text-lg pt-2">
               {t('report.create_subtitle')}
-            </DialogDescription>
-          </DialogHeader>
+            </p>
+          </div>
 
           {error && (
             <Alert variant="error" className="rounded-2xl border-orange-100 bg-orange-50 text-orange-800">
@@ -469,8 +477,7 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
             </div>
           </form>
         </div>
-      </DialogContent>
-    </Dialog>
+    </Modal>
   );
 };
 

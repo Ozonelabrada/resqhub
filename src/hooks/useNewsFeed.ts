@@ -93,11 +93,13 @@ export const useNewsFeed = (options?: {
           potentialMatches: 0,
           user: {
             id: report.userId || 'unknown',
-            fullName: contactName,
-            username: String(contactName).toLowerCase().replace(/\s/g, ''),
+            fullName: report.user?.fullName || contactName,
+            username: report.user?.username || String(contactName).toLowerCase().replace(/\s/g, ''),
             profilePicture: report.user?.profilePictureUrl || '',
             isVerified: false
           },
+          reactionCount: report.reactionCount || 0,
+          commentsCount: report.commentsCount || 0,
           timeAgo: getTimeAgo(report.dateCreated || new Date().toISOString())
         };
       });

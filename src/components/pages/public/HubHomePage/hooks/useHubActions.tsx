@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../../context/AuthContext';
 import { 
@@ -16,8 +16,7 @@ export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
   const navigate = useNavigate();
   const { openLoginModal, openSignUpModal } = useAuth();
   const [showReportModal, setShowReportModal] = useState(false);
-  const [reportType, setReportType] = useState<'lost' | 'found'>('lost');
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [reportType] = useState<'lost' | 'found'>('lost');
 
   const handleReportAction = (type: 'lost' | 'found') => {
     if (isAuthenticated) {
@@ -26,6 +25,15 @@ export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
     } else {
       localStorage.setItem('intendedAction', `report_${type}`);
       localStorage.setItem('returnPath', `/hub?action=create&type=${type}`);
+      openLoginModal();
+    }
+  };
+
+  const handleGetStartedAction = () => {
+    if (isAuthenticated) {
+      navigate('/hub');
+    } else {
+      localStorage.setItem('returnPath', '/hub');
       openLoginModal();
     }
   };
@@ -41,23 +49,14 @@ export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
   };
 
   const handleLogout = () => {
-    setShowLogoutConfirm(true);
-  };
-
-  const confirmLogout = () => {
     logout();
-    setShowLogoutConfirm(false);
   };
 
-  const cancelLogout = () => {
-    setShowLogoutConfirm(false);
-  };
-
-  const showAccountMenu = (event: React.MouseEvent) => {
+  const showAccountMenu = () => {
     // This will be handled by the parent component with refs
   };
 
-  const showGuestMenu = (event: React.MouseEvent) => {
+  const showGuestMenu = () => {
     // This will be handled by the parent component with refs
   };
 
@@ -122,14 +121,12 @@ export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
     showReportModal,
     setShowReportModal,
     reportType,
-    showLogoutConfirm,
 
     // Actions
     handleReportAction,
+    handleGetStartedAction,
     handleSearchAction,
     handleLogout,
-    confirmLogout,
-    cancelLogout,
     showAccountMenu,
     showGuestMenu,
 

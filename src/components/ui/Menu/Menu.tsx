@@ -31,19 +31,20 @@ export const Menu = forwardRef<MenuRef, MenuProps>(({ model, popup = false, clas
         const rect = event.currentTarget.getBoundingClientRect();
         
         // Initial positioning
-        let top = rect.bottom + window.scrollY;
+        let top = rect.bottom + window.scrollY + 8;
         let left = rect.left + window.scrollX;
 
-        // Give a tiny delay for visibility to be set before measuring
-        setVisible(!visible);
+        // Toggle visibility
+        const nextVisible = !visible;
+        setVisible(nextVisible);
         
-        // We'll adjust in useEffect if needed, or just set it here
-        // Set slightly better defaults for the profile dropdown (right-aligned)
-        if (rect.left > window.innerWidth / 2) {
-          left = rect.right + window.scrollX - 220; // estimate menu width
+        if (nextVisible) {
+          // Default to right-aligned if button is on the right half of screen
+          if (rect.left > window.innerWidth / 2) {
+            left = rect.right + window.scrollX - 220; // estimate menu width
+          }
+          setPosition({ top, left });
         }
-
-        setPosition({ top, left });
       }
     }
   }));
@@ -56,16 +57,32 @@ export const Menu = forwardRef<MenuRef, MenuProps>(({ model, popup = false, clas
     };
 
     if (visible && menuRef.current) {
-      // Final adjustment if it overflows
+      // Small adjustment if it overflows the viewport
       const rect = menuRef.current.getBoundingClientRect();
-      const overflowX = rect.right - window.innerWidth;
-      const overflowY = (rect.bottom + window.scrollY) - (window.innerHeight + window.scrollY);
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      let newLeft = position.left;
+      let newTop = position.top;
 
-      if (overflowX > 0) {
-        setPosition(prev => ({ ...prev, left: prev.left - overflowX - 10 }));
+      // X-axis overflow
+      if (rect.right > viewportWidth) {
+        newLeft -= (rect.right - viewportWidth + 16);
       }
-      if (overflowY > 0) {
-        setPosition(prev => ({ ...prev, top: prev.top - rect.height - 40 })); // Show above if overflows bottom
+      if (rect.left < 0) {
+        newLeft = 16;
+      }
+
+      // Y-axis overflow
+      if (rect.bottom > viewportHeight) {
+        // Show above the target if it overflows the bottom
+        // This is a bit complex since we don't store the target rect
+        // but for now we'll just pull it up a bit if needed
+        newTop -= (rect.bottom - viewportHeight + 16);
+      }
+
+      if (newLeft !== position.left || newTop !== position.top) {
+        setPosition({ top: newTop, left: newLeft });
       }
       
       document.addEventListener('mousedown', handleClickOutside);
@@ -74,7 +91,7 @@ export const Menu = forwardRef<MenuRef, MenuProps>(({ model, popup = false, clas
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [visible]);
+  }, [visible, position.left, position.top]);
 
   const handleItemClick = (item: MenuItem) => {
     if (item.command) {

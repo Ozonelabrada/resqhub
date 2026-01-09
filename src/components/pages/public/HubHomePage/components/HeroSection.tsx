@@ -11,6 +11,7 @@ interface HeroSectionProps {
   onShowAccountMenu: (event: React.MouseEvent) => void;
   onShowGuestMenu: (event: React.MouseEvent) => void;
   onReportAction: (type: 'lost' | 'found') => void;
+  onGetStartedAction: () => void;
   onSearchAction: (query: string) => void;
 }
 
@@ -21,6 +22,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   onShowAccountMenu,
   onShowGuestMenu,
   onReportAction,
+  onGetStartedAction,
   onSearchAction
 }) => {
   const { t } = useTranslation();
@@ -150,23 +152,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           <div className="pt-8 flex flex-col sm:flex-row gap-4 w-full sm:w-auto items-center">
             <Button
               size="lg"
-              onClick={() => onReportAction('lost')}
-              className="group relative w-full sm:w-56 h-16 bg-white hover:bg-rose-50 text-rose-600 border-2 border-rose-100 rounded-2xl shadow-xl hover:-translate-y-1 transition-all overflow-hidden"
+              onClick={onGetStartedAction}
+              aria-label="Get Started"
+              className="group relative w-full sm:min-w-[240px] h-16 bg-teal-600 hover:bg-teal-700 text-white border-2 border-teal-500 rounded-2xl shadow-xl hover:-translate-y-1 transition-all overflow-hidden"
             >
-              <div className="absolute inset-0 bg-rose-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-              <span className="relative z-10 font-black text-xl group-hover:text-white transition-colors duration-300">
-                {t('home.hero.i_lost')}
-              </span>
-            </Button>
-            
-            <Button
-              size="lg"
-              onClick={() => onReportAction('found')}
-              className="group relative w-full sm:w-56 h-16 bg-white hover:bg-teal-50 text-teal-700 border-2 border-teal-100 rounded-2xl shadow-xl hover:-translate-y-1 transition-all overflow-hidden"
-            >
-               <div className="absolute inset-0 bg-teal-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-               <span className="relative z-10 font-black text-xl group-hover:text-white transition-colors duration-300">
-                {t('home.hero.i_found')}
+              <span className="relative z-10 font-black text-xl">
+                Get Started
               </span>
             </Button>
           </div>

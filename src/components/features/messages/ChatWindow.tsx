@@ -3,7 +3,6 @@ import {
   Send, 
   Smile, 
   MoreVertical, 
-  Image as ImageIcon,
   Paperclip,
   Check,
   CheckCheck,
@@ -12,16 +11,13 @@ import {
   Video,
   MessageSquare,
   Trash2,
-  MailOpen,
   Mail
 } from 'lucide-react';
 import { 
   Avatar, 
   Button,
-  ScrollArea,
-  Menu
+  ScrollArea
 } from '../../ui';
-import type { MenuItem } from '../../ui';
 import { cn } from "@/lib/utils";
 import type { Conversation, Message } from './types';
 import { useAuth } from '@/context/AuthContext';
@@ -30,9 +26,11 @@ interface ChatWindowProps {
   conversation: Conversation | null;
   messages: Message[];
   onSendMessage: (text: string) => void;
-  onDeleteMessage?: (messageId: string) => void;
-  onMarkUnread?: (messageId: string) => void;
+  onDeleteMessage?: (messageId: string | number) => void;
+  onMarkUnread?: (messageId: string | number) => void;
   onBack?: () => void;
+  onLoadMore?: () => void;
+  hasMore?: boolean;
 }
 
 const TypingIndicator = () => (
@@ -49,12 +47,14 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   onSendMessage,
   onDeleteMessage,
   onMarkUnread,
-  onBack
+  onBack,
+  onLoadMore,
+  hasMore
 }) => {
   const { user: currentUser } = useAuth();
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [activeMenuMessageId, setActiveMenuMessageId] = useState<string | null>(null);
+  const [activeMenuMessageId, setActiveMenuMessageId] = useState<string | number | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -146,31 +146,54 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       {/* Messages area */}
       <ScrollArea className="flex-1 p-6" ref={scrollAreaRef}>
         <div className="space-y-8 pb-4">
+          {hasMore && (
+            <div className="flex justify-center p-4">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={onLoadMore}
+                className="text-[10px] uppercase font-black tracking-widest text-teal-600 hover:bg-teal-50 rounded-xl"
+              >
+                Load Previous Messages
+              </Button>
+            </div>
+          )}
           <div className="flex justify-center">
             <span className="px-4 py-1.5 bg-white/50 backdrop-blur shadow-sm border border-gray-100 rounded-full text-[9px] font-black text-slate-400 uppercase tracking-widest">
               Messages are secured with end-to-end encryption
             </span>
           </div>
 
-          {messages.map((msg, idx) => {
+          {messages.map((msg) => {
             const isMe = String(msg.senderId) === String(currentUser?.id) || msg.senderId === 'me' || msg.senderId === 'current-user';
+            const showSenderInfo = !isMe && msg.isGroupMessage;
             
             return (
               <div key={msg.id} className={cn(
                 "flex flex-col max-w-[85%] group animate-in fade-in slide-in-from-bottom-2 duration-500",
                 isMe ? "ml-auto items-end" : "mr-auto items-start"
               )}>
+                {showSenderInfo && (
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1 px-3">
+                    {msg.senderName || 'Member'}
+                  </span>
+                )}
                 <div className="flex items-center gap-2 w-full relative">
                   {!isMe && (
                     <>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => setActiveMenuMessageId(activeMenuMessageId === msg.id ? null : msg.id)}
-                      >
-                        <MoreVertical className="h-4 w-4 text-slate-400" />
-                      </Button>
+                      <div className="flex flex-col items-center">
+                         {msg.senderProfilePicture && (
+                           <Avatar src={msg.senderProfilePicture} className="w-6 h-6 mb-1 opacity-60" />
+                         )}
+                         <Button 
+                           variant="ghost" 
+                           size="icon" 
+                           className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                           onClick={() => setActiveMenuMessageId(activeMenuMessageId === msg.id ? null : msg.id)}
+                         >
+                           <MoreVertical className="h-4 w-4 text-slate-400" />
+                         </Button>
+                      </div>
                       {activeMenuMessageId === msg.id && (
                         <div className="absolute left-12 top-0 z-50 min-w-[180px] bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                           <button
@@ -205,7 +228,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                       ? "bg-teal-600 text-white rounded-tr-none shadow-teal-100/30" 
                       : "bg-white text-slate-700 rounded-tl-none border border-gray-50"
                   )}>
-                    {msg.text}
+                    {msg.content}
                   </div>
 
                   {isMe && (
@@ -238,11 +261,13 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
                 <div className="flex items-center gap-2 mt-2 px-3">
                   <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter opacity-60">
-                    {msg.timestamp}
+                    {msg.timestamp && msg.timestamp !== "0001-01-01T00:00:00" 
+                      ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                      : ''}
                   </span>
                   {isMe && (
                     <div className="flex items-center text-teal-500">
-                      {msg.status === 'read' ? <CheckCheck size={12} className="stroke-[3]" /> : <Check size={12} className="stroke-[3]" />}
+                      {msg.isRead ? <CheckCheck size={12} className="stroke-[3]" /> : <Check size={12} className="stroke-[3]" />}
                     </div>
                   )}
                 </div>

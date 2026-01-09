@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Spinner, 
-  Modal,
   Toast,
   Menu
 } from '../../../ui';
@@ -40,10 +39,9 @@ const HubHomePage: React.FC = () => {
     showReportModal,
     setShowReportModal,
     reportType,
-    showLogoutConfirm,
     handleReportAction,
+    handleGetStartedAction,
     handleSearchAction,
-    cancelLogout,
     accountMenuItems
   } = useHubActions(isAuthenticated, logout);
 
@@ -82,17 +80,6 @@ const HubHomePage: React.FC = () => {
     <div className="min-h-screen bg-white">
       <Toast ref={toastRef} />
 
-      {/* Logout Confirmation Modal */}
-      <Modal
-        visible={showLogoutConfirm}
-        onHide={cancelLogout}
-        title={t('home.confirm_logout')}
-      >
-        <div className="py-4">
-          <p className="text-slate-600 font-medium">{t('home.logout_question')}</p>
-        </div>
-      </Modal>
-
       {/* Account Menu */}
       <Menu
         model={accountMenuItems}
@@ -109,6 +96,7 @@ const HubHomePage: React.FC = () => {
         onShowAccountMenu={(e) => accountMenuRef.current?.toggle(e)}
         onShowGuestMenu={() => openLoginModal()}
         onReportAction={handleReportAction}
+        onGetStartedAction={handleGetStartedAction}
         onSearchAction={handleSearchAction}
       />
 

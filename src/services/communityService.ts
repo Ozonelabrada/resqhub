@@ -1,11 +1,10 @@
 import api from '../api/client';
-import publicApi from '../api/publicClient';
 import type { Community, CommunityPost, CommunityMember } from '../types/community';
 
 export const CommunityService = {
   async getCommunities(): Promise<Community[]> {
     try {
-      const response = await publicApi.get<{ data: Community[] }>('/communities');
+      const response = await api.get<{ data: Community[] }>('/communities');
       const data = response.data?.data;
       return Array.isArray(data) ? data : [];
     } catch (error) {
@@ -16,7 +15,7 @@ export const CommunityService = {
 
   async getCommunityById(id: string): Promise<Community | null> {
     try {
-      const response = await publicApi.get<{ data: Community }>(`/communities/${id}`);
+      const response = await api.get<{ data: Community }>(`/communities/${id}`);
       return response.data?.data || null;
     } catch (error) {
       console.error('Error fetching community details:', error);
@@ -47,7 +46,7 @@ export const CommunityService = {
   async getCommunityPosts(id: string, type?: string): Promise<CommunityPost[]> {
     try {
       const query = type ? `?type=${type}` : '';
-      const response = await publicApi.get<{ data: CommunityPost[] }>(`/communities/${id}/posts${query}`);
+      const response = await api.get<{ data: CommunityPost[] }>(`/communities/${id}/posts${query}`);
       const data = response.data?.data;
       return Array.isArray(data) ? data : [];
     } catch (error) {
@@ -68,7 +67,7 @@ export const CommunityService = {
 
   async getCommunityMembers(id: string): Promise<CommunityMember[]> {
     try {
-      const response = await publicApi.get<{ data: CommunityMember[] }>(`/communities/${id}/members`);
+      const response = await api.get<{ data: CommunityMember[] }>(`/communities/${id}/members`);
       const data = response.data?.data;
       return Array.isArray(data) ? data : [];
     } catch (error) {

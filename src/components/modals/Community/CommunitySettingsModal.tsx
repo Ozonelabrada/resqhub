@@ -9,6 +9,7 @@ import {
   Button,
   Spinner
 } from '../../ui';
+import { Modal } from '../../ui/Modal/Modal';
 import { Settings, Upload, Save, X, Plus, Trash2 } from 'lucide-react';
 import type { Community } from '@/types/community';
 import { CommunityService } from '@/services';
@@ -75,19 +76,24 @@ const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ isOpen,
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[2.5rem] p-8 bg-white">
-        <DialogHeader>
+    <Modal 
+      isOpen={isOpen} 
+      onClose={onClose}
+      size="lg"
+      className="p-0 border-none rounded-[2.5rem] bg-white"
+    >
+      <div className="p-8 space-y-8 max-h-[90vh] overflow-y-auto">
+        <div>
           <div className="w-12 h-12 bg-teal-50 rounded-2xl flex items-center justify-center mb-4">
             <Settings className="text-teal-600" size={24} />
           </div>
-          <DialogTitle className="text-2xl font-black text-slate-900">Community Settings</DialogTitle>
-          <DialogDescription className="text-slate-500 font-medium">
+          <h2 className="text-2xl font-black text-slate-900">Community Settings</h2>
+          <p className="text-slate-500 font-medium">
             Manage your community's identity, rules, and visibility.
-          </DialogDescription>
-        </DialogHeader>
+          </p>
+        </div>
 
-        <div className="py-8 space-y-8">
+        <div className="py-2 space-y-8">
           {/* Visual Identity */}
           <div className="space-y-4">
              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Visual Identity</label>
@@ -176,7 +182,7 @@ const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ isOpen,
           </div>
         </div>
 
-        <DialogFooter className="flex items-center justify-end gap-3 pt-4 border-t border-slate-50">
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-50">
            <Button variant="ghost" onClick={onClose} className="font-bold text-slate-400 rounded-xl h-12 px-6">
               Discard Changes
            </Button>
@@ -188,9 +194,9 @@ const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ isOpen,
               {loading ? <Spinner size="sm" className="mr-2" /> : <Save size={18} className="mr-2" />}
               Save Settings
            </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </div>
+    </Modal>
   );
 };
 

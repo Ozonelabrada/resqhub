@@ -50,7 +50,7 @@ const CommentCard: React.FC<CommentCardProps> = ({
           isOwner ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'
         }`}
       >
-        {userName.charAt(0)}
+        {userName ? userName.charAt(0) : '?'}
       </Avatar>
 
       <div className="flex-1 min-w-0">

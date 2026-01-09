@@ -9,11 +9,13 @@ import type { ToastRef } from './components/ui/Toast/Toast';
 const PersonalHubPage = lazy(() => import('./components/pages/public/PersonalHubPage/PersonalHubPage'));
 const HubHomePage = lazy(() => import('./components/pages/public/HubHomePage/HubHomePage'));
 const NewsFeedPage = lazy(() => import('./components/pages/public/NewsFeedPage/NewsFeedPage'));
+const AboutPage = lazy(() => import('./components/pages/public/CommunityHubPage/CommunityHubPage'));
 const CommunitiesPage = lazy(() => import('./components/pages/public/CommunitiesPage/CommunitiesPage'));
 const CommunityPage = lazy(() => import('./components/pages/public/CommunityPage/CommunityPage'));
 const MessagesPage = lazy(() => import('./components/pages/public/MessagesPage/MessagesPage'));
 const ItemDetailPage = lazy(() => import('./components/pages/public/ItemDetailPage/ItemDetailPage'));
 const CommunityManagementPage = lazy(() => import('./components/pages/admin/CommunityManagementPage'));
+const SettingsPage = lazy(() => import('./components/pages/public/SettingPage/SettingsPage'));
 
 // Shared Pages
 import NotFoundPage from './components/shared/NotFoundPage/NotFoundPage';
@@ -25,6 +27,8 @@ import PublicLayout from './layouts/PublicLayout';
 // Auth Components
 import AuthGuard from './components/common/AuthGuard';
 
+import { useFeatureFlags } from './hooks';
+
 const LoadingFallback = () => (
   <div className="flex items-center justify-center min-h-screen bg-slate-50">
     <Spinner size="lg" />
@@ -32,6 +36,8 @@ const LoadingFallback = () => (
 );
 
 const AppRouter = () => {
+  const { isFeatureEnabled } = useFeatureFlags();
+
   return (
     <Suspense fallback={<LoadingFallback />}>
       <Routes>
@@ -42,8 +48,10 @@ const AppRouter = () => {
           
           {/* News Feed / Hub */}
           <Route path="hub" element={<NewsFeedPage />} />
+          <Route path="reports/:id" element={<NewsFeedPage />} />
+          <Route path="about" element={<AboutPage />} />
           <Route path="newsfeed" element={<Navigate to="/hub" replace />} />
-          <Route path="newsfeed/create" element={<Navigate to="/hub?action=create" replace />} />
+          <Route path="newsfeed/create" element={isFeatureEnabled('reports') ? <Navigate to="/hub?action=create" replace /> : <Navigate to="/hub" replace />} />
           <Route path="feed" element={<Navigate to="/hub" replace />} />
           
           {/* Communities */}
@@ -51,20 +59,31 @@ const AppRouter = () => {
           <Route path="community/:id" element={<CommunityPage />} />
           
           {/* Items / Details */}
-          <Route path="item/:id" element={<ItemDetailPage />} />
-          <Route path="success-stories/:id" element={<ItemDetailPage />} />
+          <Route path="item/:id" element={isFeatureEnabled('reports') ? <ItemDetailPage /> : <Navigate to="/hub" replace />} />
+          <Route path="success-stories/:id" element={isFeatureEnabled('reports') ? <ItemDetailPage /> : <Navigate to="/hub" replace />} />
           
           {/* Protected Routes */}
           <Route path="profile" element={<AuthGuard requireAuth={true}><PersonalHubPage /></AuthGuard>} />
-          <Route path="messages" element={<AuthGuard requireAuth={true}><MessagesPage /></AuthGuard>} />
+          <Route path="settings" element={<AuthGuard requireAuth={true}><SettingsPage /></AuthGuard>} />
+          <Route path="messages" element={
+            isFeatureEnabled('messages') ? (
+              <AuthGuard requireAuth={true}><MessagesPage /></AuthGuard>
+            ) : (
+              <Navigate to="/hub" replace />
+            )
+          } />
         </Route>
 
 
         {/* Admin Routes */}
         <Route path="/admin" element={
-          <AuthGuard requireAuth={true}>
-            <PublicLayout />
-          </AuthGuard>
+          isFeatureEnabled('admin_panel') ? (
+            <AuthGuard requireAuth={true}>
+              <PublicLayout />
+            </AuthGuard>
+          ) : (
+            <Navigate to="/" replace />
+          )
         }>
           <Route path="communities" element={<CommunityManagementPage />} />
         </Route>

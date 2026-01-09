@@ -44,6 +44,18 @@ const NewsFeedHeader: React.FC<NewsFeedHeaderProps> = ({
 
   return (
     <div className="space-y-4">
+      {/* Search Input - Mobile and Desktop consistency */}
+      <div className="relative group lg:hidden">
+        <Input
+          type="text"
+          placeholder={t('common.search_placeholder') || "Search items, users, etc."}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-12 pr-4 h-14 bg-white border-none shadow-sm rounded-2xl font-bold text-slate-600 focus:ring-2 focus:ring-teal-500/20 transition-all placeholder:text-slate-300"
+        />
+        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+      </div>
+
       {/* FILTER BAR - CLEAN & MODERN */}
       <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border-none flex items-center justify-between gap-4">
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">

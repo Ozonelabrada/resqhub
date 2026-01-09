@@ -5,6 +5,18 @@ export { buttonVariants } from "./button";
 export { Input as ShadcnInput } from "./input";
 export { Card as ShadcnCard, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "./card";
 export { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "./dialog";
+export {
+  Sheet,
+  SheetPortal,
+  SheetOverlay,
+  SheetTrigger,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetFooter,
+  SheetTitle,
+  SheetDescription,
+} from "./sheet";
 export { 
   Select as ShadcnSelect, 
   SelectGroup, 

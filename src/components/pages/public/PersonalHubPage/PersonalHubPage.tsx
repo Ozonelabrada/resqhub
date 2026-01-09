@@ -11,6 +11,7 @@ import {
 import { useUserProfile } from '../../../../hooks/useUserProfile';
 import { useUserReports } from '../../../../hooks/useUserReports';
 import { useWatchList } from '../../../../hooks/useWatchList';
+import { useFeatureFlags } from '@/hooks';
 import type { EditProfileForm, UserReport, UserStats } from '../../../../types/personalHub';
 import { ProfileHeader } from './personalHub/ProfileHeader';
 import { StatsCards } from './personalHub/StatsCards';
@@ -29,6 +30,7 @@ const PersonalHubPage: React.FC = () => {
   const [editLoading, setEditLoading] = useState(false);
 
   // Custom hooks
+  const { isFeatureEnabled } = useFeatureFlags();
   const { userData, loading: userLoading, updateProfile } = useUserProfile();
   const { reports, loading: reportsLoading, hasMore: reportsHasMore, loadMore: loadMoreReports } = useUserReports(userData?.id || null);
   const { items: watchList, loading: watchListLoading, hasMore: watchListHasMore, loadMore: loadMoreWatchList } = useWatchList();
@@ -101,23 +103,11 @@ const PersonalHubPage: React.FC = () => {
 
           {/* Stats Cards */}
           <div className="mt-6">
-            <StatsCards stats={userStats} />
+            {isFeatureEnabled('reports') && <StatsCards stats={userStats} />}
           </div>
 
           {/* Main Content Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-            {/* Left Column - My Reports */}
-            <div>
-              <ReportsList
-                reports={reports}
-                loading={reportsLoading}
-                hasMore={reportsHasMore}
-                onLoadMore={loadMoreReports}
-                onReportClick={handleReportClick}
-                onCreateReport={() => setShowReportModal(true)}
-              />
-            </div>
-
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
             {/* Center Content - Recent Activity */}
             <div>
               <Card className="h-full border border-slate-100 rounded-3xl overflow-hidden bg-white shadow-sm">

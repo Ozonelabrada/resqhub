@@ -38,6 +38,8 @@ export interface NewsFeedItem extends UserReport {
     profilePicture?: string;
     isVerified?: boolean;
   };
+  reactionsCount?: number;
+  commentsCount?: number;
   communityName?: string;
   timeAgo: string;
   status: 'lost' | 'found' | 'reunited';

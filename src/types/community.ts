@@ -11,6 +11,7 @@ export interface Community {
   foundedDate: string;
   isMember?: boolean;
   isAdmin?: boolean;
+  isPrivate?: boolean;
 }
 
 export interface CommunityPost {

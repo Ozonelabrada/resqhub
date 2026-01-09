@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 // Force reload of useHubActions
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../../context/AuthContext';
@@ -17,7 +17,7 @@ export const useHubHomeActions = (isAuthenticated: boolean, logout: () => void) 
   const navigate = useNavigate();
   const { openLoginModal, openSignUpModal } = useAuth();
   const [showReportModal, setShowReportModal] = useState(false);
-  const [reportType, setReportType] = useState<'lost' | 'found'>('lost');
+  const [reportType] = useState<'lost' | 'found'>('lost');
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const handleReportAction = (type: 'lost' | 'found') => {
@@ -54,11 +54,11 @@ export const useHubHomeActions = (isAuthenticated: boolean, logout: () => void) 
     setShowLogoutConfirm(false);
   };
 
-  const showAccountMenu = (event: React.MouseEvent) => {
+  const showAccountMenu = () => {
     // This will be handled by the parent component with refs
   };
 
-  const showGuestMenu = (event: React.MouseEvent) => {
+  const showGuestMenu = () => {
     // This will be handled by the parent component with refs
   };
 

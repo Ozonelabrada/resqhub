@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { AuthService } from '../services/authService';
+import { useFeatureFlags } from '../hooks';
 import { Menubar, Menu, Avatar, Button, Logo } from '../components/ui';
 import type { MenuRef } from '../components/ui';
 import { LoginModal } from '../components/modals/Auth/LoginModal';
@@ -28,15 +28,16 @@ const PublicLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
+  const { isFeatureEnabled } = useFeatureFlags();
   const { 
     isAuthenticated,
-    logout, 
     isLoginModalOpen, 
     openLoginModal, 
     closeLoginModal,
     isSignUpModalOpen,
     closeSignUpModal,
     openSettingsModal,
+    openLogoutModal,
   } = useAuth();
 
   const [hasOpenedModalFromState, setHasOpenedModalFromState] = useState(false);
@@ -57,30 +58,35 @@ const PublicLayout = () => {
       command: () => navigate('/')
     },
     {
+      label: t('common.news_feed'),
+      icon: <List className="w-4 h-4 mr-2" />,
+      command: () => navigate('/hub')
+    },
+    {
       label: t('common.community'),
       icon: <Users className="w-4 h-4 mr-2" />,
       items: [
         {
-          label: t('common.news_feed'),
-          icon: <List className="w-4 h-4 mr-2" />,
-          command: () => navigate('/hub')
+          label: 'About SHERRA',
+          icon: <Info className="w-4 h-4 mr-2" />,
+          command: () => navigate('/about')
         },
         {
           label: t('common.recent_activity'),
           icon: <Clock className="w-4 h-4 mr-2" />,
           command: () => navigate('/activity')
         },
-        {
+        isFeatureEnabled('reports') ? {
           label: t('common.success_stories'),
           icon: <Heart className="w-4 h-4 mr-2" />,
           command: () => navigate('/success-stories')
-        },
+        } : null,
         {
           label: t('common.safety_tips'),
           icon: <Info className="w-4 h-4 mr-2" />,
           command: () => navigate('/safety-tips')
         }
-      ]
+      ].filter(Boolean) as any[]
     }
   ];
 
@@ -90,11 +96,11 @@ const PublicLayout = () => {
       icon: <User className="w-4 h-4 mr-2" />,
       command: () => navigate('/profile')
     },
-    {
+    isFeatureEnabled('reports') ? {
       label: t('common.my_reports'),
       icon: <FileText className="w-4 h-4 mr-2" />,
       command: () => navigate('/profile')
-    },
+    } : null,
     {
       label: t('common.notifications'),
       icon: <Bell className="w-4 h-4 mr-2" />,
@@ -106,23 +112,14 @@ const PublicLayout = () => {
     {
       label: t('common.settings'),
       icon: <Settings className="w-4 h-4 mr-2" />,
-      command: () => openSettingsModal()
+      command: () => navigate('/settings')
     },
     {
       label: t('common.sign_out'),
       icon: <LogOut className="w-4 h-4 mr-2" />,
-      command: async () => {
-        try {
-          await AuthService.signOut();
-        } catch (error) {
-          console.error('Logout error:', error);
-        } finally {
-          logout();
-          navigate('/');
-        }
-      }
+      command: () => openLogoutModal()
     }
-  ];
+  ].filter(Boolean) as any[];
 
   
 
@@ -182,14 +179,14 @@ const PublicLayout = () => {
   );
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       {/* Navigation Bar - Hide on HomePage (/) */}
       {location.pathname !== '/' && (
         <Menubar
           model={items}
           start={start}
           end={end}
-          className=""
+          className="sticky top-0 z-[100]"
         />
       )}
 

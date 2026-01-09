@@ -33,24 +33,37 @@ const CommentSection: React.FC<CommentSectionProps> = ({ itemId, itemType, itemO
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
   // Load comments on component mount
   useEffect(() => {
-    loadComments();
+    loadComments(1, false);
   }, [itemId]);
 
-  const loadComments = async () => {
-    setIsLoading(true);
+  const loadComments = async (pageNum: number, isLoadMore: boolean) => {
+    if (!isLoadMore) setIsLoading(true);
     setError(null);
     try {
-      const data = await CommentsService.getComments(itemId);
-      setComments(data);
+      const pageSize = 10;
+      const data = await CommentsService.getComments(itemId, pageNum, pageSize);
+      if (isLoadMore) {
+        setComments(prev => [...prev, ...data]);
+      } else {
+        setComments(data);
+      }
+      setHasMore(data.length === pageSize);
+      setPage(pageNum);
     } catch (err: any) {
       setError('Failed to load comments. Please try again later.');
       console.error(err);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleLoadMore = () => {
+    loadComments(page + 1, true);
   };
 
   const handleSubmitComment = async () => {
@@ -237,16 +250,16 @@ const CommentSection: React.FC<CommentSectionProps> = ({ itemId, itemType, itemO
               {comments.map((comment) => (
                 <CommentCard
                   key={comment.id}
-                  userName={comment.userName}
-                  content={comment.content}
-                  timestamp={comment.timestamp}
-                  isOwner={comment.isOwner}
-                  isHelpful={comment.isHelpful}
+                  userName={comment.user?.fullName || 'Anonymous'}
+                  content={comment.comment}
+                  timestamp={comment.dateCreated}
+                  isOwner={Number(comment.userId) === itemOwnerId}
+                  isHelpful={Boolean((comment as any).isHelpful)}
                   likesCount={comment.likesCount}
                   isLikedByUser={comment.isLikedByUser}
                   onLike={() => handleToggleLike(comment.id)}
                   onReply={() => {
-                    setNewComment(`@${comment.userName} `);
+                    setNewComment(`@${comment.user?.username || 'user'} `);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                   isAuthenticated={isAuthenticated}

@@ -1,22 +1,38 @@
 import api from '../api/client';
-import publicApi from '../api/publicClient';
 import type { BaseApiResponse } from '../types/api';
 
 export interface Comment {
   id: number;
-  userId: number;
-  userName: string;
-  userAvatar?: string;
-  content: string;
-  timestamp: string;
-  isOwner: boolean;
-  isHelpful: boolean;
-  likesCount: number;
-  isLikedByUser: boolean;
+  reportId: number;
+  userId: string;
+  comment: string;
+  parentCommentId: number | null;
+  isEdited: boolean;
+  user: {
+    fullName: string;
+    profilePicture?: string;
+    username: string;
+  } | null;
+  replies: Comment[];
+  dateCreated: string;
+  lastModifiedDate: string;
+  // UI helper fields (keep if useful for frontend logic)
+  likesCount?: number;
+  isLikedByUser?: boolean;
+}
+
+export interface PaginatedCommentsData {
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+  pageNumber: number;
+  succeeded: boolean;
+  data: Comment[];
+  loadMore: boolean;
 }
 
 export interface CommentsResponse extends BaseApiResponse {
-  data: Comment[];
+  data: PaginatedCommentsData;
 }
 
 export interface CommentResponse extends BaseApiResponse {
@@ -24,20 +40,29 @@ export interface CommentResponse extends BaseApiResponse {
 }
 
 export const CommentsService = {
-  async getComments(reportId: number): Promise<Comment[]> {
+  async getComments(reportId: number, page: number = 1, pageSize: number = 20): Promise<Comment[]> {
     try {
-      // Use publicApi to allow guests to view comments without 401
-      const response = await publicApi.get<CommentsResponse>(`/reports/${reportId}/comments`);
-      return response.data?.data || [];
+      // Use api client to ensure token is sent if user is logged in
+      const response = await api.get<CommentsResponse>(`/report-comments/report/${reportId}`, {
+        params: {
+          pageNumber: page,
+          pageSize: pageSize
+        }
+      });
+      return response.data?.data?.data || [];
     } catch (error) {
       console.error('Error fetching comments:', error);
       throw error;
     }
   },
 
-  async addComment(reportId: number, content: string): Promise<Comment> {
+  async addComment(reportId: number, comment: string, parentCommentId: number | null = null): Promise<Comment> {
     try {
-      const response = await api.post<CommentResponse>(`/reports/${reportId}/comments`, { content });
+      const response = await api.post<BaseApiResponse & { data: Comment }>(`/report-comments`, { 
+        reportId, 
+        comment, 
+        parentCommentId 
+      });
       return response.data?.data;
     } catch (error) {
       console.error('Error adding comment:', error);
@@ -56,7 +81,7 @@ export const CommentsService = {
 
   async toggleLike(commentId: number): Promise<void> {
     try {
-      await api.post(`/comments/${commentId}/like`);
+      await api.post(`/report-reaction/comments/${commentId}/like`);
     } catch (error) {
       console.error('Error toggling like status:', error);
       throw error;

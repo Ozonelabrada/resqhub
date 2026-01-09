@@ -26,13 +26,11 @@
     "my_hub": "My Profile",
     "personal_dashboard": "Personal Dashboard",
     "account_settings": "Account Settings",
-    "my_reports": "My Reports",
     "sign_out": "Sign Out",
     "global_citizen": "Global Citizen",
     "joined": "Joined",
     "edit_profile": "Edit Profile",
     "community": "Community",
-    "home": "Home",
     "reports": "Reports",
     "total_reports": "Total Reports",
     "active_reports": "Active Reports",
@@ -203,10 +201,5 @@
     "tip4_title": "Share Location",
     "tip4_desc": "Use real-time location sharing with a trusted contact.",
     "full_guide": "Read Full Safety Guide"
-  },
-  "hub": {
-    "news": "News",
-    "discussion": "Discussion",
-    "announcements": "Announcements"
   }
 }

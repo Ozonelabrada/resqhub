@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { ConversationList } from './ConversationList';
 import { ChatWindow } from './ChatWindow';
 import { NewMessageModal } from './NewMessageModal';
+import { DirectChatModal } from './DirectChatModal'; // Added Import
 import { Card, Spinner } from '../../ui';
 import { useMessages } from '../../../hooks/useMessages';
 import { Plus } from 'lucide-react';
@@ -16,6 +17,7 @@ interface MessagesContainerProps {
 export const MessagesContainer: React.FC<MessagesContainerProps> = ({ initialConversationId }) => {
   const [activeConversationId, setActiveConversationId] = useState<string | null>(initialConversationId || null);
   const [isNewMessageModalOpen, setIsNewMessageModalOpen] = useState(false);
+  const [selectedUserForDirectChat, setSelectedUserForDirectChat] = useState<BackendUserData | null>(null); // New State
   const [searchQuery, setSearchQuery] = useState('');
   const [searchedUsers, setSearchedUsers] = useState<BackendUserData[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -28,6 +30,8 @@ export const MessagesContainer: React.FC<MessagesContainerProps> = ({ initialCon
     markMessageRead,
     markMessageUnread,
     deleteMessage,
+    loadMore,
+    hasMore,
     refreshConversations 
   } = useMessages(activeConversationId);
 
@@ -54,8 +58,9 @@ export const MessagesContainer: React.FC<MessagesContainerProps> = ({ initialCon
   }, [searchQuery]);
 
   useEffect(() => {
-    if (activeConversationId && messages[activeConversationId]) {
-      const activeMsgs = messages[activeConversationId];
+    const key = `direct-${activeConversationId}`;
+    if (activeConversationId && messages[key]) {
+      const activeMsgs = messages[key];
       // Find the last message that is unread and not from me
       const lastUnread = activeMsgs
         .filter(m => m.status === 'sent' && m.senderId !== 'me')
@@ -98,22 +103,13 @@ export const MessagesContainer: React.FC<MessagesContainerProps> = ({ initialCon
   };
 
   const handleSelectNewUser = async (user: BackendUserData) => {
-    // Check if conversation already exists
+    // Check if conversation already exists in our sidebar
     const existingConv = conversations.find(c => c.user.id === user.id);
     if (existingConv) {
       setActiveConversationId(existingConv.id);
     } else {
-      // Logic for new conversation - for now we mark it by user id and wait for first message
-      // In a real app, the BE might return a temporary UUID or we handle it in useMessages
-      // For this demo, we'll try to find or trigger a temporary state
-      console.log('Starting new chat with:', user.fullName);
-      // We could ideally refresh or manually add a virtual conversation
-      // But simpler: just use sendMessage with this user id
-      const initialMessage = await sendMessage(user.id, "Hi! I'd like to reach out regarding a report.");
-      if (initialMessage) {
-        refreshConversations();
-        // The refresh should bring back the new conversation ID
-      }
+      // REQUIREMENT: On click, open chat box (Shadcn Dialog) showing all chats with that user—do not auto-send.
+      setSelectedUserForDirectChat(user);
     }
   };
 
@@ -155,10 +151,12 @@ export const MessagesContainer: React.FC<MessagesContainerProps> = ({ initialCon
       <div className="hidden lg:flex flex-1 h-full">
         <ChatWindow 
           conversation={activeConversation}
-          messages={messages[activeConversationId || ''] || []}
+          messages={messages[`direct-${activeConversationId}`] || []}
           onSendMessage={handleSendMessage}
           onDeleteMessage={handleDeleteMessage}
           onMarkUnread={handleMarkUnread}
+          onLoadMore={loadMore}
+          hasMore={hasMore}
         />
       </div>
 
@@ -167,9 +165,11 @@ export const MessagesContainer: React.FC<MessagesContainerProps> = ({ initialCon
         <div className="fixed inset-0 z-50 lg:hidden bg-white">
           <ChatWindow 
             conversation={activeConversation}
-            messages={messages[activeConversationId || ''] || []}
+            messages={messages[`direct-${activeConversationId}`] || []}
             onSendMessage={handleSendMessage}
             onBack={() => setActiveConversationId(null)}
+            onLoadMore={loadMore}
+            hasMore={hasMore}
           />
         </div>
       )}
@@ -186,6 +186,12 @@ export const MessagesContainer: React.FC<MessagesContainerProps> = ({ initialCon
         isOpen={isNewMessageModalOpen}
         onClose={() => setIsNewMessageModalOpen(false)}
         onSelectUser={handleSelectNewUser}
+      />
+
+      <DirectChatModal 
+        user={selectedUserForDirectChat}
+        isOpen={!!selectedUserForDirectChat}
+        onClose={() => setSelectedUserForDirectChat(null)}
       />
     </Card>
   );

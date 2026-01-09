@@ -12,9 +12,14 @@ export interface Conversation {
 }
 
 export interface Message {
-  id: string;
+  id: string | number;
   senderId: string;
-  text: string;
+  senderName?: string;
+  senderProfilePicture?: string;
+  content: string;
   timestamp: string;
-  status: 'sent' | 'delivered' | 'read';
+  isRead: boolean;
+  isGroupMessage?: boolean;
+  directMessageReceiverId?: string;
+  groupMessageCommunityId?: number | null;
 }

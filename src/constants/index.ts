@@ -47,7 +47,6 @@ export const TOAST_MESSAGES = {
 export const createAccountMenuItems = (navigate: (path: string) => void, handleLogout: () => void) => [
   { label: 'News Feed', icon: 'pi pi-user', command: () => navigate(ROUTES.HUB) },
   { label: 'Personal Hub', icon: 'pi pi-home', command: () => navigate(ROUTES.PROFILE) },
-  { label: 'My Reports', icon: 'pi pi-list', command: () => navigate(`${ROUTES.PROFILE}?tab=reports`) },
   { label: 'Notifications', icon: 'pi pi-bell', command: () => navigate(ROUTES.NOTIFICATIONS) },
   { label: 'Settings', icon: 'pi pi-cog', command: () => navigate(ROUTES.SETTINGS) },
   { separator: true },
@@ -61,6 +60,7 @@ export const ROUTES = {
   PROFILE: '/profile',
   HUB: '/hub',
   FEED: '/hub',
+  ABOUT: '/about',
   NOTIFICATIONS: '/notifications',
   SETTINGS: '/settings',
   HELP: '/help',

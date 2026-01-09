@@ -15,9 +15,12 @@ import {
   StatusBadge 
 } from '../../../ui';
 import { useAuth } from '../../../../context/AuthContext';
+import { useFeatureFlags } from '@/hooks';
+import { Flag, ToggleLeft, ToggleRight } from 'lucide-react';
 
 const SettingsPage: React.FC = () => {
   const { userData: user } = useAuth() ?? {};
+  const { flags, toggleFlag } = useFeatureFlags();
 
   const handleMigrate = () => {
     alert('Migration started! (This is a placeholder. Implement your migration logic here.)');
@@ -79,6 +82,50 @@ const SettingsPage: React.FC = () => {
                 <RefreshCw size={18} />
                 Run Migration
               </Button>
+            </div>
+          </Card>
+
+          {/* Feature Flags Section */}
+          <Card className="p-8 border-none shadow-xl rounded-[2.5rem] bg-slate-900 text-white">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-12 h-12 rounded-2xl bg-teal-500 flex items-center justify-center text-white">
+                <Flag size={24} />
+              </div>
+              <div>
+                <h2 className="text-2xl font-black">Feature Flags (Admin)</h2>
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Dynamic UI Management</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {Object.keys(flags).map((flag) => (
+                <div 
+                  key={flag} 
+                  className="flex items-center justify-between p-6 bg-slate-800/50 rounded-3xl border border-slate-700/50 hover:border-teal-500/50 transition-colors cursor-pointer group"
+                  onClick={() => toggleFlag(flag as any)}
+                >
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm font-black capitalize tracking-tight group-hover:text-teal-400 transition-colors">
+                      {flag.replace('_', ' ')}
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-bold uppercase">
+                      {flags[flag] ? 'Enabled' : 'Disabled'}
+                    </span>
+                  </div>
+                  {flags[flag] ? (
+                    <ToggleRight className="text-teal-400 w-8 h-8" />
+                  ) : (
+                    <ToggleLeft className="text-slate-600 w-8 h-8" />
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-8 p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-start gap-4">
+              <Shield className="text-amber-500 w-5 h-5 mt-0.5" />
+              <p className="text-amber-200/80 text-xs leading-relaxed">
+                <span className="font-bold text-amber-500">Caution:</span> Toggling these flags will immediately change the UI behavior for the current session and be saved to local storage.
+              </p>
             </div>
           </Card>
 

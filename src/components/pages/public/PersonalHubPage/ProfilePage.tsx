@@ -104,21 +104,14 @@ const ProfilePage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="w-full flex flex-col sm:flex-row gap-4">
+              <div className="w-full">
                 <Button 
                   variant="outline"
-                  className="flex-1 rounded-2xl py-4 h-auto font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3"
+                  className="w-full rounded-2xl py-4 h-auto font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3"
                   onClick={() => navigate('/settings')}
                 >
                   <Pencil size={18} />
                   Edit Profile
-                </Button>
-                <Button 
-                  className="flex-1 rounded-2xl py-4 h-auto font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 shadow-xl shadow-teal-200"
-                  onClick={() => navigate('/profile')}
-                >
-                  <FileText size={18} />
-                  My Reports
                 </Button>
               </div>
             </div>

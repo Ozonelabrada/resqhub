@@ -32,6 +32,7 @@ interface CommunitySidebarProps {
   onOpenCreateCommunity: () => void;
   searchQuery?: string;
   setSearchQuery?: (query: string) => void;
+  className?: string;
 }
 
 const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
@@ -45,12 +46,13 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
   onOpenInviteModal,
   onOpenCreateCommunity,
   searchQuery = '',
-  setSearchQuery
+  setSearchQuery,
+  className
 }) => {
   const { t } = useTranslation();
 
   return (
-    <aside className="hidden lg:flex lg:col-span-3 flex-col space-y-6 sticky top-0 h-full overflow-y-auto custom-scrollbar no-scrollbar py-6 group">
+    <aside className={cn("flex flex-col space-y-6 pt-6 lg:sticky lg:top-24 lg:self-start group", className)}>
       {/* SEARCH BAR - HIGH VISIBILITY */}
       <div className="relative group">
         <Input
@@ -108,8 +110,8 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
                 </div>
               </div>
             ))
-          ) : trendingReports.slice(0, 3).map((report: any) => (
-            <div key={report.id} className="group flex items-start gap-4 cursor-pointer" onClick={() => navigate(`/item/${report.id}`)}>
+          ) : trendingReports.slice(0, 3).map((report: any, idx: number) => (
+            <div key={report.id || report._id || idx} className="group flex items-start gap-4 cursor-pointer" onClick={() => navigate(`/item/${report.id || report._id}`)}>
               <div className="relative w-14 h-14 rounded-2xl overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-100">
                 {report.images?.[0] ? (
                   <img src={report.images[0]} alt="" className="object-cover w-full h-full group-hover:scale-110 transition-transform" />
@@ -160,8 +162,8 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
         </div>
         
         <div className="space-y-4">
-          {joinedCommunities.map(community => (
-            <div key={community.id} className="p-4 rounded-3xl border border-slate-50 hover:border-teal-100 hover:bg-teal-50/30 transition-all group" onClick={() => navigate(`/community/${community.id}`)}>
+          {joinedCommunities.map((community, idx) => (
+            <div key={community.id || community._id || idx} className="p-4 rounded-3xl border border-slate-50 hover:border-teal-100 hover:bg-teal-50/30 transition-all group" onClick={() => navigate(`/community/${community.id || community._id}`)}>
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
                   {community.icon}

@@ -1,5 +1,4 @@
 import api from '../api/client';
-import publicApi from '../api/publicClient';
 
 export interface LostFoundItem {
   id: number;
@@ -22,7 +21,14 @@ export interface LostFoundItem {
     imageUrl: string;
     description: string | null;
   }>;
-  user: any;
+  user: {
+    id: string;
+    fullName: string;
+    username: string;
+    profilePictureUrl: string;
+  };
+  reactionCount?: number;
+  commentsCount?: number;
   dateCreated: string;
   lastModifiedDate: string;
 }
@@ -59,10 +65,10 @@ export const ReportsService = {
       const response = await api.get<any>(url);
       
       // Robust extraction to handle various backend response structures
-      // Based on sample: response.data { data: { data: [...] } }
       const rawData = response.data;
       let items: LostFoundItem[] = [];
 
+      // Check for nested data property (standard for this API)
       if (rawData?.data?.data && Array.isArray(rawData.data.data)) {
         items = rawData.data.data;
       } else if (rawData?.data && Array.isArray(rawData.data)) {
@@ -78,10 +84,27 @@ export const ReportsService = {
     }
   },
 
+  /**
+   * Creates a new report using multipart/form-data
+   * Fields required by backend:
+   * - UserId (uuid)
+   * - CategoryId (int)
+   * - Title (string)
+   * - Description (string)
+   * - Location (string)
+   * - ContactInfo (string)
+   * - RewardDetails (string)
+   * - ReportType (string: "news" | "discussion" | "announcement" | "lost" | "found")
+   * - ImageFiles[] (files)
+   */
   async createReport(payload: FormData): Promise<{ success: boolean; data?: any; message?: string }> {
     try {
+      // The client interceptor handles removing Content-Type for FormData
       const response = await api.post('/reports', payload);
-      return { success: true, data: response.data };
+      return { 
+        success: true, 
+        data: response.data?.data || response.data 
+      };
     } catch (error: any) {
       console.error('Error creating report:', error);
       return { 

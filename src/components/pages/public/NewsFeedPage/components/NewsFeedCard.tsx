@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Plus, 
@@ -19,10 +19,12 @@ import {
   Card,
   Input,
   Badge,
-  Avatar
+  Avatar,
+  Spinner
 } from '@/components/ui';
 import { cn } from "@/lib/utils";
 import type { NewsFeedItem } from '../../PersonalHubPage/personalHub/NewsFeed';
+import { CommentsService, type Comment } from '@/services/commentsService';
 
 interface NewsFeedCardProps {
   item: NewsFeedItem;
@@ -33,11 +35,80 @@ interface NewsFeedCardProps {
 const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCommunityClick }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { isAuthenticated, openLoginModal } = useAuth();
+  const { isAuthenticated, user, openLoginModal } = useAuth();
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [isLiked, setIsLiked] = useState(false);
   const [commentText, setCommentText] = useState('');
-  
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+
+  useEffect(() => {
+    if (isCommentsOpen && item.id) {
+      loadComments();
+    }
+  }, [isCommentsOpen, item.id]);
+
+  const loadComments = async () => {
+    setLoadingComments(true);
+    try {
+      const data = await CommentsService.getComments(Number(item.id));
+      setComments(data);
+    } catch (error) {
+      console.error('Failed to load comments:', error);
+    } finally {
+      setLoadingComments(false);
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (!commentText.trim() || !item.id) return;
+    
+    if (!isAuthenticated) {
+      openLoginModal();
+      return;
+    }
+
+    const newCommentContent = commentText.trim();
+    setCommentText('');
+    setIsSubmittingComment(true);
+
+    // Optimistic UI update
+    const optimisticComment: any = {
+      id: Date.now(), // temporary id
+      reportId: item.id,
+      userId: user?.id?.toString() || '',
+      comment: newCommentContent,
+      parentCommentId: null,
+      isEdited: false,
+      user: {
+        fullName: user?.name || 'Me',
+        profilePicture: user?.profilePicture,
+        username: 'me'
+      },
+      replies: [],
+      dateCreated: new Date().toISOString(),
+      lastModifiedDate: new Date().toISOString(),
+      likesCount: 0,
+      isLikedByUser: false
+    };
+
+    setComments(prev => [optimisticComment, ...prev]);
+
+    try {
+      const savedComment = await CommentsService.addComment(Number(item.id), newCommentContent);
+      // Replace optimistic comment with actual saved comment
+      setComments(prev => prev.map(c => c.id === optimisticComment.id ? savedComment : c));
+    } catch (error) {
+      // Rollback on error
+      setComments(prev => prev.filter(c => c.id !== optimisticComment.id));
+      setCommentText(newCommentContent); // restore text
+      console.error('Failed to add comment:', error);
+    } finally {
+      setIsSubmittingComment(false);
+    }
+  };
+
   const getStatusDisplay = (status: string) => {
     switch (status.toLowerCase()) {
       case 'lost': return { label: t('newsfeed.lost'), color: 'bg-orange-50 text-orange-600 border-orange-100 font-black' };
@@ -48,6 +119,21 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
   };
 
   const status = getStatusDisplay(item.status);
+
+  const handleShare = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const url = `${window.location.origin}/item/${item.id}`;
+    
+    if (navigator.share) {
+      navigator.share({
+        title: item.title,
+        text: item.description,
+        url: url,
+      }).catch(console.error);
+    } else {
+      navigator.clipboard.writeText(url);
+    }
+  };
 
   const handleAction = (e: React.MouseEvent, callback: () => void) => {
     e.stopPropagation();
@@ -81,11 +167,11 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
       className="group bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col"
     >
       <div 
-        onClick={() => navigate(`/item/${item.id}`)}
+        onClick={() => navigate(`/reports/${item.id}`)}
         className="flex flex-col md:flex-row cursor-pointer"
       >
         {/* Image Container */}
-        <div className="relative w-full md:w-[28rem] h-64 md:h-80 overflow-hidden bg-gray-100 border-r border-gray-50">
+        <div className="relative w-full md:w-[28rem] h-64 md:h-80 min-h-[16rem] md:min-h-[20rem] overflow-hidden bg-gray-100 border-r border-gray-50">
           {item.images && item.images.length > 0 ? (
             <div className={cn(
               "w-full h-full grid gap-0.5",
@@ -207,7 +293,7 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
                 )}
                >
                  <ThumbsUp className={cn("w-4 h-4", isLiked && "fill-current")} />
-                 <span>24</span>
+                 <span>{(item.reactionsCount || 0) + (isLiked ? 1 : 0)}</span>
                </button>
                <button 
                 onClick={(e) => handleAction(e, () => setIsCommentsOpen(!isCommentsOpen))}
@@ -217,10 +303,10 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
                 )}
                >
                  <MessageSquare className="w-4 h-4" />
-                 <span>8</span>
+                 <span>{comments.length || item.commentsCount || 0}</span>
                </button>
                <button 
-                onClick={(e) => handleAction(e, () => {})}
+                onClick={handleShare}
                 className="p-2 text-slate-400 hover:text-teal-500 transition-colors rounded-xl hover:bg-teal-50"
                >
                  <Share2 className="w-4 h-4" />
@@ -235,71 +321,93 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
         <div className="border-t border-gray-50 bg-gray-50/30 p-8 animate-in slide-in-from-top-2 duration-300">
           <div className="max-w-3xl mx-auto space-y-6">
             <div className="flex gap-4">
-              <Avatar className="w-10 h-10 border-2 border-white shadow-sm flex-shrink-0" />
+              <Avatar src={user?.profilePicture} className="w-10 h-10 border-2 border-white shadow-sm flex-shrink-0" />
               <div className="flex-1 relative">
                 <Input 
                    placeholder="Add a helpful comment..." 
                    value={commentText}
                    onChange={(e) => setCommentText(e.target.value)}
+                   onKeyPress={(e) => e.key === 'Enter' && handleAddComment()}
                    className="pr-12 py-6 rounded-2xl border-gray-200 bg-white shadow-sm font-medium"
                 />
                 <Button 
                    size="icon" 
                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl h-10 w-10 transition-transform active:scale-90"
-                   disabled={!commentText.trim()}
-                   onClick={() => {
-                     if (!isAuthenticated) {
-                       openLoginModal();
-                       return;
-                     }
-                     // Send comment logic here
-                   }}
+                   disabled={!commentText.trim() || isSubmittingComment}
+                   onClick={handleAddComment}
                 >
-                  <Send className="w-4 h-4" />
+                  {isSubmittingComment ? <Spinner size="sm" /> : <Send className="w-4 h-4" />}
                 </Button>
               </div>
             </div>
 
-            {/* Mock Threads */}
+            {/* Comments List */}
             <div className="space-y-6 pt-2">
-               {[1, 2].map(i => (
-                 <div key={i} className="flex gap-4 group">
-                   <Avatar className="w-8 h-8 flex-shrink-0" />
-                   <div className="flex-1 space-y-2">
-                     <div className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100">
-                       <div className="flex justify-between items-center mb-1">
-                          <span className="text-xs font-black text-slate-900 tracking-tight">Community Member {i}</span>
-                          <span className="text-[10px] text-slate-400 font-bold uppercase">2h ago</span>
+               {loadingComments ? (
+                 <div className="flex justify-center py-4">
+                   <Spinner size="md" className="text-teal-600" />
+                 </div>
+               ) : comments.length > 0 ? (
+                 comments.map((comment) => (
+                   <div key={comment.id} className="space-y-4">
+                     <div className="flex gap-4 group">
+                       <Avatar src={comment.user?.profilePicture} className="w-8 h-8 flex-shrink-0" />
+                       <div className="flex-1 space-y-2">
+                         <div className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100">
+                           <div className="flex justify-between items-center mb-1">
+                              <span className="text-xs font-black text-slate-900 tracking-tight">
+                                {comment.user?.fullName || comment.userId || t('common.anonymous')}
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-bold uppercase">
+                                {new Date(comment.dateCreated).toLocaleDateString()}
+                              </span>
+                           </div>
+                           <p className="text-sm text-slate-600 leading-relaxed">
+                             {comment.comment}
+                           </p>
+                         </div>
+                         <div className="flex items-center gap-4 px-2">
+                           <button className="text-[10px] font-black text-slate-400 hover:text-teal-600 uppercase tracking-widest">Reply</button>
+                           <button className="text-[10px] font-black text-slate-400 hover:text-orange-600 uppercase tracking-widest">
+                             Helpful ({comment.likesCount || 0})
+                           </button>
+                         </div>
                        </div>
-                       <p className="text-sm text-slate-600 leading-relaxed">
-                         I think I saw something similar near the central park yesterday! {i === 1 ? "Hope you find it soon." : "Check the security office."}
-                       </p>
                      </div>
-                     <div className="flex items-center gap-4 px-2">
-                       <button className="text-[10px] font-black text-slate-400 hover:text-teal-600 uppercase tracking-widest">Reply</button>
-                       <button className="text-[10px] font-black text-slate-400 hover:text-orange-600 uppercase tracking-widest">Helpful (3)</button>
-                     </div>
-                     
-                     {i === 1 && (
-                       <div className="ml-8 pt-4 border-l-2 border-gray-100 pl-4 space-y-4">
-                         <div className="flex gap-3">
-                           <Avatar className="w-6 h-6 flex-shrink-0" />
-                           <div className="flex-1">
-                             <div className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100">
-                               <p className="text-xs text-slate-600">Thanks for the tip! I'll check there today.</p>
+
+                     {/* Replies */}
+                     {comment.replies && comment.replies.length > 0 && (
+                       <div className="ml-12 space-y-4 border-l-2 border-slate-50 pl-6">
+                         {comment.replies.map((reply) => (
+                           <div key={reply.id} className="flex gap-3 group">
+                             <Avatar src={reply.user?.profilePicture} className="w-6 h-6 flex-shrink-0" />
+                             <div className="flex-1 space-y-1">
+                               <div className="bg-white/80 p-3 rounded-2xl shadow-sm border border-gray-50">
+                                 <div className="flex justify-between items-center mb-1">
+                                    <span className="text-[10px] font-black text-slate-800 tracking-tight">
+                                      {reply.user?.fullName || reply.userId || t('common.anonymous')}
+                                    </span>
+                                    <span className="text-[8px] text-slate-400 font-bold uppercase">
+                                      {new Date(reply.dateCreated).toLocaleDateString()}
+                                    </span>
+                                 </div>
+                                 <p className="text-xs text-slate-600 leading-relaxed">
+                                   {reply.comment}
+                                 </p>
+                               </div>
                              </div>
                            </div>
-                         </div>
+                         ))}
                        </div>
                      )}
                    </div>
+                 ))
+               ) : (
+                 <div className="text-center py-4 text-slate-400 text-sm italic">
+                   No comments yet. Be the first to help!
                  </div>
-               ))}
+               )}
             </div>
-            
-            <Button variant="ghost" className="w-full py-4 text-xs font-bold text-slate-400 hover:text-teal-600 uppercase tracking-widest">
-                Load more comments
-            </Button>
           </div>
         </div>
       )}
