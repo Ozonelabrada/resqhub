@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { authManager } from '../utils/sessionManager';
+import { serverHealth } from './serverHealth';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com',
@@ -10,6 +11,11 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
+  // Circuit breaker: Prevent requests if server is down
+  if (serverHealth.isServerDown()) {
+    return Promise.reject(new Error('SERVER_UNREACHABLE'));
+  }
+
   // Get token from auth manager
   const token = authManager.getToken();
 
@@ -48,11 +54,10 @@ api.interceptors.response.use(
       if ((window as any).showToast) {
         (window as any).showToast('error', 'API Error', error.response.data?.message || 'Something went wrong.');
       }
-    } else if (error.request) {
-      // Network errors
-      if ((window as any).showToast) {
-        (window as any).showToast('error', 'Network Error', 'Please check your internet connection.');
-      }
+    } else if (error.request || error.message === 'SERVER_UNREACHABLE') {
+      // Network errors or circuit breaker triggered
+      serverHealth.reportNetworkError();
+      // No toast here as the top notification banner in App.tsx handles this
     }
     return Promise.reject(error);
   }

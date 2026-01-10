@@ -1,31 +1,61 @@
 export interface Community {
-  id: string;
+  id: string | number;
   name: string;
-  tagline: string;
+  tagline?: string;
   description: string;
   logo?: string;
+  imageUrl?: string | null;
   banner?: string;
-  membersCount: number;
-  location: string;
-  rules: string[];
-  foundedDate: string;
+  membersCount?: number;
+  memberCount?: number;
+  location?: string;
+  rules?: string[];
+  foundedDate?: string;
+  dateCreated?: string;
+  createdBy?: string;
+  isActive?: boolean;
+  maxMembers?: number | null;
   isMember?: boolean;
   isAdmin?: boolean;
   isPrivate?: boolean;
 }
 
 export interface CommunityPost {
-  id: string;
-  communityId: string;
-  authorId: string;
-  authorName: string;
-  authorAvatar?: string;
+  id: number;
+  userId: string;
+  reportType: string;
+  status: string;
   title: string;
-  content: string;
-  type: 'general' | 'news' | 'announcement' | 'lost' | 'found';
-  createdAt: string;
-  likesCount: number;
+  description: string;
+  location: string;
+  contactInfo: string;
+  rewardDetails: string | null;
+  categoryId: number | null;
+  categoryName: string | null;
+  communityId: number;
+  communityName: string;
+  verificationStatus: string;
+  isFeatured: boolean;
+  expiresAt: string | null;
+  resolvedAt: string | null;
+  reactionsCount: number;
+  isReacted?: boolean;
   commentsCount: number;
+  images: Array<{
+    id: number;
+    reportId: number;
+    imageUrl: string;
+    description: string | null;
+    dateCreated: string;
+  }>;
+  user: {
+    id: string;
+    username: string;
+    profilePicture: string | null;
+    fullName: string;
+  };
+  dateCreated: string;
+  lastModifiedDate: string;
 }
 
 export interface CommunityMember {

@@ -16,7 +16,9 @@ import {
   Avatar,
   Skeleton,
   Button,
-  Input
+  Input,
+  Spinner,
+  Badge
 } from '../../../../ui';
 import { cn } from "@/lib/utils";
 
@@ -30,6 +32,7 @@ interface CommunitySidebarProps {
   setIsSafetyExpanded: (expanded: boolean) => void;
   onOpenInviteModal: (communityName: string) => void;
   onOpenCreateCommunity: () => void;
+  onJoinCommunity?: (id: string | number) => Promise<void>;
   searchQuery?: string;
   setSearchQuery?: (query: string) => void;
   className?: string;
@@ -45,11 +48,25 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
   setIsSafetyExpanded,
   onOpenInviteModal,
   onOpenCreateCommunity,
+  onJoinCommunity,
   searchQuery = '',
   setSearchQuery,
   className
 }) => {
   const { t } = useTranslation();
+  const [joiningId, setJoiningId] = React.useState<string | number | null>(null);
+
+  const handleJoinClick = async (e: React.MouseEvent, id: string | number) => {
+    e.stopPropagation();
+    if (!onJoinCommunity) return;
+    
+    setJoiningId(id);
+    try {
+      await onJoinCommunity(id);
+    } finally {
+      setJoiningId(null);
+    }
+  };
 
   return (
     <aside className={cn("flex flex-col space-y-6 pt-6 lg:sticky lg:top-24 lg:self-start group", className)}>
@@ -163,25 +180,51 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
         
         <div className="space-y-4">
           {joinedCommunities.map((community, idx) => (
-            <div key={community.id || community._id || idx} className="p-4 rounded-3xl border border-slate-50 hover:border-teal-100 hover:bg-teal-50/30 transition-all group" onClick={() => navigate(`/community/${community.id || community._id}`)}>
+            <div key={community.id || (community as any)._id || idx} className="p-4 rounded-3xl border border-slate-50 hover:border-teal-100 hover:bg-teal-50/30 transition-all group cursor-pointer" onClick={() => navigate(`/community/${community.id || (community as any)._id}`)}>
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
-                  {community.icon}
+                <div className="w-12 h-12 rounded-2xl bg-teal-50 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform overflow-hidden">
+                  {community.logo || community.imageUrl ? (
+                    <img src={community.logo || community.imageUrl || undefined} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <Users className="w-6 h-6 text-teal-600" />
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-bold text-slate-900 truncate">{community.name}</h4>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{community.members} Members • {community.lastActivity}</p>
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-sm font-bold text-slate-900 truncate">{community.name}</h4>
+                    {community.isMember && (
+                      <Badge className="h-4 px-1.5 bg-emerald-50 text-emerald-600 border-none text-[8px] font-black uppercase tracking-tighter">Joined</Badge>
+                    )}
+                  </div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    {community.memberCount || community.membersCount || 0} Members
+                  </p>
                 </div>
               </div>
               <div className="mt-4 flex items-center gap-2">
-                <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="flex-1 bg-white hover:bg-teal-50 text-teal-600 rounded-xl font-bold border border-slate-100"
-                    onClick={(e) => { e.stopPropagation(); onOpenInviteModal(community.name); }}
-                >
-                  {t('community.invite') || "Invite"}
-                </Button>
+                {community.isMember ? (
+                  <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="flex-1 bg-white hover:bg-teal-50 text-teal-600 rounded-xl font-bold border border-slate-100"
+                      onClick={(e) => { e.stopPropagation(); onOpenInviteModal(community.name); }}
+                  >
+                    {t('community.invite') || "Invite"}
+                  </Button>
+                ) : (
+                  <Button 
+                      size="sm" 
+                      className="flex-1 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-bold shadow-sm"
+                      onClick={(e) => handleJoinClick(e, community.id)}
+                      disabled={joiningId === community.id}
+                  >
+                    {joiningId === community.id ? (
+                      <Spinner size="xs" className="border-white" />
+                    ) : (
+                      "Request to Join"
+                    )}
+                  </Button>
+                )}
               </div>
             </div>
           ))}

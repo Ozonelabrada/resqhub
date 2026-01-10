@@ -36,8 +36,8 @@ export const SettingsModal: React.FC = () => {
 
   return (
     <Dialog open={isSettingsModalOpen} onOpenChange={closeSettingsModal}>
-      <DialogContent className="max-w-2xl bg-white border-none shadow-2xl rounded-[2.5rem] p-0 overflow-hidden outline-none">
-        <div className="flex h-[500px]">
+      <DialogContent className="max-w-2xl bg-white border-none shadow-2xl rounded-[2.5rem] p-0 overflow-y-auto max-h-[90vh] outline-none">
+        <div className="flex min-h-[500px]">
           {/* Sidebar */}
           <div className="w-48 lg:w-64 bg-slate-50 p-6 lg:p-8 border-r border-slate-100 hidden md:block">
             <h2 className="text-xl font-black text-slate-900 mb-8">{t('common.settings')}</h2>

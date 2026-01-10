@@ -6,25 +6,31 @@ import {
   Calendar, 
   MoreHorizontal, 
   CheckCircle, 
-  ThumbsUp, 
   MessageSquare, 
   Share2, 
   Award,
-  Send
+  Send,
+  Heart,
+  Edit2,
+  Trash2,
+  ShieldAlert
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
 import {
-  Button,
   Card,
-  Input,
   Badge,
   Avatar,
-  Spinner
+  Menu,
 } from '@/components/ui';
+import type { MenuRef, MenuItem } from '@/components/ui/Menu/Menu';
 import { cn } from "@/lib/utils";
 import type { NewsFeedItem } from '../../PersonalHubPage/personalHub/NewsFeed';
-import { CommentsService, type Comment } from '@/services/commentsService';
+import { ReactionsService } from '@/services/reactionsService';
+import { ReportsService, type LostFoundItem } from '@/services/reportsService';
+import CommentSection from '@/components/features/comments/CommentSection';
+import ReportAbuseModal from '@/components/modals/ReportAbuseModal';
+import EditReportModal from '@/components/modals/ReportModal/EditReportModal';
 
 interface NewsFeedCardProps {
   item: NewsFeedItem;
@@ -36,78 +42,68 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { isAuthenticated, user, openLoginModal } = useAuth();
+  const menuRef = React.useRef<MenuRef>(null);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [isLiked, setIsLiked] = useState(false);
-  const [commentText, setCommentText] = useState('');
-  const [loadingComments, setLoadingComments] = useState(false);
-  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [isLiked, setIsLiked] = useState(item.isReacted || false);
+  const [reportReactionsCount, setReportReactionsCount] = useState(item.reactionsCount || 0);
+  const [totalCommentsCount, setTotalCommentsCount] = useState(item.commentsCount || 0);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const isOwner = user?.id && String(item.user?.id) === String(user.id);
+
+  const menuModel: MenuItem[] = isOwner ? [
+    {
+      label: 'Update Report',
+      icon: <Edit2 size={14} className="text-teal-600" />,
+      command: () => {
+        setIsEditModalOpen(true);
+      }
+    },
+    {
+      label: 'Delete Report',
+      icon: <Trash2 size={14} className="text-rose-500" />,
+      command: async () => {
+        if (window.confirm('Are you sure you want to delete this report? This action cannot be undone.')) {
+          try {
+            await ReportsService.deleteReport(Number(item.id));
+            (window as any).showToast?.('success', 'Report Deleted', 'Your report has been removed.');
+            // Ideally trigger a refresh in parent
+            window.location.reload(); 
+          } catch (error) {
+            (window as any).showToast?.('error', 'Delete Failed', 'Could not delete report. Please try again.');
+          }
+        }
+      }
+    }
+  ] : [
+    {
+      label: 'Report Abuse',
+      icon: <ShieldAlert size={14} className="text-orange-600" />,
+      command: () => {
+        if (!isAuthenticated) return openLoginModal();
+        setIsReportModalOpen(true);
+      }
+    }
+  ];
 
   useEffect(() => {
-    if (isCommentsOpen && item.id) {
-      loadComments();
+    if (item.isReacted !== undefined) {
+      setIsLiked(item.isReacted);
     }
-  }, [isCommentsOpen, item.id]);
+  }, [item.isReacted]);
 
-  const loadComments = async () => {
-    setLoadingComments(true);
-    try {
-      const data = await CommentsService.getComments(Number(item.id));
-      setComments(data);
-    } catch (error) {
-      console.error('Failed to load comments:', error);
-    } finally {
-      setLoadingComments(false);
+  useEffect(() => {
+    if (item.reactionsCount !== undefined) {
+      setReportReactionsCount(item.reactionsCount);
     }
-  };
+  }, [item.reactionsCount]);
 
-  const handleAddComment = async () => {
-    if (!commentText.trim() || !item.id) return;
-    
-    if (!isAuthenticated) {
-      openLoginModal();
-      return;
+  useEffect(() => {
+    if (item.commentsCount !== undefined) {
+      setTotalCommentsCount(item.commentsCount);
     }
-
-    const newCommentContent = commentText.trim();
-    setCommentText('');
-    setIsSubmittingComment(true);
-
-    // Optimistic UI update
-    const optimisticComment: any = {
-      id: Date.now(), // temporary id
-      reportId: item.id,
-      userId: user?.id?.toString() || '',
-      comment: newCommentContent,
-      parentCommentId: null,
-      isEdited: false,
-      user: {
-        fullName: user?.name || 'Me',
-        profilePicture: user?.profilePicture,
-        username: 'me'
-      },
-      replies: [],
-      dateCreated: new Date().toISOString(),
-      lastModifiedDate: new Date().toISOString(),
-      likesCount: 0,
-      isLikedByUser: false
-    };
-
-    setComments(prev => [optimisticComment, ...prev]);
-
-    try {
-      const savedComment = await CommentsService.addComment(Number(item.id), newCommentContent);
-      // Replace optimistic comment with actual saved comment
-      setComments(prev => prev.map(c => c.id === optimisticComment.id ? savedComment : c));
-    } catch (error) {
-      // Rollback on error
-      setComments(prev => prev.filter(c => c.id !== optimisticComment.id));
-      setCommentText(newCommentContent); // restore text
-      console.error('Failed to add comment:', error);
-    } finally {
-      setIsSubmittingComment(false);
-    }
-  };
+  }, [item.commentsCount]);
 
   const getStatusDisplay = (status: string) => {
     switch (status.toLowerCase()) {
@@ -159,7 +155,32 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
       openLoginModal();
       return;
     }
-    if (onCommunityClick) onCommunityClick(item.communityName || 'Green Valley Residents');
+    if (onCommunityClick) onCommunityClick(item.communityName || '');
+  };
+
+  const handleReportReaction = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isAuthenticated) return openLoginModal();
+    if (!item.id || !user?.id) return;
+
+    // Optimistic UI
+    const originalIsLiked = isLiked;
+    const originalCount = reportReactionsCount;
+    
+    setIsLiked(!originalIsLiked);
+    setReportReactionsCount(prev => originalIsLiked ? prev - 1 : prev + 1);
+
+    try {
+      if (originalIsLiked) {
+        await ReactionsService.removeReportReaction(Number(item.id), String(user.id));
+      } else {
+        await ReactionsService.addReportReaction(Number(item.id), String(user.id), 'heart');
+      }
+    } catch (error) {
+      setIsLiked(originalIsLiked);
+      setReportReactionsCount(originalCount);
+      console.error('Failed to react to report:', error);
+    }
   };
 
   return (
@@ -246,9 +267,19 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
                 </span>
               </div>
             </div>
-            <button className="p-2 hover:bg-gray-50 rounded-xl transition-colors text-slate-400">
-              <MoreHorizontal size={20} />
-            </button>
+            
+            <div className="relative">
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  menuRef.current?.toggle(e);
+                }}
+                className="p-2 hover:bg-gray-50 rounded-xl transition-colors text-slate-400"
+              >
+                <MoreHorizontal size={20} />
+              </button>
+              <Menu ref={menuRef} model={menuModel} popup className="w-48" />
+            </div>
           </div>
 
           <p className="text-slate-600 line-clamp-2 text-base mt-2 leading-relaxed mb-8">
@@ -278,7 +309,7 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
                      onClick={handleCommunityClick}
                      className="text-[11px] font-black text-teal-600 hover:text-teal-700 underline decoration-teal-200 underline-offset-2"
                    >
-                     {item.communityName || 'Green Valley'}
+                     {item.communityName || ''}
                    </button>
                 </div>
               </div>
@@ -286,14 +317,14 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
 
             <div className="flex items-center gap-1 md:gap-2">
                <button 
-                onClick={(e) => handleAction(e, () => setIsLiked(!isLiked))}
+                onClick={handleReportReaction}
                 className={cn(
                     "flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-xs transition-all",
-                    isLiked ? "bg-orange-50 text-orange-600" : "text-slate-400 hover:bg-gray-50 hover:text-orange-500"
+                    isLiked ? "bg-rose-50 text-rose-600" : "text-slate-400 hover:bg-gray-50 hover:text-rose-500"
                 )}
                >
-                 <ThumbsUp className={cn("w-4 h-4", isLiked && "fill-current")} />
-                 <span>{(item.reactionsCount || 0) + (isLiked ? 1 : 0)}</span>
+                 <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
+                 <span>{reportReactionsCount}</span>
                </button>
                <button 
                 onClick={(e) => handleAction(e, () => setIsCommentsOpen(!isCommentsOpen))}
@@ -303,7 +334,7 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
                 )}
                >
                  <MessageSquare className="w-4 h-4" />
-                 <span>{comments.length || item.commentsCount || 0}</span>
+                 <span>{totalCommentsCount}</span>
                </button>
                <button 
                 onClick={handleShare}
@@ -319,98 +350,32 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
       {/* Collapsible Comments Section */}
       {isCommentsOpen && (
         <div className="border-t border-gray-50 bg-gray-50/30 p-8 animate-in slide-in-from-top-2 duration-300">
-          <div className="max-w-3xl mx-auto space-y-6">
-            <div className="flex gap-4">
-              <Avatar src={user?.profilePicture} className="w-10 h-10 border-2 border-white shadow-sm flex-shrink-0" />
-              <div className="flex-1 relative">
-                <Input 
-                   placeholder="Add a helpful comment..." 
-                   value={commentText}
-                   onChange={(e) => setCommentText(e.target.value)}
-                   onKeyPress={(e) => e.key === 'Enter' && handleAddComment()}
-                   className="pr-12 py-6 rounded-2xl border-gray-200 bg-white shadow-sm font-medium"
-                />
-                <Button 
-                   size="icon" 
-                   className="absolute right-2 top-1/2 -translate-y-1/2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl h-10 w-10 transition-transform active:scale-90"
-                   disabled={!commentText.trim() || isSubmittingComment}
-                   onClick={handleAddComment}
-                >
-                  {isSubmittingComment ? <Spinner size="sm" /> : <Send className="w-4 h-4" />}
-                </Button>
-              </div>
-            </div>
-
-            {/* Comments List */}
-            <div className="space-y-6 pt-2">
-               {loadingComments ? (
-                 <div className="flex justify-center py-4">
-                   <Spinner size="md" className="text-teal-600" />
-                 </div>
-               ) : comments.length > 0 ? (
-                 comments.map((comment) => (
-                   <div key={comment.id} className="space-y-4">
-                     <div className="flex gap-4 group">
-                       <Avatar src={comment.user?.profilePicture} className="w-8 h-8 flex-shrink-0" />
-                       <div className="flex-1 space-y-2">
-                         <div className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100">
-                           <div className="flex justify-between items-center mb-1">
-                              <span className="text-xs font-black text-slate-900 tracking-tight">
-                                {comment.user?.fullName || comment.userId || t('common.anonymous')}
-                              </span>
-                              <span className="text-[10px] text-slate-400 font-bold uppercase">
-                                {new Date(comment.dateCreated).toLocaleDateString()}
-                              </span>
-                           </div>
-                           <p className="text-sm text-slate-600 leading-relaxed">
-                             {comment.comment}
-                           </p>
-                         </div>
-                         <div className="flex items-center gap-4 px-2">
-                           <button className="text-[10px] font-black text-slate-400 hover:text-teal-600 uppercase tracking-widest">Reply</button>
-                           <button className="text-[10px] font-black text-slate-400 hover:text-orange-600 uppercase tracking-widest">
-                             Helpful ({comment.likesCount || 0})
-                           </button>
-                         </div>
-                       </div>
-                     </div>
-
-                     {/* Replies */}
-                     {comment.replies && comment.replies.length > 0 && (
-                       <div className="ml-12 space-y-4 border-l-2 border-slate-50 pl-6">
-                         {comment.replies.map((reply) => (
-                           <div key={reply.id} className="flex gap-3 group">
-                             <Avatar src={reply.user?.profilePicture} className="w-6 h-6 flex-shrink-0" />
-                             <div className="flex-1 space-y-1">
-                               <div className="bg-white/80 p-3 rounded-2xl shadow-sm border border-gray-50">
-                                 <div className="flex justify-between items-center mb-1">
-                                    <span className="text-[10px] font-black text-slate-800 tracking-tight">
-                                      {reply.user?.fullName || reply.userId || t('common.anonymous')}
-                                    </span>
-                                    <span className="text-[8px] text-slate-400 font-bold uppercase">
-                                      {new Date(reply.dateCreated).toLocaleDateString()}
-                                    </span>
-                                 </div>
-                                 <p className="text-xs text-slate-600 leading-relaxed">
-                                   {reply.comment}
-                                 </p>
-                               </div>
-                             </div>
-                           </div>
-                         ))}
-                       </div>
-                     )}
-                   </div>
-                 ))
-               ) : (
-                 <div className="text-center py-4 text-slate-400 text-sm italic">
-                   No comments yet. Be the first to help!
-                 </div>
-               )}
-            </div>
+          <div className="max-w-3xl mx-auto">
+            <CommentSection 
+              itemId={Number(item.id)} 
+              itemType={item.status === 'found' ? 'found' : 'lost'} 
+              itemOwnerId={Number(item.user?.id) || 0} 
+            />
           </div>
         </div>
       )}
+
+      <ReportAbuseModal 
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        targetId={item.id}
+        targetType="report"
+      />
+
+      <EditReportModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        report={item as any}
+        onSuccess={() => {
+          // Ideally we'd refresh the feed or update the item state
+          window.location.reload();
+        }}
+      />
     </Card>
   );
 };

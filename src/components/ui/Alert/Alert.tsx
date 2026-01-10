@@ -6,7 +6,9 @@ import { AlertCircle, CheckCircle2, Info, AlertTriangle, X } from "lucide-react"
 export interface AlertProps {
   type?: "success" | "error" | "warning" | "info";
   title?: string;
-  message: string;
+  message?: string;
+  children?: React.ReactNode;
+  variant?: "success" | "error" | "warning" | "info" | "destructive" | "danger";
   onClose?: () => void;
   className?: string;
   showIcon?: boolean;
@@ -21,19 +23,22 @@ const icons = {
 };
 
 export const Alert: React.FC<AlertProps> = ({
-  type = "info",
+  type,
+  variant,
   title,
   message,
+  children,
   onClose,
   className = "",
   showIcon = true,
   size = "md",
 }) => {
-  const Icon = icons[type];
+  const alertType = type || (variant === "error" || variant === "destructive" || variant === "danger" ? "error" : variant) || "info";
+  const Icon = icons[alertType as keyof typeof icons] || icons.info;
 
   return (
     <ShadcnAlert
-      variant={type === "error" ? "destructive" : type}
+      variant={alertType === "error" ? "destructive" : alertType as any}
       className={cn(
         "rounded-xl border animate-in fade-in slide-in-from-top-2 duration-300",
         size === "sm" && "py-2 px-3",
@@ -44,15 +49,16 @@ export const Alert: React.FC<AlertProps> = ({
       <div className="flex items-start gap-3">
         {showIcon && Icon && (
           <Icon className={cn("h-5 w-5 shrink-0 transition-colors", 
-            type === "success" && "text-emerald-600",
-            type === "error" && "text-red-600",
-            type === "warning" && "text-orange-600",
-            type === "info" && "text-teal-600"
+            alertType === "success" && "text-emerald-600",
+            alertType === "error" && "text-red-600",
+            alertType === "warning" && "text-orange-600",
+            alertType === "info" && "text-teal-600"
           )} />
         )}
         <div className="flex-1">
           {title && <AlertTitle className="font-bold text-slate-800">{title}</AlertTitle>}
-          <AlertDescription className="text-slate-600">{message}</AlertDescription>
+          {message && <AlertDescription className="text-slate-600">{message}</AlertDescription>}
+          {children}
         </div>
         {onClose && (
           <button

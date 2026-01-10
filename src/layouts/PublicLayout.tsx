@@ -67,7 +67,7 @@ const PublicLayout = () => {
       icon: <Users className="w-4 h-4 mr-2" />,
       items: [
         {
-          label: 'About SHERRA',
+          label: 'Community About',
           icon: <Info className="w-4 h-4 mr-2" />,
           command: () => navigate('/about')
         },

@@ -26,6 +26,7 @@ import {
   Grid,
 } from '../../../ui';
 import CommentSection from '../../../features/comments/CommentSection';
+import ReportAbuseModal from '../../../modals/ReportAbuseModal';
 import { useAuth } from '../../../../context/AuthContext';
 import { ReportsService, type LostFoundItem } from '../../../../services/reportsService';
 import { useTranslation } from 'react-i18next';
@@ -40,6 +41,7 @@ const ItemDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [showContactInfo, setShowContactInfo] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -84,12 +86,12 @@ const ItemDetailPage: React.FC = () => {
   }
 
   const nextImage = () => {
-    if (item.image) { // Handling single image for now or array if supported
-      // logic for multiple images
+    if (item.images && item.images.length > 0) {
+      setActiveImageIndex((prev) => (prev + 1) % item.images.length);
     }
   };
 
-  const images = item.image ? [item.image] : [];
+  const images = item.images?.length > 0 ? item.images.map(img => img.imageUrl) : [];
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-20">
@@ -150,16 +152,16 @@ const ItemDetailPage: React.FC = () => {
                     </>
                   )}
                   
-                  <div className="absolute top-6 left-6">
-                    <StatusBadge status={item.status === 'matched' ? 'reunited' : (item.status || 'lost')} />
-                  </div>
+                    <div className="absolute top-6 left-6">
+                      <StatusBadge status={item.status === 2 ? 'reunited' : (item.reportType.toLowerCase() === 'lost' ? 'lost' : 'found')} />
+                    </div>
                 </div>
 
                 {/* Info Content Section */}
                 <div className="lg:w-1/2 p-8 lg:p-12 flex flex-col">
                   <div className="flex items-center gap-2 text-teal-600 font-bold text-xs uppercase tracking-[0.2em] mb-4">
                     <Badge variant="outline" className="text-[10px] py-1 border-teal-100 bg-teal-50 text-teal-600 font-black">
-                      {item.category}
+                      {item.categoryName || 'General'}
                     </Badge>
                   </div>
 
@@ -187,18 +189,18 @@ const ItemDetailPage: React.FC = () => {
                       </div>
                       <div>
                         <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Date Reported</p>
-                        <p className="text-slate-800 font-bold">{item.date}</p>
+                        <p className="text-slate-800 font-bold">{new Date(item.dateCreated).toLocaleDateString()}</p>
                       </div>
                     </div>
 
-                    {item.reward && (
+                    {item.rewardDetails && (
                       <div className="p-4 rounded-3xl bg-emerald-50 border border-emerald-100 flex items-center gap-4">
                          <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-emerald-200">
                            <Award size={24} />
                          </div>
                          <div>
                             <p className="text-xs font-black text-emerald-600 uppercase tracking-widest mb-0.5">Reward Offered</p>
-                            <p className="text-emerald-700 font-black text-lg">{item.reward}</p>
+                            <p className="text-emerald-700 font-black text-lg">{item.rewardDetails}</p>
                          </div>
                       </div>
                     )}
@@ -231,9 +233,9 @@ const ItemDetailPage: React.FC = () => {
               </div>
               
               <CommentSection 
-                itemId={Number(id)} 
-                itemType={item.status === 'lost' ? 'lost' : 'found'} 
-                itemOwnerId={item.reportedBy ? 0 : 0} // In real app, we need the owner ID
+                itemId={item.id} 
+                itemType={item.reportType.toLowerCase() === 'lost' ? 'lost' : 'found'} 
+                itemOwnerId={item.user?.id}
               />
             </Card>
           </div>
@@ -244,10 +246,13 @@ const ItemDetailPage: React.FC = () => {
             <Card className="p-8 border-none shadow-2xl shadow-slate-200/50 rounded-[2.5rem] bg-white">
               <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">Reported By</h3>
               <div className="flex items-center gap-4 mb-8">
-                <Avatar className="w-16 h-16 border-4 border-slate-50 shadow-sm" />
+                <Avatar 
+                  src={item.user?.profilePictureUrl} 
+                  className="w-16 h-16 border-4 border-slate-50 shadow-sm" 
+                />
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <h4 className="font-black text-slate-900 text-lg">{item.reportedBy}</h4>
+                    <h4 className="font-black text-slate-900 text-lg">{item.user?.fullName || item.user?.username}</h4>
                     <ShieldCheck size={16} className="text-blue-500 fill-blue-50" />
                   </div>
                   <p className="text-teal-600 font-bold text-sm">Verified Community Member</p>
@@ -309,7 +314,14 @@ const ItemDetailPage: React.FC = () => {
                 <Share2 size={18} className="mr-2" />
                 Share
               </Button>
-              <Button variant="outline" className="flex-1 h-14 rounded-2xl border-slate-200 text-slate-600 font-bold hover:bg-rose-50 hover:border-rose-200 hover:text-rose-600 transition-all">
+              <Button 
+                variant="outline" 
+                className="flex-1 h-14 rounded-2xl border-slate-200 text-slate-600 font-bold hover:bg-rose-50 hover:border-rose-200 hover:text-rose-600 transition-all"
+                onClick={() => {
+                  if (!isAuthenticated) return openLoginModal();
+                  setIsReportModalOpen(true);
+                }}
+              >
                 <Flag size={18} className="mr-2" />
                 Report
               </Button>
@@ -318,6 +330,13 @@ const ItemDetailPage: React.FC = () => {
         </div>
       </div>
     </Container>
+
+    <ReportAbuseModal
+      isOpen={isReportModalOpen}
+      onClose={() => setIsReportModalOpen(false)}
+      targetId={item.id}
+      targetType="report"
+    />
   </div>
 );
 };

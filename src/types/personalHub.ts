@@ -23,6 +23,9 @@ export interface UserReport {
   status: string;
   views: number;
   type: 'lost' | 'found';
+  isReacted?: boolean;
+  reactionsCount: number;
+  commentsCount: number;
   description: string;
   circumstances?: string;
   identifyingFeatures?: string;

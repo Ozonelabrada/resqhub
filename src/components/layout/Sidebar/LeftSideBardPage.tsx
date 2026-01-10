@@ -150,7 +150,7 @@ const LeftSideBarPage: React.FC = () => {
         </div>
         <div>
           <h4 className="text-xl font-black tracking-tighter text-slate-800">SHERRA</h4>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Community Hub</p>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Community About</p>
         </div>
       </div>
 

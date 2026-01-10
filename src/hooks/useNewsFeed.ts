@@ -60,7 +60,7 @@ export const useNewsFeed = (options?: {
         return {
           id: String(report.id),
           title: report.title || `${report.reportType} Item`,
-          category: report.categoryName || 'General',
+          category: report.categoryName || 'Discussion',
           location: report.location || 'Location not specified',
           currentLocation: '',
           date: report.dateCreated || new Date().toISOString(),
@@ -98,8 +98,10 @@ export const useNewsFeed = (options?: {
             profilePicture: report.user?.profilePictureUrl || '',
             isVerified: false
           },
-          reactionCount: report.reactionCount || 0,
+          reactionsCount: report.reactionsCount || 0,
+          isReacted: report.isReacted || false,
           commentsCount: report.commentsCount || 0,
+          communityName: report.communityName || '',
           timeAgo: getTimeAgo(report.dateCreated || new Date().toISOString())
         };
       });

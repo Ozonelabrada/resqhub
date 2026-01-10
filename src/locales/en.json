@@ -201,5 +201,13 @@
     "tip4_title": "Share Location",
     "tip4_desc": "Use real-time location sharing with a trusted contact.",
     "full_guide": "Read Full Safety Guide"
+  },
+  "newsfeed": {
+    "lost": "Lost",
+    "found": "Found",
+    "reunited": "Reunited",
+    "loading_rescues": "Loading Rescues...",
+    "end_of_feed": "You've reached the end of the feed",
+    "clear_filters": "Clear Filters"
   }
 }

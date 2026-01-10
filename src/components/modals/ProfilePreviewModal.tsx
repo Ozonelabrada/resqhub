@@ -44,7 +44,7 @@ export const ProfilePreviewModal: React.FC<ProfilePreviewModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[450px] bg-white border-none shadow-2xl rounded-[2.5rem] p-0 overflow-hidden">
+      <DialogContent className="sm:max-w-[450px] bg-white border-none shadow-2xl rounded-[2.5rem] p-0 overflow-y-auto max-h-[90vh] outline-none">
         {/* Decorative Header Background */}
         <div className="h-32 bg-gradient-to-br from-teal-500 to-emerald-600 w-full" />
         

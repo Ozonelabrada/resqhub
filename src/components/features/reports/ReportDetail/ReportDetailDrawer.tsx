@@ -32,6 +32,7 @@ import ImageCarousel from './ImageCarousel';
 import ActionsToolbar from './ActionsToolbar';
 import CommentSection from '@/components/features/comments/CommentSection';
 import { useAuth } from '@/context/AuthContext';
+import { formatDate } from '@/utils';
 import { cn } from '@/lib/utils';
 
 interface ReportDetailDrawerProps {
@@ -165,7 +166,7 @@ const ReportDetailDrawer: React.FC<ReportDetailDrawerProps> = ({
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-1.5">
                       <Calendar className="h-4 w-4" />
-                      {new Date(report.dateCreated).toLocaleDateString()}
+                      {formatDate(report.dateCreated)}
                     </div>
                     <div className="flex items-center gap-1.5">
                       <MapPin className="h-4 w-4" />

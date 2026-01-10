@@ -103,12 +103,11 @@ export const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSuc
           ) : (
             <>
               {error && (
-                <Alert variant="error" className="mb-6 rounded-2xl border-orange-100 bg-orange-50 text-orange-800 animate-in fade-in slide-in-from-top-1">
-                  <div className="flex items-center gap-2">
-                    <Info className="w-4 h-4 text-orange-600" />
-                    {error}
-                  </div>
-                </Alert>
+                <Alert 
+                  type="error" 
+                  message={error}
+                  className="mb-6 rounded-2xl border-orange-100 bg-orange-50 text-orange-800 animate-in fade-in slide-in-from-top-1" 
+                />
               )}
 
               <form onSubmit={handleSubmit} className="space-y-5 relative z-10">

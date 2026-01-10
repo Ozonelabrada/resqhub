@@ -89,7 +89,7 @@ export const Modal: React.FC<ModalProps> = ({
     <Dialog open={open} onOpenChange={(val) => !val && handleClose?.()}>
       <DialogContent 
         className={cn(
-          "bg-white rounded-xl shadow-xl p-0 overflow-hidden outline-none",
+          "bg-white rounded-xl shadow-xl p-0 overflow-y-auto max-h-[90vh] outline-none",
           sizeClasses[size],
           className
         )}

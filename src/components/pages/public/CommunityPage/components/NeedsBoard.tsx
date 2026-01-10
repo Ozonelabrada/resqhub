@@ -8,7 +8,8 @@ import {
   MessageSquare,
   ShieldCheck,
   Search,
-  Users
+  Users,
+  Plus
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -93,18 +94,24 @@ export const NeedsBoard: React.FC = () => {
             <HeartHandshake className="text-rose-500" size={32} />
             Community Needs
           </h2>
-          <p className="text-slate-500 font-medium">Help your neighbors by fulfilling requests or providing resources.</p>
+          <p className="text-slate-500 font-medium italic">Mutual aid and resource sharing for the neighborhood.</p>
         </div>
         
-        <div className="relative w-full md:w-80 group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors" size={18} />
-          <input 
-            type="text" 
-            placeholder="Search needs..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-6 py-4 rounded-3xl bg-white border border-slate-100 shadow-sm focus:ring-4 focus:ring-teal-500/5 focus:border-teal-500 outline-none transition-all font-bold text-slate-700"
-          />
+        <div className="flex items-center gap-4 w-full md:w-auto">
+          <div className="relative flex-1 md:w-80 group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors" size={18} />
+            <input 
+              type="text" 
+              placeholder="Search resource or help..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-6 py-4 rounded-3xl bg-white border border-slate-100 shadow-sm focus:ring-4 focus:ring-teal-500/5 focus:border-teal-500 outline-none transition-all font-bold text-slate-700"
+            />
+          </div>
+          <Button className="bg-rose-500 hover:bg-rose-600 text-white rounded-[1.5rem] px-8 py-7 font-black shadow-lg shadow-rose-100 hidden md:flex items-center gap-2">
+            <Plus size={18} />
+            Post a Need
+          </Button>
         </div>
       </div>
 

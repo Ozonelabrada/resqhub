@@ -10,21 +10,16 @@ import {
   TrendingUp,
   AlertCircle
 } from 'lucide-react';
-import { 
-  Button, 
-  Card, 
-  Avatar, 
-  Spinner 
-} from '@/components/ui';
+import { Button, Card, Avatar, Spinner } from '@/components/ui';
 import { useAuth } from '@/context/AuthContext';
-import { CommunitySettingsModal, CreateReportModal } from '../../../modals';
+import { CommunitySettingsModal, CreateReportModal } from '@/components/modals';
 import { cn } from '@/lib/utils';
-import { useCommunityDetail } from '../../../../hooks/useCommunities';
-import { CommunityChat } from '../../../features/messages/CommunityChat';
+import { useCommunityDetail } from '@/hooks/useCommunities';
+import { CommunityChat } from '@/components/features/messages/CommunityChat';
 
 // Global Sidebar Component
-import NewsFeedSidebar from '../NewsFeedPage/components/NewsFeedSidebar';
-import type { CommunityTabType } from '../NewsFeedPage/components/NewsFeedSidebar';
+import NewsFeedSidebar from '@/components/pages/public/NewsFeedPage/components/NewsFeedSidebar';
+import type { CommunityTabType } from '@/components/pages/public/NewsFeedPage/components/NewsFeedSidebar';
 
 import { CommunityFeed } from './components/CommunityFeed';
 import { NeedsBoard } from './components/NeedsBoard';
@@ -37,7 +32,6 @@ const CommunityPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { isAuthenticated, user, openLoginModal } = useAuth();
   
-  // Get active tab from URL or default to 'feed'
   const activeTab = (searchParams.get('tab') as CommunityTabType) || 'feed';
 
   const { 
@@ -54,32 +48,27 @@ const CommunityPage: React.FC = () => {
 
   const safeMembers = Array.isArray(members) ? members : [];
   const isMember = community?.isMember || false;
+  const isAdmin = community?.isAdmin || false;
 
-  const handleJoin = async () => {
+  const handleOpenReportModal = () => {
     if (!isAuthenticated) {
       openLoginModal();
       return;
     }
+    setIsReportModalOpen(true);
+  };
+
+  const handleJoin = async () => {
+    if (!isAuthenticated) return openLoginModal();
     await join();
   };
 
-  const handleTabChange = (tab: CommunityTabType) => {
-    setSearchParams({ tab });
-  };
+  const handleTabChange = (tab: CommunityTabType) => setSearchParams({ tab });
 
   if (loading || !community) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="text-center">
-          {loading ? (
-            <>
-              <Spinner size="lg" className="mx-auto text-teal-600" />
-              <p className="mt-4 text-slate-500 font-bold tracking-widest uppercase text-xs">Loading Community</p>
-            </>
-          ) : (
-            <p className="mt-4 text-slate-500 font-bold tracking-widest uppercase text-xs">Community not found</p>
-          )}
-        </div>
+        <Spinner size="lg" className="text-teal-600" />
       </div>
     );
   }
@@ -96,79 +85,14 @@ const CommunityPage: React.FC = () => {
             onRefresh={refresh}
           />
         );
-      case 'needs':
-        return <NeedsBoard />;
-      case 'chat':
-        return (
-          <div className="bg-white rounded-[2.5rem] shadow-sm overflow-hidden border border-slate-100 h-[700px] animate-in fade-in duration-500">
-            {isMember ? (
-              <CommunityChat communityId={id!} communityName={community.name} />
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full p-12 text-center">
-                <div className="w-20 h-20 bg-teal-50 rounded-full flex items-center justify-center mb-6 text-teal-600">
-                  <ShieldCheck size={40} />
-                </div>
-                <h3 className="text-2xl font-black text-slate-900 mb-4">Members Only Chat</h3>
-                <p className="text-slate-500 font-medium max-w-md mb-8">
-                  Join {community.name} to participate in the live community discussion and connect with other members.
-                </p>
-                <Button onClick={handleJoin} className="bg-teal-600 hover:bg-teal-700 text-white rounded-2xl px-10 h-14 font-black">
-                  Join Now to Chat
-                </Button>
-              </div>
-            )}
-          </div>
-        );
-      case 'members':
-        return (
-          <CommunityMembers 
-            members={safeMembers} 
-            isAdmin={community.isAdmin} 
-          />
-        );
-      case 'about':
-        return (
-          <div className="space-y-8 animate-in fade-in duration-500">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-               <Card className="p-8 rounded-[2.5rem] bg-white border-none shadow-sm">
-                  <h4 className="font-black text-slate-900 mb-6 flex items-center gap-2">
-                    <ShieldCheck size={20} className="text-teal-600" />
-                    Community Rules
-                  </h4>
-                  <ul className="space-y-4">
-                    {Array.isArray(community.rules) && community.rules.length > 0 ? community.rules.map((rule, i) => (
-                      <li key={i} className="flex gap-4">
-                        <span className="w-6 h-6 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center text-[10px] font-black shrink-0">{i + 1}</span>
-                        <p className="text-sm text-slate-500 font-medium">{rule}</p>
-                      </li>
-                    )) : (
-                      <li className="text-slate-400 italic text-sm">No rules specified.</li>
-                    )}
-                  </ul>
-               </Card>
-
-               <Card className="p-8 rounded-[2.5rem] bg-slate-900 text-white border-none shadow-sm relative overflow-hidden">
-                  <div className="relative z-10">
-                    <h4 className="text-xl font-black mb-2">Success Metrics</h4>
-                    <p className="text-slate-400 text-xs mb-6 font-medium">Tracking our impact in the neighborhood</p>
-                    
-                    <div className="space-y-4">
-                       <div className="flex justify-between items-end">
-                          <span className="text-xs font-black uppercase tracking-widest text-slate-500">Items Reunited</span>
-                          <span className="text-xl font-black">128</span>
-                       </div>
-                       <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                          <div className="h-full bg-teal-500 w-[75%] rounded-full" />
-                       </div>
-                    </div>
-                  </div>
-                  <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-teal-500/10 rounded-full blur-3xl"></div>
-               </Card>
-            </div>
-          </div>
-        );
-      default:
-        return null;
+      case 'needs': return <NeedsBoard />;
+      case 'chat': return isMember ? (
+        <CommunityChat communityId={id!} communityName={community.name} />
+      ) : (
+        <div className="p-10 text-center">Join to chat</div>
+      );
+      case 'members': return <CommunityMembers members={safeMembers} isAdmin={community.isAdmin} />;
+      default: return null;
     }
   };
 
@@ -203,32 +127,50 @@ const CommunityPage: React.FC = () => {
               </div>
 
               <div className="mb-4 md:mb-6 flex gap-3">
-                {isMember ? (
-                  <div className="flex gap-2">
-                    {user?.role === 'admin' && (
-                      <Button 
-                        onClick={() => setIsSettingsOpen(true)}
-                        className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 h-14 w-14 rounded-2xl flex items-center justify-center transition-all"
-                      >
-                        <Settings size={24} />
-                      </Button>
-                    )}
+                <div className="flex gap-2">
+                  {isAdmin && (
                     <Button 
-                      onClick={() => setIsReportModalOpen(true)}
-                      className="bg-emerald-500 hover:bg-emerald-600 text-white h-14 rounded-2xl px-8 font-black transition-all shadow-xl shadow-emerald-500/20"
+                      onClick={() => setIsSettingsOpen(true)}
+                      className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 h-14 w-14 rounded-2xl flex items-center justify-center transition-all"
                     >
-                      <Plus className="mr-2 w-5 h-5" />
-                      Create Post
+                      <Settings size={24} />
                     </Button>
-                  </div>
-                ) : (
-                  <Button 
-                    onClick={handleJoin}
-                    className="bg-emerald-500 hover:bg-emerald-600 text-white h-14 rounded-2xl px-10 font-black shadow-xl shadow-emerald-500/30 transition-all active:scale-95"
-                  >
-                    Join Community
-                  </Button>
-                )}
+                  )}
+                  {isMember ? (
+                    <div className="flex gap-3">
+                      <Button 
+                        disabled
+                        className="bg-emerald-50 text-emerald-600 border border-emerald-100 h-14 rounded-2xl px-10 font-black cursor-default opacity-100"
+                      >
+                         Joined
+                      </Button>
+                      <Button 
+                        onClick={handleOpenReportModal}
+                        className="bg-emerald-500 hover:bg-emerald-600 text-white h-14 rounded-2xl px-8 font-black transition-all shadow-xl shadow-emerald-500/20"
+                      >
+                        <Plus className="mr-2 w-5 h-5" />
+                        {activeTab === 'needs' ? 'Post a Need' : 'Create Post'}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-3">
+                      <Button 
+                        onClick={handleJoin}
+                        className="bg-emerald-500 hover:bg-emerald-600 text-white h-14 rounded-2xl px-10 font-black shadow-xl shadow-emerald-500/30 transition-all active:scale-95"
+                      >
+                        Join Community
+                      </Button>
+                      <Button 
+                        onClick={handleOpenReportModal}
+                        variant="ghost"
+                        className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 h-14 rounded-2xl px-8 font-black transition-all"
+                      >
+                        <Plus className="mr-2 w-5 h-5" />
+                        Create Post
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -239,18 +181,17 @@ const CommunityPage: React.FC = () => {
         <main className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-10 gap-8">
         {/* --- LEFT SIDEBAR: SHARED NAVIGATION --- */}
         <NewsFeedSidebar 
-          className="order-2 lg:order-1 lg:col-span-2"
-          isAuthenticated={isAuthenticated}
-          openLoginModal={openLoginModal}
-          navigate={navigate}
-          currentView="communities"
-          communityNav={{
-            activeTab: activeTab,
-            onTabChange: handleTabChange,
-            communityName: community.name,
-            memberCount: community.membersCount
-          }}
-        />
+            className="order-2 lg:order-1 lg:col-span-2"
+            isAuthenticated={isAuthenticated}
+            openLoginModal={openLoginModal}
+            navigate={navigate}
+            currentView="communities"
+            communityNav={{
+              activeTab: activeTab,
+              onTabChange: handleTabChange,
+              communityName: community.name,
+              memberCount: community.membersCount
+            }} user={null}        />
 
         {/* --- CENTER: COMMUNITY CONTENT --- */}
         <div className={cn(
@@ -348,20 +289,33 @@ const CommunityPage: React.FC = () => {
       </main>
     </div>
 
-    {/* MODALS */}
-    <CommunitySettingsModal 
-      isOpen={isSettingsOpen}
-      onClose={() => setIsSettingsOpen(false)}
-      community={community as any}
-    />
+      {/* --- FOOTER CTA (Mobile) --- */}
+      <div className="md:hidden sticky bottom-4 mx-4 mb-4 z-50">
+        <Button 
+          onClick={handleOpenReportModal}
+          className="w-full h-14 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl shadow-xl flex items-center justify-center gap-2 text-lg font-bold transition-transform active:scale-95 border-none"
+        >
+          <Plus className="w-6 h-6 border-2 rounded-md" />
+          {activeTab === 'needs' ? 'Post a Need' : 'Create Post'}
+        </Button>
+      </div>
 
-    <CreateReportModal
-      isOpen={isReportModalOpen}
-      onClose={() => setIsReportModalOpen(false)}
-      communityId={id}
-    />
-  </div>
-);
+      {/* MODALS */}
+      <CommunitySettingsModal 
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        community={community as any}
+      />
+
+      <CreateReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        onSuccess={refresh}
+        communityId={id}
+        initialType={activeTab === 'needs' ? 'Resource' : 'News'}
+      />
+    </div>
+  );
 };
 
 export default CommunityPage;

@@ -8,6 +8,7 @@ import {
 import { useNewsFeed } from '@/hooks/useNewsFeed';
 import { useStatistics } from '@/hooks/useStatistics';
 import { useTrendingReports } from '@/hooks/useTrendingReports';
+import { useCommunities } from '@/hooks/useCommunities';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import {
@@ -24,6 +25,7 @@ import { ReportDetailDrawer } from '@/components/features/reports/ReportDetail';
 import { cn } from '@/lib/utils';
 import { MessagesContainer } from '../../../features/messages/MessagesContainer';
 import { CommunitiesContainer } from '../../../features/communities/CommunitiesContainer';
+import { CommunityService } from '@/services/communityService';
 import NewsFeedSidebar from './components/NewsFeedSidebar';
 import NewsFeedHeader from './components/NewsFeedHeader';
 import NewsFeedSkeleton from './components/NewsFeedSkeleton';
@@ -34,7 +36,7 @@ const NewsFeedPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
-  const { isAuthenticated, openLoginModal } = useAuth();
+  const { isAuthenticated, user, openLoginModal } = useAuth();
   
   // State
   const [currentView, setCurrentView] = useState<'feed' | 'messages' | 'communities'>('feed');
@@ -55,7 +57,8 @@ const NewsFeedPage: React.FC = () => {
     items: newsFeedItems, 
     loading: newsFeedLoading, 
     hasMore: newsFeedHasMore, 
-    loadMore: loadMoreNewsFeed
+    loadMore: loadMoreNewsFeed,
+    refetch: refetchNewsFeed
   } = useNewsFeed({
     reportType: filter === 'all' ? undefined : filter.charAt(0).toUpperCase() + filter.slice(1),
     search: debouncedSearchQuery
@@ -69,6 +72,28 @@ const NewsFeedPage: React.FC = () => {
     trendingReports, 
     loading: trendingLoading 
   } = useTrendingReports();
+
+  const {
+    communities: joinedCommunities,
+    loading: communitiesLoading,
+    refresh: refreshCommunities
+  } = useCommunities();
+
+  const handleJoinCommunity = async (id: string | number) => {
+    if (!isAuthenticated) {
+      openLoginModal();
+      return;
+    }
+    
+    try {
+      const success = await CommunityService.joinCommunity(String(id));
+      if (success) {
+        refreshCommunities();
+      }
+    } catch (error) {
+      console.error('Error joining community:', error);
+    }
+  };
   
   // New States for Profile previews
   const [selectedUserForPreview, setSelectedUserForPreview] = useState<any>(null);
@@ -92,14 +117,6 @@ const NewsFeedPage: React.FC = () => {
 
   // Refs for Infinite Scroll
   const observerTarget = useRef<HTMLDivElement>(null);
-
-  // Mock Communities
-  const joinedCommunities = [
-    { id: 1, name: 'Green Valley Residents', members: 124, lastActivity: '2h ago', icon: '🏡', description: 'A community for residents of Green Valley.' },
-    { id: 2, name: 'Tech Park Employees', members: 850, lastActivity: '5m ago', icon: '🏢', description: 'Collaborative hub for tech professionals.' },
-    { id: 3, name: 'University of SHERRA', members: 3200, lastActivity: '1d ago', icon: '🎓', description: 'Central student and faculty network.' },
-  ];
-
   const handleOpenProfile = (user: any) => {
     setSelectedUserForPreview({
       ...user,
@@ -127,14 +144,39 @@ const NewsFeedPage: React.FC = () => {
     setIsPostModalOpen(true);
   };
 
-  const handleOpenCommunity = (communityName: string) => {
-    const community = joinedCommunities.find(c => c.name === communityName);
+  const handleOpenCommunity = async (communityName: string) => {
+    if (!communityName) return;
+    
+    // 1. Try to find in our already fetched joined communities list
+    const community = joinedCommunities.find(c => 
+      c.name.toLowerCase() === communityName.toLowerCase()
+    );
+
     if (community) {
-      navigate(`/community/${community.id}`);
-    } else {
-      // fallback to searching by name
-      navigate(`/community/search?name=${encodeURIComponent(communityName)}`);
+      navigate(`/community/${community.id || (community as any)._id}`);
+      return;
     }
+
+    // 2. If not found, call request to query the community by name
+    try {
+      const results = await CommunityService.searchCommunities(communityName);
+      const matched = results.find(c => c.name.toLowerCase() === communityName.toLowerCase());
+      
+      if (matched) {
+        navigate(`/community/${matched.id || (matched as any)._id}`);
+      } else {
+        // Fallback to search page if still not found
+        navigate(`/communities/search?name=${encodeURIComponent(communityName)}`);
+      }
+    } catch (error) {
+      console.error('Error finding community by name:', error);
+      navigate(`/communities/search?name=${encodeURIComponent(communityName)}`);
+    }
+  };
+
+  const handleViewChange = (view: 'feed' | 'messages' | 'communities') => {
+    setCurrentView(view);
+    // Sync with URL if possible, though mostly internal state for now
   };
 
   // Capture search query and actions from URL
@@ -278,10 +320,11 @@ const NewsFeedPage: React.FC = () => {
         <NewsFeedSidebar 
           className="order-2 lg:order-1 lg:col-span-2"
           isAuthenticated={isAuthenticated}
+          user={user}
           openLoginModal={openLoginModal}
           navigate={navigate}
           currentView={currentView}
-          onViewChange={(view) => setCurrentView(view)}
+          onViewChange={handleViewChange}
         />
 
         {/* --- SIDEBAR: COMMUNITY STATS & TRENDING (ORDER 3 ON MOBILE) --- */}
@@ -298,6 +341,7 @@ const NewsFeedPage: React.FC = () => {
               setIsInviteModalOpen(true);
             }}
             onOpenCreateCommunity={() => setIsCommunityModalOpen(true)}
+            onJoinCommunity={handleJoinCommunity}
             isSafetyExpanded={isSafetyExpanded}
             setIsSafetyExpanded={setIsSafetyExpanded}
             searchQuery={searchQuery}
@@ -332,6 +376,7 @@ const NewsFeedPage: React.FC = () => {
       <CreateReportModal
         isOpen={isPostModalOpen}
         onClose={() => setIsPostModalOpen(false)}
+        onSuccess={refetchNewsFeed}
         initialType={
           filter === 'all' 
             ? 'Lost' 

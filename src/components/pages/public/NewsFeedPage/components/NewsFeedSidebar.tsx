@@ -15,11 +15,13 @@ import {
 import { cn } from "@/lib/utils";
 import { MessagesService } from '@/services/messagesService';
 import { useFeatureFlags } from '@/hooks';
+import type { UserData } from '@/types/auth';
 
 export type CommunityTabType = 'feed' | 'needs' | 'chat' | 'members' | 'about';
 
 interface NewsFeedSidebarProps {
   isAuthenticated: boolean;
+  user: UserData | null;
   openLoginModal: () => void;
   navigate: (path: string) => void;
   currentView?: string;
@@ -35,6 +37,7 @@ interface NewsFeedSidebarProps {
 
 const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({ 
   isAuthenticated, 
+  user,
   openLoginModal, 
   navigate,
   currentView = 'feed',
@@ -76,11 +79,20 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
               <div className="absolute top-0 left-0 w-full h-16 bg-gradient-to-r from-teal-500 to-emerald-500" />
               <div className="relative pt-4 flex flex-col items-center">
                 <div className="relative">
-                  <Avatar className="w-16 h-16 border-4 border-white shadow-lg" />
-                  <div className="absolute bottom-0.5 right-0.5 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full shadow-sm" />
+                  <Avatar 
+                    src={user?.profilePicture} 
+                    className="w-16 h-16 border-4 border-white shadow-lg" 
+                  />
+                  {user?.emailVerified && (
+                    <div className="absolute bottom-0.5 right-0.5 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full shadow-sm" />
+                  )}
                 </div>
-                <p className="text-sm font-black text-slate-800 mt-2">Community Hero</p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Scout Level 12</p>
+                <p className="text-sm font-black text-slate-800 mt-2 truncate w-full text-center px-2">
+                  {user?.name || user?.username || 'Community Hero'}
+                </p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
+                  {user?.email || 'Active Scout'}
+                </p>
               </div>
             </Card>
           ) : (
@@ -147,7 +159,7 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
                 </svg>
               </div>
-              Feed
+              Feed Updates
             </Button>
             <Button 
               variant="ghost" 
@@ -160,7 +172,7 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
               <div className={cn("w-5 h-5 mr-3 flex items-center justify-center", communityNav.activeTab === 'needs' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")}>
                 <ShieldAlert className="w-5 h-5" />
               </div>
-              Needs
+              Needs Board
             </Button>
             <Button 
               variant="ghost" 

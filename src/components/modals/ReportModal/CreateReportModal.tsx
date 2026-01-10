@@ -195,6 +195,10 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
     formDataPayload.append('RewardDetails', formData.rewardDetails || '');
     formDataPayload.append('ReportType', String(formData.reportType));
     
+    if (communityId) {
+      formDataPayload.append('CommunityId', String(communityId));
+    }
+    
     // Ensure imageFiles is a flat array and append files
     if (Array.isArray(imageFiles)) {
       imageFiles.forEach(file => {
@@ -246,7 +250,7 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
       isOpen={isOpen} 
       onClose={onClose}
       size="lg"
-      className="p-0 border-none rounded-[2.5rem] overflow-hidden"
+      className="p-0 border-none rounded-[2.5rem] overflow-y-auto max-h-[90vh]"
     >
         <div className="p-8 md:p-10 space-y-8">
           <div>
@@ -262,12 +266,11 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
           </div>
 
           {error && (
-            <Alert variant="error" className="rounded-2xl border-orange-100 bg-orange-50 text-orange-800">
-              <div className="flex items-center gap-2">
-                <Info className="w-4 h-4 text-orange-600" />
-                {error}
-              </div>
-            </Alert>
+            <Alert 
+              type="error" 
+              message={error}
+              className="rounded-2xl border-orange-100 bg-orange-50 text-orange-800" 
+            />
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">

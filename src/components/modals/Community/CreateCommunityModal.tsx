@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../ui';
-import { Users, Globe, Lock, Zap, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Users, Globe, Lock, Zap, ArrowRight, CheckCircle2, AlertCircle, ShieldAlert } from 'lucide-react';
 import { CommunityService } from '../../../services/communityService';
 import { SubscriptionService, type SubscriptionStatus } from '../../../services/subscriptionService';
 import SubscriptionModal from '../SubscriptionModal';
@@ -38,6 +38,7 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ isOpen, onC
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    location: '',
     privacy: 'public'
   });
 
@@ -48,6 +49,7 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ isOpen, onC
       setFormData({
         name: '',
         description: '',
+        location: '',
         privacy: 'public'
       });
     }
@@ -59,7 +61,7 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ isOpen, onC
   };
 
   const handleNext = () => {
-    if (!formData.name || !formData.description) return;
+    if (!formData.name || !formData.description || !formData.location) return;
     setStep('review');
   };
 
@@ -112,22 +114,39 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ isOpen, onC
         </div>
 
         <div className="space-y-2">
+          <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Location</label>
+          <Input 
+            required
+            placeholder="e.g. City, Region or 'Online'"
+            className="h-12 rounded-xl border-slate-200 focus:ring-teal-500/20 font-bold"
+            value={formData.location}
+            onChange={(e) => setFormData({...formData, location: e.target.value})}
+          />
+        </div>
+
+        <div className="space-y-2">
           <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{t('community.privacy')}</label>
           <Select value={formData.privacy} onValueChange={(v) => setFormData({...formData, privacy: v})}>
             <SelectTrigger className="h-12 rounded-xl border-slate-200 focus:ring-teal-500/20 font-bold bg-white">
               <SelectValue placeholder="Select Privacy" />
             </SelectTrigger>
-            <SelectContent className="rounded-xl border-slate-100 shadow-xl p-2 bg-white">
+            <SelectContent className="rounded-xl border-slate-100 shadow-xl p-2 bg-white sticky z-[110]">
               <SelectItem value="public" className="py-3 rounded-lg focus:bg-teal-50 focus:text-teal-700 font-bold">
                 <div className="flex items-center gap-2">
                   <Globe size={16} />
-                  <span>{t('community.privacy_public')}</span>
+                  <span>Public</span>
                 </div>
               </SelectItem>
               <SelectItem value="private" className="py-3 rounded-lg focus:bg-teal-50 focus:text-teal-700 font-bold">
                 <div className="flex items-center gap-2">
                   <Lock size={16} />
-                  <span>{t('community.privacy_private')}</span>
+                  <span>Private</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="government" className="py-3 rounded-lg focus:bg-teal-50 focus:text-teal-700 font-bold">
+                <div className="flex items-center gap-2">
+                  <ShieldAlert size={16} />
+                  <span>Government</span>
                 </div>
               </SelectItem>
             </SelectContent>

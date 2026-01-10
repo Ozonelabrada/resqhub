@@ -27,8 +27,10 @@ export interface LostFoundItem {
     username: string;
     profilePictureUrl: string;
   };
-  reactionCount?: number;
+  reactionsCount?: number;
   commentsCount?: number;
+  isReacted?: boolean;
+  communityName?: string;
   dateCreated: string;
   lastModifiedDate: string;
 }
@@ -84,6 +86,15 @@ export const ReportsService = {
     }
   },
 
+  async deleteReport(id: string | number): Promise<void> {
+    try {
+      await api.delete(`/reports/${id}`);
+    } catch (error) {
+      console.error('Error deleting report:', error);
+      throw error;
+    }
+  },
+
   /**
    * Creates a new report using multipart/form-data
    * Fields required by backend:
@@ -110,6 +121,22 @@ export const ReportsService = {
       return { 
         success: false, 
         message: error?.response?.data?.message || 'Failed to create report' 
+      };
+    }
+  },
+
+  async updateReport(id: string | number, payload: any): Promise<{ success: boolean; data?: any; message?: string }> {
+    try {
+      const response = await api.put(`/reports/${id}`, payload);
+      return { 
+        success: true, 
+        data: response.data?.data || response.data 
+      };
+    } catch (error: any) {
+      console.error('Error updating report:', error);
+      return { 
+        success: false, 
+        message: error?.response?.data?.message || 'Failed to update report' 
       };
     }
   }

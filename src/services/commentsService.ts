@@ -1,5 +1,5 @@
 import api from '../api/client';
-import type { BaseApiResponse } from '../types/api';
+import type { BaseApiResponse } from '../api/types';
 
 export interface Comment {
   id: number;
@@ -16,9 +16,8 @@ export interface Comment {
   replies: Comment[];
   dateCreated: string;
   lastModifiedDate: string;
-  // UI helper fields (keep if useful for frontend logic)
-  likesCount?: number;
-  isLikedByUser?: boolean;
+  reactionsCount?: number;
+  isReacted?: boolean;
 }
 
 export interface PaginatedCommentsData {
@@ -39,8 +38,13 @@ export interface CommentResponse extends BaseApiResponse {
   data: Comment;
 }
 
+export interface GetCommentsResult {
+  comments: Comment[];
+  totalCount: number;
+}
+
 export const CommentsService = {
-  async getComments(reportId: number, page: number = 1, pageSize: number = 20): Promise<Comment[]> {
+  async getComments(reportId: number, page: number = 1, pageSize: number = 20): Promise<GetCommentsResult> {
     try {
       // Use api client to ensure token is sent if user is logged in
       const response = await api.get<CommentsResponse>(`/report-comments/report/${reportId}`, {
@@ -49,17 +53,21 @@ export const CommentsService = {
           pageSize: pageSize
         }
       });
-      return response.data?.data?.data || [];
+      return {
+        comments: response.data?.data?.data || [],
+        totalCount: response.data?.data?.totalCount || 0
+      };
     } catch (error) {
       console.error('Error fetching comments:', error);
       throw error;
     }
   },
 
-  async addComment(reportId: number, comment: string, parentCommentId: number | null = null): Promise<Comment> {
+  async addComment(reportId: number, userId: string, comment: string, parentCommentId: number | null = null): Promise<Comment> {
     try {
       const response = await api.post<BaseApiResponse & { data: Comment }>(`/report-comments`, { 
         reportId, 
+        userId,
         comment, 
         parentCommentId 
       });
@@ -84,6 +92,25 @@ export const CommentsService = {
       await api.post(`/report-reaction/comments/${commentId}/like`);
     } catch (error) {
       console.error('Error toggling like status:', error);
+      throw error;
+    }
+  },
+
+  async updateComment(commentId: number, comment: string): Promise<Comment> {
+    try {
+      const response = await api.put<BaseApiResponse & { data: Comment }>(`/report-comments/${commentId}`, { comment });
+      return response.data?.data;
+    } catch (error) {
+      console.error('Error updating comment:', error);
+      throw error;
+    }
+  },
+
+  async deleteComment(commentId: number): Promise<void> {
+    try {
+      await api.delete(`/report-comments/${commentId}`);
+    } catch (error) {
+      console.error('Error deleting comment:', error);
       throw error;
     }
   }

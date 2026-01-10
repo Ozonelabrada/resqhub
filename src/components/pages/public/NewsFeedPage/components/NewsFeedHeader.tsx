@@ -99,6 +99,14 @@ const NewsFeedHeader: React.FC<NewsFeedHeaderProps> = ({
             <Filter className="w-4 h-4 mr-2" />
             Filters
           </Button>
+
+          <Button 
+            className="h-11 px-6 rounded-xl bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-100 font-bold text-xs shrink-0"
+            onClick={onPostClick}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            {t('newsfeed.create_report') || "Create Report"}
+          </Button>
         </div>
       </div>
 

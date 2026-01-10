@@ -52,6 +52,7 @@ export { Select } from "./Select/Select";
 export type { SelectProps, SelectOption } from "./Select/Select";
 
 export { Alert } from "./Alert/Alert";
+export { AlertTitle, AlertDescription } from "./alert";
 export type { AlertProps } from "./Alert/Alert";
 
 export { Card } from "./Card/Card";

@@ -1,5 +1,6 @@
 export { ReportModal } from './ReportModal/ReportModal';
 export { default as CreateReportModal } from './ReportModal/CreateReportModal';
+export { default as EditReportModal } from './ReportModal/EditReportModal';
 export { SettingsModal } from './SettingsModal';
 export { default as CreateCommunityModal } from './Community/CreateCommunityModal';
 export { CommunityProfileModal } from './Community/CommunityProfileModal';

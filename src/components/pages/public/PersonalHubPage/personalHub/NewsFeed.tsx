@@ -9,7 +9,8 @@ import {
   ImageGallery, 
   Textarea, 
   Modal, 
-  Toast 
+  Toast, 
+  type ToastRef
 } from '../../../../ui';
 import { 
   CheckCircle, 
@@ -38,8 +39,6 @@ export interface NewsFeedItem extends UserReport {
     profilePicture?: string;
     isVerified?: boolean;
   };
-  reactionsCount?: number;
-  commentsCount?: number;
   communityName?: string;
   timeAgo: string;
   status: 'lost' | 'found' | 'reunited';
@@ -61,15 +60,7 @@ interface NewsFeedProps {
 
 export const NewsFeed: React.FC<NewsFeedProps> = ({
   items,
-  loading,
-  hasMore,
-  onLoadMore,
   onItemClick,
-  onContactClick,
-  onWatchClick,
-  onProfileClick,
-  onCommentClick,
-  onShareClick,
   className = ""
 }) => {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
@@ -271,14 +262,17 @@ export const NewsFeed: React.FC<NewsFeedProps> = ({
               </div>
               
               <div className="flex flex-wrap gap-2 mt-4">
-                <Badge label={item.category} variant="secondary" className="text-[10px] uppercase tracking-wider" />
+                <Badge variant="secondary" className="text-[10px] uppercase tracking-wider">
+                  {item.category}
+                </Badge>
                 {item.reward.amount > 0 && (
                   <Badge 
-                    label={`Reward: $${item.reward.amount}`} 
                     variant="success" 
-                    icon={<Gift size={10} />}
-                    className="text-[10px] uppercase tracking-wider" 
-                  />
+                    className="text-[10px] uppercase tracking-wider flex items-center gap-1"
+                  >
+                    <Gift size={10} />
+                    Reward: ${item.reward.amount}
+                  </Badge>
                 )}
               </div>
 

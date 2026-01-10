@@ -9,7 +9,7 @@ import type { ToastRef } from './components/ui/Toast/Toast';
 const PersonalHubPage = lazy(() => import('./components/pages/public/PersonalHubPage/PersonalHubPage'));
 const HubHomePage = lazy(() => import('./components/pages/public/HubHomePage/HubHomePage'));
 const NewsFeedPage = lazy(() => import('./components/pages/public/NewsFeedPage/NewsFeedPage'));
-const AboutPage = lazy(() => import('./components/pages/public/CommunityHubPage/CommunityHubPage'));
+const CommunityAboutPage = lazy(() => import('./components/pages/public/CommunityAboutPage/CommunityAboutPage'));
 const CommunitiesPage = lazy(() => import('./components/pages/public/CommunitiesPage/CommunitiesPage'));
 const CommunityPage = lazy(() => import('./components/pages/public/CommunityPage/CommunityPage'));
 const MessagesPage = lazy(() => import('./components/pages/public/MessagesPage/MessagesPage'));
@@ -49,7 +49,7 @@ const AppRouter = () => {
           {/* News Feed / Hub */}
           <Route path="hub" element={<NewsFeedPage />} />
           <Route path="reports/:id" element={<NewsFeedPage />} />
-          <Route path="about" element={<AboutPage />} />
+          <Route path="about" element={<CommunityAboutPage />} />
           <Route path="newsfeed" element={<Navigate to="/hub" replace />} />
           <Route path="newsfeed/create" element={isFeatureEnabled('reports') ? <Navigate to="/hub?action=create" replace /> : <Navigate to="/hub" replace />} />
           <Route path="feed" element={<Navigate to="/hub" replace />} />
@@ -98,6 +98,7 @@ const AppRouter = () => {
 
 const App = () => {
   const [isOnline, setIsOnline] = useState(window.navigator.onLine);
+  const [isServerDown, setIsServerDown] = useState(false);
   const [showOnlineBanner, setShowOnlineBanner] = useState(false);
   const toast = useRef<ToastRef>(null);
 
@@ -109,6 +110,12 @@ const App = () => {
   }, []);
 
   useEffect(() => {
+    const handleServerStatus = (e: any) => {
+      setIsServerDown(e.detail.isDown);
+    };
+
+    window.addEventListener('server-status-change', handleServerStatus);
+    
     const handleOnline = () => {
       setIsOnline(true);
       setShowOnlineBanner(true);
@@ -124,57 +131,49 @@ const App = () => {
     window.addEventListener('offline', handleOffline);
 
     return () => {
+      window.removeEventListener('server-status-change', handleServerStatus);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
 
+  const bannerStyle: React.CSSProperties = {
+    textAlign: 'center',
+    padding: '8px 16px',
+    fontWeight: 600,
+    fontSize: '14px',
+    position: 'fixed' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 9999
+  };
+
   return (
     <div className="App">
       <Toast ref={toast} />
       
+      {/* Server Status Banner */}
+      {isServerDown && isOnline && (
+        <div style={{ ...bannerStyle, background: '#ef4444', color: 'white' }}>
+          ⚠️ The server is currently unreachable. Some actions may be disabled.
+        </div>
+      )}
+
       {/* Online/Offline Banner */}
       {!isOnline && (
-        <div 
-          style={{
-            background: '#fbbf24',
-            color: '#92400e',
-            textAlign: 'center',
-            padding: '8px 16px',
-            fontWeight: 600,
-            fontSize: '14px',
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            zIndex: 9999
-          }}
-        >
+        <div style={{ ...bannerStyle, background: '#fbbf24', color: '#92400e' }}>
           📡 You're currently offline. Some features may not work properly.
         </div>
       )}
       
-      {showOnlineBanner && (
-        <div 
-          style={{
-            backgroundColor: '#10b981',
-            color: 'white',
-            textAlign: 'center',
-            padding: '8px 16px',
-            fontWeight: 600,
-            fontSize: '14px',
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            zIndex: 9999
-          }}
-        >
+      {showOnlineBanner && !isServerDown && (
+        <div style={{ ...bannerStyle, backgroundColor: '#10b981', color: 'white' }}>
           ✅ You're back online!
         </div>
       )} 
       
-      <div style={{ paddingTop: !isOnline || showOnlineBanner ? '40px' : '0' }}>
+      <div style={{ paddingTop: !isOnline || showOnlineBanner || isServerDown ? '40px' : '0' }}>
         <AppRouter />
       </div>
     </div>
