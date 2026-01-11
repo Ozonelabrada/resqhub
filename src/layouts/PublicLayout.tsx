@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { useNavigate, useLocation, Outlet } from 'react-router-dom';
+import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useFeatureFlags } from '../hooks';
@@ -234,23 +234,40 @@ const PublicLayout = () => {
       {/* Footer */}
       <footer className="bg-teal-900 text-white border-t border-teal-800 py-16">
           <div className="w-full px-6 md:px-12">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-12">
-              <div className="flex items-center gap-4">
+            <div className="flex flex-col md:flex-row justify-between items-start gap-12">
+              <div className="flex flex-col md:flex-row items-center gap-4">
                 <Logo size="medium" variant="full" light={true} />
                 <div className="h-10 w-px bg-white/20 hidden md:block" />
                 <span className="text-sm text-teal-100 font-medium">Reuniting Communities</span>
               </div>
               
-              <div className="flex flex-wrap justify-center gap-10 text-sm font-bold text-teal-50">
-                <a href="/privacy" className="hover:text-orange-400 transition-colors">
-                  Privacy Policy
-                </a>
-                <a href="/terms" className="hover:text-orange-400 transition-colors">
-                  Terms of Service
-                </a>
-                <a href="/contact" className="hover:text-orange-400 transition-colors">
-                  Contact Us
-                </a>
+              <div className="flex flex-wrap justify-center md:justify-start gap-12 lg:gap-20">
+                <div className="flex flex-col gap-4">
+                  <h4 className="text-teal-400 text-xs font-bold uppercase tracking-wider">Platform</h4>
+                  <ul className="flex flex-col gap-2 text-sm text-teal-50 font-medium">
+                    <li><Link to="/hub" className="hover:text-orange-400 transition-colors">News Feed</Link></li>
+                    <li><Link to="/communities" className="hover:text-orange-400 transition-colors">Communities</Link></li>
+                    <li><Link to="/about" className="hover:text-orange-400 transition-colors">About FindrHub</Link></li>
+                  </ul>
+                </div>
+                
+                <div className="flex flex-col gap-4">
+                  <h4 className="text-teal-400 text-xs font-bold uppercase tracking-wider">Resources</h4>
+                  <ul className="flex flex-col gap-2 text-sm text-teal-50 font-medium">
+                    <li><Link to="/success-stories" className="hover:text-orange-400 transition-colors">Success Stories</Link></li>
+                    <li><Link to="/safety-tips" className="hover:text-orange-400 transition-colors">Safety Tips</Link></li>
+                    <li><Link to="/activity" className="hover:text-orange-400 transition-colors">Recent Activity</Link></li>
+                  </ul>
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  <h4 className="text-teal-400 text-xs font-bold uppercase tracking-wider">Legal & Support</h4>
+                  <ul className="flex flex-col gap-2 text-sm text-teal-50 font-medium">
+                    <li><Link to="/privacy-policy" className="hover:text-orange-400 transition-colors">Privacy Policy</Link></li>
+                    <li><Link to="/terms-of-service" className="hover:text-orange-400 transition-colors">Terms of Service</Link></li>
+                    <li><Link to="/contact-us" className="hover:text-orange-400 transition-colors">Contact Us</Link></li>
+                  </ul>
+                </div>
               </div>
               
               <div className="text-sm font-bold text-teal-300">

@@ -1,5 +1,5 @@
 import api from '../api/client';
-import type { Community, CommunityPost, CommunityMember } from '../types/community';
+import type { Community, CommunityPost, CommunityMember, JoinRequest } from '../types/community';
 
 export const CommunityService = {
   async getCommunities(): Promise<Community[]> {
@@ -147,6 +147,36 @@ export const CommunityService = {
       return true;
     } catch (error) {
       console.error('Error inviting members:', error);
+      return false;
+    }
+  },
+
+  async getJoinRequests(id: string): Promise<JoinRequest[]> {
+    try {
+      const response = await api.get<{ data: JoinRequest[] }>(`/communities/${id}/join-requests`);
+      return response.data?.data || [];
+    } catch (error) {
+      console.error('Error fetching join requests:', error);
+      return [];
+    }
+  },
+
+  async approveJoinRequest(communityId: string, requestId: number): Promise<boolean> {
+    try {
+      await api.patch(`/communities/${communityId}/join-requests/${requestId}/approve`);
+      return true;
+    } catch (error) {
+      console.error('Error approving join request:', error);
+      return false;
+    }
+  },
+
+  async rejectJoinRequest(communityId: string, requestId: number): Promise<boolean> {
+    try {
+      await api.patch(`/communities/${communityId}/join-requests/${requestId}/reject`);
+      return true;
+    } catch (error) {
+      console.error('Error rejecting join request:', error);
       return false;
     }
   }

@@ -4,6 +4,8 @@ import {
   Plus, 
   Search,
   ArrowUp,
+  Filter,
+  X
 } from 'lucide-react';
 import { useNewsFeed } from '@/hooks/useNewsFeed';
 import { useStatistics } from '@/hooks/useStatistics';
@@ -14,6 +16,11 @@ import { useTranslation } from 'react-i18next';
 import {
   Button,
   Spinner,
+  ShadcnSelect as Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from '../../../ui';
 import { 
   CreateCommunityModal, 
@@ -238,31 +245,52 @@ const NewsFeedPage: React.FC = () => {
   }, [handleObserver]);
 
   return (
-    <div className="bg-gray-50">
-      <main className="w-full px-4 md:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-10 gap-8">
-        {/* --- CENTER: MAIN FEED (50%) or MESSAGES (ORDER 1 ON MOBILE) --- */}
+    <div className="bg-gray-50 lg:h-[calc(100vh-100px)] lg:overflow-hidden flex flex-col lg:-mt-6">
+      {/* --- UNIFIED FULL-WIDTH HEADER --- */}
+      {currentView === 'feed' && (
+        <div className="w-full px-4 md:px-6 lg:px-8 pt-4 pb-2 z-50 bg-gray-50 border-b border-gray-100/30">
+          <div className="max-w-[1920px] mx-auto">
+            <NewsFeedHeader 
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              filter={filter}
+              setFilter={setFilter}
+              showAdvancedFilters={showAdvancedFilters}
+              setShowAdvancedFilters={setShowAdvancedFilters}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+              onPostClick={handleOpenPostModal}
+            />
+          </div>
+        </div>
+      )}
+
+      <main className={cn(
+        "w-full px-4 md:px-6 lg:px-8 py-0 flex-1 grid grid-cols-1 lg:grid-cols-10 gap-8 min-h-0 overflow-y-auto lg:overflow-hidden",
+        currentView !== 'feed' && "pt-4"
+      )}>
+        {/* --- SIDEBAR: PROFILE & NAVIGATION --- */}
+        <div className="order-2 lg:order-1 lg:col-span-2 lg:h-full lg:overflow-y-auto scrollbar-hidden hover:custom-scrollbar transition-all pt-2 pb-6">
+          <NewsFeedSidebar 
+            className="w-full h-auto"
+            isAuthenticated={isAuthenticated}
+            user={user}
+            openLoginModal={openLoginModal}
+            navigate={navigate}
+            currentView={currentView}
+            onViewChange={handleViewChange}
+          />
+        </div>
+
+        {/* --- CENTER: MAIN FEED (50%) or MESSAGES (ORDER 1 ON MOBILE, INDEPENDENT SCROLL ON DESKTOP) --- */}
         <div 
           className={cn(
-            "order-1 pb-20 lg:pb-0 scroll-smooth",
+            "order-1 pb-20 lg:pb-6 scroll-smooth lg:h-full lg:overflow-y-auto scrollbar-hidden hover:custom-scrollbar transition-all pt-2 px-1",
             currentView === 'feed' ? "lg:col-span-5 lg:order-2" : "lg:col-span-8 lg:order-2"
           )}
         >
           {currentView === 'feed' ? (
-            <div className="space-y-6 pt-2">
-              <div className="sticky top-[73px] z-10 bg-gray-50/80 backdrop-blur-md pb-4 px-2 -mx-2 rounded-b-3xl">
-                <NewsFeedHeader 
-                  searchQuery={searchQuery}
-                  setSearchQuery={setSearchQuery}
-                  filter={filter}
-                  setFilter={setFilter}
-                  showAdvancedFilters={showAdvancedFilters}
-                  setShowAdvancedFilters={setShowAdvancedFilters}
-                  sortBy={sortBy}
-                  setSortBy={setSortBy}
-                  onPostClick={handleOpenPostModal}
-                />
-              </div>
-
+            <div className="space-y-6 h-auto">
               {/* MAIN FEED */}
               <div className="space-y-6 px-1">
                 {newsFeedItems.length === 0 && newsFeedLoading ? (
@@ -316,37 +344,28 @@ const NewsFeedPage: React.FC = () => {
           )}
         </div>
 
-        {/* --- SIDEBAR: PROFILE & NAVIGATION (ORDER 2 ON MOBILE) --- */}
-        <NewsFeedSidebar 
-          className="order-2 lg:order-1 lg:col-span-2"
-          isAuthenticated={isAuthenticated}
-          user={user}
-          openLoginModal={openLoginModal}
-          navigate={navigate}
-          currentView={currentView}
-          onViewChange={handleViewChange}
-        />
-
-        {/* --- SIDEBAR: COMMUNITY STATS & TRENDING (ORDER 3 ON MOBILE) --- */}
+        {/* --- SIDEBAR: COMMUNITY STATS & TRENDING --- */}
         {currentView === 'feed' && (
-          <CommunitySidebar 
-            className="order-3 lg:order-3 lg:col-span-3"
-            statistics={statistics}
-            trendingReports={trendingReports}
-            trendingLoading={trendingLoading}
-            navigate={navigate}
-            joinedCommunities={joinedCommunities}
-            onOpenInviteModal={(communityName) => {
-              setSelectedCommunityForInvite(communityName);
-              setIsInviteModalOpen(true);
-            }}
-            onOpenCreateCommunity={() => setIsCommunityModalOpen(true)}
-            onJoinCommunity={handleJoinCommunity}
-            isSafetyExpanded={isSafetyExpanded}
-            setIsSafetyExpanded={setIsSafetyExpanded}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-          />
+          <div className="order-3 lg:order-3 lg:col-span-3 lg:h-full lg:overflow-y-auto scrollbar-hidden hover:custom-scrollbar transition-all pt-2 pb-6">
+            <CommunitySidebar 
+              className="w-full h-auto"
+              statistics={statistics}
+              trendingReports={trendingReports}
+              trendingLoading={trendingLoading}
+              navigate={navigate}
+              joinedCommunities={joinedCommunities}
+              onOpenInviteModal={(communityName) => {
+                setSelectedCommunityForInvite(communityName);
+                setIsInviteModalOpen(true);
+              }}
+              onOpenCreateCommunity={() => setIsCommunityModalOpen(true)}
+              onJoinCommunity={handleJoinCommunity}
+              isSafetyExpanded={isSafetyExpanded}
+              setIsSafetyExpanded={setIsSafetyExpanded}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+            />
+          </div>
         )}
       </main>
 

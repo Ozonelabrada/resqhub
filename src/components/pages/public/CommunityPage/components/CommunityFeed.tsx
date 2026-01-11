@@ -34,7 +34,8 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [expandedComments, setExpandedComments] = useState<Record<number, boolean>>({});
 
-  const canPost = isAuthenticated && (isMember || isAdmin);
+  const isUserMember = isMember || isAdmin;
+  const canPost = isAuthenticated && isUserMember;
 
   // Sync postType with filter when filter changes (except for 'all')
   useEffect(() => {
@@ -53,13 +54,20 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
   };
 
   const NEED_TYPES = ['Resource', 'Service', 'Volunteer', 'Request', 'Need'];
+  const RESTRICTED_TYPES = ['news', 'announcement', 'discussion'];
   
   const filteredPosts = posts.filter(p => {
-    // Exclude need types from the main feed to keep purposes distinct
+    const postTypeLower = (p.reportType || '').toLowerCase();
+    
+    // Exclude need types from the main feed
     const isNeed = NEED_TYPES.includes(p.reportType || '');
     if (isNeed) return false;
+
+    // Restrict News/Announcements/Discussions for non-members
+    const isRestrictedType = RESTRICTED_TYPES.includes(postTypeLower);
+    if (!isUserMember && isRestrictedType) return false;
     
-    return filter === 'all' || p.reportType?.toLowerCase() === filter.toLowerCase();
+    return filter === 'all' || postTypeLower === filter.toLowerCase();
   });
 
   const handleSubmit = async () => {
@@ -67,6 +75,7 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
       openLoginModal();
       return;
     }
+    if (!isUserMember) return;
     if (!postTitle.trim() || !postContent.trim()) return;
     setIsSubmitting(true);
     try {
@@ -88,12 +97,20 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
       openLoginModal();
       return;
     }
+    if (!isUserMember) return;
     try {
       await ReactionsService.addReportReaction(postId, String(user.id), 'heart');
       await onRefresh();
     } catch (err) {
       console.error('Failed to react to post:', err);
     }
+  };
+
+  const [matchesOpenMap, setMatchesOpenMap] = useState<Record<number, boolean>>({});
+
+  const handleOpenMatch = (postId: number, matchReportId: number | string) => {
+    // Navigate to matched report detail and include candidateFor query param
+    window.location.href = `/reports/${matchReportId}?candidateFor=${postId}`;
   };
 
   return (
@@ -107,39 +124,30 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
           </h2>
           <p className="text-slate-500 font-medium italic">General updates, alerts, and discussions from your neighbors.</p>
         </div>
-        
-        <Button 
-          onClick={() => {
-            if (!isAuthenticated) {
-              openLoginModal();
-              return;
-            }
-            setIsReportModalOpen(true);
-          }}
-          className="h-12 px-8 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white shadow-xl shadow-orange-100 font-black text-[11px] uppercase tracking-widest border-none shrink-0"
-        >
-          <Plus className="w-4 h-4 mr-2 border-2 rounded-md" />
-          Create Report
-        </Button>
       </div>
 
       {/* Quick Filters - Pill Style consistent with NewsFeed */}
       <div className="flex items-center justify-between gap-4 mb-2">
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2">
-          {(['all', 'lost', 'found', 'news', 'announcement', 'discussion'] as const).map(f => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={cn(
-                "px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap",
-                filter === f 
-                  ? "bg-teal-600 text-white shadow-lg shadow-teal-100" 
-                  : "bg-white text-slate-400 hover:bg-slate-50 border border-slate-100 shadow-sm"
-              )}
-            >
-              {f}
-            </button>
-          ))}
+          {(['all', 'lost', 'found', 'news', 'announcement', 'discussion'] as const).map(f => {
+            const isRestrictedFilter = ['news', 'announcement', 'discussion'].includes(f);
+            if (!isUserMember && isRestrictedFilter) return null;
+
+            return (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={cn(
+                  "px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap",
+                  filter === f 
+                    ? "bg-teal-600 text-white shadow-lg shadow-teal-100" 
+                    : "bg-white text-slate-400 hover:bg-slate-50 border border-slate-100 shadow-sm"
+                )}
+              >
+                {f}
+              </button>
+            );
+          })}
         </div>
         
         <Button 
@@ -150,9 +158,13 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
               openLoginModal();
               return;
             }
+            if (!isUserMember) return;
             setIsReportModalOpen(true);
           }}
-          className="hidden lg:flex items-center gap-2 h-10 px-4 rounded-xl text-teal-600 font-bold text-xs bg-teal-50 hover:bg-teal-100 border-none transition-all mb-2"
+          className={cn(
+            "hidden lg:flex items-center gap-2 h-10 px-4 rounded-xl font-bold text-xs border-none transition-all mb-2",
+            isUserMember ? "text-teal-600 bg-teal-50 hover:bg-teal-100" : "text-slate-300 bg-slate-50 cursor-not-allowed opacity-50"
+          )}
         >
           <Plus className="w-4 h-4" />
           New Report
@@ -224,23 +236,56 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
                     </div>
                   )}
 
+                  {/* Possible Matches */}
+                  {Array.isArray((post as any).possibleMatches) && (post as any).possibleMatches.length > 0 && (
+                    <div className="mb-4 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                      <button
+                        onClick={() => setMatchesOpenMap(prev => ({ ...prev, [post.id]: !prev[post.id] }))}
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-md bg-white hover:bg-teal-50"
+                      >
+                        <span className="font-black text-sm">Possible Matches ({(post as any).possibleMatches.length})</span>
+                        {matchesOpenMap[post.id] ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      </button>
+
+                      {matchesOpenMap[post.id] && (
+                        <div className="mt-3 space-y-2">
+                          {((post as any).possibleMatches as Array<any>).map((m: any, i: number) => (
+                            <div key={i} className="flex items-center justify-between bg-white p-2 rounded-md border border-slate-100">
+                              <div className="truncate">
+                                <div className="text-sm font-black truncate">{m.name || m.username || 'Unknown'}</div>
+                                <div className="text-xs text-slate-400 truncate">{m.title || m.description || ''}</div>
+                              </div>
+                              <button onClick={() => handleOpenMatch(post.id, m.reportId || m.id)} className="text-xs font-black text-teal-600">View</button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* Interaction Bar */}
                   <div className="flex items-center gap-6 py-4 border-t border-slate-50 mt-2">
                     <button 
-                      onClick={() => handlePostReaction(post.id)}
-                      className="flex items-center gap-2 group/btn"
+                      onClick={() => isUserMember && handlePostReaction(post.id)}
+                      className={cn(
+                        "flex items-center gap-2 group/btn",
+                        !isUserMember && "cursor-not-allowed opacity-70"
+                      )}
+                      title={!isUserMember ? "Join community to react" : ""}
                     >
                       <div className={cn(
                         "w-9 h-9 rounded-xl flex items-center justify-center transition-all",
                         post.isReacted
                           ? "bg-rose-50 text-rose-500" 
-                          : "bg-slate-50 text-slate-400 group-hover/btn:bg-rose-50 group-hover/btn:text-rose-500"
+                          : "bg-slate-50 text-slate-400 group-hover/btn:bg-rose-50 group-hover/btn:text-rose-500",
+                        !isUserMember && "group-hover/btn:bg-slate-50 group-hover/btn:text-slate-400"
                       )}>
                         <Heart size={18} className={post.isReacted ? "fill-current" : ""} />
                       </div>
                       <span className={cn(
                         "text-xs font-black transition-colors uppercase tracking-widest",
-                        post.isReacted ? "text-rose-600" : "text-slate-500 group-hover/btn:text-rose-600"
+                        post.isReacted ? "text-rose-600" : "text-slate-500 group-hover/btn:text-rose-600",
+                        !isUserMember && "group-hover/btn:text-slate-500"
                       )}>
                         {post.reactionsCount || 0}
                       </span>
@@ -258,6 +303,12 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
                         {expandedComments[post.id] ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                       </div>
                     </button>
+                    
+                    {!isUserMember && expandedComments[post.id] && (
+                      <div className="ml-auto text-[10px] font-black text-orange-400 uppercase tracking-widest bg-orange-50 px-3 py-1 rounded-lg">
+                        Visitor Mode: Join to Comment
+                      </div>
+                    )}
                   </div>
                   
                   {expandedComments[post.id] && (
@@ -265,7 +316,8 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
                       <CommentSection 
                         itemId={post.id} 
                         itemType={post.reportType?.toLowerCase() === 'found' ? 'found' : 'lost'} 
-                        itemOwnerId={Number(post.userId) || 0} 
+                        itemOwnerId={Number(post.userId) || 0}
+                        readOnly={!isUserMember}
                       />
                     </div>
                   )}

@@ -6,6 +6,8 @@ import {
   Calendar, 
   MoreHorizontal, 
   CheckCircle, 
+  ChevronDown,
+  ChevronUp,
   MessageSquare, 
   Share2, 
   Award,
@@ -52,6 +54,7 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
   const [totalCommentsCount, setTotalCommentsCount] = useState(item.commentsCount || 0);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isMatchesOpen, setIsMatchesOpen] = useState(false);
 
   const isOwner = user?.id && String(item.user?.id) === String(user.id);
 
@@ -134,6 +137,12 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
     }
   };
 
+  const handleOpenMatch = (e: React.MouseEvent, matchReportId: number | string) => {
+    e.stopPropagation();
+    // Navigate to matched report detail and include candidateFor query param
+    navigate(`/reports/${matchReportId}?candidateFor=${item.id}`);
+  };
+
   const handleAction = (e: React.MouseEvent, callback: () => void) => {
     e.stopPropagation();
     if (!isAuthenticated) {
@@ -196,7 +205,38 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
       >
         {/* Image Container */}
         <div className="relative w-full md:w-[28rem] h-64 md:h-80 min-h-[16rem] md:min-h-[20rem] overflow-hidden bg-gray-100 border-r border-gray-50">
-          {item.images && item.images.length > 0 ? (
+          {item.images && item.images.length > 0 ? (<>
+
+          {/* Possible Matches */}
+          {Array.isArray((item as any).possibleMatches) && (item as any).possibleMatches.length > 0 && (
+            <div className="p-4 border-t border-slate-50 bg-slate-50">
+              <button
+                onClick={(e) => { e.stopPropagation(); setIsMatchesOpen(prev => !prev); }}
+                className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-white shadow-sm hover:shadow-md"
+              >
+                <span className="text-sm font-black text-slate-700">Possible Matches ({(item as any).possibleMatches.length})</span>
+                {isMatchesOpen ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+              </button>
+
+              {isMatchesOpen && (
+                <div className="mt-3 space-y-2">
+                  {((item as any).possibleMatches as Array<any>).map((match, idx) => (
+                    <button
+                      key={idx}
+                      onClick={(e) => handleOpenMatch(e, match.reportId || match.id)}
+                      className="w-full text-left px-3 py-2 rounded-lg bg-white/90 hover:bg-teal-50 border border-slate-100 flex items-center justify-between"
+                    >
+                      <div className="truncate">
+                        <div className="text-sm font-black text-slate-800 truncate">{match.name || match.username || 'Unknown'}</div>
+                        <div className="text-xs text-slate-400 truncate">{match.title || match.description || ''}</div>
+                      </div>
+                      <div className="text-xs text-teal-600 font-black">View</div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
             <div className={cn(
               "w-full h-full grid gap-0.5",
               item.images.length === 1 ? "grid-cols-1" : 
@@ -232,7 +272,7 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
                 </>
               )}
             </div>
-          ) : (
+          </>) : (
             <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 p-4 text-center">
               <Plus className="w-10 h-10 mb-2 opacity-20" />
               <span className="text-[10px] uppercase tracking-[0.2em] font-black">No Image</span>

@@ -8,7 +8,13 @@ import {
   Users, 
   ShieldAlert, 
   ChevronDown,
-  Search
+  Search,
+  Megaphone,
+  Calendar,
+  Clock,
+  Bell,
+  BellOff,
+  CalendarOff
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -21,6 +27,38 @@ import {
   Badge
 } from '../../../../ui';
 import { cn } from "@/lib/utils";
+import { useAuth } from '@/context/AuthContext';
+import { SAMPLE_ANNOUNCEMENTS } from '../../CommunityPage/components/CommunityAnnouncements';
+import { SAMPLE_EVENTS } from '../../CommunityPage/components/CommunityEvents';
+
+// Static Data for Contributors
+const TOP_CONTRIBUTORS = [
+  { id: 1, name: 'Alex Rivera', avatar: 'AR', color: 'bg-teal-500' },
+  { id: 2, name: 'Sarah Chen', avatar: 'SC', color: 'bg-blue-500' },
+  { id: 3, name: 'Mike Johnson', avatar: 'MJ', color: 'bg-emerald-500' },
+  { id: 4, name: 'Elena Cruz', avatar: 'EC', color: 'bg-orange-500' },
+];
+
+const STATIC_TRENDING = [
+  {
+    id: 't1',
+    title: 'Missing Golden Retriever',
+    location: 'Manolo Fortich',
+    images: ['https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&auto=format&fit=crop&q=60'],
+  },
+  {
+    id: 't2',
+    title: 'Volunteer Search Party',
+    location: 'Poblacion Area',
+    images: ['https://images.unsplash.com/photo-1559027615-cd44512e9123?w=400&auto=format&fit=crop&q=60'],
+  },
+  {
+    id: 't3',
+    title: 'Community Watch Alert',
+    location: 'Zone 4 Highway',
+    images: ['https://images.unsplash.com/photo-1541888946425-d81bb19480c5?w=400&auto=format&fit=crop&q=60'],
+  }
+];
 
 interface CommunitySidebarProps {
   statistics?: any;
@@ -54,7 +92,20 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
   className
 }) => {
   const { t } = useTranslation();
+  const { isAuthenticated } = useAuth();
   const [joiningId, setJoiningId] = React.useState<string | number | null>(null);
+
+  // Set the "today" reference to match SAMPLE_DATA
+  const today = '2026-01-12';
+  const todayDisplay = 'Jan 12, 2026';
+
+  const todaysAnnouncements = Array.isArray(SAMPLE_ANNOUNCEMENTS) 
+    ? SAMPLE_ANNOUNCEMENTS.filter(ann => ann.dateKey === today)
+    : [];
+    
+  const todaysEvents = Array.isArray(SAMPLE_EVENTS)
+    ? SAMPLE_EVENTS.filter(event => event.dateKey === today)
+    : [];
 
   const handleJoinClick = async (e: React.MouseEvent, id: string | number) => {
     e.stopPropagation();
@@ -69,48 +120,100 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
   };
 
   return (
-    <aside className={cn("flex flex-col space-y-6 pt-6 lg:sticky lg:top-24 lg:self-start group", className)}>
-      {/* SEARCH BAR - HIGH VISIBILITY */}
-      <div className="relative group">
-        <Input
-          type="text"
-          placeholder="Search items, users, etc."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery?.(e.target.value)}
-          className="w-full pl-12 pr-4 h-16 bg-white border-none shadow-sm rounded-[2rem] font-bold text-slate-600 focus:ring-2 focus:ring-teal-500/20 transition-all placeholder:text-slate-300"
-        />
-        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+    <aside className={cn("flex flex-col space-y-4 pt-6 group h-fit", className)}>
+      {/* TODAY'S UPDATES PILL */}
+      <div className="bg-white rounded-full py-5 px-8 shadow-sm border border-gray-50 flex items-center justify-between group/pill cursor-pointer hover:shadow-md transition-all">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center group-hover/pill:scale-110 transition-transform">
+            <Megaphone className="text-blue-500 w-5 h-5" />
+          </div>
+          <h3 className="text-slate-900 font-black text-xl tracking-tight">Today's Updates</h3>
+        </div>
+        <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">{todayDisplay}</span>
       </div>
 
-      {/* STATS CARD */}
-      <Card className="p-8 border-none shadow-sm bg-white rounded-[2.5rem] overflow-hidden relative group">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-teal-50 rounded-full -mr-16 -mt-16 group-hover:bg-teal-100 transition-colors" />
-        <h3 className="text-gray-900 font-black text-lg mb-6 flex items-center gap-3">
-          <TrendingUp className="text-teal-600 w-5 h-5" />
-          {t('newsfeed.community_impact')}
-        </h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-0.5">
-            <span className="text-slate-300 text-[9px] font-black uppercase tracking-widest">{t('newsfeed.total_reports')}</span>
-            <p className="text-2xl font-black text-slate-800">{statistics?.totalItems || 0}</p>
+      {/* JOIN THE ACTION PILL */}
+      <div className="bg-white rounded-full py-5 px-8 shadow-sm border border-gray-50 flex items-center justify-between group/pill cursor-pointer hover:shadow-md transition-all">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center group-hover/pill:scale-110 transition-transform">
+            <Calendar className="text-emerald-500 w-5 h-5" />
           </div>
-          <div className="space-y-0.5">
-            <span className="text-slate-300 text-[9px] font-black uppercase tracking-widest">{t('newsfeed.reunited')}</span>
-            <p className="text-2xl font-black text-emerald-500">{statistics?.successfulMatches || 0}</p>
-          </div>
+          <h3 className="text-slate-900 font-black text-xl tracking-tight">Join the Action</h3>
         </div>
-        
-        <div className="mt-6 p-4 rounded-2xl bg-teal-50/50 flex items-center justify-between">
-          <div className="flex -space-x-2">
-            {[1,2,3].map(i => (
-              <Avatar key={i} className="w-7 h-7 border-2 border-white shadow-sm" />
-            ))}
+        <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">{todayDisplay}</span>
+      </div>
+
+      {/* LOCAL STATISTICS CARD */}
+      <Card className="p-10 border-none shadow-sm bg-white rounded-[3rem] overflow-hidden relative">
+        <div className="space-y-8">
+          <div>
+            <h3 className="text-slate-400 font-extrabold text-[11px] uppercase tracking-[0.2em] mb-8">
+              Local Statistics
+            </h3>
+            
+            <div className="space-y-6">
+              {/* Location */}
+              <div className="flex items-center gap-5">
+                <div className="w-12 h-12 rounded-2xl bg-teal-50 flex items-center justify-center shrink-0">
+                  <MapPin className="text-teal-600 w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-0.5">Location</p>
+                  <p className="text-base font-black text-slate-900">Manolo Fortich Bukidnon</p>
+                </div>
+              </div>
+
+              {/* Active Since */}
+              <div className="flex items-center gap-5">
+                <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center shrink-0">
+                  <Calendar className="text-blue-500 w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-0.5">Active Since</p>
+                  <p className="text-base font-black text-slate-900">2024</p>
+                </div>
+              </div>
+
+              {/* Resolved Cases */}
+              <div className="flex items-center gap-5">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center shrink-0">
+                  <TrendingUp className="text-emerald-500 w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-0.5">Resolved Cases</p>
+                  <p className="text-base font-black text-slate-900">{statistics?.successfulMatches || 188} Items</p>
+                </div>
+              </div>
+            </div>
           </div>
-          <span className="text-[10px] font-black text-teal-700">+{statistics?.activeReports || 0} {t('newsfeed.active_now')}</span>
+
+          <div className="pt-8 border-t border-slate-50">
+            <h3 className="text-slate-400 font-extrabold text-[11px] uppercase tracking-[0.2em] mb-6">
+              Top Contributors
+            </h3>
+            <div className="flex items-center justify-between">
+              <div className="flex -space-x-3">
+                {TOP_CONTRIBUTORS.map((contributor) => (
+                  <Avatar 
+                    key={contributor.id} 
+                    className={cn("w-10 h-10 border-4 border-white shadow-sm ring-1 ring-slate-100 font-black text-[10px] text-white", contributor.color)}
+                  >
+                    {contributor.avatar}
+                  </Avatar>
+                ))}
+                <div className="w-10 h-10 rounded-full bg-slate-50 border-4 border-white flex items-center justify-center text-[10px] font-black text-slate-400 ring-1 ring-slate-100">
+                  +12
+                </div>
+              </div>
+              <Button variant="ghost" size="sm" className="text-teal-600 font-black text-[10px] uppercase tracking-widest hover:bg-teal-50">
+                View All
+              </Button>
+            </div>
+          </div>
         </div>
       </Card>
 
-      {/* ACTIVE REQUESTS / TRENDING */}
+      {/* TRENDING SECTION - REDUCED FOOTPRINT */}
       <Card className="p-8 border-none shadow-sm bg-white rounded-[2.5rem]">
         <h3 className="text-gray-900 font-black text-xl mb-6 flex items-center gap-3">
           <Award className="text-orange-500 w-6 h-6" />
@@ -127,7 +230,7 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
                 </div>
               </div>
             ))
-          ) : trendingReports.slice(0, 3).map((report: any, idx: number) => (
+          ) : (trendingReports.length > 0 ? trendingReports : STATIC_TRENDING).slice(0, 3).map((report: any, idx: number) => (
             <div key={report.id || report._id || idx} className="group flex items-start gap-4 cursor-pointer" onClick={() => navigate(`/item/${report.id || report._id}`)}>
               <div className="relative w-14 h-14 rounded-2xl overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-100">
                 {report.images?.[0] ? (
@@ -192,7 +295,7 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <h4 className="text-sm font-bold text-slate-900 truncate">{community.name}</h4>
-                    {community.isMember && (
+                    {isAuthenticated && community.isMember && (
                       <Badge className="h-4 px-1.5 bg-emerald-50 text-emerald-600 border-none text-[8px] font-black uppercase tracking-tighter">Joined</Badge>
                     )}
                   </div>
@@ -202,7 +305,7 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
                 </div>
               </div>
               <div className="mt-4 flex items-center gap-2">
-                {community.isMember ? (
+                {isAuthenticated && community.isMember ? (
                   <Button 
                       variant="ghost" 
                       size="sm" 

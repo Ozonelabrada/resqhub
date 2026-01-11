@@ -4,6 +4,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 // UI Components
 import { Toast, Spinner } from './components/ui';
 import type { ToastRef } from './components/ui/Toast/Toast';
+import { Toaster } from 'react-hot-toast';
 
 // Public Pages (Lazy Loaded)
 const PersonalHubPage = lazy(() => import('./components/pages/public/PersonalHubPage/PersonalHubPage'));
@@ -16,6 +17,9 @@ const MessagesPage = lazy(() => import('./components/pages/public/MessagesPage/M
 const ItemDetailPage = lazy(() => import('./components/pages/public/ItemDetailPage/ItemDetailPage'));
 const CommunityManagementPage = lazy(() => import('./components/pages/admin/CommunityManagementPage'));
 const SettingsPage = lazy(() => import('./components/pages/public/SettingPage/SettingsPage'));
+const PrivacyPolicyPage = lazy(() => import('./pages/privacy-policy'));
+const TermsOfServicePage = lazy(() => import('./pages/terms-of-service'));
+const ContactUsPage = lazy(() => import('./pages/contact-us'));
 
 // Shared Pages
 import NotFoundPage from './components/shared/NotFoundPage/NotFoundPage';
@@ -57,6 +61,11 @@ const AppRouter = () => {
           {/* Communities */}
           <Route path="communities" element={<CommunitiesPage />} />
           <Route path="community/:id" element={<CommunityPage />} />
+          
+          {/* Legal and Support */}
+          <Route path="privacy-policy" element={<PrivacyPolicyPage />} />
+          <Route path="terms-of-service" element={<TermsOfServicePage />} />
+          <Route path="contact-us" element={<ContactUsPage />} />
           
           {/* Items / Details */}
           <Route path="item/:id" element={isFeatureEnabled('reports') ? <ItemDetailPage /> : <Navigate to="/hub" replace />} />
@@ -151,6 +160,7 @@ const App = () => {
 
   return (
     <div className="App">
+      <Toaster position="top-center" reverseOrder={false} />
       <Toast ref={toast} />
       
       {/* Server Status Banner */}

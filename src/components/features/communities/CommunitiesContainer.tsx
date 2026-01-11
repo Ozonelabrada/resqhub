@@ -100,7 +100,7 @@ export const CommunitiesContainer: React.FC = () => {
                   )}
                   <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] pointer-events-none"></div>
                   
-                  {community.isMember && (
+                  {isAuthenticated && community.isMember && (
                     <Badge className="absolute top-3 left-3 bg-emerald-500 text-white font-black uppercase text-[8px] tracking-widest px-2 py-0.5 border-none shadow-sm">
                       Joined
                     </Badge>
@@ -143,7 +143,7 @@ export const CommunitiesContainer: React.FC = () => {
                       <span className="text-[11px] font-bold text-slate-500">{community.memberCount || community.membersCount || 0} Members</span>
                     </div>
                     
-                    {community.isMember ? (
+                    {isAuthenticated && community.isMember ? (
                       <Button 
                         variant="ghost" 
                         size="sm" 

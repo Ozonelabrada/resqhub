@@ -34,9 +34,15 @@ interface CommentSectionProps {
   itemId: number;
   itemType: 'lost' | 'found';
   itemOwnerId: string | number;
+  readOnly?: boolean;
 }
 
-const CommentSection: React.FC<CommentSectionProps> = ({ itemId, itemType, itemOwnerId }) => {
+const CommentSection: React.FC<CommentSectionProps> = ({ 
+  itemId, 
+  itemType, 
+  itemOwnerId,
+  readOnly = false 
+}) => {
   const navigate = useNavigate();
   const { isAuthenticated, user, openLoginModal } = useAuth();
   const [comments, setComments] = useState<Comment[]>([]);
@@ -317,26 +323,28 @@ const CommentSection: React.FC<CommentSectionProps> = ({ itemId, itemType, itemO
         </Alert>
       )}
       {isAuthenticated ? (
-        <div className="flex gap-4">
-          <Avatar src={user?.profilePicture} className="w-10 h-10 border-2 border-white shadow-sm flex-shrink-0 rounded-xl" />
-          <div className="flex-1 relative">
-            <Input 
-               placeholder="Add a helpful comment..." 
-               value={newComment}
-               onChange={(e) => setNewComment(e.target.value)}
-               onKeyPress={(e) => e.key === 'Enter' && handleSubmitComment()}
-               className="pr-12 py-6 rounded-2xl border-gray-200 bg-white shadow-sm font-medium"
-            />
-            <Button 
-               size="icon" 
-               className="absolute right-2 top-1/2 -translate-y-1/2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl h-10 w-10"
-               disabled={!newComment.trim() || isSubmitting}
-               onClick={handleSubmitComment}
-            >
-              {isSubmitting ? <Spinner size="sm" /> : <Send className="w-4 h-4" />}
-            </Button>
+        !readOnly ? (
+          <div className="flex gap-4">
+            <Avatar src={user?.profilePicture} className="w-10 h-10 border-2 border-white shadow-sm flex-shrink-0 rounded-xl" />
+            <div className="flex-1 relative">
+              <Input 
+                 placeholder="Add a helpful comment..." 
+                 value={newComment}
+                 onChange={(e) => setNewComment(e.target.value)}
+                 onKeyPress={(e) => e.key === 'Enter' && handleSubmitComment()}
+                 className="pr-12 py-6 rounded-2xl border-gray-200 bg-white shadow-sm font-medium"
+              />
+              <Button 
+                 size="icon" 
+                 className="absolute right-2 top-1/2 -translate-y-1/2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl h-10 w-10"
+                 disabled={!newComment.trim() || isSubmitting}
+                 onClick={handleSubmitComment}
+              >
+                {isSubmitting ? <Spinner size="sm" /> : <Send className="w-4 h-4" />}
+              </Button>
+            </div>
           </div>
-        </div>
+        ) : null
       ) : (
         <div className="p-6 rounded-[2rem] bg-slate-50 border border-dashed border-slate-200 text-center">
           <p className="text-sm font-bold text-slate-500 mb-4">Sign in to join the discussion</p>
@@ -383,6 +391,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ itemId, itemType, itemO
                 onUpdate={handleUpdateComment}
                 onCancelEdit={() => setEditingId(null)}
                 onReport={handleReportComment}
+                readOnly={readOnly}
               />
             ))}
 
@@ -432,6 +441,7 @@ interface RenderCommentProps {
   onCancelEdit: () => void;
   onReport: (id: number) => void;
   isReply?: boolean;
+  readOnly?: boolean;
 }
 
 const RenderComment: React.FC<RenderCommentProps> = ({ 
@@ -456,7 +466,8 @@ const RenderComment: React.FC<RenderCommentProps> = ({
   onUpdate,
   onCancelEdit,
   onReport,
-  isReply = false
+  isReply = false,
+  readOnly = false
 }) => {
   const menuRef = useRef<any>(null);
 
@@ -505,7 +516,7 @@ const RenderComment: React.FC<RenderCommentProps> = ({
                 <span className="text-[10px] text-slate-400 font-bold uppercase">
                   {formatDistanceToNow(new Date(comment.dateCreated), { addSuffix: true })}
                 </span>
-                {isAuthenticated && (
+                {isAuthenticated && !readOnly && (
                   <>
                     <button 
                       onClick={(e) => menuRef.current?.toggle(e)}
@@ -554,7 +565,7 @@ const RenderComment: React.FC<RenderCommentProps> = ({
           </div>
           
           <div className="flex items-center gap-4 px-2">
-            {!isReply && (
+            {!isReply && !readOnly && (
               <button 
                 onClick={() => onReplyClick(comment.id)}
                 className={cn(
@@ -566,10 +577,11 @@ const RenderComment: React.FC<RenderCommentProps> = ({
               </button>
             )}
             <button 
-              onClick={() => onReaction(comment.id)}
+              onClick={() => !readOnly && onReaction(comment.id)}
               className={cn(
                 "flex items-center gap-1 text-[10px] font-black uppercase tracking-widest transition-colors",
-                comment.isReacted ? "text-rose-600" : "text-slate-400 hover:text-rose-600"
+                comment.isReacted ? "text-rose-600" : "text-slate-400 hover:text-rose-600",
+                readOnly && "cursor-default hover:text-slate-400"
               )}
             >
               <Heart className={cn("w-3 h-3", comment.isReacted && "fill-current")} />
@@ -640,6 +652,7 @@ const RenderComment: React.FC<RenderCommentProps> = ({
               onUpdate={onUpdate}
               onCancelEdit={onCancelEdit}
               onReport={onReport}
+              readOnly={readOnly}
             />
           ))}
         </div>

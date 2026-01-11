@@ -3,7 +3,21 @@ import {
   Home, 
   MessageSquare,
   Info,
-  ShieldAlert
+  ShieldAlert,
+  Heart,
+  Clock,
+  ShieldCheck,
+  Map,
+  Bell,
+  Settings,
+  Megaphone,
+  Calendar,
+  BookOpen,
+  Users,
+  Lock,
+  UserPlus,
+  ShoppingBag,
+  Search
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -17,7 +31,7 @@ import { MessagesService } from '@/services/messagesService';
 import { useFeatureFlags } from '@/hooks';
 import type { UserData } from '@/types/auth';
 
-export type CommunityTabType = 'feed' | 'needs' | 'chat' | 'members' | 'about';
+export type CommunityTabType = 'feed' | 'needs' | 'chat' | 'members' | 'about' | 'announcements' | 'events' | 'resources' | 'trade';
 
 interface NewsFeedSidebarProps {
   isAuthenticated: boolean;
@@ -32,6 +46,9 @@ interface NewsFeedSidebarProps {
     onTabChange: (tab: CommunityTabType) => void;
     communityName: string;
     memberCount: number;
+    isMember?: boolean;
+    isAdmin?: boolean;
+    isModerator?: boolean;
   };
 }
 
@@ -69,7 +86,7 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
   }, [isAuthenticated]);
 
   return (
-    <aside className={cn("flex flex-col space-y-6 pt-6 lg:sticky lg:top-24 lg:self-start", className)}>
+    <aside className={cn("flex flex-col space-y-6", className)}>
     
       {/* User Profile Summary - Hidden in Community context per user request */}
       {!communityNav && (
@@ -114,38 +131,60 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
 
       {/* Sidebar Navigation */}
       <nav className="space-y-1">
-        <h4 className="px-4 text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-2">{t('common.navigation')}</h4>
-        <Button 
-          variant="ghost" 
-          onClick={() => onViewChange?.('feed')}
-          className={cn(
-            "w-full justify-start py-6 rounded-2xl font-bold transition-all border-none",
-            currentView === 'feed' ? "text-teal-600 bg-teal-50 shadow-sm" : "text-slate-500 hover:bg-gray-50 hover:text-teal-600 group"
-          )}
-        >
-          <Home className={cn("w-5 h-5 mr-3", currentView === 'feed' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
-          {t('common.news_feed')}
-        </Button>
-        <Button 
-          variant="ghost"
-          onClick={() => onViewChange?.('communities')}
-          className={cn(
-            "w-full justify-start py-6 rounded-2xl font-bold transition-all border-none",
-            currentView === 'communities' ? "text-teal-600 bg-teal-50 shadow-sm" : "text-slate-500 hover:bg-gray-50 hover:text-teal-600 group"
-          )}
-        >
-          <div className="w-5 h-5 mr-3 flex items-center justify-center">
-            <svg className={cn("w-5 h-5", currentView === 'communities' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-          </div>
-          Communities
-        </Button>
+        {!communityNav && (
+          <>
+            <h4 className="px-4 text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-2">{t('common.navigation')}</h4>
+            <Button 
+              variant="ghost" 
+              onClick={() => onViewChange?.('feed')}
+              className={cn(
+                "w-full justify-start py-6 rounded-2xl font-bold transition-all border-none",
+                currentView === 'feed' ? "text-teal-600 bg-teal-50 shadow-sm" : "text-slate-500 hover:bg-gray-50 hover:text-teal-600 group"
+              )}
+            >
+              <Home className={cn("w-5 h-5 mr-3", currentView === 'feed' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
+              {t('common.news_feed')}
+            </Button>
+            <Button 
+              variant="ghost"
+              onClick={() => onViewChange?.('communities')}
+              className={cn(
+                "w-full justify-start py-6 rounded-2xl font-bold transition-all border-none",
+                currentView === 'communities' ? "text-teal-600 bg-teal-50 shadow-sm" : "text-slate-500 hover:bg-gray-50 hover:text-teal-600 group"
+              )}
+            >
+              <div className="w-5 h-5 mr-3 flex items-center justify-center">
+                <svg className={cn("w-5 h-5", currentView === 'communities' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              Communities
+            </Button>
+          </>
+        )}
         
         {/* Community Specific Navigation */}
         {communityNav && (
           <div className="pt-4 mt-4 border-t border-slate-50 space-y-1 animate-in slide-in-from-left duration-300">
-            <h4 className="px-4 text-[10px] font-black text-teal-600 uppercase tracking-[0.2em] mb-3">{communityNav.communityName}</h4>
+            <div className="px-4 mb-3 flex items-center justify-between">
+              <h4 className="text-[10px] font-black text-teal-600 uppercase tracking-[0.2em]">{communityNav.communityName}</h4>
+              {!communityNav.isMember && !communityNav.isAdmin && (
+                <Badge variant="outline" className="text-[8px] uppercase tracking-tighter px-1.5 py-0 border-slate-200 text-slate-400">Visitor</Badge>
+              )}
+            </div>
+
+            {/* In-Community Sidebar Search */}
+            {communityNav.activeTab !== 'about' && (
+              <div className="px-4 mb-4 relative group">
+                <Search className="absolute left-7 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 group-focus-within:text-teal-500 transition-colors" />
+                <input 
+                  type="text" 
+                  placeholder={`Search ${communityNav.activeTab}...`}
+                  className="w-full pl-9 pr-4 py-2 bg-slate-50 border-none rounded-xl text-[10px] font-bold focus:ring-1 focus:ring-teal-500 transition-all outline-none"
+                />
+              </div>
+            )}
+
             <Button 
               variant="ghost" 
               onClick={() => communityNav.onTabChange('feed')}
@@ -161,6 +200,19 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
               </div>
               Feed Updates
             </Button>
+
+            <Button 
+              variant="ghost" 
+              onClick={() => communityNav.onTabChange('chat')}
+              className={cn(
+                "w-full justify-start py-6 rounded-2xl font-bold transition-all border-none group",
+                communityNav.activeTab === 'chat' ? "text-teal-600 bg-teal-50 shadow-sm" : "text-slate-500 hover:bg-gray-50 hover:text-teal-600"
+              )}
+            >
+              <MessageSquare className={cn("w-5 h-5 mr-3", communityNav.activeTab === 'chat' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
+              Live Chat
+            </Button>
+
             <Button 
               variant="ghost" 
               onClick={() => communityNav.onTabChange('needs')}
@@ -174,32 +226,71 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
               </div>
               Needs Board
             </Button>
-            <Button 
-              variant="ghost" 
-              onClick={() => communityNav.onTabChange('chat')}
-              className={cn(
-                "w-full justify-start py-6 rounded-2xl font-bold transition-all border-none group",
-                communityNav.activeTab === 'chat' ? "text-teal-600 bg-teal-50 shadow-sm" : "text-slate-500 hover:bg-gray-50 hover:text-teal-600"
-              )}
-            >
-              <MessageSquare className={cn("w-5 h-5 mr-3", communityNav.activeTab === 'chat' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
-              Live Chat
-            </Button>
-            <Button 
-              variant="ghost" 
-              onClick={() => communityNav.onTabChange('members')}
-              className={cn(
-                "w-full justify-start py-6 rounded-2xl font-bold transition-all border-none group",
-                communityNav.activeTab === 'members' ? "text-teal-600 bg-teal-50 shadow-sm" : "text-slate-500 hover:bg-gray-50 hover:text-teal-600"
-              )}
-            >
-              <div className={cn("w-5 h-5 mr-3 flex items-center justify-center", communityNav.activeTab === 'members' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")}>
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              </div>
-              Members
-            </Button>
+
+            {(communityNav.isMember || communityNav.isAdmin) && (
+              <>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => communityNav.onTabChange('trade')}
+                  className={cn(
+                    "w-full justify-start py-6 rounded-2xl font-bold transition-all border-none group",
+                    communityNav.activeTab === 'trade' ? "text-teal-600 bg-teal-50 shadow-sm" : "text-slate-500 hover:bg-gray-50 hover:text-teal-600"
+                  )}
+                >
+                  <ShoppingBag className={cn("w-5 h-5 mr-3", communityNav.activeTab === 'trade' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
+                  Findr Trade
+                </Button>
+
+                <Button 
+                  variant="ghost" 
+                  onClick={() => communityNav.onTabChange('announcements')}
+                  className={cn(
+                    "w-full justify-start py-6 rounded-2xl font-bold transition-all border-none group",
+                    communityNav.activeTab === 'announcements' ? "text-teal-600 bg-teal-50 shadow-sm" : "text-slate-500 hover:bg-gray-50 hover:text-teal-600"
+                  )}
+                >
+                  <Megaphone className={cn("w-5 h-5 mr-3", communityNav.activeTab === 'announcements' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
+                  Announcements
+                </Button>
+
+                <Button 
+                  variant="ghost" 
+                  onClick={() => communityNav.onTabChange('events')}
+                  className={cn(
+                    "w-full justify-start py-6 rounded-2xl font-bold transition-all border-none group",
+                    communityNav.activeTab === 'events' ? "text-teal-600 bg-teal-50 shadow-sm" : "text-slate-500 hover:bg-gray-50 hover:text-teal-600"
+                  )}
+                >
+                  <Calendar className={cn("w-5 h-5 mr-3", communityNav.activeTab === 'events' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
+                  Events
+                </Button>
+
+                <Button 
+                  variant="ghost" 
+                  onClick={() => communityNav.onTabChange('members')}
+                  className={cn(
+                    "w-full justify-start py-6 rounded-2xl font-bold transition-all border-none group",
+                    communityNav.activeTab === 'members' ? "text-teal-600 bg-teal-50 shadow-sm" : "text-slate-500 hover:bg-gray-50 hover:text-teal-600"
+                  )}
+                >
+                  <Users className={cn("w-5 h-5 mr-3", communityNav.activeTab === 'members' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
+                  Members
+                </Button>
+
+                <Button 
+                  variant="ghost" 
+                  onClick={() => communityNav.onTabChange('resources')}
+                  className={cn(
+                    "w-full justify-start py-6 rounded-2xl font-bold transition-all border-none group",
+                    communityNav.activeTab === 'resources' ? "text-teal-600 bg-teal-50 shadow-sm" : "text-slate-500 hover:bg-gray-50 hover:text-teal-600"
+                  )}
+                >
+                  <BookOpen className={cn("w-5 h-5 mr-3", communityNav.activeTab === 'resources' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
+                  Resources
+                </Button>
+              </>
+            )}
+
             <Button 
               variant="ghost" 
               onClick={() => communityNav.onTabChange('about')}
@@ -232,6 +323,58 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
             )}
           </Button>
         )}
+
+        {!communityNav && isAuthenticated && (
+          <>
+            <h4 className="px-4 text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-2 mt-4">Personal</h4>
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/profile')}
+              className="w-full justify-start py-6 rounded-2xl font-bold transition-all border-none text-slate-500 hover:bg-gray-50 hover:text-teal-600 group"
+            >
+              <Clock className="w-5 h-5 mr-3 text-slate-400 group-hover:text-teal-600" />
+              My Activity
+            </Button>
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/watchlist')}
+              className="w-full justify-start py-6 rounded-2xl font-bold transition-all border-none text-slate-500 hover:bg-gray-50 hover:text-teal-600 group"
+            >
+              <Heart className="w-5 h-5 mr-3 text-slate-400 group-hover:text-teal-600" />
+              Saved Items
+            </Button>
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/settings')}
+              className="w-full justify-start py-6 rounded-2xl font-bold transition-all border-none text-slate-500 hover:bg-gray-50 hover:text-teal-600 group"
+            >
+              <Settings className="w-5 h-5 mr-3 text-slate-400 group-hover:text-teal-600" />
+              Settings
+            </Button>
+          </>
+        )}
+
+        {!communityNav && (
+          <>
+            <h4 className="px-4 text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-2 mt-4">Resources</h4>
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/safety-tips')}
+              className="w-full justify-start py-6 rounded-2xl font-bold transition-all border-none text-slate-500 hover:bg-gray-50 hover:text-teal-600 group"
+            >
+              <ShieldCheck className="w-5 h-5 mr-3 text-slate-400 group-hover:text-teal-600" />
+              Safety Center
+            </Button>
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/map')}
+              className="w-full justify-start py-6 rounded-2xl font-bold transition-all border-none text-slate-500 hover:bg-gray-50 hover:text-teal-600 group"
+            >
+              <Map className="w-5 h-5 mr-3 text-slate-400 group-hover:text-teal-600" />
+              Global Map
+            </Button>
+          </>
+        )}
       </nav>
 
       {/* Trending Categories - Hidden in Community context per user request */}
@@ -246,6 +389,35 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
             ))}
           </div>
         </div>
+      )}
+
+      {/* Community Impact Stats */}
+      {!communityNav && (
+        <Card className="p-6 border-none shadow-sm bg-slate-800 text-white rounded-[2rem] overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/10 rounded-full -mr-16 -mt-16 blur-2xl" />
+          <div className="relative z-10">
+            <h4 className="text-[10px] font-black text-teal-400 uppercase tracking-widest mb-4">Total Impact</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <p className="text-2xl font-black text-white leading-none">1,284</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Found Items</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-2xl font-black text-orange-400 leading-none">92%</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Return Rate</p>
+              </div>
+            </div>
+            <div className="mt-6 pt-4 border-t border-slate-700/50">
+              <div className="flex items-center justify-between text-[11px] font-bold text-slate-400">
+                <span>Monthly Goal</span>
+                <span className="text-white">85%</span>
+              </div>
+              <div className="w-full bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
+                <div className="bg-teal-500 h-full rounded-full" style={{ width: '85%' }} />
+              </div>
+            </div>
+          </div>
+        </Card>
       )}
     </aside>
   );

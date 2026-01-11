@@ -40,7 +40,7 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ isOpen, onC
     name: '',
     description: '',
     location: '',
-    privacy: 'public'
+    privacy: 'barangay'
   });
 
   useEffect(() => {
@@ -51,7 +51,7 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ isOpen, onC
         name: '',
         description: '',
         location: '',
-        privacy: 'public'
+        privacy: 'barangay'
       });
     }
   }, [isOpen]);
@@ -144,10 +144,10 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ isOpen, onC
                   <span>Private</span>
                 </div>
               </SelectItem>
-              <SelectItem value="government" className="py-3 rounded-lg focus:bg-teal-50 focus:text-teal-700 font-bold">
+              <SelectItem value="barangay" className="py-3 rounded-lg focus:bg-teal-50 focus:text-teal-700 font-bold">
                 <div className="flex items-center gap-2">
                   <ShieldAlert size={16} />
-                  <span>Government</span>
+                  <span>Barangay</span>
                 </div>
               </SelectItem>
             </SelectContent>
@@ -182,7 +182,7 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ isOpen, onC
             <div>
                <p className="text-xs font-bold text-slate-400 mb-1">Privacy Mode</p>
                <div className="flex items-center gap-2 text-slate-700 font-bold">
-                  {formData.privacy === 'public' ? <Globe size={14} /> : <Lock size={14} />}
+                  {formData.privacy === 'barangay' ? <Globe size={14} /> : <Lock size={14} />}
                   <span className="capitalize">{formData.privacy}</span>
                </div>
             </div>

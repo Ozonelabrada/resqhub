@@ -66,3 +66,14 @@ export interface CommunityMember {
   joinedAt: string;
   profilePicture?: string;
 }
+
+export interface JoinRequest {
+  id: number;
+  userId: string;
+  userName: string;
+  userFullName: string;
+  profilePictureUrl?: string;
+  communityId: number;
+  dateCreated: string;
+  status: 'Pending' | 'Approved' | 'Rejected';
+}
