@@ -31,6 +31,7 @@ export interface LostFoundItem {
   commentsCount?: number;
   isReacted?: boolean;
   communityName?: string;
+  isAbusive?: boolean;
   dateCreated: string;
   lastModifiedDate: string;
 }
@@ -43,6 +44,15 @@ export const ReportsService = {
     } catch (error) {
       console.error('Error fetching report detail:', error);
       return null;
+    }
+  },
+
+  async markAsAbusive(id: string | number): Promise<void> {
+    try {
+      await api.put(`/reports/${id}/mark-abusive`, { isAbusive: true });
+    } catch (error) {
+      console.error('Error marking report as abusive:', error);
+      throw error;
     }
   },
 

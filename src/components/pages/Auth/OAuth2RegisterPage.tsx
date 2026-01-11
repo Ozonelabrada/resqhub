@@ -21,7 +21,7 @@ import {
   Globe
 } from 'lucide-react';
 import { AuthService } from '../../../services/authService';
-import { STORAGE_KEYS } from '../../../constants';
+import { STORAGE_KEYS, SITE } from '../../../constants';
 
 const OAuth2RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -210,7 +210,7 @@ const OAuth2RegisterPage: React.FC = () => {
         
         navigate(returnPath, { 
           state: { 
-            message: `Welcome to SHERRA, ${user?.name || googleUserData.name}! Your account has been created successfully.` 
+            message: `Welcome to ${SITE.name}, ${user?.name || googleUserData.name}! Your account has been created successfully.` 
           }
         });
       } else {
@@ -236,7 +236,7 @@ const OAuth2RegisterPage: React.FC = () => {
         <div className="mb-8 text-center">
           <Logo className="mx-auto mb-6" />
           <h1 className="text-3xl font-black text-slate-800 tracking-tight">Complete Your Profile</h1>
-          <p className="text-slate-500 mt-2">Just a few more details to get you started with SHERRA</p>
+          <p className="text-slate-500 mt-2">Just a few more details to get you started with {SITE.name}</p>
         </div>
 
         <Card className="overflow-hidden border-none shadow-2xl shadow-slate-200 rounded-[2.5rem]">
@@ -380,7 +380,7 @@ const OAuth2RegisterPage: React.FC = () => {
 
         <div className="mt-8 text-center">
           <p className="text-slate-400 text-sm">
-            &copy; {new Date().getFullYear()} SHERRA. All rights reserved.
+            &copy; {new Date().getFullYear()} {SITE.name}. All rights reserved.
           </p>
         </div>
       </Container>

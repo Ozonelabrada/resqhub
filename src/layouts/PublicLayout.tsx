@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useFeatureFlags } from '../hooks';
 import { Menubar, Menu, Avatar, Button, Logo } from '../components/ui';
@@ -22,7 +23,7 @@ import {
   LogIn,
   Languages
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { SITE } from '../constants/site';
 
 const PublicLayout = () => {
   const navigate = useNavigate();
@@ -253,7 +254,7 @@ const PublicLayout = () => {
               </div>
               
               <div className="text-sm font-bold text-teal-300">
-                © {new Date().getFullYear()} SHERRA. All rights reserved.
+                © {new Date().getFullYear()} {SITE.name}. All rights reserved.
               </div>
             </div>
           </div>

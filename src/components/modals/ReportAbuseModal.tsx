@@ -16,6 +16,8 @@ import {
   SelectValue,
 } from '@/components/ui';
 import { ShieldAlert, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { ReportAbuseService } from '@/services/reportAbuseService';
 
 interface ReportAbuseModalProps {
   isOpen: boolean;
@@ -30,22 +32,35 @@ const ReportAbuseModal: React.FC<ReportAbuseModalProps> = ({
   targetId, 
   targetType 
 }) => {
+  const { user } = useAuth();
   const [reason, setReason] = useState<string>('');
   const [details, setDetails] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
   const handleSubmit = async () => {
-    if (!reason) return;
+    if (!reason || !user?.id) return;
     
     setIsSubmitting(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      console.log(`Reported ${targetType} ${targetId} for ${reason}: ${details}`);
-      setIsSuccess(true);
+      const payload = {
+        userId: String(user.id),
+        reason,
+        details,
+        status: 'Pending' as const,
+        ...(targetType === 'report' ? { reportId: Number(targetId) } : { commentId: Number(targetId) })
+      };
+
+      const result = await ReportAbuseService.createReportAbuse(payload);
+      
+      if (result.success) {
+        setIsSuccess(true);
+      } else {
+        alert(result.message || 'Failed to submit report. Please try again.');
+      }
     } catch (error) {
       console.error('Failed to submit report:', error);
+      alert('An unexpected error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -105,11 +120,11 @@ const ReportAbuseModal: React.FC<ReportAbuseModalProps> = ({
                 <SelectValue placeholder="What is the problem?" />
               </SelectTrigger>
               <SelectContent className="rounded-xl border-slate-100 shadow-xl p-2 bg-white">
-                <SelectItem value="spam" className="py-3 rounded-lg focus:bg-teal-50 focus:text-teal-700 font-bold">Spam or misleading</SelectItem>
-                <SelectItem value="harassment" className="py-3 rounded-lg focus:bg-teal-50 focus:text-teal-700 font-bold">Harassment or hate speech</SelectItem>
-                <SelectItem value="inappropriate" className="py-3 rounded-lg focus:bg-teal-50 focus:text-teal-700 font-bold">Inappropriate content</SelectItem>
-                <SelectItem value="scam" className="py-3 rounded-lg focus:bg-teal-50 focus:text-teal-700 font-bold">Scam or fraud</SelectItem>
-                <SelectItem value="other" className="py-3 rounded-lg focus:bg-teal-50 focus:text-teal-700 font-bold">Something else</SelectItem>
+                <SelectItem value="Spam" className="py-3 rounded-lg focus:bg-teal-50 focus:text-teal-700 font-bold">Spam or misleading</SelectItem>
+                <SelectItem value="Harassment" className="py-3 rounded-lg focus:bg-teal-50 focus:text-teal-700 font-bold">Harassment or hate speech</SelectItem>
+                <SelectItem value="Inappropriate" className="py-3 rounded-lg focus:bg-teal-50 focus:text-teal-700 font-bold">Inappropriate content</SelectItem>
+                <SelectItem value="Misleading" className="py-3 rounded-lg focus:bg-teal-50 focus:text-teal-700 font-bold">Misleading information</SelectItem>
+                <SelectItem value="Other" className="py-3 rounded-lg focus:bg-teal-50 focus:text-teal-700 font-bold">Something else</SelectItem>
               </SelectContent>
             </Select>
           </div>

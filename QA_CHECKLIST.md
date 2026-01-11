@@ -1,4 +1,4 @@
-# QA Checklist & Acceptance Criteria - SHERRA Frontend
+# QA Checklist & Acceptance Criteria - FindrHub Frontend
 
 Use this checklist to verify that the frontend integration with the backend is successful.
 

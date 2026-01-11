@@ -1,6 +1,6 @@
-# SHERRA Authentication System
+# FindrHub Authentication System
 
-A comprehensive, secure, and user-friendly authentication system for SHERRA built with React, TypeScript, and modern security practices.
+A comprehensive, secure, and user-friendly authentication system for FindrHub built with React, TypeScript, and modern security practices.
 
 ## Features
 
@@ -396,7 +396,7 @@ describe("Authentication", () => {
 Enable debug logging:
 
 ```typescript
-localStorage.setItem("sherra_debug", "true");
+localStorage.setItem("findrhub_debug", "true");
 ```
 
 This enables detailed logging for:
@@ -418,4 +418,4 @@ When contributing to the authentication system:
 
 ## License
 
-This authentication system is part of the SHERRA project.
+This authentication system is part of the FindrHub project.

@@ -15,6 +15,7 @@ import {
   CheckCircle2 
 } from 'lucide-react';
 import { authManager } from '../../../utils/sessionManager';
+import { SITE } from '@/constants/site';
 
 const AuthCallbackPage: React.FC = () => {
   const navigate = useNavigate();
@@ -114,7 +115,7 @@ const AuthCallbackPage: React.FC = () => {
             navigate(returnPath, { 
               replace: true,
               state: { 
-                message: userName ? `Welcome back, ${userName}!` : 'Welcome back to SHERRA!' 
+                message: userName ? `Welcome back, ${userName}!` : `Welcome back to ${SITE.name}!` 
               } 
             });
           }, 1500);
@@ -169,7 +170,7 @@ const AuthCallbackPage: React.FC = () => {
               </div>
               <div className="space-y-2">
                 <h2 className="text-2xl font-black text-slate-800">Success!</h2>
-                <p className="text-slate-500">Welcome back to SHERRA. Redirecting you now...</p>
+                <p className="text-slate-500">Welcome back to {SITE.name}. Redirecting you now...</p>
               </div>
             </div>
           )}

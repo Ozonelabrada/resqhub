@@ -27,6 +27,7 @@ import {
   Flag
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { formatDistanceToNow } from '@/utils/formatter';
 import ReportAbuseModal from '../../modals/ReportAbuseModal';
 
 interface CommentSectionProps {
@@ -65,18 +66,20 @@ const CommentSection: React.FC<CommentSectionProps> = ({ itemId, itemType, itemO
     try {
       const pageSize = 10;
       const { comments: data, totalCount: serverTotal } = await CommentsService.getComments(itemId, pageNum, pageSize);
-      
-      let newComments;
       if (isLoadMore) {
-        newComments = [...comments, ...data];
-        setComments(newComments);
+        setComments((prev) => {
+          const existingIds = new Set(prev.map((c) => c.id));
+          const newItems = data.filter((d) => !existingIds.has(d.id));
+          const merged = [...prev, ...newItems];
+          setHasMore(merged.length < serverTotal);
+          return merged;
+        });
       } else {
-        newComments = data;
         setComments(data);
+        setHasMore(data.length < serverTotal);
       }
-      
+
       setTotalCount(serverTotal);
-      setHasMore(newComments.length < serverTotal);
       setPage(pageNum);
     } catch (err: any) {
       setError('Failed to load comments. Please try again later.');
@@ -456,6 +459,9 @@ const RenderComment: React.FC<RenderCommentProps> = ({
   isReply = false
 }) => {
   const menuRef = useRef<any>(null);
+
+  if (comment.isAbusive) return null;
+
   const isOwner = user?.id && String(comment.userId) === String(user.id);
   const isEditing = editingId === comment.id;
 
@@ -497,7 +503,7 @@ const RenderComment: React.FC<RenderCommentProps> = ({
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] text-slate-400 font-bold uppercase">
-                  {new Date(comment.dateCreated).toLocaleDateString()}
+                  {formatDistanceToNow(new Date(comment.dateCreated), { addSuffix: true })}
                 </span>
                 {isAuthenticated && (
                   <>

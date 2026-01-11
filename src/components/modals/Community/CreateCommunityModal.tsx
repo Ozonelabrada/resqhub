@@ -18,6 +18,7 @@ import {
 } from '../../ui';
 import { Users, Globe, Lock, Zap, ArrowRight, CheckCircle2, AlertCircle, ShieldAlert } from 'lucide-react';
 import { CommunityService } from '../../../services/communityService';
+import { SITE } from '@/constants/site';
 import { SubscriptionService, type SubscriptionStatus } from '../../../services/subscriptionService';
 import SubscriptionModal from '../SubscriptionModal';
 
@@ -281,7 +282,7 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ isOpen, onC
               <DialogDescription className="text-slate-500 font-medium pt-1">
                  {step === 'details' 
                    ? t('community.create_description') 
-                   : 'We review all new communities to ensure safety and quality for SHERRA members.'}
+                   : `We review all new communities to ensure safety and quality for ${SITE.name} members.`}
               </DialogDescription>
             </DialogHeader>
           )}

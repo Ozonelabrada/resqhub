@@ -40,14 +40,19 @@ api.interceptors.response.use(
     return response;
   },
   async (error) => {
-    if (error.response?.status === 401 || error.response?.status === 403) {
+    if (error.response?.status === 401) {
       // Token is invalid or expired - logout user
-      console.warn('Authentication error - logging out user');
+      console.warn('Session expired - logging out');
       authManager.logout();
       
       if ((window as any).showToast) {
-        // Use 'warn' severity for 401 errors as requested (orange toast)
         (window as any).showToast('warn', 'Session Expired', 'Please log in again.');
+      }
+    } else if (error.response?.status === 403) {
+      // Forbidden - current user doesn't have permission for this specific endpoint
+      console.error('Permission denied (403)');
+      if ((window as any).showToast) {
+        (window as any).showToast('error', 'Access Denied', 'You do not have permission to perform this action.');
       }
     } else if (error.response) {
       // Other API errors

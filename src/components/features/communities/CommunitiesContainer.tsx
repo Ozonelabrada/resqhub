@@ -85,7 +85,7 @@ export const CommunitiesContainer: React.FC = () => {
             <p className="mt-4 text-slate-500 font-medium">Loading communities...</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 gap-6">
             {filteredCommunities.map((community, idx) => (
               <Card 
                 key={community.id || (community as any)._id || idx}

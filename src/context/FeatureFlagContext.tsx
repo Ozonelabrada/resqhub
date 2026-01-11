@@ -27,12 +27,12 @@ const FeatureFlagContext = createContext<FeatureFlagContextType | undefined>(und
 
 export const FeatureFlagProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [flags, setFlags] = useState<FeatureFlags>(() => {
-    const savedFlags = localStorage.getItem('sherra_feature_flags');
+    const savedFlags = localStorage.getItem('findrhub_feature_flags');
     return savedFlags ? JSON.parse(savedFlags) : DEFAULT_FLAGS;
   });
 
   useEffect(() => {
-    localStorage.setItem('sherra_feature_flags', JSON.stringify(flags));
+    localStorage.setItem('findrhub_feature_flags', JSON.stringify(flags));
   }, [flags]);
 
   // Placeholder for future remote flag fetching

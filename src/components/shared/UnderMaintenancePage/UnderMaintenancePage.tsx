@@ -7,6 +7,7 @@ import {
   Logo,
   ProgressBar 
 } from '../../ui';
+import { SITE } from '../../../constants';
 import { 
   Wrench, 
   Settings, 
@@ -105,7 +106,7 @@ const UnderMaintenancePage: React.FC = () => {
 
           <div className="mt-12 pt-8 border-t border-slate-50 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-300">
             <ShieldCheck className="w-4 h-4" />
-            SHERRA Infrastructure
+            {SITE.name} Infrastructure
           </div>
         </Card>
       </Container>

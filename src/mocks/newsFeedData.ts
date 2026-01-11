@@ -111,7 +111,7 @@ export const mockNewsFeedItems: NewsFeedItem[] = [
   {    id: 'news-1',
     title: 'New Community Safety Guidelines',
     category: 'Safety',
-    location: 'SHERRA City',
+    location: 'FindrHub City',
     currentLocation: '',
     date: '2024-01-16T10:00:00Z',
     time: '10:00 AM',
@@ -143,7 +143,7 @@ export const mockNewsFeedItems: NewsFeedItem[] = [
     potentialMatches: 0,
     user: {
       id: 'system',
-      fullName: 'SHERRA Admin',
+      fullName: 'FindrHub Admin',
       username: 'admin',
       profilePicture: '',
       isVerified: true
@@ -241,7 +241,7 @@ export const mockNewsFeedItems: NewsFeedItem[] = [
     title: 'Found Keys - House and Car',
     category: 'Keys',
     location: 'Union Square, New York',
-    currentLocation: 'SHERRA Office',
+    currentLocation: 'FindrHub Office',
     date: '2024-01-12T16:20:00Z',
     time: '4:20 PM',
     status: 'found',
@@ -253,9 +253,9 @@ export const mockNewsFeedItems: NewsFeedItem[] = [
     condition: 'good',
     handoverPreference: 'pickup',
     contactInfo: {
-      name: 'SHERRA Team',
+      name: 'FindrHub Team',
       phone: '+1-555-0000',
-      email: 'team@sherra.com',
+      email: 'team@findrhub.com',
       preferredContact: 'email'
     },
     reward: {
@@ -265,7 +265,7 @@ export const mockNewsFeedItems: NewsFeedItem[] = [
     images: [
       'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400'
     ],
-    storageLocation: 'SHERRA Office - 123 Main St, NY',
+    storageLocation: 'FindrHub Office - 123 Main St, NY',
     createdAt: '2024-01-12T17:00:00Z',
     updatedAt: '2024-01-12T17:00:00Z',
     expiresAt: '2024-02-12T17:00:00Z',
@@ -274,8 +274,8 @@ export const mockNewsFeedItems: NewsFeedItem[] = [
     potentialMatches: 1,
     user: {
       id: 'user4',
-      fullName: 'SHERRA Team',
-      username: 'sherra',
+      fullName: 'FindrHub Team',
+      username: 'findrhub',
       profilePicture: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=100',
       isVerified: true
     },

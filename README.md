@@ -1,6 +1,6 @@
-# SHERRA - Lost and Found Platform
+# FindrHub - Lost and Found Platform
 
-SHERRA is a React-based platform focused on helping communities reunite lost items with their owners.
+FindrHub is a React-based platform focused on helping communities reunite lost items with their owners.
 
 ## Features
 
@@ -13,11 +13,14 @@ SHERRA is a React-based platform focused on helping communities reunite lost ite
 
 ## Tech Stack
 
-- **Frontend**: React, TypeScript, Vite
-- **UI Components**: PrimeReact, PrimeFlex, PrimeIcons
+- **Frontend**: React 19, TypeScript, Vite 7
+- **Styling**: Tailwind CSS 4
+- **UI Components**: Radix UI
+- **Icons**: Lucide React
 - **API Client**: Axios
 - **State Management**: React Context API
-- **Routing**: React Router DOM
+- **Routing**: React Router DOM 7
+- **Internationalization**: i18next
 
 ## Getting Started
 

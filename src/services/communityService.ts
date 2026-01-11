@@ -78,8 +78,22 @@ export const CommunityService = {
 
   async getCommunityMembers(id: string): Promise<CommunityMember[]> {
     try {
-      const response = await api.get<{ data: CommunityMember[] }>(`/communities/${id}/members`);
+      // response.data.data contains { members: [], page: 1, ... }
+      const response = await api.get<any>(`/communities/${id}/members`);
       const data = response.data?.data;
+      
+      if (data?.members && Array.isArray(data.members)) {
+        // Map API fields (userId, userName) to CommunityMember type (id, username)
+        return data.members.map((m: any) => ({
+          id: m.userId,
+          name: m.userFullName || m.userName,
+          username: m.userName,
+          role: m.role,
+          joinedAt: m.joinedDate,
+          profilePicture: m.profilePictureUrl
+        }));
+      }
+      
       return Array.isArray(data) ? data : [];
     } catch (error) {
       console.error('Error fetching community members:', error);

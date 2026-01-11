@@ -120,7 +120,7 @@ const NewsFeedPage: React.FC = () => {
   const handleOpenProfile = (user: any) => {
     setSelectedUserForPreview({
       ...user,
-      location: 'SHERRA City Central',
+      location: 'FindrHub City Central',
       contactNumber: '+63 912 345 6789',
       joinDate: 'Joined March 2024'
     });

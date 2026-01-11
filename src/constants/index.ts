@@ -18,10 +18,15 @@ export const API_CONSTANTS = {
   DEFAULT_TOAST_LIFE: 5000, // 5 seconds - Default duration for toast notifications
 } as const;
 
+// Application Identity
+export const SITE = {
+  name: 'FindrHub',
+} as const;
+
 // Local Storage Keys
 export const STORAGE_KEYS = {
-  TOKEN: 'sherra_token', // JWT token for authentication
-  USER_DATA: 'sherra_user', // User data for session
+  TOKEN: 'findrhub_token', // JWT token for authentication
+  USER_DATA: 'findrhub_user', // User data for session
   INTENDED_ACTION: 'intendedAction', // Action user was trying to perform before login
   RETURN_PATH: 'returnPath', // Path to redirect to after login
 } as const;

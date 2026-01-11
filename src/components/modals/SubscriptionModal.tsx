@@ -11,6 +11,7 @@ import {
 import { Check, Zap, Shield, Crown, Sparkles } from 'lucide-react';
 import { SubscriptionService, type SubscriptionPlan } from '../../services/subscriptionService';
 import { cn } from '../../lib/utils';
+import { SITE } from '@/constants/site';
 
 interface SubscriptionModalProps {
   isOpen: boolean;
@@ -44,7 +45,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ isOpen, onClose, 
          window.location.href = result.checkoutUrl;
       } else {
         // Simulate local success for demo if no backend URL
-        (window as any).showToast?.('success', 'Subscription Active', 'Welcome to SHERRA Premium!');
+        (window as any).showToast?.('success', 'Subscription Active', `Welcome to ${SITE.name} Premium!`);
         onSuccess?.();
         onClose();
       }
@@ -67,7 +68,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ isOpen, onClose, 
                     </div>
                     <h2 className="text-3xl font-black mb-4 leading-tight">Elevate Your Presence</h2>
                     <p className="text-slate-400 font-medium leading-relaxed">
-                        Join the elite tier of SHERRA communities. Unlock tools designed for scale, engagement, and safety.
+                        Join the elite tier of {SITE.name} communities. Unlock tools designed for scale, engagement, and safety.
                     </p>
 
                     <div className="mt-10 space-y-6">

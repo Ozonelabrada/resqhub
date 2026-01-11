@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
+import { SITE } from '../../../constants/site';
 
 const LeftSideBarPage: React.FC = () => {
   const navigate = useNavigate();
@@ -149,7 +150,7 @@ const LeftSideBarPage: React.FC = () => {
           <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full animate-pulse" />
         </div>
         <div>
-          <h4 className="text-xl font-black tracking-tighter text-slate-800">SHERRA</h4>
+          <h4 className="text-xl font-black tracking-tighter text-slate-800">{SITE.name}</h4>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Community About</p>
         </div>
       </div>

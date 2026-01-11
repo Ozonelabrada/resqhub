@@ -8,11 +8,12 @@ import {
   Calendar, 
   Heart, 
   TrendingUp,
-  AlertCircle
+  AlertCircle,
+  ShieldAlert
 } from 'lucide-react';
 import { Button, Card, Avatar, Spinner } from '@/components/ui';
 import { useAuth } from '@/context/AuthContext';
-import { CommunitySettingsModal, CreateReportModal } from '@/components/modals';
+import { CommunitySettingsModal, CreateReportModal, ModerationOverviewModal } from '@/components/modals';
 import { cn } from '@/lib/utils';
 import { useCommunityDetail } from '@/hooks/useCommunities';
 import { CommunityChat } from '@/components/features/messages/CommunityChat';
@@ -45,6 +46,7 @@ const CommunityPage: React.FC = () => {
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isModerationOpen, setIsModerationOpen] = useState(false);
 
   const safeMembers = Array.isArray(members) ? members : [];
   const isMember = community?.isMember || false;
@@ -108,8 +110,8 @@ const CommunityPage: React.FC = () => {
             <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-emerald-500 rounded-full -ml-48 -mb-48 blur-[100px]"></div>
           </div>
           
-          {/* Banner content - Center Constrained */}
-          <div className="h-full max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 flex items-end pb-12 md:pb-16">
+          {/* Banner content - Full Width Content */}
+          <div className="h-full w-full px-4 md:px-6 lg:px-8 flex items-end pb-12 md:pb-16">
             <div className="flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-10 w-full relative z-10">
               {/* Profile Avatar / Logo - Overlapping Banner */}
               <div className="w-32 h-32 md:w-48 md:h-48 rounded-[2.5rem] md:rounded-[4rem] bg-white p-2 shadow-2xl z-20 -mb-20 md:-mb-28 border-4 border-white overflow-hidden flex items-center justify-center transition-transform hover:scale-105 duration-500">
@@ -129,12 +131,21 @@ const CommunityPage: React.FC = () => {
               <div className="mb-4 md:mb-6 flex gap-3">
                 <div className="flex gap-2">
                   {isAdmin && (
-                    <Button 
-                      onClick={() => setIsSettingsOpen(true)}
-                      className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 h-14 w-14 rounded-2xl flex items-center justify-center transition-all"
-                    >
-                      <Settings size={24} />
-                    </Button>
+                    <>
+                      <Button 
+                        onClick={() => setIsModerationOpen(true)}
+                        className="bg-rose-500 hover:bg-rose-600 text-white h-14 w-14 rounded-2xl flex items-center justify-center transition-all shadow-xl shadow-rose-500/20"
+                        title="Moderation"
+                      >
+                        <ShieldAlert size={24} />
+                      </Button>
+                      <Button 
+                        onClick={() => setIsSettingsOpen(true)}
+                        className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 h-14 w-14 rounded-2xl flex items-center justify-center transition-all"
+                      >
+                        <Settings size={24} />
+                      </Button>
+                    </>
                   )}
                   {isMember ? (
                     <div className="flex gap-3">
@@ -178,7 +189,7 @@ const CommunityPage: React.FC = () => {
       </div>
 
       <div className="w-full px-4 md:px-6 lg:px-8 py-6">
-        <main className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-10 gap-8">
+        <main className="w-full grid grid-cols-1 lg:grid-cols-10 gap-8">
         {/* --- LEFT SIDEBAR: SHARED NAVIGATION --- */}
         <NewsFeedSidebar 
             className="order-2 lg:order-1 lg:col-span-2"
@@ -313,6 +324,12 @@ const CommunityPage: React.FC = () => {
         onSuccess={refresh}
         communityId={id}
         initialType={activeTab === 'needs' ? 'Resource' : 'News'}
+      />
+
+      <ModerationOverviewModal 
+        isOpen={isModerationOpen}
+        onClose={() => setIsModerationOpen(false)}
+        communityId={id}
       />
     </div>
   );

@@ -11,6 +11,7 @@ import {
 } from '../../ui';
 import { Mail, Lock, User, UserPlus, ArrowRight, Info, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
+import { SITE } from '@/constants/site';
 
 interface SignUpModalProps {
   isOpen: boolean;
@@ -84,7 +85,7 @@ export const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSuc
           <DialogHeader className="relative z-10 space-y-2 mb-8">
             <DialogTitle className="text-3xl font-black text-slate-900 tracking-tight">Create Account</DialogTitle>
             <DialogDescription className="text-slate-500 font-medium">
-              Join SHERRA to start making a difference in your community.
+              Join {SITE.name} to start making a difference in your community.
             </DialogDescription>
           </DialogHeader>
 
@@ -94,7 +95,7 @@ export const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSuc
                 <CheckCircle2 size={40} />
               </div>
               <h3 className="text-xl font-bold text-slate-900">Registration Successful!</h3>
-              <p className="text-slate-500">Welcome to SHERRA. You can now log in to your account.</p>
+              <p className="text-slate-500">Welcome to {SITE.name}. You can now log in to your account.</p>
               <div className="pt-4 flex items-center gap-2 text-teal-600 font-bold">
                 <Info size={16} />
                 Redirecting to login...
@@ -197,7 +198,7 @@ export const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSuc
                   className="w-full h-12 rounded-xl bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-100 font-bold transition-all"
                 >
                   <UserPlus className="w-5 h-5 mr-2" />
-                  Create SHERRA Account
+                  Create {SITE.name} Account
                   <ArrowRight className="w-4 h-4 ml-auto" />
                 </Button>
 

@@ -8,7 +8,7 @@
     "theme": "Theme",
     "save": "Save Changes",
     "search": "Search lost items...",
-    "news_feed": "SHERRA Hub",
+    "news_feed": "FindrHub Hub",
     "my_reports": "My Reports",
     "saved_items": "Saved Items",
     "safety_center": "Safety Center",
@@ -45,7 +45,7 @@
     "help_support": "Help & Support"
   },
   "hub": {
-    "title": "SHERRA Hub",
+    "title": "FindrHub Hub",
     "news": "News",
     "discussion": "Discussion",
     "announcements": "Announcements",
@@ -54,7 +54,7 @@
     "success_announcement": "Announcement published successfully"
   },
   "settings": {
-    "language_description": "Choose your preferred language for the SHERRA interface.",
+    "language_description": "Choose your preferred language for the FindrHub interface.",
     "select_language": "Select Language",
     "coming_soon": "Coming Soon",
     "theme_description": "System theme switching (Dark/Light mode) will be available in the next community update."
@@ -126,7 +126,7 @@
       "title_part1": "Ready to Help Your",
       "title_part2": "Community?",
       "subtitle": "Join thousands of people helping reunite lost items with their owners. Every report counts and makes a difference in someone's life.",
-      "button": "Join SHERRA Today",
+      "button": "Join FindrHub Today",
       "feature_1": "Secure Platform",
       "feature_2": "10k+ Members",
       "feature_3": "Free Forever"

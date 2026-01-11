@@ -47,7 +47,7 @@
     "help_support": "Tulong at Suporta"
   },
   "settings": {
-    "language_description": "Piliin ang iyong gustong wika para sa interface ng SHERRA.",
+    "language_description": "Piliin ang iyong gustong wika para sa interface ng FindrHub.",
     "select_language": "Pumili ng Wika",
     "coming_soon": "Malapit Na",
     "theme_description": "Ang pagpapalit ng tema ng system (Dark/Light mode) ay magiging available sa susunod na update ng komunidad."
@@ -118,7 +118,7 @@
       "title_part1": "Handa ka na bang Tumulong",
       "title_part2": "sa Iyong Komunidad?",
       "subtitle": "Sumali sa libo-libong tao na tumutulong na maibalik ang mga nawalang gamit sa kanilang mga may-ari. Mahalaga ang bawat ulat.",
-      "button": "Sumali sa SHERRA Ngayon",
+      "button": "Sumali sa FindrHub Ngayon",
       "feature_1": "Ligtas na Platform",
       "feature_2": "10k+ na Miyembro",
       "feature_3": "Libre Magpakailanman"

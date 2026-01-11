@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { CommunityService } from '../services/communityService';
 import type { Community, CommunityPost, CommunityMember } from '../types/community';
+import { useAuth } from '../context/AuthContext';
 
 export const useCommunities = () => {
   const [communities, setCommunities] = useState<Community[]>([]);
@@ -27,6 +28,7 @@ export const useCommunities = () => {
 };
 
 export const useCommunityDetail = (id: string | undefined) => {
+  const { user } = useAuth();
   const [community, setCommunity] = useState<Community | null>(null);
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [members, setMembers] = useState<CommunityMember[]>([]);
@@ -42,7 +44,22 @@ export const useCommunityDetail = (id: string | undefined) => {
         CommunityService.getCommunityPosts(id),
         CommunityService.getCommunityMembers ? CommunityService.getCommunityMembers(id) : Promise.resolve([])
       ]);
-      setCommunity(communityData);
+
+      // Calculate isAdmin if not provided by backend community object
+      let updatedCommunity = communityData;
+      if (updatedCommunity && user) {
+        const currentUserMember = membersData.find((m: CommunityMember) => String(m.id) === String(user.id));
+        const isAdmin = currentUserMember?.role === 'admin' || updatedCommunity.isAdmin;
+        const isMember = !!currentUserMember || updatedCommunity.isMember;
+        
+        updatedCommunity = {
+          ...updatedCommunity,
+          isAdmin,
+          isMember
+        };
+      }
+
+      setCommunity(updatedCommunity);
       setPosts(Array.isArray(postsData) ? postsData : []);
       setMembers(Array.isArray(membersData) ? membersData : []);
     } catch (err) {
@@ -52,7 +69,7 @@ export const useCommunityDetail = (id: string | undefined) => {
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, user]);
 
   useEffect(() => {
     fetchDetail();

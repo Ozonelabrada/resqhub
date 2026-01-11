@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from "@/lib/utils";
+import { SITE } from '@/constants/site';
 
 interface CommunityProfileModalProps {
   isOpen: boolean;
@@ -97,11 +98,11 @@ export const CommunityProfileModal: React.FC<CommunityProfileModalProps> = ({ is
            <div className="space-y-4 mb-10">
               <h3 className="text-xs font-black text-slate-900 uppercase tracking-[0.2em]">{t('community.about') || "About this Community"}</h3>
               <p className="text-slate-600 font-medium leading-relaxed">
-                 {community.description || "A localized community dedicated to helping neighbors reunite with their lost belongings. We prioritize safety and swift communication across SHERRA districts."}
+                 {community.description || `A localized community dedicated to helping neighbors reunite with their lost belongings. We prioritize safety and swift communication across ${SITE.name} districts.`}
               </p>
               <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
                  <MapPin size={16} className="text-orange-500" />
-                 {community.location || "SHERRA City Metro"}
+                 {community.location || `FindrHub City Metro`}
               </div>
            </div>
 

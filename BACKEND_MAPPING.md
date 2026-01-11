@@ -1,4 +1,4 @@
-# Backend API Mapping - SHERRA Frontend
+# Backend API Mapping - FindrHub Frontend
 
 This document maps the Frontend features to the Backend endpoints as defined in the Postman Collection.
 

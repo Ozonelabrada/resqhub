@@ -47,7 +47,7 @@
     "help_support": "Tabang ug Suporta"
   },
   "settings": {
-    "language_description": "Pilia ang imong gusto nga pinulongan alang sa SHERRA interface.",
+    "language_description": "Pilia ang imong gusto nga pinulongan alang sa FindrHub interface.",
     "select_language": "Pagpili og Pinulongan",
     "coming_soon": "Hapit Na",
     "theme_description": "Ang pagbalhin sa tema sa sistema (Dark/Light mode) mahimong magamit sa sunod nga update sa komunidad."
@@ -118,7 +118,7 @@
       "title_part1": "Andam na ba ka Motabang",
       "title_part2": "sa Imong Komunidad?",
       "subtitle": "Apil sa liboan ka mga tawo nga nagtabang sa pagbalik sa mga nawala nga mga butang ngadto sa ilang mga tag-iya. Ang matag report importante.",
-      "button": "Apil na sa SHERRA Karon",
+      "button": "Apil na sa FindrHub Karon",
       "feature_1": "Luwas nga Plataporma",
       "feature_2": "10k+ ka mga Miyembro",
       "feature_3": "Libre sa Kanunay"

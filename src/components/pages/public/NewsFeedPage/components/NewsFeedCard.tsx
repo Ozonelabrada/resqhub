@@ -41,6 +41,9 @@ interface NewsFeedCardProps {
 const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCommunityClick }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+
+  if ((item as any).isAbusive) return null;
+
   const { isAuthenticated, user, openLoginModal } = useAuth();
   const menuRef = React.useRef<MenuRef>(null);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);

@@ -15,6 +15,7 @@ import { UserPlus, Mail, X, Search, Check } from 'lucide-react';
 import { UserService, type BackendUserData } from '../../../services/userService';
 import { CommunityService } from '../../../services/communityService';
 import { cn } from '@/lib/utils';
+import { SITE } from '@/constants/site';
 
 interface InviteModalProps {
   isOpen: boolean;
@@ -83,7 +84,7 @@ const InviteModal: React.FC<InviteModalProps> = ({ isOpen, onClose, communityNam
           </div>
           <DialogTitle className="text-2xl font-black text-slate-900">Invite Members</DialogTitle>
           <DialogDescription className="text-slate-500 font-medium">
-            Search for people in SHERRA to join {communityName}.
+            Search for people in {SITE.name} to join {communityName}.
           </DialogDescription>
         </DialogHeader>
 

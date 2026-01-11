@@ -3,7 +3,7 @@ import { CommunitiesContainer } from '@/components/features/communities/Communit
 
 const CommunitiesPage: React.FC = () => {
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl animate-in fade-in duration-700">
+    <div className="w-full px-4 md:px-6 lg:px-8 py-8 animate-in fade-in duration-700">
       <div className="mb-12">
         <h1 className="text-4xl font-black text-slate-900 tracking-tight mb-2">
           Discover Communities

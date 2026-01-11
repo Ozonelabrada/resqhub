@@ -18,6 +18,7 @@ export interface Comment {
   lastModifiedDate: string;
   reactionsCount?: number;
   isReacted?: boolean;
+  isAbusive?: boolean;
 }
 
 export interface PaginatedCommentsData {
@@ -105,7 +106,14 @@ export const CommentsService = {
       throw error;
     }
   },
-
+  async markAsAbusive(commentId: number | string): Promise<void> {
+    try {
+      await api.put(`/report-comments/${commentId}/mark-abusive`, { isAbusive: true });
+    } catch (error) {
+      console.error('Error marking comment as abusive:', error);
+      throw error;
+    }
+  },
   async deleteComment(commentId: number): Promise<void> {
     try {
       await api.delete(`/report-comments/${commentId}`);

@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { CommunityService } from '../../../services/communityService';
 import type { Community } from '@/types/community';
+import { SITE } from '@/constants/site';
 
 const CommunityManagementPage: React.FC = () => {
   const [pending, setPending] = useState<Community[]>([]);
@@ -63,7 +64,7 @@ const CommunityManagementPage: React.FC = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                     <h1 className="text-4xl font-black text-slate-900 mb-2">Community Oversight</h1>
-                    <p className="text-slate-500 font-medium">Review and manage community creation requests from SHERRA members.</p>
+                    <p className="text-slate-500 font-medium">Review and manage community creation requests from {SITE.name} members.</p>
                 </div>
                 <div className="flex items-center gap-4">
                     <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
