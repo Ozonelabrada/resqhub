@@ -62,10 +62,15 @@ export const searchLocations = async (query: string): Promise<LocationSuggestion
     
     try {
         const response = await fetch(
-            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`
+            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1&countrycodes=ph`
         );
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
-        return data as LocationSuggestion[];
+        return Array.isArray(data) ? data : [];
     } catch (error) {
         console.error('Location search failed:', error);
         return [];

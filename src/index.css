@@ -72,6 +72,31 @@
     --input: hsl(214.3 31.8% 91.4%);
     --ring: hsl(173 80% 36%);
     --radius: 1rem; /* More rounded for "friendly" feel */
+    --base-font-size: 16px;
+  }
+
+  html {
+    font-size: var(--base-font-size);
+  }
+
+  html.font-size-xs {
+    --base-font-size: 12px;
+  }
+
+  html.font-size-small {
+    --base-font-size: 14px;
+  }
+
+  html.font-size-medium {
+    --base-font-size: 16px;
+  }
+
+  html.font-size-large {
+    --base-font-size: 18px;
+  }
+
+  html.font-size-xl {
+    --base-font-size: 20px;
   }
 
   .dark {

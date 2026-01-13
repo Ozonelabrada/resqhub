@@ -41,22 +41,6 @@ export const ReportsList: React.FC<ReportsListProps> = ({
 
   return (
     <Card className="h-full border-none shadow-xl rounded-3xl overflow-hidden flex flex-col">
-      <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10">
-        <div>
-          <h3 className="text-xl font-black text-slate-900">My Reports</h3>
-          <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mt-1">Manage your submissions</p>
-        </div>
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={onCreateReport}
-          className="rounded-xl shadow-md shadow-teal-100 flex items-center gap-2"
-        >
-          <Plus size={16} />
-          <span className="hidden sm:inline">Create New</span>
-        </Button>
-      </div>
-
       <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar"

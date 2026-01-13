@@ -2,12 +2,13 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { ConversationList } from './ConversationList';
 import { ChatWindow } from './ChatWindow';
 import { NewMessageModal } from './NewMessageModal';
-import { DirectChatModal } from './DirectChatModal'; // Added Import
+import { DirectChatModal } from './DirectChatModal'; 
 import { Card, Spinner } from '../../ui';
 import { useMessages } from '../../../hooks/useMessages';
-import { Plus } from 'lucide-react';
+import { Plus, LogIn } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { UserService } from '@/services/userService';
+import { useAuth } from '@/context/AuthContext';
 import type { BackendUserData } from '@/services/userService';
 
 interface MessagesContainerProps {
@@ -15,9 +16,10 @@ interface MessagesContainerProps {
 }
 
 export const MessagesContainer: React.FC<MessagesContainerProps> = ({ initialConversationId }) => {
+  const { isAuthenticated, openLoginModal, user: authUser } = useAuth();
   const [activeConversationId, setActiveConversationId] = useState<string | null>(initialConversationId || null);
   const [isNewMessageModalOpen, setIsNewMessageModalOpen] = useState(false);
-  const [selectedUserForDirectChat, setSelectedUserForDirectChat] = useState<BackendUserData | null>(null); // New State
+  const [selectedUserForDirectChat, setSelectedUserForDirectChat] = useState<BackendUserData | null>(null); 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchedUsers, setSearchedUsers] = useState<BackendUserData[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -28,12 +30,20 @@ export const MessagesContainer: React.FC<MessagesContainerProps> = ({ initialCon
     loading, 
     sendMessage, 
     markMessageRead,
+    markAllAsRead,
     markMessageUnread,
     deleteMessage,
     loadMore,
     hasMore,
     refreshConversations 
   } = useMessages(activeConversationId);
+
+  // Re-fetch conversations when auth state changes
+  useEffect(() => {
+    if (isAuthenticated) {
+      refreshConversations();
+    }
+  }, [isAuthenticated, refreshConversations]);
 
   // Global search effect
   useEffect(() => {
@@ -60,17 +70,15 @@ export const MessagesContainer: React.FC<MessagesContainerProps> = ({ initialCon
   useEffect(() => {
     const key = `direct-${activeConversationId}`;
     if (activeConversationId && messages[key]) {
-      const activeMsgs = messages[key];
-      // Find the last message that is unread and not from me
-      const lastUnread = activeMsgs
-        .filter(m => m.status === 'sent' && m.senderId !== 'me')
-        .pop();
+      const unreadIds = messages[key]
+        .filter(m => !m.isRead && String(m.senderId) !== String(authUser?.id))
+        .map(m => m.id);
         
-      if (lastUnread) {
-        markMessageRead(lastUnread.id);
+      if (unreadIds.length > 0) {
+        markAllAsRead(unreadIds);
       }
     }
-  }, [activeConversationId, messages, markMessageRead]);
+  }, [activeConversationId, messages, markAllAsRead, authUser?.id]);
 
   useEffect(() => {
     if (initialConversationId) {
@@ -83,13 +91,16 @@ export const MessagesContainer: React.FC<MessagesContainerProps> = ({ initialCon
   };
 
   const handleSendMessage = async (text: string) => {
+    if (!isAuthenticated) {
+      openLoginModal();
+      return;
+    }
     // If we have an active conversation, use the recipient from that
     if (activeConversationId) {
       const conversation = conversations.find(c => c.id === activeConversationId);
-      if (conversation) {
-        await sendMessage(conversation.user.id, text);
-        return;
-      }
+      const recipientId = conversation?.user.id || activeConversationId;
+      await sendMessage(recipientId, text);
+      return;
     }
     console.warn('Attempted to send message without an active recipient');
   };
@@ -103,12 +114,15 @@ export const MessagesContainer: React.FC<MessagesContainerProps> = ({ initialCon
   };
 
   const handleSelectNewUser = async (user: BackendUserData) => {
+    if (!isAuthenticated) {
+      openLoginModal();
+      return;
+    }
     // Check if conversation already exists in our sidebar
-    const existingConv = conversations.find(c => c.user.id === user.id);
+    const existingConv = conversations.find(c => c.id === user.id);
     if (existingConv) {
       setActiveConversationId(existingConv.id);
     } else {
-      // REQUIREMENT: On click, open chat box (Shadcn Dialog) showing all chats with that user—do not auto-send.
       setSelectedUserForDirectChat(user);
     }
   };
@@ -121,6 +135,24 @@ export const MessagesContainer: React.FC<MessagesContainerProps> = ({ initialCon
       c.lastMessage.toLowerCase().includes(lowerQuery)
     );
   }, [conversations, searchQuery]);
+
+  if (!isAuthenticated) {
+    return (
+      <Card className="flex h-[calc(100vh-140px)] flex-col items-center justify-center border-none shadow-xl rounded-[2.5rem] bg-white p-8 text-center">
+        <div className="w-24 h-24 bg-teal-50 rounded-full flex items-center justify-center mb-6">
+          <LogIn className="w-10 h-10 text-teal-600" />
+        </div>
+        <h3 className="text-2xl font-black text-slate-900 mb-2">Login Required</h3>
+        <p className="text-slate-500 max-w-xs mb-8 font-medium">Please sign in to your account to view your messages and coordinate with others.</p>
+        <Button 
+          onClick={openLoginModal}
+          className="bg-teal-600 hover:bg-teal-700 text-white rounded-2xl px-8 h-12 font-bold shadow-lg shadow-teal-100"
+        >
+          Sign In Now
+        </Button>
+      </Card>
+    );
+  }
 
   const safeConversations = Array.isArray(filteredConversations) ? filteredConversations : [];
   const activeConversation = conversations.find(c => c.id === activeConversationId) || null;

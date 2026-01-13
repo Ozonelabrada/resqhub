@@ -24,6 +24,7 @@ import {
 import { CommunityService } from '../../../services/communityService';
 import type { Community } from '@/types/community';
 import { SITE } from '@/constants/site';
+import { formatCurrencyPHP } from '@/utils/formatter';
 
 const CommunityManagementPage: React.FC = () => {
   const [pending, setPending] = useState<Community[]>([]);
@@ -91,7 +92,7 @@ const CommunityManagementPage: React.FC = () => {
                         </div>
                         <div>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Earnings</p>
-                            <p className="text-lg font-black text-slate-800">$1,420</p>
+                            <p className="text-lg font-black text-slate-800">{formatCurrencyPHP(1420)}</p>
                         </div>
                     </div>
                 </div>

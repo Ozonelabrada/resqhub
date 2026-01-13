@@ -90,7 +90,8 @@ export const CommunityService = {
           username: m.userName,
           role: m.role,
           joinedAt: m.joinedDate,
-          profilePicture: m.profilePictureUrl
+          profilePicture: m.profilePictureUrl,
+          isSeller: m.isSeller
         }));
       }
       

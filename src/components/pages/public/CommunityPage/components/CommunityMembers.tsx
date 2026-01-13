@@ -14,7 +14,8 @@ import {
   Check,
   X,
   MessageCircle,
-  Loader2
+  Loader2,
+  ShoppingBag
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { CommunityMember, JoinRequest } from '@/types/community';
@@ -42,7 +43,7 @@ export const CommunityMembers: React.FC<CommunityMembersProps> = ({
 }) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'moderator' | 'member'>('all');
+  const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'moderator' | 'member' | 'seller'>('all');
   const [activeSubTab, setActiveSubTab] = useState<'members' | 'requests'>('members');
   const [processingId, setProcessingId] = useState<number | null>(null);
 
@@ -51,6 +52,11 @@ export const CommunityMembers: React.FC<CommunityMembersProps> = ({
   const filteredMembers = members.filter(member => {
     const matchesSearch = member.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          member.username.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    if (roleFilter === 'seller') {
+      return matchesSearch && member.isSeller;
+    }
+    
     const matchesRole = roleFilter === 'all' || member.role === roleFilter;
     return matchesSearch && matchesRole;
   });
@@ -107,6 +113,7 @@ export const CommunityMembers: React.FC<CommunityMembersProps> = ({
 
   const admins = members.filter(m => m.role === 'admin');
   const moderators = members.filter(m => m.role === 'moderator');
+  const sellers = members.filter(m => m.isSeller);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -126,6 +133,12 @@ export const CommunityMembers: React.FC<CommunityMembersProps> = ({
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Members</p>
               <p className="text-xl font-black text-slate-900">{members.length}</p>
             </div>
+            {sellers.length > 0 && (
+              <div className="text-center px-6 py-3 bg-teal-50 rounded-2xl border border-teal-100">
+                <p className="text-[10px] font-black text-teal-600 uppercase tracking-widest mb-1">Sellers</p>
+                <p className="text-xl font-black text-teal-700">{sellers.length}</p>
+              </div>
+            )}
             {isPrivileged && pendingRequests.length > 0 && (
               <div className="text-center px-6 py-3 bg-rose-50 rounded-2xl border border-rose-100">
                 <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-1">Pending</p>
@@ -175,18 +188,19 @@ export const CommunityMembers: React.FC<CommunityMembersProps> = ({
           {/* Constraints & Filters */}
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar w-full md:w-auto pb-2 md:pb-0">
-              {(['all', 'admin', 'moderator', 'member'] as const).map(role => (
+              {(['all', 'admin', 'moderator', 'member', 'seller'] as const).map(role => (
                 <button
                   key={role}
                   onClick={() => setRoleFilter(role)}
                   className={cn(
-                    "px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border",
+                    "px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border flex items-center gap-2",
                     roleFilter === role 
                       ? "bg-slate-900 text-white border-slate-900 shadow-md" 
                       : "bg-white text-slate-500 hover:bg-slate-50 border-slate-100 shadow-sm"
                   )}
                 >
-                  {role === 'all' ? 'Everyone' : role + 's'}
+                  {role === 'seller' && <ShoppingBag size={12} />}
+                  {role === 'all' ? 'Everyone' : role === 'seller' ? 'Sellers' : role + 's'}
                 </button>
               ))}
             </div>
@@ -207,10 +221,15 @@ export const CommunityMembers: React.FC<CommunityMembersProps> = ({
             {filteredMembers.map((member) => (
               <Card key={member.id} className="group p-6 rounded-[2.5rem] bg-white border-none shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300 relative border border-transparent hover:border-teal-50">
                 <div className={cn(
-                   "absolute top-6 right-6 p-1.5 rounded-lg",
+                   "absolute top-6 right-6 p-1.5 rounded-lg flex items-center gap-2",
                    member.role === 'admin' ? "bg-rose-50 text-rose-600" : 
                    member.role === 'moderator' ? "bg-amber-50 text-amber-600" : "bg-slate-50 text-slate-400"
                 )}>
+                   {member.isSeller && (
+                     <div title="Verified Seller" className="w-5 h-5 rounded-md bg-teal-500 text-white flex items-center justify-center">
+                       <ShoppingBag size={12} />
+                     </div>
+                   )}
                    {member.role === 'admin' ? <ShieldAlert size={16} /> : 
                     member.role === 'moderator' ? <ShieldCheck size={16} /> : <User size={16} />}
                 </div>

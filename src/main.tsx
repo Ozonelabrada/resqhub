@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { AuthProvider } from './context/AuthContext';
 import { FeatureFlagProvider } from './context/FeatureFlagContext';
+import { UIProvider } from './context/UIContext';
 import { BrowserRouter } from 'react-router-dom';
 import './lib/i18n';
 import './index.css';
@@ -14,7 +15,9 @@ if (rootElement) {
       <BrowserRouter>
         <AuthProvider>
           <FeatureFlagProvider>
-            <App />
+            <UIProvider>
+              <App />
+            </UIProvider>
           </FeatureFlagProvider>
         </AuthProvider>
       </BrowserRouter>

@@ -103,6 +103,16 @@ const PublicLayout = () => {
       command: () => navigate('/profile')
     } : null,
     {
+      label: 'My Watchlist',
+      icon: <Heart className="w-4 h-4 mr-2" />,
+      command: () => navigate('/watchlist')
+    },
+    {
+      label: 'My Activity',
+      icon: <Clock className="w-4 h-4 mr-2" />,
+      command: () => navigate('/activity')
+    },
+    {
       label: t('common.notifications'),
       icon: <Bell className="w-4 h-4 mr-2" />,
       command: () => navigate('/notifications')
@@ -227,51 +237,30 @@ const PublicLayout = () => {
       )}
 
       {/* Main Content */}
-      <main className="flex-1 w-full py-8">
+      <main className="flex-1 w-full pt-4 pb-8">
         <Outlet />
       </main>
 
       {/* Footer */}
-      <footer className="bg-teal-900 text-white border-t border-teal-800 py-16">
+      <footer className="bg-teal-900 text-white border-t border-teal-800 py-8">
           <div className="w-full px-6 md:px-12">
-            <div className="flex flex-col md:flex-row justify-between items-start gap-12">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-8">
               <div className="flex flex-col md:flex-row items-center gap-4">
-                <Logo size="medium" variant="full" light={true} />
-                <div className="h-10 w-px bg-white/20 hidden md:block" />
-                <span className="text-sm text-teal-100 font-medium">Reuniting Communities</span>
+                <Logo size="small" variant="full" light={true} />
+                <div className="h-6 w-px bg-white/20 hidden md:block" />
+                <span className="text-xs text-teal-100 font-medium opacity-80 uppercase tracking-widest hidden lg:block">Reuniting Communities</span>
               </div>
               
-              <div className="flex flex-wrap justify-center md:justify-start gap-12 lg:gap-20">
-                <div className="flex flex-col gap-4">
-                  <h4 className="text-teal-400 text-xs font-bold uppercase tracking-wider">Platform</h4>
-                  <ul className="flex flex-col gap-2 text-sm text-teal-50 font-medium">
-                    <li><Link to="/hub" className="hover:text-orange-400 transition-colors">News Feed</Link></li>
-                    <li><Link to="/communities" className="hover:text-orange-400 transition-colors">Communities</Link></li>
-                    <li><Link to="/about" className="hover:text-orange-400 transition-colors">About FindrHub</Link></li>
-                  </ul>
-                </div>
-                
-                <div className="flex flex-col gap-4">
-                  <h4 className="text-teal-400 text-xs font-bold uppercase tracking-wider">Resources</h4>
-                  <ul className="flex flex-col gap-2 text-sm text-teal-50 font-medium">
-                    <li><Link to="/success-stories" className="hover:text-orange-400 transition-colors">Success Stories</Link></li>
-                    <li><Link to="/safety-tips" className="hover:text-orange-400 transition-colors">Safety Tips</Link></li>
-                    <li><Link to="/activity" className="hover:text-orange-400 transition-colors">Recent Activity</Link></li>
-                  </ul>
-                </div>
-
-                <div className="flex flex-col gap-4">
-                  <h4 className="text-teal-400 text-xs font-bold uppercase tracking-wider">Legal & Support</h4>
-                  <ul className="flex flex-col gap-2 text-sm text-teal-50 font-medium">
-                    <li><Link to="/privacy-policy" className="hover:text-orange-400 transition-colors">Privacy Policy</Link></li>
-                    <li><Link to="/terms-of-service" className="hover:text-orange-400 transition-colors">Terms of Service</Link></li>
-                    <li><Link to="/contact-us" className="hover:text-orange-400 transition-colors">Contact Us</Link></li>
-                  </ul>
-                </div>
+              <div className="flex flex-wrap justify-center md:justify-center gap-6 lg:gap-12">
+                <Link to="/hub" className="text-xs text-teal-100 hover:text-orange-400 font-bold uppercase tracking-wider transition-colors">Hub</Link>
+                <Link to="/communities" className="text-xs text-teal-100 hover:text-orange-400 font-bold uppercase tracking-wider transition-colors">Communities</Link>
+                <Link to="/privacy-policy" className="text-xs text-teal-100 hover:text-orange-400 font-bold uppercase tracking-wider transition-colors">Privacy</Link>
+                <Link to="/terms-of-service" className="text-xs text-teal-100 hover:text-orange-400 font-bold uppercase tracking-wider transition-colors">Terms</Link>
+                <Link to="/contact-us" className="text-xs text-teal-100 hover:text-orange-400 font-bold uppercase tracking-wider transition-colors">Contact</Link>
               </div>
               
-              <div className="text-sm font-bold text-teal-300">
-                © {new Date().getFullYear()} {SITE.name}. All rights reserved.
+              <div className="text-[10px] font-black text-teal-500 uppercase tracking-widest opacity-50">
+                © {new Date().getFullYear()} FindrHub
               </div>
             </div>
           </div>

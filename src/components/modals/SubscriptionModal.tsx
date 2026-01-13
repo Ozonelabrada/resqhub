@@ -12,6 +12,7 @@ import { Check, Zap, Shield, Crown, Sparkles } from 'lucide-react';
 import { SubscriptionService, type SubscriptionPlan } from '../../services/subscriptionService';
 import { cn } from '../../lib/utils';
 import { SITE } from '@/constants/site';
+import { formatCurrencyPHP } from '@/utils/formatter';
 
 interface SubscriptionModalProps {
   isOpen: boolean;
@@ -139,8 +140,8 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ isOpen, onClose, 
                                         <p className="text-xs font-bold text-slate-400 capitalize">{plan.interval}ly billing</p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-2xl font-black text-slate-900">${plan.price}</p>
-                                        <p className="text-[10px] font-black text-slate-400">USD</p>
+                                        <p className="text-2xl font-black text-slate-900">{formatCurrencyPHP(plan.price)}</p>
+                                        <p className="text-[10px] font-black text-slate-400">PHP</p>
                                     </div>
                                 </div>
                                 <div className="space-y-2 mb-6">

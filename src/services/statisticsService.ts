@@ -50,7 +50,7 @@ export class StatisticsService {
       createdAt: new Date().toISOString(),
       successRate: 27.4,
       averageMatchTimeFormatted: '18.5 hours',
-      totalRewardFormatted: '$12,450.00'
+      totalRewardFormatted: '₱622,500.00'
     };
   }
 }

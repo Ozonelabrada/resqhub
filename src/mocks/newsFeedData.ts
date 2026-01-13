@@ -41,7 +41,7 @@ export const mockNewsFeedItems: NewsFeedItem[] = [
     },
     reward: {
       amount: 100,
-      description: 'Will pay $100 reward for safe return'
+      description: 'Will pay ₱5,000 reward for safe return'
     },
     images: [
       'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400',

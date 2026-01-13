@@ -2,7 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { MessagesService } from '../services/messagesService';
 import type { Conversation, Message } from '../components/features/messages/types';
 
-export const useMessages = (activeId: string | number | null, isGroup: boolean = false) => {
+export const useMessages = (
+  activeId: string | number | null, 
+  isGroup: boolean = false,
+  contextCommunityId?: string | number
+) => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Record<string, Message[]>>({});
   const [loading, setLoading] = useState(false);
@@ -12,14 +16,14 @@ export const useMessages = (activeId: string | number | null, isGroup: boolean =
   const fetchConversations = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await MessagesService.getConversations();
+      const data = await MessagesService.getConversations(contextCommunityId);
       setConversations(data);
     } catch (err) {
       setError('Failed to fetch conversations');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [contextCommunityId]);
 
   const fetchMessages = useCallback(async (id: string | number, page: number = 1) => {
     try {
@@ -27,7 +31,7 @@ export const useMessages = (activeId: string | number | null, isGroup: boolean =
       if (isGroup) {
         result = await MessagesService.getCommunityMessages(id, page);
       } else {
-        result = await MessagesService.getDirectMessages(id, page);
+        result = await MessagesService.getDirectMessages(id, page, 20, contextCommunityId);
       }
       
       const { messages: newMessages, totalPages } = result;
@@ -44,7 +48,7 @@ export const useMessages = (activeId: string | number | null, isGroup: boolean =
     } catch (err) {
       console.error('Failed to fetch messages for', id);
     }
-  }, [isGroup]);
+  }, [isGroup, contextCommunityId]);
 
   useEffect(() => {
     fetchConversations();
@@ -56,19 +60,24 @@ export const useMessages = (activeId: string | number | null, isGroup: boolean =
     }
   }, [activeId, fetchMessages]);
 
-  const sendMessage = async (recipientId: string | number, content: string, communityId?: number) => {
+  const sendMessage = useCallback(async (recipientId: string | number, content: string, communityId?: number) => {
     try {
-      const isGroupMessage = !!communityId;
+      // Use provided communityId or fallback to contextCommunityId for direct messages
+      const finalCommunityId = communityId || (isGroup ? activeId : contextCommunityId);
+      const isGroupMsg = isGroup && String(activeId) === String(finalCommunityId) && recipientId === 0;
+
       const payload = {
-        directMessageReceiverId: isGroupMessage ? undefined : recipientId,
-        groupMessageCommunityId: communityId || 0,
+        directMessageReceiverId: isGroupMsg ? undefined : (recipientId || activeId),
+        groupMessageCommunityId: Number(finalCommunityId) || 0,
         content,
-        isGroupMessage
+        isGroupMessage: isGroupMsg
       };
 
       const newMessage = await MessagesService.sendMessage(payload);
       if (newMessage) {
-        const key = `${isGroupMessage ? 'group' : 'direct'}-${communityId || recipientId}`;
+        const key = isGroupMsg 
+          ? `group-${finalCommunityId}` 
+          : `direct-${recipientId || activeId}`;
         
         setMessages(prev => ({
           ...prev,
@@ -82,7 +91,7 @@ export const useMessages = (activeId: string | number | null, isGroup: boolean =
       console.error('Failed to send message:', err);
     }
     return null;
-  };
+  }, [fetchConversations, isGroup, activeId, contextCommunityId]);
 
   const loadMore = useCallback(() => {
     if (!activeId) return;
@@ -93,23 +102,42 @@ export const useMessages = (activeId: string | number | null, isGroup: boolean =
     }
   }, [activeId, isGroup, pagination, fetchMessages]);
 
-  const markMessageRead = async (messageId: string | number) => {
+  const markMessageRead = useCallback(async (messageId: string | number) => {
     const success = await MessagesService.markAsRead(messageId);
     if (success) {
+      // Update local message state to prevent loops
+      if (activeId) {
+        const key = `${isGroup ? 'group' : 'direct'}-${activeId}`;
+        setMessages(prev => ({
+          ...prev,
+          [key]: (prev[key] || []).map(m => 
+            String(m.id) === String(messageId) ? { ...m, isRead: true } : m
+          )
+        }));
+      }
       fetchConversations();
     }
     return success;
-  };
+  }, [activeId, isGroup, fetchConversations]);
 
-  const markMessageUnread = async (messageId: string | number) => {
+  const markMessageUnread = useCallback(async (messageId: string | number) => {
     const success = await MessagesService.markAsUnread(messageId);
     if (success) {
+      if (activeId) {
+        const key = `${isGroup ? 'group' : 'direct'}-${activeId}`;
+        setMessages(prev => ({
+          ...prev,
+          [key]: (prev[key] || []).map(m => 
+            String(m.id) === String(messageId) ? { ...m, isRead: false } : m
+          )
+        }));
+      }
       fetchConversations();
     }
     return success;
-  };
+  }, [activeId, isGroup, fetchConversations]);
 
-  const deleteMessage = async (messageId: string | number) => {
+  const deleteMessage = useCallback(async (messageId: string | number) => {
     const success = await MessagesService.deleteMessage(messageId);
     if (success && activeId) {
       const key = `${isGroup ? 'group' : 'direct'}-${activeId}`;
@@ -120,7 +148,28 @@ export const useMessages = (activeId: string | number | null, isGroup: boolean =
       fetchConversations();
     }
     return success;
-  };
+  }, [activeId, isGroup, fetchConversations]);
+
+  const markAllAsRead = useCallback(async (messageIds: (string | number)[]) => {
+    if (messageIds.length === 0) return;
+    
+    const currentKey = activeId ? `${isGroup ? 'group' : 'direct'}-${activeId}` : null;
+    if (currentKey) {
+      setMessages(prev => ({
+        ...prev,
+        [currentKey]: (prev[currentKey] || []).map(m => 
+          messageIds.some(id => String(id) === String(m.id)) ? { ...m, isRead: true } : m
+        )
+      }));
+    }
+
+    try {
+      await Promise.all(messageIds.map(id => MessagesService.markAsRead(id)));
+      fetchConversations();
+    } catch (err) {
+      console.error('Failed to mark all as read:', err);
+    }
+  }, [activeId, isGroup, fetchConversations]);
 
   const key = activeId ? `${isGroup ? 'group' : 'direct'}-${activeId}` : '';
 
@@ -131,6 +180,7 @@ export const useMessages = (activeId: string | number | null, isGroup: boolean =
     error, 
     sendMessage, 
     markMessageRead,
+    markAllAsRead,
     markMessageUnread,
     deleteMessage,
     loadMore,

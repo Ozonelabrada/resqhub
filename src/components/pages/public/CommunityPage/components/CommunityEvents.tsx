@@ -5,11 +5,8 @@ import {
   MapPin, 
   Users, 
   Clock, 
-  Tag, 
-  ChevronRight,
   Plus,
   ArrowRight,
-  Filter,
   Search,
   ChevronLeft,
   ChevronRight as ChevronRightIcon
@@ -32,6 +29,7 @@ export interface CommunityEvent {
   description: string;
   status: 'Upcoming' | 'Ongoing' | 'Completed';
   dateKey: string; // YYYY-MM-DD
+  communityName?: string;
 }
 
 export const SAMPLE_EVENTS: CommunityEvent[] = [
@@ -46,7 +44,8 @@ export const SAMPLE_EVENTS: CommunityEvent[] = [
     organizer: { name: 'Dr. Sarah Lee', role: 'Health Coordinator' },
     description: 'Learn essential life-saving skills including CPR and basic wound care. Open to all residents.',
     status: 'Upcoming',
-    dateKey: '2026-01-25'
+    dateKey: '2026-01-25',
+    communityName: 'Riverside Homeowners'
   },
   {
     id: '2',
@@ -59,7 +58,8 @@ export const SAMPLE_EVENTS: CommunityEvent[] = [
     organizer: { name: 'Fire Chief Mike', role: 'Security Head' },
     description: 'Annual fire and earthquake response drill. Please register your household for participation credits.',
     status: 'Upcoming',
-    dateKey: '2026-02-05'
+    dateKey: '2026-02-05',
+    communityName: 'Zone 4 Safety Watch'
   },
   {
     id: '3',
@@ -72,12 +72,13 @@ export const SAMPLE_EVENTS: CommunityEvent[] = [
     organizer: { name: 'Maria Santos', role: 'Community Lead' },
     description: 'Bring items you no longer need and swap them with your neighbors. Promoting zero waste!',
     status: 'Ongoing',
-    dateKey: '2026-01-12'
+    dateKey: '2026-01-12',
+    communityName: 'Green Valley Community'
   },
   {
     id: '4',
     title: 'Drainage Cleanup Drive',
-    date: 'Jan 15, 2026',
+    date: 'Jan 13, 2026',
     time: '06:00 AM - 09:00 AM',
     location: 'Riverside Block 2',
     category: 'Volunteer',
@@ -85,17 +86,39 @@ export const SAMPLE_EVENTS: CommunityEvent[] = [
     organizer: { name: 'Community Watch', role: 'Environment' },
     description: 'Help prevent flooding by clearing local drainage systems. Gloves and bags will be provided.',
     status: 'Upcoming',
-    dateKey: '2026-01-15'
+    dateKey: '2026-01-13',
+    communityName: 'Riverside Homeowners'
   }
 ];
 
 export const CommunityEvents: React.FC = () => {
   const [filter, setFilter] = useState('All');
   const [selectedDate, setSelectedDate] = useState('2026-01-12');
+  const [currentMonth, setCurrentMonth] = useState(new Date(2026, 0, 1)); // January 2026
+
   const categories = ['All', 'Workshop', 'Meetup', 'Volunteer', 'Emergency Drill'];
 
+  const getDaysInMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  };
+
+  const nextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+  };
+
+  const prevMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+  };
+
   const getDayData = (day: number) => {
-    const dateStr = `2026-01-${day.toString().padStart(2, '0')}`;
+    const year = currentMonth.getFullYear();
+    const month = (currentMonth.getMonth() + 1).toString().padStart(2, '0');
+    const dayStr = day.toString().padStart(2, '0');
+    const dateStr = `${year}-${month}-${dayStr}`;
     const count = SAMPLE_EVENTS.filter(e => e.dateKey === dateStr).length;
     return { dateStr, count };
   };
@@ -105,6 +128,11 @@ export const CommunityEvents: React.FC = () => {
     const matchesCategory = filter === 'All' || e.category === filter;
     return matchesDate && matchesCategory;
   });
+
+  const monthName = currentMonth.toLocaleString('default', { month: 'long' });
+  const year = currentMonth.getFullYear();
+  const days = getDaysInMonth(currentMonth);
+  const skip = getFirstDayOfMonth(currentMonth);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -138,10 +166,10 @@ export const CommunityEvents: React.FC = () => {
         {/* Calendar Sidebar */}
         <Card className="xl:col-span-4 p-6 border-none shadow-sm rounded-[2.5rem] bg-white h-fit sticky top-6">
           <div className="flex items-center justify-between mb-8">
-            <h3 className="font-black text-slate-900 uppercase tracking-tight">January 2026</h3>
+            <h3 className="font-black text-slate-900 uppercase tracking-tight">{monthName} {year}</h3>
             <div className="flex gap-2">
-              <Button variant="ghost" size="icon" className="w-8 h-8 rounded-lg"><ChevronLeft size={16} /></Button>
-              <Button variant="ghost" size="icon" className="w-8 h-8 rounded-lg"><ChevronRightIcon size={16} /></Button>
+              <Button onClick={prevMonth} variant="ghost" size="icon" className="w-8 h-8 rounded-lg"><ChevronLeft size={16} /></Button>
+              <Button onClick={nextMonth} variant="ghost" size="icon" className="w-8 h-8 rounded-lg"><ChevronRightIcon size={16} /></Button>
             </div>
           </div>
 
@@ -150,7 +178,12 @@ export const CommunityEvents: React.FC = () => {
               <span key={d} className="text-[10px] font-black text-slate-300">{d}</span>
             ))}
             
-            {Array.from({ length: 31 }, (_, i) => i + 1).map(day => {
+            {/* Empty spaces for days before the 1st of the month */}
+            {Array.from({ length: skip }).map((_, i) => (
+              <div key={`skip-${i}`} className="aspect-square" />
+            ))}
+
+            {Array.from({ length: days }, (_, i) => i + 1).map(day => {
               const { dateStr, count } = getDayData(day);
               const isSelected = selectedDate === dateStr;
               

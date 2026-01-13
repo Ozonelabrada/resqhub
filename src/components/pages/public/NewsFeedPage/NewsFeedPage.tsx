@@ -3,9 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Plus, 
   Search,
-  ArrowUp,
-  Filter,
-  X
+  ArrowUp
 } from 'lucide-react';
 import { useNewsFeed } from '@/hooks/useNewsFeed';
 import { useStatistics } from '@/hooks/useStatistics';
@@ -15,12 +13,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
-  Spinner,
-  ShadcnSelect as Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
+  Spinner
 } from '../../../ui';
 import { 
   CreateCommunityModal, 
@@ -82,7 +75,6 @@ const NewsFeedPage: React.FC = () => {
 
   const {
     communities: joinedCommunities,
-    loading: communitiesLoading,
     refresh: refreshCommunities
   } = useCommunities();
 

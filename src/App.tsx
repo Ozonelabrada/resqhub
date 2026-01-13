@@ -17,6 +17,8 @@ const MessagesPage = lazy(() => import('./components/pages/public/MessagesPage/M
 const ItemDetailPage = lazy(() => import('./components/pages/public/ItemDetailPage/ItemDetailPage'));
 const CommunityManagementPage = lazy(() => import('./components/pages/admin/CommunityManagementPage'));
 const SettingsPage = lazy(() => import('./components/pages/public/SettingPage/SettingsPage'));
+const WatchlistPage = lazy(() => import('./components/pages/public/WatchlistPage/WatchlistPage'));
+const ActivityPage = lazy(() => import('./components/pages/public/ActivityPage/ActivityPage'));
 const PrivacyPolicyPage = lazy(() => import('./pages/privacy-policy'));
 const TermsOfServicePage = lazy(() => import('./pages/terms-of-service'));
 const ContactUsPage = lazy(() => import('./pages/contact-us'));
@@ -73,6 +75,8 @@ const AppRouter = () => {
           
           {/* Protected Routes */}
           <Route path="profile" element={<AuthGuard requireAuth={true}><PersonalHubPage /></AuthGuard>} />
+          <Route path="watchlist" element={<Navigate to="/profile?tab=watchlist" replace />} />
+          <Route path="activity" element={<Navigate to="/profile?tab=activity" replace />} />
           <Route path="settings" element={<AuthGuard requireAuth={true}><SettingsPage /></AuthGuard>} />
           <Route path="messages" element={
             isFeatureEnabled('messages') ? (

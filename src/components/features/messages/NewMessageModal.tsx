@@ -20,7 +20,6 @@ import { ScrollArea } from '../../ui/scroll-area';
 import { Spinner } from '../../ui/spinner';
 import { UserService } from '@/services/userService';
 import type { BackendUserData } from '@/services/userService';
-import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { Avatar } from '@/components/ui';
 
@@ -35,7 +34,6 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
   onClose,
   onSelectUser
 }) => {
-  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [users, setUsers] = useState<BackendUserData[]>([]);
   const [isLoading, setIsLoading] = useState(false);

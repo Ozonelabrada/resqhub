@@ -26,6 +26,7 @@ interface ConversationListProps {
   searchedUsers?: BackendUserData[];
   onSelectUser?: (user: BackendUserData) => void;
   isSearching?: boolean;
+  isPersonal?: boolean;
 }
 
 export const ConversationList: React.FC<ConversationListProps> = ({
@@ -37,7 +38,8 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   onNewMessage,
   searchedUsers = [],
   onSelectUser,
-  isSearching = false
+  isSearching = false,
+  isPersonal = true
 }) => {
   return (
     <div className="flex flex-col h-full bg-white border-r border-gray-100">
@@ -124,7 +126,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
           {/* RECENT CONVERSATIONS SECTION */}
           <div className="space-y-2">
             <h6 className="px-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">
-              {searchQuery.length > 0 ? 'Matching Conversations' : 'Recent Chats'}
+              {searchQuery.length > 0 ? 'Matching Conversations' : (isPersonal ? 'Personal Chats' : 'Recent Chats')}
             </h6>
             {conversations.length > 0 ? (
               conversations.map((conv) => (

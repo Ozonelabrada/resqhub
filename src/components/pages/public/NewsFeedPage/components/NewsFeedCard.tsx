@@ -34,6 +34,8 @@ import CommentSection from '@/components/features/comments/CommentSection';
 import ReportAbuseModal from '@/components/modals/ReportAbuseModal';
 import EditReportModal from '@/components/modals/ReportModal/EditReportModal';
 
+import { formatCurrencyPHP } from '@/utils/formatter';
+
 interface NewsFeedCardProps {
   item: NewsFeedItem;
   onProfileClick?: (user: any) => void;
@@ -286,7 +288,7 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
           {item.reward?.amount > 0 && (
             <div className="absolute top-4 right-4 bg-orange-600 text-white px-3 py-1.5 rounded-full text-[10px] font-black shadow-lg flex items-center gap-1.5 border border-orange-500">
               <Award className="w-3.5 h-3.5" />
-              ${item.reward.amount} {t('common.reward')}
+              {formatCurrencyPHP(item.reward.amount)} {t('common.reward')}
             </div>
           )}
         </div>

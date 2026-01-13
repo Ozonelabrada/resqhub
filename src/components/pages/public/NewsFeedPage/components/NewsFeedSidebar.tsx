@@ -4,18 +4,12 @@ import {
   MessageSquare,
   Info,
   ShieldAlert,
-  Heart,
-  Clock,
   ShieldCheck,
   Map,
-  Bell,
-  Settings,
   Megaphone,
   Calendar,
   BookOpen,
   Users,
-  Lock,
-  UserPlus,
   ShoppingBag,
   Search
 } from 'lucide-react';
@@ -203,18 +197,6 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
 
             <Button 
               variant="ghost" 
-              onClick={() => communityNav.onTabChange('chat')}
-              className={cn(
-                "w-full justify-start py-6 rounded-2xl font-bold transition-all border-none group",
-                communityNav.activeTab === 'chat' ? "text-teal-600 bg-teal-50 shadow-sm" : "text-slate-500 hover:bg-gray-50 hover:text-teal-600"
-              )}
-            >
-              <MessageSquare className={cn("w-5 h-5 mr-3", communityNav.activeTab === 'chat' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
-              Live Chat
-            </Button>
-
-            <Button 
-              variant="ghost" 
               onClick={() => communityNav.onTabChange('needs')}
               className={cn(
                 "w-full justify-start py-6 rounded-2xl font-bold transition-all border-none group",
@@ -238,7 +220,7 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
                   )}
                 >
                   <ShoppingBag className={cn("w-5 h-5 mr-3", communityNav.activeTab === 'trade' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
-                  Findr Trade
+                  Trade Market
                 </Button>
 
                 <Button 
@@ -322,36 +304,6 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
               </Badge>
             )}
           </Button>
-        )}
-
-        {!communityNav && isAuthenticated && (
-          <>
-            <h4 className="px-4 text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-2 mt-4">Personal</h4>
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate('/profile')}
-              className="w-full justify-start py-6 rounded-2xl font-bold transition-all border-none text-slate-500 hover:bg-gray-50 hover:text-teal-600 group"
-            >
-              <Clock className="w-5 h-5 mr-3 text-slate-400 group-hover:text-teal-600" />
-              My Activity
-            </Button>
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate('/watchlist')}
-              className="w-full justify-start py-6 rounded-2xl font-bold transition-all border-none text-slate-500 hover:bg-gray-50 hover:text-teal-600 group"
-            >
-              <Heart className="w-5 h-5 mr-3 text-slate-400 group-hover:text-teal-600" />
-              Saved Items
-            </Button>
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate('/settings')}
-              className="w-full justify-start py-6 rounded-2xl font-bold transition-all border-none text-slate-500 hover:bg-gray-50 hover:text-teal-600 group"
-            >
-              <Settings className="w-5 h-5 mr-3 text-slate-400 group-hover:text-teal-600" />
-              Settings
-            </Button>
-          </>
         )}
 
         {!communityNav && (

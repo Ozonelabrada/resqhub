@@ -18,6 +18,23 @@ export interface Community {
   isMember?: boolean;
   isAdmin?: boolean;
   isPrivate?: boolean;
+  // Feature Flags
+  hasLiveChat?: boolean;
+  hasFeedUpdates?: boolean;
+  hasNewsPosts?: boolean;
+  hasAnnouncements?: boolean;
+  hasDiscussionPosts?: boolean;
+  // New Response Features
+  hasIncidentReporting?: boolean;
+  hasEmergencyMap?: boolean;
+  hasBroadcastAlerts?: boolean;
+  // New Resource Features
+  hasMemberDirectory?: boolean;
+  hasSkillMatching?: boolean;
+  hasEquipmentSharing?: boolean;
+  hasNeedsBoard?: boolean;
+  hasTradeMarket?: boolean;
+  hasEvents?: boolean;
 }
 
 export interface CommunityPost {
@@ -65,6 +82,7 @@ export interface CommunityMember {
   role: 'admin' | 'moderator' | 'member';
   joinedAt: string;
   profilePicture?: string;
+  isSeller?: boolean;
 }
 
 export interface JoinRequest {

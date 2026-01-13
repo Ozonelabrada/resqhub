@@ -29,8 +29,10 @@ interface ChatWindowProps {
   onDeleteMessage?: (messageId: string | number) => void;
   onMarkUnread?: (messageId: string | number) => void;
   onBack?: () => void;
+  showBackButtonOnDesktop?: boolean;
   onLoadMore?: () => void;
   hasMore?: boolean;
+  messageAsLabel?: string;
 }
 
 const TypingIndicator = () => (
@@ -48,8 +50,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   onDeleteMessage,
   onMarkUnread,
   onBack,
+  showBackButtonOnDesktop = false,
   onLoadMore,
-  hasMore
+  hasMore,
+  messageAsLabel
 }) => {
   const { user: currentUser } = useAuth();
   const [inputText, setInputText] = useState('');
@@ -104,7 +108,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       <div className="p-4 md:p-6 bg-white/80 backdrop-blur-xl border-b border-gray-100 flex items-center justify-between shadow-sm z-10 transition-all">
         <div className="flex items-center gap-4">
           {onBack && (
-            <Button variant="ghost" size="icon" onClick={onBack} className="lg:hidden rounded-2xl">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={onBack} 
+              className={cn("rounded-2xl", !showBackButtonOnDesktop && "lg:hidden")}
+            >
               <ChevronLeft className="w-6 h-6 text-slate-600" />
             </Button>
           )}
@@ -145,7 +154,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
       {/* Messages area */}
       <ScrollArea className="flex-1 p-6" ref={scrollAreaRef}>
-        <div className="space-y-8 pb-4">
+        <div className="flex flex-col space-y-8 pb-4">
           {hasMore && (
             <div className="flex justify-center p-4">
               <Button 
@@ -164,26 +173,62 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             </span>
           </div>
 
-          {messages.map((msg) => {
-            const isMe = String(msg.senderId) === String(currentUser?.id) || msg.senderId === 'me' || msg.senderId === 'current-user';
+          {messages.filter(msg => {
+            // Visibility Filter Logic:
+            // 1. If it's public (isVisibleToAll true or undefined), everyone sees it.
+            // 2. If it's private (isVisibleToAll false):
+            //    - Only admins/mods see it.
+            //    - The sender always sees their own message.
+            if (msg.isVisibleToAll === false) {
+              const isStaff = currentUser?.role === 'admin' || currentUser?.role === 'moderator';
+              const isSender = String(msg.senderId) === String(currentUser?.id);
+              return isStaff || isSender;
+            }
+            return true;
+          }).map((msg) => {
+            // Robust check for outgoing message (isMe)
+            const isMe = String(msg.senderId) === String(currentUser?.id) || 
+                         msg.senderId === 'me' || 
+                         msg.senderId === 'current-user' ||
+                         (msg as any).isOutgoing === true;
+            
+            // Confidentiality Logic: If the current user is a regular member and the message is from an admin/mod, 
+            // mask the name and hide profile picture if not already done by backend.
+            const isCurrentUserAdminOrMod = currentUser?.role === 'admin' || currentUser?.role === 'moderator';
+            const isMaskedByBackend = msg.senderName?.includes('Admin') || msg.senderName?.includes('Moderator');
+            const shouldMask = !isMe && !isCurrentUserAdminOrMod && (msg.senderRole === 'admin' || msg.senderRole === 'moderator' || isMaskedByBackend);
+            
+            const displaySenderName = shouldMask ? 'Community Moderator' : (msg.senderName || 'Member');
+            const displayProfilePicture = shouldMask ? undefined : msg.senderProfilePicture;
+                         
             const showSenderInfo = !isMe && msg.isGroupMessage;
+            const isStaffOnly = msg.isVisibleToAll === false;
             
             return (
               <div key={msg.id} className={cn(
                 "flex flex-col max-w-[85%] group animate-in fade-in slide-in-from-bottom-2 duration-500",
                 isMe ? "ml-auto items-end" : "mr-auto items-start"
               )}>
-                {showSenderInfo && (
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1 px-3">
-                    {msg.senderName || 'Member'}
-                  </span>
+                {(showSenderInfo || (isStaffOnly && isCurrentUserAdminOrMod)) && (
+                  <div className="flex items-center gap-2 mb-1 ml-1 px-3">
+                    {showSenderInfo && (
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        {displaySenderName}
+                      </span>
+                    )}
+                    {isStaffOnly && isCurrentUserAdminOrMod && (
+                      <span className="text-[8px] font-black bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded uppercase tracking-tighter">
+                        Staff Only
+                      </span>
+                    )}
+                  </div>
                 )}
                 <div className="flex items-center gap-2 w-full relative">
                   {!isMe && (
                     <>
                       <div className="flex flex-col items-center">
-                         {msg.senderProfilePicture && (
-                           <Avatar src={msg.senderProfilePicture} className="w-6 h-6 mb-1 opacity-60" />
+                         {displayProfilePicture && (
+                           <Avatar src={displayProfilePicture} className="w-6 h-6 mb-1 opacity-60" />
                          )}
                          <Button 
                            variant="ghost" 
@@ -265,6 +310,14 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                       ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                       : ''}
                   </span>
+                  
+                  {isCurrentUserAdminOrMod && msg.isGroupMessage && msg.isVisibleToAll === false && (
+                    <span className="text-[8px] font-black text-orange-500 uppercase tracking-widest flex items-center gap-1 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100">
+                      <div className="w-1 h-1 bg-orange-500 rounded-full" />
+                      Staff Only
+                    </span>
+                  )}
+
                   {isMe && (
                     <div className="flex items-center text-teal-500">
                       {msg.isRead ? <CheckCheck size={12} className="stroke-[3]" /> : <Check size={12} className="stroke-[3]" />}
@@ -285,6 +338,16 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
       {/* Input area */}
       <div className="p-6 bg-white border-t border-gray-100 shadow-[0_-4px_10px_rgba(0,0,0,0.02)] transition-all">
+        {messageAsLabel && (
+          <div className="flex items-center gap-2 mb-4 px-2">
+            <div className="h-px flex-1 bg-slate-100" />
+            <span className="text-[10px] font-black text-teal-600 uppercase tracking-[0.2em] bg-teal-50 px-4 py-1.5 rounded-full border border-teal-100/50 shadow-sm flex items-center gap-2">
+              <span className="w-1 h-1 bg-teal-500 rounded-full animate-pulse" />
+              {messageAsLabel}
+            </span>
+            <div className="h-px flex-1 bg-slate-100" />
+          </div>
+        )}
         <div className="flex items-end gap-3 max-w-6xl mx-auto bg-slate-50 p-2 rounded-[2.5rem] border border-gray-100 focus-within:ring-4 focus-within:ring-teal-500/5 focus-within:bg-white transition-all">
           <Button 
             variant="ghost" 

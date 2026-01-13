@@ -16,10 +16,12 @@ export interface Message {
   senderId: string;
   senderName?: string;
   senderProfilePicture?: string;
+  senderRole?: 'user' | 'admin' | 'moderator' | string;
   content: string;
   timestamp: string;
   isRead: boolean;
   isGroupMessage?: boolean;
+  isVisibleToAll?: boolean;
   directMessageReceiverId?: string;
   groupMessageCommunityId?: number | null;
 }

@@ -5,16 +5,10 @@ import {
   MapPin, 
   ChevronRight, 
   Plus, 
-  Users, 
   ShieldAlert, 
   ChevronDown,
-  Search,
   Megaphone,
-  Calendar,
-  Clock,
-  Bell,
-  BellOff,
-  CalendarOff
+  Calendar
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -22,12 +16,9 @@ import {
   Avatar,
   Skeleton,
   Button,
-  Input,
-  Spinner,
   Badge
 } from '../../../../ui';
 import { cn } from "@/lib/utils";
-import { useAuth } from '@/context/AuthContext';
 import { SAMPLE_ANNOUNCEMENTS } from '../../CommunityPage/components/CommunityAnnouncements';
 import { SAMPLE_EVENTS } from '../../CommunityPage/components/CommunityEvents';
 
@@ -84,63 +75,166 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
   joinedCommunities,
   isSafetyExpanded,
   setIsSafetyExpanded,
-  onOpenInviteModal,
-  onOpenCreateCommunity,
-  onJoinCommunity,
-  searchQuery = '',
-  setSearchQuery,
   className
 }) => {
   const { t } = useTranslation();
-  const { isAuthenticated } = useAuth();
-  const [joiningId, setJoiningId] = React.useState<string | number | null>(null);
 
   // Set the "today" reference to match SAMPLE_DATA
   const today = '2026-01-12';
+  const tomorrow = '2026-01-13';
   const todayDisplay = 'Jan 12, 2026';
 
-  const todaysAnnouncements = Array.isArray(SAMPLE_ANNOUNCEMENTS) 
-    ? SAMPLE_ANNOUNCEMENTS.filter(ann => ann.dateKey === today)
-    : [];
+  const joinedCommunityNames = joinedCommunities.map(c => c.name);
+
+  // Filter announcements: Prefer today, fallback to upcoming
+  const allAnnouncements = Array.isArray(SAMPLE_ANNOUNCEMENTS) ? SAMPLE_ANNOUNCEMENTS : [];
+  
+  let filteredAnnouncements = allAnnouncements.filter(ann => 
+    ann.dateKey === today && 
+    (!ann.communityName || joinedCommunityNames.includes(ann.communityName))
+  );
+
+  const isTodayNews = filteredAnnouncements.length > 0;
+
+  if (!isTodayNews) {
+    // If no news for today, show news for next days
+    filteredAnnouncements = allAnnouncements
+      .filter(ann => 
+        ann.dateKey > today && 
+        (!ann.communityName || joinedCommunityNames.includes(ann.communityName))
+      )
+      .sort((a, b) => a.dateKey.localeCompare(b.dateKey))
+      .slice(0, 3); // Limit to next few items
+  }
     
-  const todaysEvents = Array.isArray(SAMPLE_EVENTS)
-    ? SAMPLE_EVENTS.filter(event => event.dateKey === today)
+  // Filter events for today and tomorrow belonging to user's communities
+  const relevantEvents = Array.isArray(SAMPLE_EVENTS)
+    ? SAMPLE_EVENTS.filter(event => 
+        (event.dateKey === today || event.dateKey === tomorrow) && 
+        (!event.communityName || joinedCommunityNames.includes(event.communityName))
+      )
     : [];
 
-  const handleJoinClick = async (e: React.MouseEvent, id: string | number) => {
-    e.stopPropagation();
-    if (!onJoinCommunity) return;
-    
-    setJoiningId(id);
-    try {
-      await onJoinCommunity(id);
-    } finally {
-      setJoiningId(null);
-    }
-  };
+  // Grouping functions
+  const groupedAnnouncements = filteredAnnouncements.reduce((acc, ann) => {
+    const key = ann.communityName || 'General';
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(ann);
+    return acc;
+  }, {} as Record<string, typeof filteredAnnouncements>);
+
+  const groupedEvents = relevantEvents.reduce((acc, event) => {
+    const key = event.communityName || 'General';
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(event);
+    return acc;
+  }, {} as Record<string, typeof relevantEvents>);
 
   return (
     <aside className={cn("flex flex-col space-y-4 pt-6 group h-fit", className)}>
-      {/* TODAY'S UPDATES PILL */}
-      <div className="bg-white rounded-full py-5 px-8 shadow-sm border border-gray-50 flex items-center justify-between group/pill cursor-pointer hover:shadow-md transition-all">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center group-hover/pill:scale-110 transition-transform">
-            <Megaphone className="text-blue-500 w-5 h-5" />
+      {/* TODAY'S UPDATES SECTION */}
+      <div className="space-y-3">
+        <div className="bg-white rounded-[2rem] py-5 px-8 shadow-sm border border-gray-50 flex items-center justify-between group/pill cursor-pointer hover:shadow-md transition-all">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center group-hover/pill:scale-110 transition-transform">
+              <Megaphone className="text-blue-500 w-5 h-5" />
+            </div>
+            <h3 className="text-slate-900 font-black text-xl tracking-tight">
+              {isTodayNews ? "Today's Updates" : "Upcoming Updates"}
+            </h3>
           </div>
-          <h3 className="text-slate-900 font-black text-xl tracking-tight">Today's Updates</h3>
+          <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">
+            {isTodayNews ? todayDisplay : "Next Days"}
+          </span>
         </div>
-        <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">{todayDisplay}</span>
+        
+        {Object.keys(groupedAnnouncements).length > 0 ? (
+          <div className="px-4 space-y-4">
+            {Object.entries(groupedAnnouncements).map(([community, anns]) => (
+              <div key={community} className="space-y-2">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">{community}</h4>
+                <div className="space-y-2">
+                  {anns.map(ann => (
+                    <div key={ann.id} className="bg-white/50 hover:bg-white p-4 rounded-2xl border border-transparent hover:border-blue-100 transition-all cursor-pointer group/ann">
+                      <div className="flex items-start gap-3">
+                        <div className={cn(
+                          "w-2 h-2 rounded-full mt-1.5 shrink-0 animate-pulse",
+                          ann.type === 'Alert' ? "bg-red-500" : "bg-blue-500"
+                        )} />
+                        <div>
+                          <p className="text-sm font-bold text-slate-700 leading-tight group-hover/ann:text-blue-600 transition-colors">{ann.title}</p>
+                          <p className="text-[10px] text-slate-400 font-medium mt-1 uppercase tracking-tighter">{ann.author.name} • {ann.createdAt}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-8 px-6 bg-slate-50/50 rounded-[2rem] border border-dashed border-slate-200">
+            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mb-2">
+              <Megaphone className="w-5 h-5 text-slate-300" />
+            </div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">No community updates today</p>
+          </div>
+        )}
       </div>
 
-      {/* JOIN THE ACTION PILL */}
-      <div className="bg-white rounded-full py-5 px-8 shadow-sm border border-gray-50 flex items-center justify-between group/pill cursor-pointer hover:shadow-md transition-all">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center group-hover/pill:scale-110 transition-transform">
-            <Calendar className="text-emerald-500 w-5 h-5" />
+      {/* JOIN THE ACTION SECTION */}
+      <div className="space-y-3">
+        <div className="bg-white rounded-[2rem] py-5 px-8 shadow-sm border border-gray-50 flex items-center justify-between group/pill cursor-pointer hover:shadow-md transition-all">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center group-hover/pill:scale-110 transition-transform">
+              <Calendar className="text-emerald-500 w-5 h-5" />
+            </div>
+            <h3 className="text-slate-900 font-black text-xl tracking-tight">Join the Action</h3>
           </div>
-          <h3 className="text-slate-900 font-black text-xl tracking-tight">Join the Action</h3>
+          <div className="flex flex-col items-end">
+             <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Upcoming</span>
+             <span className="text-[9px] font-bold text-slate-300">Today & Tomorrow</span>
+          </div>
         </div>
-        <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">{todayDisplay}</span>
+
+        {Object.keys(groupedEvents).length > 0 ? (
+          <div className="px-4 space-y-4">
+            {Object.entries(groupedEvents).map(([community, events]) => (
+              <div key={community} className="space-y-2">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">{community}</h4>
+                <div className="space-y-2">
+                  {events.map(event => (
+                    <div key={event.id} className="bg-white/50 hover:bg-white p-4 rounded-2xl border border-transparent hover:border-emerald-100 transition-all cursor-pointer group/ev">
+                       <div className="flex items-center justify-between mb-2">
+                          <Badge className={cn(
+                             "text-[9px] font-black uppercase tracking-tighter shadow-sm",
+                             event.dateKey === today ? "bg-emerald-500 text-white" : "bg-blue-500 text-white"
+                          )}>
+                            {event.dateKey === today ? 'Today' : 'Tomorrow'}
+                          </Badge>
+                          <span className="text-[10px] font-bold text-slate-400">{event.time}</span>
+                       </div>
+                       <p className="text-sm font-bold text-slate-700 leading-tight group-hover/ev:text-emerald-600 transition-colors mb-2">{event.title}</p>
+                       <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium">
+                          <div className="w-5 h-5 rounded-md bg-slate-50 flex items-center justify-center shrink-0">
+                            <MapPin className="w-3 h-3 text-emerald-500" />
+                          </div>
+                          <span className="truncate">{event.location}</span>
+                       </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-8 px-6 bg-slate-50/50 rounded-[2rem] border border-dashed border-slate-200">
+            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mb-2">
+              <Calendar className="w-5 h-5 text-slate-300" />
+            </div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">No community events soon</p>
+          </div>
+        )}
       </div>
 
       {/* LOCAL STATISTICS CARD */}
@@ -261,83 +355,6 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
             onClick={() => navigate('/hub')}
         >
           Explore Global activity
-        </Button>
-      </Card>
-
-      {/* COMMUNITIES SECTION */}
-      <Card className="p-8 border-none shadow-sm bg-white rounded-[2.5rem] overflow-hidden">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-gray-900 font-black text-xl flex items-center gap-3">
-            <Users className="text-teal-600 w-6 h-6" />
-            {t('community.sidebar_title') || "Communities"}
-          </h3>
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            className="w-10 h-10 p-0 rounded-xl bg-teal-50 text-teal-600 hover:bg-teal-100"
-            onClick={onOpenCreateCommunity}
-          >
-            <Plus size={20} />
-          </Button>
-        </div>
-        
-        <div className="space-y-4">
-          {joinedCommunities.map((community, idx) => (
-            <div key={community.id || (community as any)._id || idx} className="p-4 rounded-3xl border border-slate-50 hover:border-teal-100 hover:bg-teal-50/30 transition-all group cursor-pointer" onClick={() => navigate(`/community/${community.id || (community as any)._id}`)}>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-teal-50 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform overflow-hidden">
-                  {community.logo || community.imageUrl ? (
-                    <img src={community.logo || community.imageUrl || undefined} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <Users className="w-6 h-6 text-teal-600" />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h4 className="text-sm font-bold text-slate-900 truncate">{community.name}</h4>
-                    {isAuthenticated && community.isMember && (
-                      <Badge className="h-4 px-1.5 bg-emerald-50 text-emerald-600 border-none text-[8px] font-black uppercase tracking-tighter">Joined</Badge>
-                    )}
-                  </div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    {community.memberCount || community.membersCount || 0} Members
-                  </p>
-                </div>
-              </div>
-              <div className="mt-4 flex items-center gap-2">
-                {isAuthenticated && community.isMember ? (
-                  <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="flex-1 bg-white hover:bg-teal-50 text-teal-600 rounded-xl font-bold border border-slate-100"
-                      onClick={(e) => { e.stopPropagation(); onOpenInviteModal(community.name); }}
-                  >
-                    {t('community.invite') || "Invite"}
-                  </Button>
-                ) : (
-                  <Button 
-                      size="sm" 
-                      className="flex-1 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-bold shadow-sm"
-                      onClick={(e) => handleJoinClick(e, community.id)}
-                      disabled={joiningId === community.id}
-                  >
-                    {joiningId === community.id ? (
-                      <Spinner size="xs" className="border-white" />
-                    ) : (
-                      "Request to Join"
-                    )}
-                  </Button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <Button 
-          className="w-full mt-6 bg-teal-600 hover:bg-teal-700 text-white font-black py-4 h-14 rounded-2xl shadow-lg shadow-teal-100"
-          onClick={onOpenCreateCommunity}
-        >
-          {t('community.create') || "Create Community"}
         </Button>
       </Card>
 

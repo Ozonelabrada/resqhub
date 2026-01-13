@@ -12,12 +12,14 @@ import {
   Plus
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import type { CommunityPost } from '@/types/community';
+import { formatDate } from '@/utils';
 
 interface Need {
   id: string;
   title: string;
   description: string;
-  category: 'Resource' | 'Service' | 'Volunteer' | 'Emergency';
+  category: 'Resource' | 'Service' | 'Volunteer' | 'Emergency' | 'Request' | 'Need';
   priority: 'low' | 'medium' | 'high';
   requester: {
     name: string;
@@ -29,47 +31,38 @@ interface Need {
   respondersCount: number;
 }
 
+interface NeedsBoardProps {
+  posts?: CommunityPost[];
+}
+
 const MOCK_NEEDS: Need[] = [
-  {
-    id: '1',
-    title: 'Food Assistance for Elderly Couple',
-    description: 'Looking for someone who can help deliver groceries once a week for an elderly couple in the neighborhood. They have mobility issues.',
-    category: 'Service',
-    priority: 'high',
-    requester: { name: 'Juan Dela Cruz', isVerified: true },
-    location: 'Bacolod City',
-    postedAt: '2 hours ago',
-    respondersCount: 3
-  },
-  {
-    id: '2',
-    title: 'Extra Medical Supplies (Bandages/Alcohol)',
-    description: 'We are organizing a local first-aid kit for the community center. Any spare unopened bandages or alcohol would be greatly appreciated.',
-    category: 'Resource',
-    priority: 'medium',
-    requester: { name: 'Maria Santos', isVerified: true },
-    location: 'District 4',
-    postedAt: '5 hours ago',
-    respondersCount: 0
-  },
-  {
-    id: '3',
-    title: 'Street Clean-up Volunteers',
-    description: 'Need 5-10 volunteers this Saturday for our monthly street clean-up drive. Bags and gloves will be provided.',
-    category: 'Volunteer',
-    priority: 'low',
-    requester: { name: 'Community Admin', isVerified: true },
-    location: 'Central Plaza',
-    postedAt: 'Yesterday',
-    respondersCount: 12
-  }
+  // ... (keeping existing mock needs as fallback if no real posts)
 ];
 
-export const NeedsBoard: React.FC = () => {
-  const [filter, setFilter] = useState<'all' | 'Resource' | 'Service' | 'Volunteer' | 'Emergency'>('all');
+export const NeedsBoard: React.FC<NeedsBoardProps> = ({ posts = [] }) => {
+  const [filter, setFilter] = useState<'all' | 'Resource' | 'Service' | 'Volunteer' | 'Emergency' | 'Request' | 'Need'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredNeeds = MOCK_NEEDS.filter(need => {
+  // Map real posts to Need interface
+  const realNeeds: Need[] = posts.map(p => ({
+    id: String(p.id),
+    title: p.title,
+    description: p.description,
+    category: (p.reportType as any) || 'Resource',
+    priority: 'medium',
+    requester: {
+      name: p.user?.fullName || p.user?.username || 'Member',
+      isVerified: true,
+      avatar: p.user?.profilePicture || undefined
+    },
+    location: p.location || 'Community',
+    postedAt: formatDate(p.dateCreated),
+    respondersCount: p.reactionsCount || 0
+  }));
+
+  const allNeeds = realNeeds.length > 0 ? realNeeds : MOCK_NEEDS;
+
+  const filteredNeeds = allNeeds.filter(need => {
     const matchesFilter = filter === 'all' || need.category === filter;
     const matchesSearch = need.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          need.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -117,7 +110,7 @@ export const NeedsBoard: React.FC = () => {
 
       {/* Category Pills */}
       <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2">
-        {(['all', 'Resource', 'Service', 'Volunteer', 'Emergency'] as const).map(f => (
+        {(['all', 'Resource', 'Service', 'Volunteer', 'Emergency', 'Request', 'Need'] as const).map(f => (
           <button
             key={f}
             onClick={() => setFilter(f)}

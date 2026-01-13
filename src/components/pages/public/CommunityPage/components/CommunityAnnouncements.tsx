@@ -2,14 +2,11 @@ import React, { useState } from 'react';
 import { Card, Button, Avatar, ShadcnBadge as Badge } from '@/components/ui';
 import { 
   Megaphone, 
-  Pin, 
   Clock, 
-  ChevronRight, 
   AlertTriangle, 
   Info, 
   CheckCircle2,
   Calendar as CalendarIcon,
-  MoreVertical,
   Plus,
   ChevronLeft,
   ChevronRight as ChevronRightIcon
@@ -29,6 +26,7 @@ export interface Announcement {
   createdAt: string; // ISO date string preferred for real app
   dateKey: string; // YYYY-MM-DD for calendar mapping
   isPinned?: boolean;
+  communityName?: string;
 }
 
 export interface AnnualEvent {
@@ -56,7 +54,8 @@ export const SAMPLE_ANNOUNCEMENTS: Announcement[] = [
     author: { name: 'Admin Team', role: 'Community Admin' },
     createdAt: '2 hours ago',
     dateKey: '2026-01-14',
-    isPinned: true
+    isPinned: true,
+    communityName: 'Riverside Homeowners'
   },
   {
     id: '2',
@@ -66,7 +65,8 @@ export const SAMPLE_ANNOUNCEMENTS: Announcement[] = [
     author: { name: 'Chief Mike', role: 'Security Head' },
     createdAt: '1 day ago',
     dateKey: '2026-01-16',
-    isPinned: true
+    isPinned: true,
+    communityName: 'Zone 4 Safety Watch'
   },
   {
     id: '3',
@@ -75,7 +75,8 @@ export const SAMPLE_ANNOUNCEMENTS: Announcement[] = [
     type: 'Success',
     author: { name: 'Maria Santos', role: 'Environment Lead' },
     createdAt: '3 days ago',
-    dateKey: '2026-01-12'
+    dateKey: '2026-01-12',
+    communityName: 'Green Valley Community'
   },
   {
     id: '4',
@@ -84,7 +85,8 @@ export const SAMPLE_ANNOUNCEMENTS: Announcement[] = [
     type: 'Info',
     author: { name: 'Elena Gilbert', role: 'Moderator' },
     createdAt: '1 week ago',
-    dateKey: '2026-01-12'
+    dateKey: '2026-01-12',
+    communityName: 'Riverside Homeowners'
   }
 ];
 
@@ -92,17 +94,37 @@ export const CommunityAnnouncements: React.FC<{ isAdmin?: boolean }> = ({ isAdmi
   const [selectedDate, setSelectedDate] = useState('2026-01-12');
   const [currentMonth, setCurrentMonth] = useState(new Date(2026, 0, 1)); // January 2026
 
-  const daysInMonth = (date: Date) => {
+  const getDaysInMonth = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
   };
 
+  const getFirstDayOfMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  };
+
+  const nextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+  };
+
+  const prevMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+  };
+
   const getDayData = (day: number) => {
-    const dateStr = `2026-01-${day.toString().padStart(2, '0')}`;
+    const year = currentMonth.getFullYear();
+    const month = (currentMonth.getMonth() + 1).toString().padStart(2, '0');
+    const dayStr = day.toString().padStart(2, '0');
+    const dateStr = `${year}-${month}-${dayStr}`;
     const count = SAMPLE_ANNOUNCEMENTS.filter(a => a.dateKey === dateStr).length;
     return { dateStr, count };
   };
 
   const filteredAnnouncements = SAMPLE_ANNOUNCEMENTS.filter(a => a.dateKey === selectedDate);
+
+  const monthName = currentMonth.toLocaleString('default', { month: 'long' });
+  const year = currentMonth.getFullYear();
+  const days = getDaysInMonth(currentMonth);
+  const skip = getFirstDayOfMonth(currentMonth);
 
   const getTypeStyles = (type: Announcement['type']) => {
     switch (type) {
@@ -190,10 +212,10 @@ export const CommunityAnnouncements: React.FC<{ isAdmin?: boolean }> = ({ isAdmi
         {/* Calendar Sidebar */}
         <Card className="xl:col-span-4 p-6 border-none shadow-sm rounded-[2.5rem] bg-white h-fit sticky top-6">
           <div className="flex items-center justify-between mb-8">
-            <h3 className="font-black text-slate-900 uppercase tracking-tight">January 2026</h3>
+            <h3 className="font-black text-slate-900 uppercase tracking-tight">{monthName} {year}</h3>
             <div className="flex gap-2">
-              <Button variant="ghost" size="icon" className="w-8 h-8 rounded-lg"><ChevronLeft size={16} /></Button>
-              <Button variant="ghost" size="icon" className="w-8 h-8 rounded-lg"><ChevronRightIcon size={16} /></Button>
+              <Button onClick={prevMonth} variant="ghost" size="icon" className="w-8 h-8 rounded-lg"><ChevronLeft size={16} /></Button>
+              <Button onClick={nextMonth} variant="ghost" size="icon" className="w-8 h-8 rounded-lg"><ChevronRightIcon size={16} /></Button>
             </div>
           </div>
 
@@ -202,7 +224,12 @@ export const CommunityAnnouncements: React.FC<{ isAdmin?: boolean }> = ({ isAdmi
               <span key={d} className="text-[10px] font-black text-slate-300">{d}</span>
             ))}
             
-            {Array.from({ length: 31 }, (_, i) => i + 1).map(day => {
+            {/* Empty spaces for days before the 1st of the month */}
+            {Array.from({ length: skip }).map((_, i) => (
+              <div key={`skip-${i}`} className="aspect-square" />
+            ))}
+
+            {Array.from({ length: days }, (_, i) => i + 1).map(day => {
               const { dateStr, count } = getDayData(day);
               const isSelected = selectedDate === dateStr;
               

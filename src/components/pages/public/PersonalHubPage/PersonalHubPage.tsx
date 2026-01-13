@@ -1,239 +1,199 @@
-import React, { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  Card, 
-  Button, 
-  Spinner, 
-  Toast,
-  Badge,
-  type ToastRef
-} from '../../../ui';
-import { useUserProfile } from '../../../../hooks/useUserProfile';
-import { useUserReports } from '../../../../hooks/useUserReports';
-import { useWatchList } from '../../../../hooks/useWatchList';
-import { useFeatureFlags } from '@/hooks';
-import type { EditProfileForm, UserReport, UserStats } from '../../../../types/personalHub';
+// src/components/pages/public/PersonalHubPage/PersonalHubPage.tsx
+import React, { useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ProfileHeader } from './personalHub/ProfileHeader';
 import { StatsCards } from './personalHub/StatsCards';
-import { ReportsList } from './personalHub/ReportsList';
+import { QuickActions } from './personalHub/QuickActions';
+import { UserStatus } from './personalHub/UserStatus';
+import { ActivityFeed } from './personalHub/ActivityFeed';
+import { Watchlist } from './personalHub/Watchlist';
+import { ReportsGrid } from './personalHub/ReportsGrid';
+import { OverviewGrid } from './personalHub/OverviewGrid';
 import { EditProfileModal } from './personalHub/EditProfileModal';
-import { CreateReportModal } from '../../../modals';
-import { Activity, Eye, CheckCircle, Heart } from 'lucide-react';
+import { useUserProfile, useStatistics, useNewsFeed } from '../../../../hooks';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../ui/tabs';
+import { LayoutGrid, FileText, Activity, Bookmark, Sparkles } from 'lucide-react';
 
 const PersonalHubPage: React.FC = () => {
-  const toast = useRef<ToastRef>(null);
-  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'overview';
+  const [showProfileEdit, setShowProfileEdit] = React.useState(false);
 
-  // State
-  const [showProfileEdit, setShowProfileEdit] = useState(false);
-  const [showReportModal, setShowReportModal] = useState(false);
-  const [editLoading, setEditLoading] = useState(false);
+  const { userData: profile, updateProfile, loading: profileLoading } = useUserProfile();
+  const { statistics: stats } = useStatistics();
+  const { items: reports } = useNewsFeed();
 
-  // Custom hooks
-  const { isFeatureEnabled } = useFeatureFlags();
-  const { userData, loading: userLoading, updateProfile } = useUserProfile();
-  const { reports, loading: reportsLoading, hasMore: reportsHasMore, loadMore: loadMoreReports } = useUserReports(userData?.id || null);
-  const { items: watchList, loading: watchListLoading, hasMore: watchListHasMore, loadMore: loadMoreWatchList } = useWatchList();
-
-  // Calculate user stats
-  const userStats: UserStats = {
-    totalReports: reports.length,
-    activeReports: reports.filter(r => r.status === 'active').length,
-    resolvedReports: reports.filter(r => r.status === 'resolved').length,
-    totalViews: reports.reduce((sum, r) => sum + r.views, 0)
+  const setActiveTab = (tab: string) => {
+    setSearchParams({ tab });
   };
 
-  const handleEditProfile = () => {
-    setShowProfileEdit(true);
+  const dashboardStats = useMemo(() => ({
+    totalReports: stats?.totalItems || 0,
+    activeReports: stats?.activeReports || 0,
+    resolvedReports: stats?.successfulMatches || 0,
+    totalViews: 0 // Not available in StatsData
+  }), [stats]);
+
+  const handleEditProfile = () => setShowProfileEdit(true);
+  const handleProfilePictureUpload = (event: any) => {
+    // Implementation for profile picture upload
+    console.log('Upload profile picture', event);
   };
 
-  const handleSaveProfile = async (formData: EditProfileForm) => {
-    setEditLoading(true);
-    try {
-      const success = await updateProfile(formData);
-      if (success) {
-        toast.current?.show({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'Profile updated successfully',
-          life: 3000
-        });
-        setShowProfileEdit(false);
-      }
-    } catch (error) {
-      console.error('Error updating profile:', error);
-    } finally {
-      setEditLoading(false);
-    }
+  const handleSaveProfile = async (updates: any) => {
+    await updateProfile(updates);
+    setShowProfileEdit(false);
   };
 
-  const handleReportClick = (report: UserReport) => {
-    navigate(`/item/${report.id}`);
-  };
-
-  const handleProfilePictureUpload = async (event: any) => {
-    // This would normally handle file upload
-    console.log('Profile picture upload:', event);
-  };
-
-  if (userLoading || !userData) {
+  if (profileLoading) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
-        <Spinner size="lg" />
-        <p className="mt-4 text-gray-600 font-medium">Loading your profile...</p>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-700">
-      <Toast ref={toast} />
-
-      {/* Main Content */}
-      <div className="p-4 md:p-6 bg-slate-50">
-        <div className="max-w-[1600px] mx-auto">
-
-          {/* Profile Header */}
-          <ProfileHeader
-            userData={userData}
-            userStats={userStats}
-            onEditProfile={handleEditProfile}
-            onProfilePictureUpload={handleProfilePictureUpload}
-          />
-
-          {/* Stats Cards */}
-          <div className="mt-6">
-            {isFeatureEnabled('reports') && <StatsCards stats={userStats} />}
-          </div>
-
-          {/* Main Content Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            {/* Center Content - Recent Activity */}
-            <div>
-              <Card className="h-full border border-slate-100 rounded-3xl overflow-hidden bg-white shadow-sm">
-                <div className="p-6 border-b border-slate-100">
-                  <h3 className="text-lg font-bold text-slate-800">Recent Activity</h3>
-                </div>
-                <div className="p-6 space-y-4">
-                  {[
-                    {
-                      id: 1,
-                      type: 'match',
-                      message: 'New potential match found for your iPhone 13 Pro',
-                      time: '2 hours ago',
-                      icon: <Activity size={16} className="text-teal-500" />
-                    },
-                    {
-                      id: 2,
-                      type: 'view',
-                      message: 'Your Blue Backpack report was viewed 5 times today',
-                      time: '4 hours ago',
-                      icon: <Eye size={16} className="text-teal-500" />
-                    },
-                    {
-                      id: 3,
-                      type: 'resolved',
-                      message: 'Your Car Keys case has been marked as resolved',
-                      time: '1 day ago',
-                      icon: <CheckCircle size={16} className="text-teal-500" />
-                    }
-                  ].map((activity) => (
-                    <div key={activity.id} className="flex align-items-start gap-4 p-4 border border-slate-100 rounded-2xl hover:bg-slate-50 transition-colors">
-                      <div className="p-2 bg-teal-50 rounded-xl shrink-0">
-                        {activity.icon}
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-semibold text-slate-800 leading-snug">{activity.message}</p>
-                        <span className="text-[10px] font-bold text-slate-400 mt-1 block uppercase tracking-wider">{activity.time}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </div>
-
-            {/* Right Column - Watch List */}
-            <div>
-              <Card className="h-full border border-slate-100 rounded-3xl overflow-hidden bg-white shadow-sm">
-                <div className="p-6 border-b border-slate-100">
-                  <h3 className="text-lg font-bold text-slate-800">Watch List</h3>
-                </div>
-                <div className="p-6">
-                  <div
-                    style={{ maxHeight: '500px', overflowY: 'auto' }}
-                    className="space-y-4 custom-scrollbar"
-                  >
-                    {watchList.length > 0 ? (
-                      watchList.map((item) => (
-                        <button 
-                          key={item.id} 
-                          className="w-full text-left flex items-center justify-between p-4 border border-slate-50 rounded-2xl hover:shadow-md transition-all group cursor-pointer hover:border-teal-100 bg-white"
-                        >
-                          <div className="flex-1">
-                            <h5 className="font-bold text-slate-900 group-hover:text-teal-600 transition-colors">{item.title}</h5>
-                            <p className="text-xs text-slate-500 font-medium mt-0.5">{item.location}</p>
-                            <div className="flex items-center gap-2 mt-2">
-                              <Badge 
-                                variant={item.type === 'lost' ? 'danger' : 'success'}
-                                className="text-[9px] px-2 py-0.5"
-                              >
-                                {item.type.toUpperCase()}
-                              </Badge>
-                              <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-md">{item.similarity}% match</span>
-                            </div>
-                          </div>
-                        </button>
-                      ))
-                    ) : (
-                      <div className="py-12 text-center">
-                         <Heart size={32} className="mx-auto text-slate-200 mb-2" />
-                         <p className="text-slate-400 font-bold text-sm">No items in watchlist</p>
-                      </div>
-                    )}
-
-                    {watchListLoading && (
-                      <div className="flex justify-center py-6">
-                        <Spinner size="sm" />
-                      </div>
-                    )}
-
-                    {watchListHasMore && (
-                      <div className="text-center pt-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-teal-600 font-bold hover:bg-teal-50"
-                          onClick={loadMoreWatchList}
-                        >
-                          Load More
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </Card>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Edit Profile Modal */}
-      {userData && (
-        <EditProfileModal
-          visible={showProfileEdit}
-          userData={userData}
-          onHide={() => setShowProfileEdit(false)}
-          onSave={handleSaveProfile}
-          loading={editLoading}
+    <div className="flex flex-col min-h-screen bg-[#F8FAFC]">
+      {/* Immersive Header */}
+      {profile && (
+        <ProfileHeader 
+          userData={profile} 
+          onEditProfile={handleEditProfile}
+          onProfilePictureUpload={handleProfilePictureUpload}
         />
       )}
 
-      {/* Create Report Modal */}
-      <CreateReportModal
-        isOpen={showReportModal}
-        onClose={() => setShowReportModal(false)}
-        initialType="Lost"
-      />
+      {/* Main Fluid Container */}
+      <div className="flex-1 w-full px-4 lg:px-8 -mt-12 relative z-10 pb-20">
+        <div className="flex flex-col lg:flex-row gap-8">
+          
+          {/* LEFT COLUMN: Profile info & Status (Sticky) */}
+          <aside className="w-full lg:w-[320px] shrink-0 space-y-6">
+            <div className="sticky top-24 space-y-6">
+              <UserStatus />
+              <QuickActions />
+            </div>
+          </aside>
+
+          {/* CENTER COLUMN: Main Content & Tabs */}
+          <main className="flex-1 min-w-0">
+            <div className="space-y-8">
+              {/* Stats row */}
+              <StatsCards stats={dashboardStats} />
+
+              {/* Content Tabs */}
+              <div className="bg-white rounded-4xl p-4 lg:p-8 shadow-sm border border-slate-100">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <div className="flex items-center justify-between mb-8 overflow-x-auto pb-2 scrollbar-none">
+                    <TabsList className="bg-slate-100/50 p-1.5 rounded-2xl border-none h-auto flex-nowrap shrink-0">
+                      <TabsTrigger 
+                        value="overview" 
+                        className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-teal-600 data-[state=active]:shadow-sm transition-all whitespace-nowrap"
+                      >
+                        <LayoutGrid size={14} />
+                        Overview
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="reports" 
+                        className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-teal-600 data-[state=active]:shadow-sm transition-all whitespace-nowrap"
+                      >
+                        <FileText size={14} />
+                        Reports
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="activity" 
+                        className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-teal-600 data-[state=active]:shadow-sm transition-all whitespace-nowrap"
+                      >
+                        <Activity size={14} />
+                        Activity
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="watchlist" 
+                        className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-teal-600 data-[state=active]:shadow-sm transition-all whitespace-nowrap"
+                      >
+                        <Bookmark size={14} />
+                        Watchlist
+                      </TabsTrigger>
+                    </TabsList>
+                  </div>
+
+                  <TabsContent value="overview" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
+                    <OverviewGrid stats={dashboardStats} recentReports={reports?.slice(0, 3)} />
+                  </TabsContent>
+
+                  <TabsContent value="reports" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
+                    <ReportsGrid reports={reports} />
+                  </TabsContent>
+
+                  <TabsContent value="activity" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
+                    <ActivityFeed />
+                  </TabsContent>
+
+                  <TabsContent value="watchlist" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
+                    <Watchlist />
+                  </TabsContent>
+                </Tabs>
+              </div>
+            </div>
+          </main>
+
+          {/* RIGHT COLUMN: Discovery & Context */}
+          <aside className="w-full lg:w-[350px] shrink-0 space-y-6">
+             <div className="sticky top-24 space-y-6">
+                <div className="bg-white rounded-4xl p-8 shadow-sm border border-slate-100 group hover:border-teal-100 transition-colors">
+                  <div className="flex items-center gap-3 mb-6">
+                      <div className="p-2 bg-teal-50 rounded-xl group-hover:bg-teal-100 transition-colors">
+                         <Sparkles className="w-4 h-4 text-teal-600" />
+                      </div>
+                      <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Discovery Hub</h3>
+                  </div>
+                  <p className="text-slate-500 text-xs font-bold leading-relaxed mb-6">Find resources, local alerts, and community-driven reports matching your interests.</p>
+                  
+                  <div className="space-y-4">
+                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                         <div className="flex items-center justify-between mb-2">
+                            <span className="text-[10px] font-black text-slate-400">NEARBY ALERTS</span>
+                            <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
+                         </div>
+                         <p className="text-xs font-black text-slate-700">3 new reports in your area</p>
+                      </div>
+                      
+                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 opacity-60">
+                         <div className="flex items-center justify-between mb-2">
+                            <span className="text-[10px] font-black text-slate-400">COMMUNITY GOALS</span>
+                         </div>
+                         <p className="text-xs font-black text-slate-700">Help resolve 5 more cases</p>
+                      </div>
+                  </div>
+                  
+                  <button className="w-full mt-8 py-4 bg-teal-50 text-teal-700 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-teal-600 hover:text-white transition-all">
+                     Explore map
+                  </button>
+                </div>
+
+                <div className="bg-slate-900 rounded-4xl p-8 shadow-xl text-white relative overflow-hidden">
+                   <div className="relative z-10">
+                      <h3 className="text-sm font-black uppercase tracking-widest mb-2 text-teal-400">Pro Tip</h3>
+                      <p className="text-sm font-bold leading-relaxed text-slate-300">Enable notifications in your settings to get real-time matches for your reports.</p>
+                   </div>
+                   <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-teal-500/10 rounded-full blur-3xl" />
+                </div>
+             </div>
+          </aside>
+
+        </div>
+      </div>
+
+      {profile && (
+        <EditProfileModal
+          visible={showProfileEdit}
+          userData={profile}
+          onHide={() => setShowProfileEdit(false)}
+          onSave={handleSaveProfile}
+          loading={false}
+        />
+      )}
     </div>
   );
 };
