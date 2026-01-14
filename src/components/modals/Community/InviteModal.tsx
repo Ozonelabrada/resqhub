@@ -177,8 +177,17 @@ const InviteModal: React.FC<InviteModalProps> = ({ isOpen, onClose, communityNam
             onClick={handleInvite}
             className="bg-teal-600 hover:bg-teal-700 text-white font-black px-10 h-12 rounded-xl shadow-xl shadow-teal-100 transition-all active:scale-95"
           >
-            {loading ? <Spinner size="sm" className="mr-2" /> : <UserPlus size={18} className="mr-2" />}
-            {t('community.send_invites')}
+            {loading ? (
+              <>
+                <Spinner size="sm" className="mr-2" />
+                {t('community.sending_invites')}
+              </>
+            ) : (
+              <>
+                <UserPlus size={18} className="mr-2" />
+                {t('community.send_invites')}
+              </>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

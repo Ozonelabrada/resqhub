@@ -106,7 +106,7 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
     try {
       const result = await MessagesService.sendMessage({
         directMessageReceiverId: userId,
-        content: `Halo ${userName}, I'm the moderator of the community. I'd like to ask a few questions about your join request.`,
+        content: t('moderation.chat_message', { name: userName }),
         isGroupMessage: false
       });
       if (result) {
@@ -202,12 +202,12 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
             {loading ? (
               <div className="flex flex-col items-center justify-center h-full py-10">
                 <Spinner size="md" className="text-teal-600" />
-                <p className="text-xs font-bold text-slate-400 mt-4 uppercase tracking-widest">Loading...</p>
+                <p className="text-xs font-bold text-slate-400 mt-4 uppercase tracking-widest">{t('common.loading')}</p>
               </div>
             ) : activeTab === 'abuse' ? (
               !Array.isArray(reports) || reports.length === 0 ? (
                 <div className="text-center py-10">
-                  <p className="text-sm font-bold text-slate-400 italic">No reports found.</p>
+                  <p className="text-sm font-bold text-slate-400 italic">{t('moderation.no_reports')}</p>
                 </div>
               ) : (
                 reports.map((report) => (
@@ -223,7 +223,7 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
                   >
                     <div className="flex justify-between items-start mb-2">
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                        #{report.id} • {report.reportId ? 'Report' : 'Comment'}
+                        #{report.id} • {report.reportId ? t('moderation.post') : t('moderation.comment')}
                       </span>
                       {getStatusBadge(report.status)}
                     </div>
@@ -240,7 +240,7 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
               /* Join Requests in Sidebar */
               joinRequests.length === 0 ? (
                 <div className="text-center py-10">
-                  <p className="text-sm font-bold text-slate-400 italic">No join requests.</p>
+                  <p className="text-sm font-bold text-slate-400 italic">{t('moderation.no_requests')}</p>
                 </div>
               ) : (
                 joinRequests.map((request) => (
@@ -265,7 +265,7 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
                         size="sm"
                         className="flex-1 h-8 rounded-lg text-[9px] font-black uppercase tracking-widest gap-1 border-slate-100"
                       >
-                         <MessageCircle size={12} /> Chat
+                         <MessageCircle size={12} /> {t('moderation.chat')}
                       </Button>
                       <Button
                         onClick={() => handleRejectRequest(request.id)}
@@ -304,7 +304,7 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
                     <div className="flex items-center gap-3">
                       {getStatusBadge(selectedReport.status)}
                       <span className="text-sm text-slate-400 font-medium">
-                        Reported by User <b>@{selectedReport.user?.username || selectedReport.userId}</b>
+                        {t('moderation.reported_by')} <b>@{selectedReport.user?.username || selectedReport.userId}</b>
                       </span>
                     </div>
                   </div>
@@ -318,7 +318,7 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
                         disabled={!!processingId}
                       >
                         {processingId === selectedReport.id ? <Spinner size="sm" /> : <XCircle className="mr-2 w-4 h-4" />}
-                        Reject
+                        {t('moderation.reject')}
                       </Button>
                       <Button 
                         className="rounded-xl bg-slate-900 text-white font-bold shadow-lg shadow-slate-200 transition-all hover:bg-slate-800"
@@ -326,7 +326,7 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
                         disabled={!!processingId}
                       >
                         {processingId === selectedReport.id ? <Spinner size="sm" /> : <CheckCircle2 className="mr-2 w-4 h-4" />}
-                        Close & Remove Post
+                        {t('moderation.close_report')}
                       </Button>
                     </div>
                   )}
@@ -334,15 +334,15 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
 
                 {/* Details Section */}
                 <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
-                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Report Details</h4>
+                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">{t('moderation.report_details')}</h4>
                   <p className="text-slate-700 font-medium leading-relaxed italic bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    "{selectedReport.details || 'No additional details provided.'}"
+                    "{selectedReport.details || t('moderation.report_details_empty')}"
                   </p>
                 </div>
 
                 {/* Reported Content Preview */}
                 <div className="space-y-4">
-                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Reported Content</h4>
+                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('moderation.reported_content')}</h4>
                   
                   {selectedReport.reportId ? (
                     <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
@@ -352,13 +352,13 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
                             <FileText size={20} className="text-slate-400" />
                           </div>
                           <div>
-                            <p className="font-black text-slate-900">Post #{selectedReport.reportId}</p>
-                            <p className="text-xs text-slate-400 font-medium italic">Referenced Item</p>
+                            <p className="font-black text-slate-900">{t('moderation.post')} #{selectedReport.reportId}</p>
+                            <p className="text-xs text-slate-400 font-medium italic">{t('moderation.ref_item')}</p>
                           </div>
                         </div>
                         <Button variant="ghost" size="sm" className="text-teal-600 font-bold" onClick={() => window.open(`/item/${selectedReport.reportId}`, '_blank')}>
                           <Eye size={16} className="mr-2" />
-                          View Full Post
+                          {t('moderation.view_full_post')}
                         </Button>
                       </div>
                       {/* Simplified Preview of the Post if available in the report object */}
@@ -377,8 +377,8 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
                             <MessageSquare size={20} className="text-slate-400" />
                           </div>
                           <div>
-                            <p className="font-black text-slate-900">Comment #{selectedReport.commentId}</p>
-                            <p className="text-xs text-slate-400 font-medium italic">Referenced Comment</p>
+                            <p className="font-black text-slate-900">{t('moderation.comment')} #{selectedReport.commentId}</p>
+                            <p className="text-xs text-slate-400 font-medium italic">{t('moderation.ref_comment')}</p>
                           </div>
                         </div>
                       </div>
@@ -386,12 +386,12 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
                       {selectedReport.comment ? (
                         <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                           <p className="text-slate-700 font-medium">"{selectedReport.comment.comment}"</p>
-                          <p className="text-[10px] text-slate-400 font-bold mt-2 uppercase tracking-tight">By: {selectedReport.comment.user?.username || 'Unknown'}</p>
+                          <p className="text-[10px] text-slate-400 font-bold mt-2 uppercase tracking-tight">{t('moderation.reported_by')}: {selectedReport.comment.user?.username || 'Unknown'}</p>
                         </div>
                       ) : (
                         <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
                            <AlertTriangle size={24} className="text-slate-300 mx-auto mb-2" />
-                           <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Content Metadata Missing</p>
+                           <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{t('moderation.content_metadata_missing')}</p>
                         </div>
                       )}
                     </div>
@@ -401,7 +401,7 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
                 {selectedReport.status === 'Closed' && (
                   <div className="bg-rose-50 border border-rose-100 rounded-2xl p-4 flex items-center gap-3 text-rose-700">
                     <CheckCircle2 size={18} />
-                    <p className="text-sm font-bold">This content has been marked as abusive and is hidden from the platform.</p>
+                    <p className="text-sm font-bold">{t('moderation.content_hidden')}</p>
                   </div>
                 )}
               </div>
@@ -410,9 +410,9 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
                 <div className="w-20 h-20 bg-slate-100 rounded-[2rem] flex items-center justify-center mb-6">
                   <ShieldAlert className="w-10 h-10 text-slate-300" />
                 </div>
-                <h3 className="text-xl font-black text-slate-900 mb-2">Select a Report</h3>
+                <h3 className="text-xl font-black text-slate-900 mb-2">{t('moderation.reports_title')}</h3>
                 <p className="text-slate-500 font-medium max-w-[300px]">
-                  Review reported content to keep the community safe.
+                  {t('moderation.reports_subtitle')}
                 </p>
               </div>
             )
@@ -421,26 +421,26 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
               <div className="w-24 h-24 bg-teal-50 rounded-[2rem] flex items-center justify-center mb-6 text-teal-600 shadow-xl shadow-teal-500/10">
                 <UserPlus size={48} />
               </div>
-              <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight mb-2">Member Verification</h3>
+              <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight mb-2">{t('moderation.member_verification')}</h3>
               <p className="text-slate-500 font-medium max-w-md mx-auto">
-                Review and manage users who want to join your community. Use the direct chat option to verify their identity if needed.
+                {t('moderation.member_verification_desc')}
               </p>
               
               <div className="mt-12 grid grid-cols-2 gap-6 w-full max-w-lg">
                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
                   <p className="text-4xl font-black text-slate-900 mb-2">{joinRequests.filter(r => r.status === 'Pending').length}</p>
-                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Pending Requests</p>
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('moderation.pending_requests')}</p>
                 </div>
                 <div className="bg-teal-50 p-8 rounded-[2.5rem] border border-teal-100 shadow-sm">
                   <p className="text-4xl font-black text-teal-700 mb-2">{joinRequests.filter(r => r.status === 'Approved').length}</p>
-                  <p className="text-xs font-black text-teal-600 uppercase tracking-widest">Total Approved</p>
+                  <p className="text-xs font-black text-teal-600 uppercase tracking-widest">{t('moderation.total_approved')}</p>
                 </div>
               </div>
               
               <div className="mt-12 p-6 bg-slate-50 rounded-[2rem] border border-dashed border-slate-200 w-full max-w-lg">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-4">Quick Tip</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-4">{t('moderation.quick_tip')}</p>
                 <p className="text-sm text-slate-600 font-medium italic">
-                  "Verifying members through direct chat helps prevent spam and ensures high-quality community interactions."
+                  {t('moderation.quick_tip_desc')}
                 </p>
               </div>
             </div>

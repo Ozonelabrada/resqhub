@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   Modal,
   ModalHeader,
@@ -44,6 +45,7 @@ const CreateContentModal: React.FC<CreateContentModalProps> = ({
   defaultType = 'lost',
   allowedTypes
 }) => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = React.useState<ContentType>(defaultType);
   const [loading, setLoading] = React.useState(false);
   const [formData, setFormData] = React.useState({
@@ -84,12 +86,12 @@ const CreateContentModal: React.FC<CreateContentModalProps> = ({
   };
 
   const allTabs = [
-    { value: 'lost', label: 'Lost Item', icon: AlertCircle, color: 'text-orange-600', bg: 'bg-orange-50' },
-    { value: 'found', label: 'Found Item', icon: AlertCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { value: 'discussion', label: 'Discussion', icon: MessageSquare, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { value: 'lost', label: t('community.create_content.tabs.lost'), icon: AlertCircle, color: 'text-orange-600', bg: 'bg-orange-50' },
+    { value: 'found', label: t('community.create_content.tabs.found'), icon: AlertCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { value: 'discussion', label: t('community.create_content.tabs.discussion'), icon: MessageSquare, color: 'text-blue-600', bg: 'bg-blue-50' },
     ...(isAdmin ? [
-      { value: 'announcement', label: 'Announcement', icon: Megaphone, color: 'text-teal-600', bg: 'bg-teal-50' },
-      { value: 'news', label: 'News', icon: Newspaper, color: 'text-amber-600', bg: 'bg-amber-50' }
+      { value: 'announcement', label: t('community.create_content.tabs.announcement'), icon: Megaphone, color: 'text-teal-600', bg: 'bg-teal-50' },
+      { value: 'news', label: t('community.create_content.tabs.news'), icon: Newspaper, color: 'text-amber-600', bg: 'bg-amber-50' }
     ] : [])
   ];
 
@@ -106,12 +108,10 @@ const CreateContentModal: React.FC<CreateContentModalProps> = ({
             {currentTabInfo && <currentTabInfo.icon className={currentTabInfo.color} size={24} />}
          </div>
          <h2 className="text-2xl font-black text-slate-900">
-           {activeTab === 'news' || activeTab === 'announcement' ? 'Publish Update' : 'Create New Content'}
+           {activeTab === 'news' || activeTab === 'announcement' ? t('community.create_content.title') : t('community.create_content.title')}
          </h2>
          <p className="text-slate-500 font-medium text-sm mt-1">
-           {activeTab === 'news' ? 'Post news and stories to the community feed.' : 
-            activeTab === 'announcement' ? 'Broadcast important information to all members.' :
-            'Share updates, report items, or start discussions with your community.'}
+           {t('community.create_content.subtitle')}
          </p>
       </ModalHeader>
 
@@ -140,11 +140,11 @@ const CreateContentModal: React.FC<CreateContentModalProps> = ({
            <div className="p-8 space-y-6">
               <div className="space-y-2">
                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                   {activeTab === 'news' || activeTab === 'announcement' ? 'Headline' : 'Title'}
+                   {activeTab === 'news' || activeTab === 'announcement' ? t('community.create_content.label_title') : t('community.create_content.label_title')}
                  </label>
                  <input 
                    className="w-full h-12 px-4 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-teal-500 font-bold text-slate-700 placeholder:text-slate-300" 
-                   placeholder={activeTab === 'lost' ? "e.g. Lost: Black Wallet at Starbucks" : activeTab === 'found' ? "e.g. Found: Keys near Central Park" : "Give your post a clear headline..."}
+                   placeholder={t('community.create_content.placeholder_title')}
                    value={formData.title}
                    onChange={e => setFormData({...formData, title: e.target.value})}
                  />
@@ -152,12 +152,12 @@ const CreateContentModal: React.FC<CreateContentModalProps> = ({
 
               <div className="space-y-2">
                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                   {activeTab === 'news' || activeTab === 'announcement' ? 'Full Content' : 'Description'}
+                   {t('community.create_content.label_description')}
                  </label>
                  <textarea 
                    className="w-full p-4 rounded-3xl bg-slate-50 border-none focus:ring-2 focus:ring-teal-500 font-medium text-slate-700 placeholder:text-slate-300 resize-none" 
                    rows={5}
-                   placeholder={activeTab === 'lost' || activeTab === 'found' ? "Describe the item, location, and date..." : "Write the details here..."}
+                   placeholder={t('community.create_content.placeholder_description')}
                    value={formData.content}
                    onChange={e => setFormData({...formData, content: e.target.value})}
                  />
@@ -167,8 +167,12 @@ const CreateContentModal: React.FC<CreateContentModalProps> = ({
                  <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                     <ImageIcon className="text-slate-400" size={20} />
                  </div>
-                 <p className="text-xs font-bold text-slate-600">Add {activeTab === 'news' ? 'Article Photo' : 'Image'}</p>
-                 <p className="text-[10px] text-slate-400 mt-0.5">JPEG, PNG supported</p>
+                 <p className="text-xs font-bold text-slate-600">
+                    {activeTab === 'news' 
+                      ? t('community.create_content.add_article_photo') 
+                      : t('community.create_content.add_photo')}
+                 </p>
+                 <p className="text-[10px] text-slate-400 mt-0.5">{t('community.create_content.supported_formats')}</p>
               </div>
            </div>
         </Tabs>
@@ -176,7 +180,7 @@ const CreateContentModal: React.FC<CreateContentModalProps> = ({
 
       <ModalFooter>
          <Button variant="ghost" onClick={onClose} className="font-bold text-slate-400 rounded-xl h-12 px-6">
-            Cancel
+            {t('common.cancel')}
          </Button>
          <Button 
            onClick={handleSubmit} 
@@ -184,7 +188,7 @@ const CreateContentModal: React.FC<CreateContentModalProps> = ({
            className="bg-teal-600 hover:bg-teal-700 text-white font-black rounded-xl h-12 px-10 shadow-xl shadow-teal-100 transition-all active:scale-95"
          >
             {loading ? <Spinner size="sm" className="mr-2" /> : <Plus size={18} className="mr-2" />}
-            {activeTab === 'news' || activeTab === 'announcement' ? 'Publish' : `Create ${currentTabInfo?.label}`}
+            {loading ? t('community.create_content.button_posting') : t('community.create_content.button_post')}
          </Button>
       </ModalFooter>
     </Modal>

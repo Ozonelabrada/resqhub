@@ -106,9 +106,9 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ isOpen, onC
               </div>
             </div>
             <DialogDescription className="text-slate-500 font-bold text-xs uppercase tracking-wider">
-               {step === 'details' && 'Community Identity'}
-               {step === 'features' && 'Feature Configuration'}
-               {step === 'review' && 'Final Review & Pricing'}
+               {step === 'details' && t('community.create.step_identity')}
+               {step === 'features' && t('community.create.step_features')}
+               {step === 'review' && t('community.create.step_review')}
             </DialogDescription>
           </DialogHeader>
         )}
