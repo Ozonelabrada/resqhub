@@ -13,6 +13,7 @@ import { Mail, Lock, LogIn, ArrowRight, Info } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { SITE } from '@/constants/site';
+import { useTranslation } from 'react-i18next';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ interface LoginModalProps {
 }
 
 export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSuccess }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -58,9 +60,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-emerald-500/10 rounded-full -ml-16 -mb-16 blur-2xl" />
 
           <DialogHeader className="relative z-10 space-y-2 mb-8">
-            <DialogTitle className="text-3xl font-black text-slate-900 tracking-tight">Welcome Back</DialogTitle>
+            <DialogTitle className="text-3xl font-black text-slate-900 tracking-tight">
+              {t('auth.login_title')}
+            </DialogTitle>
             <DialogDescription className="text-slate-500 font-medium">
-              Sign in to reunite with your items and community on {SITE.name}.
+              {t('auth.login_subtitle', { site: SITE.name })}
             </DialogDescription>
           </DialogHeader>
 
@@ -77,7 +81,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
                   <Mail className="w-4 h-4 text-teal-600" />
-                  Email Address
+                  {t('auth.email')}
                 </label>
                 <Input
                   type="email"
@@ -94,7 +98,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
                 <div className="flex justify-between items-center">
                   <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
                     <Lock className="w-4 h-4 text-emerald-600" />
-                    Password
+                    {t('auth.password')}
                   </label>
                   <button 
                     type="button" 
@@ -104,7 +108,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
                         navigate('/forgot-password');
                     }}
                   >
-                    Forgot Password?
+                    {t('auth.forgot_password')}
                   </button>
                 </div>
                 <Input
@@ -125,13 +129,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
               className="w-full py-6 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white shadow-xl shadow-teal-100 font-bold transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
               <LogIn className="w-5 h-5 mr-2" />
-              Sign In to Account
+              {t('auth.sign_in')}
               <ArrowRight className="w-4 h-4 ml-auto" />
             </Button>
 
             <div className="text-center pt-2">
               <p className="text-slate-500 text-sm font-medium">
-                Don't have an account?{' '}
+                {t('auth.no_account')}{' '}
                 <button
                   type="button"
                   className="text-teal-600 font-bold hover:underline"
@@ -140,7 +144,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
                     openSignUpModal();
                   }}
                 >
-                  Join {SITE.name}
+                  {t('auth.create_account')}
                 </button>
               </p>
             </div>

@@ -140,11 +140,11 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
               <Megaphone className="text-blue-500 w-5 h-5" />
             </div>
             <h3 className="text-slate-900 font-black text-xl tracking-tight">
-              {isTodayNews ? "Today's Updates" : "Upcoming Updates"}
+              {isTodayNews ? t('common.todays_updates') : t('common.upcoming_updates')}
             </h3>
           </div>
           <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">
-            {isTodayNews ? todayDisplay : "Next Days"}
+            {isTodayNews ? todayDisplay : t('common.next_days')}
           </span>
         </div>
         
@@ -177,7 +177,7 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
             <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mb-2">
               <Megaphone className="w-5 h-5 text-slate-300" />
             </div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">No community updates today</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">{t('common.no_updates')}</p>
           </div>
         )}
       </div>
@@ -189,11 +189,11 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
             <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center group-hover/pill:scale-110 transition-transform">
               <Calendar className="text-emerald-500 w-5 h-5" />
             </div>
-            <h3 className="text-slate-900 font-black text-xl tracking-tight">Join the Action</h3>
+            <h3 className="text-slate-900 font-black text-xl tracking-tight">{t('common.join_the_action')}</h3>
           </div>
           <div className="flex flex-col items-end">
-             <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Upcoming</span>
-             <span className="text-[9px] font-bold text-slate-300">Today & Tomorrow</span>
+             <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">{t('common.upcoming')}</span>
+             <span className="text-[9px] font-bold text-slate-300">{t('common.today')} & {t('common.tomorrow')}</span>
           </div>
         </div>
 
@@ -210,7 +210,7 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
                              "text-[9px] font-black uppercase tracking-tighter shadow-sm",
                              event.dateKey === today ? "bg-emerald-500 text-white" : "bg-blue-500 text-white"
                           )}>
-                            {event.dateKey === today ? 'Today' : 'Tomorrow'}
+                            {event.dateKey === today ? t('common.today') : t('common.tomorrow')}
                           </Badge>
                           <span className="text-[10px] font-bold text-slate-400">{event.time}</span>
                        </div>
@@ -232,7 +232,7 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
             <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mb-2">
               <Calendar className="w-5 h-5 text-slate-300" />
             </div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">No community events soon</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">{t('common.no_events')}</p>
           </div>
         )}
       </div>
@@ -242,7 +242,7 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
         <div className="space-y-8">
           <div>
             <h3 className="text-slate-400 font-extrabold text-[11px] uppercase tracking-[0.2em] mb-8">
-              Local Statistics
+              {t('common.local_statistics')}
             </h3>
             
             <div className="space-y-6">
@@ -252,7 +252,7 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
                   <MapPin className="text-teal-600 w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-0.5">Location</p>
+                  <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-0.5">{t('common.location')}</p>
                   <p className="text-base font-black text-slate-900">Manolo Fortich Bukidnon</p>
                 </div>
               </div>
@@ -263,7 +263,7 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
                   <Calendar className="text-blue-500 w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-0.5">Active Since</p>
+                  <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-0.5">{t('common.active_since')}</p>
                   <p className="text-base font-black text-slate-900">2024</p>
                 </div>
               </div>
@@ -274,8 +274,10 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
                   <TrendingUp className="text-emerald-500 w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-0.5">Resolved Cases</p>
-                  <p className="text-base font-black text-slate-900">{statistics?.successfulMatches || 188} Items</p>
+                  <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-0.5">{t('common.resolved_cases')}</p>
+                  <p className="text-base font-black text-slate-900">
+                    {t('common.items_count', { count: statistics?.successfulMatches || 188 })}
+                  </p>
                 </div>
               </div>
             </div>
@@ -283,7 +285,7 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
 
           <div className="pt-8 border-t border-slate-50">
             <h3 className="text-slate-400 font-extrabold text-[11px] uppercase tracking-[0.2em] mb-6">
-              Top Contributors
+              {t('common.top_contributors')}
             </h3>
             <div className="flex items-center justify-between">
               <div className="flex -space-x-3">
@@ -300,7 +302,7 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
                 </div>
               </div>
               <Button variant="ghost" size="sm" className="text-teal-600 font-black text-[10px] uppercase tracking-widest hover:bg-teal-50">
-                View All
+                {t('common.view_all')}
               </Button>
             </div>
           </div>
@@ -354,7 +356,7 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
             className="w-full mt-8 py-6 rounded-2xl border border-gray-100 text-teal-600 font-bold hover:bg-teal-50 transition-colors"
             onClick={() => navigate('/hub')}
         >
-          Explore Global activity
+          {t('common.explore_global')}
         </Button>
       </Card>
 

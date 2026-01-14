@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   ScrollArea, 
   Button 
@@ -30,6 +31,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
   loading, 
   onFinalSubmit 
 }) => {
+  const { t } = useTranslation();
   const calculateTotal = (data: CommunityFormData, status?: SubscriptionStatus) => {
     // If it's a barangay, it's sponsored (0 PHP)
     if (data.privacy === 'barangay') return 0;
@@ -104,12 +106,12 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Request Overview</h4>
              <div className="space-y-4">
                 <div>
-                   <p className="text-xs font-bold text-slate-400 mb-1">Community Name</p>
+                   <p className="text-xs font-bold text-slate-400 mb-1">{t('community.name')}</p>
                    <p className="font-black text-slate-800">{formData.name}</p>
                 </div>
                 <div className="flex items-center justify-between">
                    <div>
-                      <p className="text-xs font-bold text-slate-400 mb-1">Privacy Mode</p>
+                      <p className="text-xs font-bold text-slate-400 mb-1">{t('community.privacy')}</p>
                       <div className="flex items-center gap-2 text-slate-700 font-bold">
                           {formData.privacy === 'barangay' && <ShieldAlert size={14} className="text-teal-600" />}
                           {formData.privacy === 'city' && <MapPin size={14} className="text-teal-600" />}
@@ -167,7 +169,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
                       {formData.hasLiveChat && <FeatureBadge label="Live Chat" color="teal" />}
                       {formData.hasEvents && <FeatureBadge label="Events" color="amber" />}
                       {formData.hasFeedUpdates && <FeatureBadge label="Activity Feed" color="blue" />}
-                      {formData.hasNeedsBoard && <FeatureBadge label="Needs Board" color="indigo" />}
+                      {formData.hasNeedsBoard && <FeatureBadge label="Needs" color="indigo" />}
                       {formData.hasTradeMarket && <FeatureBadge label="Trade Market" color="emerald" />}
                       {formData.hasIncidentReporting && <FeatureBadge label="Incident Reports" color="red" />}
                       {formData.hasEmergencyMap && <FeatureBadge label="Emergency Map" color="red" />}
@@ -237,14 +239,14 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
 
       <div className="p-6 border-t border-slate-50 flex items-center justify-between gap-4 bg-white relative z-10">
          <Button variant="ghost" onClick={onBack} className="font-bold text-slate-500">
-            Back
+            {t('common.back')}
          </Button>
          <Button 
             onClick={onFinalSubmit} 
             disabled={loading}
             className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-black h-12 rounded-xl shadow-lg shadow-teal-100"
          >
-            {loading ? 'Submitting...' : subStatus?.isPremium ? 'Create Community' : 'Submit for Review'}
+            {loading ? 'Submitting...' : subStatus?.isPremium ? t('community.create') : 'Submit for Review'}
          </Button>
       </div>
     </div>

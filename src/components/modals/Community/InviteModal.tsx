@@ -82,9 +82,11 @@ const InviteModal: React.FC<InviteModalProps> = ({ isOpen, onClose, communityNam
           <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center mb-4">
             <UserPlus className="text-orange-600" size={24} />
           </div>
-          <DialogTitle className="text-2xl font-black text-slate-900">Invite Members</DialogTitle>
+          <DialogTitle className="text-2xl font-black text-slate-900">
+            {t('community.invite')}
+          </DialogTitle>
           <DialogDescription className="text-slate-500 font-medium">
-            Search for people in {SITE.name} to join {communityName}.
+            {t('community.invite_description', { site: SITE.name, community: communityName })}
           </DialogDescription>
         </DialogHeader>
 
@@ -94,7 +96,7 @@ const InviteModal: React.FC<InviteModalProps> = ({ isOpen, onClose, communityNam
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
                 <input 
                   type="text"
-                  placeholder="Search by name or email..."
+                  placeholder={t('community.search_users_placeholder')}
                   className="w-full h-14 pl-12 pr-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-teal-500 font-bold text-slate-700 transition-all"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -140,14 +142,18 @@ const InviteModal: React.FC<InviteModalProps> = ({ isOpen, onClose, communityNam
                </div>
              ) : searchQuery.length > 2 && !searching ? (
                <div className="text-center py-8">
-                  <p className="text-slate-400 font-bold text-sm">No users found for "{searchQuery}"</p>
+                  <p className="text-slate-400 font-bold text-sm">
+                    {t('community.no_users_found', { query: searchQuery })}
+                  </p>
                </div>
              ) : null}
           </div>
 
           {selectedUsers.length > 0 && (
             <div className="pt-4 border-t border-slate-50">
-               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Selected {selectedUsers.length}</label>
+               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block">
+                 {t('community.selected_count', { count: selectedUsers.length })}
+               </label>
                <div className="flex flex-wrap gap-2">
                   {selectedUsers.map(user => (
                     <Badge key={user.id} className="bg-teal-50 text-teal-700 hover:bg-teal-100 border-teal-100 flex items-center gap-1.5 py-1.5 pl-2 pr-1 rounded-xl font-bold transition-all">
@@ -163,14 +169,16 @@ const InviteModal: React.FC<InviteModalProps> = ({ isOpen, onClose, communityNam
         </div>
 
         <DialogFooter className="flex items-center justify-end gap-2 pt-4">
-          <Button variant="ghost" onClick={onClose} className="font-bold text-slate-400 rounded-xl h-12">Cancel</Button>
+          <Button variant="ghost" onClick={onClose} className="font-bold text-slate-400 rounded-xl h-12">
+            {t('common.cancel')}
+          </Button>
           <Button 
             disabled={loading || selectedUsers.length === 0}
             onClick={handleInvite}
             className="bg-teal-600 hover:bg-teal-700 text-white font-black px-10 h-12 rounded-xl shadow-xl shadow-teal-100 transition-all active:scale-95"
           >
             {loading ? <Spinner size="sm" className="mr-2" /> : <UserPlus size={18} className="mr-2" />}
-            Send Invitations
+            {t('community.send_invites')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -125,7 +125,7 @@ export const FeaturesStep: React.FC<StepProps> = ({ formData, setFormData, onNex
 
           <CategorySection title={titles.economy}>
             <FeatureToggle 
-              label="Needs Board"
+              label="Needs"
               description="Request help or donate items"
               checked={formData.hasNeedsBoard}
               onCheckedChange={(v) => setFormData({...formData, hasNeedsBoard: v})}

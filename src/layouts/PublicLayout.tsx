@@ -68,7 +68,7 @@ const PublicLayout = () => {
       icon: <Users className="w-4 h-4 mr-2" />,
       items: [
         {
-          label: 'Community About',
+          label: t('common.about'),
           icon: <Info className="w-4 h-4 mr-2" />,
           command: () => navigate('/about')
         },
@@ -103,12 +103,12 @@ const PublicLayout = () => {
       command: () => navigate('/profile')
     } : null,
     {
-      label: 'My Watchlist',
+      label: t('common.watchlist'),
       icon: <Heart className="w-4 h-4 mr-2" />,
       command: () => navigate('/watchlist')
     },
     {
-      label: 'My Activity',
+      label: t('common.recent_activity'),
       icon: <Clock className="w-4 h-4 mr-2" />,
       command: () => navigate('/activity')
     },
@@ -231,7 +231,7 @@ const PublicLayout = () => {
         <div className="w-full p-3 text-center bg-orange-50 border-b border-orange-100 shadow-sm">
           <span className="text-sm text-orange-800 font-semibold flex items-center justify-center gap-2">
             <Info size={16} className="text-orange-600" />
-            You can view items freely. Sign in to claim items or report incidents.
+            {t('common.view_items_notice')}
           </span>
         </div>
       )}
@@ -248,15 +248,15 @@ const PublicLayout = () => {
               <div className="flex flex-col md:flex-row items-center gap-4">
                 <Logo size="small" variant="full" light={true} />
                 <div className="h-6 w-px bg-white/20 hidden md:block" />
-                <span className="text-xs text-teal-100 font-medium opacity-80 uppercase tracking-widest hidden lg:block">Reuniting Communities</span>
+                <span className="text-xs text-teal-100 font-medium opacity-80 uppercase tracking-widest hidden lg:block">{t('common.reuniting_tagline')}</span>
               </div>
               
               <div className="flex flex-wrap justify-center md:justify-center gap-6 lg:gap-12">
-                <Link to="/hub" className="text-xs text-teal-100 hover:text-orange-400 font-bold uppercase tracking-wider transition-colors">Hub</Link>
-                <Link to="/communities" className="text-xs text-teal-100 hover:text-orange-400 font-bold uppercase tracking-wider transition-colors">Communities</Link>
-                <Link to="/privacy-policy" className="text-xs text-teal-100 hover:text-orange-400 font-bold uppercase tracking-wider transition-colors">Privacy</Link>
-                <Link to="/terms-of-service" className="text-xs text-teal-100 hover:text-orange-400 font-bold uppercase tracking-wider transition-colors">Terms</Link>
-                <Link to="/contact-us" className="text-xs text-teal-100 hover:text-orange-400 font-bold uppercase tracking-wider transition-colors">Contact</Link>
+                <Link to="/hub" className="text-xs text-teal-100 hover:text-orange-400 font-bold uppercase tracking-wider transition-colors">{t('common.news_feed')}</Link>
+                <Link to="/communities" className="text-xs text-teal-100 hover:text-orange-400 font-bold uppercase tracking-wider transition-colors">{t('common.communities')}</Link>
+                <Link to="/privacy-policy" className="text-xs text-teal-100 hover:text-orange-400 font-bold uppercase tracking-wider transition-colors">{t('common.privacy')}</Link>
+                <Link to="/terms-of-service" className="text-xs text-teal-100 hover:text-orange-400 font-bold uppercase tracking-wider transition-colors">{t('common.terms')}</Link>
+                <Link to="/contact-us" className="text-xs text-teal-100 hover:text-orange-400 font-bold uppercase tracking-wider transition-colors">{t('common.contact')}</Link>
               </div>
               
               <div className="text-[10px] font-black text-teal-500 uppercase tracking-widest opacity-50">

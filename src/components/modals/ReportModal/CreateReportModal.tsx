@@ -240,7 +240,7 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
       setImages([]);
       setImageFiles([]);
     } else {
-      setError(result.message || 'Failed to create report');
+      setError(result.message || t('report.error_failed_to_create'));
     }
     setLoading(false);
   };

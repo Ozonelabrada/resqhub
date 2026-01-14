@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   Dialog, 
   DialogContent, 
@@ -33,6 +34,7 @@ interface ModerationOverviewModalProps {
 }
 
 const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpen, onClose, communityId }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'abuse' | 'joins'>('abuse');
   const [reports, setReports] = useState<ReportAbuseResponse[]>([]);
@@ -79,7 +81,7 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
     try {
       const success = await CommunityService.approveJoinRequest(String(communityId), requestId);
       if (success) {
-        toast.success('Member approved');
+        toast.success(t('moderation.member_approved'));
         await fetchJoinRequests();
       }
     } finally {
@@ -92,7 +94,7 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
     try {
       const success = await CommunityService.rejectJoinRequest(String(communityId), requestId);
       if (success) {
-        toast.success('Request rejected');
+        toast.success(t('moderation.request_rejected'));
         await fetchJoinRequests();
       }
     } finally {
@@ -108,12 +110,12 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
         isGroupMessage: false
       });
       if (result) {
-        toast.success('Conversation started');
+        toast.success(t('moderation.start_conversation'));
         onClose();
         navigate('/messages');
       }
     } catch (error) {
-      toast.error('Failed to start conversation');
+      toast.error(t('moderation.failed_conversation'));
     }
   };
 
@@ -147,11 +149,11 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'Pending': return <Badge className="bg-amber-100 text-amber-700 border-amber-200">Pending</Badge>;
-      case 'Under Review': return <Badge className="bg-blue-100 text-blue-700 border-blue-200">Reviewing</Badge>;
-      case 'Resolved': return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">Resolved</Badge>;
-      case 'Rejected': return <Badge className="bg-slate-100 text-slate-600 border-slate-200">Rejected</Badge>;
-      case 'Closed': return <Badge className="bg-rose-100 text-rose-700 border-rose-200">Closed (Removed)</Badge>;
+      case 'Pending': return <Badge className="bg-amber-100 text-amber-700 border-amber-200">{t('moderation.pending')}</Badge>;
+      case 'Under Review': return <Badge className="bg-blue-100 text-blue-700 border-blue-200">{t('moderation.reviewing')}</Badge>;
+      case 'Resolved': return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">{t('moderation.resolved')}</Badge>;
+      case 'Rejected': return <Badge className="bg-slate-100 text-slate-600 border-slate-200">{t('moderation.rejected')}</Badge>;
+      case 'Closed': return <Badge className="bg-rose-100 text-rose-700 border-rose-200">{t('moderation.closed')}</Badge>;
       default: return <Badge>{status}</Badge>;
     }
   };
@@ -171,7 +173,7 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
               <div className="p-2 bg-rose-50 rounded-lg">
                 <ShieldAlert className="w-5 h-5 text-rose-600" />
               </div>
-              <h2 className="text-xl font-black text-slate-900 tracking-tight">Moderation</h2>
+              <h2 className="text-xl font-black text-slate-900 tracking-tight">{t('moderation.title')}</h2>
             </div>
             
             <div className="flex bg-slate-100 p-1 rounded-xl">
@@ -182,7 +184,7 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
                   activeTab === 'abuse' ? "bg-white text-rose-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
                 )}
               >
-                Abuse ({reports.length})
+                {t('moderation.abuse_tab')} ({reports.length})
               </button>
               <button 
                 onClick={() => setActiveTab('joins')}
@@ -191,7 +193,7 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
                   activeTab === 'joins' ? "bg-white text-teal-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
                 )}
               >
-                Joins ({joinRequests.filter(r => r.status === 'Pending').length})
+                {t('moderation.joins_tab')} ({joinRequests.filter(r => r.status === 'Pending').length})
               </button>
             </div>
           </div>

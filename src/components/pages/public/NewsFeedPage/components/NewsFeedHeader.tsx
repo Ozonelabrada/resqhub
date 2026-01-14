@@ -80,12 +80,12 @@ const NewsFeedHeader: React.FC<NewsFeedHeaderProps> = ({
           <div className="flex items-center gap-2 shrink-0">
             <Select value={sortBy} onValueChange={(val: any) => setSortBy(val)}>
               <SelectTrigger className="w-[120px] h-10 bg-slate-50 border-none rounded-xl font-bold text-slate-600 text-[11px]">
-                <SelectValue placeholder="Sort" />
+                <SelectValue placeholder={t('common.sort') || "Sort"} />
               </SelectTrigger>
               <SelectContent className="rounded-xl border-none shadow-xl">
-                <SelectItem value="recent">Most Recent</SelectItem>
-                <SelectItem value="popular">Popular Now</SelectItem>
-                <SelectItem value="distance">Nearest First</SelectItem>
+                <SelectItem value="recent">{t('common.sort_recent')}</SelectItem>
+                <SelectItem value="popular">{t('common.sort_popular')}</SelectItem>
+                <SelectItem value="distance">{t('common.sort_distance')}</SelectItem>
               </SelectContent>
             </Select>
 
@@ -99,7 +99,7 @@ const NewsFeedHeader: React.FC<NewsFeedHeaderProps> = ({
               )}
             >
               <Filter className="w-4 h-4 mr-1 md:mr-2" />
-              <span className="hidden sm:inline">Filters</span>
+              <span className="hidden sm:inline">{t('common.filters')}</span>
             </Button>
 
             <Button 
@@ -107,8 +107,8 @@ const NewsFeedHeader: React.FC<NewsFeedHeaderProps> = ({
               onClick={onPostClick}
             >
               <Plus className="w-4 h-4 mr-1 md:mr-2" />
-              <span className="hidden sm:inline">{t('newsfeed.create_report') || "Create"}</span>
-              <span className="sm:hidden">Post</span>
+              <span className="hidden sm:inline">{t('newsfeed.create_report')}</span>
+              <span className="sm:hidden">{t('common.post')}</span>
             </Button>
           </div>
         </div>
@@ -118,13 +118,13 @@ const NewsFeedHeader: React.FC<NewsFeedHeaderProps> = ({
       {searchQuery && (
         <div className="flex items-center justify-between px-6 py-2 animate-in fade-in slide-in-from-top-1 duration-300">
           <p className="text-sm font-bold text-slate-400">
-            Results for "<span className="text-teal-600">{searchQuery}</span>"
+            {t('newsfeed.results_for')} "<span className="text-teal-600">{searchQuery}</span>"
           </p>
           <button 
             onClick={() => setSearchQuery('')}
             className="text-xs font-black text-orange-500 hover:underline"
           >
-            Clear Search
+            {t('common.clear_search')}
           </button>
         </div>
       )}
