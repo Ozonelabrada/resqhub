@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../../context/AuthContext';
 import { 
@@ -16,37 +16,47 @@ export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
   const navigate = useNavigate();
   const { openLoginModal, openSignUpModal } = useAuth();
   const [showReportModal, setShowReportModal] = useState(false);
-  const [reportType, setReportType] = useState<'lost' | 'found'>('lost');
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [reportType] = useState<'lost' | 'found'>('lost');
 
   const handleReportAction = (type: 'lost' | 'found') => {
     if (isAuthenticated) {
-      setReportType(type);
-      setShowReportModal(true);
+      // Redirect to News Feed and trigger the create report modal
+      navigate(`/hub?action=create&type=${type}`);
     } else {
       localStorage.setItem('intendedAction', `report_${type}`);
+      localStorage.setItem('returnPath', `/hub?action=create&type=${type}`);
+      openLoginModal();
+    }
+  };
+
+  const handleGetStartedAction = () => {
+    if (isAuthenticated) {
+      navigate('/hub');
+    } else {
+      localStorage.setItem('returnPath', '/hub');
+      openLoginModal();
+    }
+  };
+
+  const handleSearchAction = (query: string) => {
+    if (isAuthenticated) {
+      // Redirect to News Feed with search query if authenticated
+      navigate(`/hub?search=${encodeURIComponent(query)}`);
+    } else {
+      localStorage.setItem('returnPath', `/hub?search=${encodeURIComponent(query)}`);
       openLoginModal();
     }
   };
 
   const handleLogout = () => {
-    setShowLogoutConfirm(true);
-  };
-
-  const confirmLogout = () => {
     logout();
-    setShowLogoutConfirm(false);
   };
 
-  const cancelLogout = () => {
-    setShowLogoutConfirm(false);
-  };
-
-  const showAccountMenu = (event: React.MouseEvent) => {
+  const showAccountMenu = () => {
     // This will be handled by the parent component with refs
   };
 
-  const showGuestMenu = (event: React.MouseEvent) => {
+  const showGuestMenu = () => {
     // This will be handled by the parent component with refs
   };
 
@@ -55,17 +65,17 @@ export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
     {
       label: 'News Feed',
       icon: <Rss className="w-4 h-4 mr-2" />,
-      command: () => navigate('/feed')
+      command: () => navigate('/hub')
     },
     {
       label: 'Personal Hub',
       icon: <User className="w-4 h-4 mr-2" />,
-      command: () => navigate('/hub')
+      command: () => navigate('/profile')
     },
     {
       label: 'My Reports',
       icon: <FileText className="w-4 h-4 mr-2" />,
-      command: () => navigate('/hub?tab=reports')
+      command: () => navigate('/profile?tab=reports')
     },
     {
       label: 'Notifications',
@@ -111,13 +121,12 @@ export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
     showReportModal,
     setShowReportModal,
     reportType,
-    showLogoutConfirm,
 
     // Actions
     handleReportAction,
+    handleGetStartedAction,
+    handleSearchAction,
     handleLogout,
-    confirmLogout,
-    cancelLogout,
     showAccountMenu,
     showGuestMenu,
 

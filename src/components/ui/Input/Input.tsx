@@ -22,14 +22,19 @@ export const Input: React.FC<InputProps> = ({
   rightIcon,
   icon,
   required,
+  id,
   ...props
 }) => {
   const displayIcon = leftIcon || icon;
+  const inputId = id || (label ? `input-${label.replace(/\s+/g, '-').toLowerCase()}` : undefined);
 
   return (
     <div className={cn("space-y-1.5", fullWidth ? "w-full" : "w-fit")}>
       {label && (
-        <label className="text-sm font-bold text-slate-700 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ml-1">
+        <label 
+          htmlFor={inputId}
+          className="text-sm font-bold text-slate-700 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ml-1"
+        >
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
@@ -41,6 +46,7 @@ export const Input: React.FC<InputProps> = ({
           </div>
         )}
         <ShadcnInput
+          id={inputId}
           className={cn(
             "rounded-xl h-11 transition-all duration-200",
             displayIcon && "pl-11",

@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Button, 
-  Badge, 
-  Avatar 
+  Badge
 } from '../../ui';
 import { 
   Home, 
@@ -15,14 +14,16 @@ import {
   Settings, 
   LogOut, 
   ChevronRight,
-  Bell,
-  ShieldCheck
+  Heart
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../../context/AuthContext';
+import { SITE } from '../../../constants/site';
 
 const LeftSideBarPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth();
   const [notifications] = useState({
     newMatches: 3,
     newReports: 7,
@@ -149,8 +150,8 @@ const LeftSideBarPage: React.FC = () => {
           <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full animate-pulse" />
         </div>
         <div>
-          <h4 className="text-xl font-black tracking-tighter text-slate-800">SHERRA</h4>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Community Hub</p>
+          <h4 className="text-xl font-black tracking-tighter text-slate-800">{SITE.name}</h4>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Community About</p>
         </div>
       </div>
 
@@ -174,7 +175,7 @@ const LeftSideBarPage: React.FC = () => {
 
       {/* Enhanced Navigation Menu */}
       <div className="flex-1 overflow-y-auto space-y-6 pr-2 custom-scrollbar">
-        {menuSections.map((section, index) => (
+        {menuSections.map((section) => (
           <div key={section.title} className="space-y-2">
             <h6 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-4">
               {section.title}
@@ -193,7 +194,11 @@ const LeftSideBarPage: React.FC = () => {
           <Settings className="w-5 h-5 mr-3" />
           <span className="font-semibold text-sm">Settings</span>
         </Button>
-        <Button variant="ghost" className="w-full justify-start text-red-500 hover:bg-red-50 rounded-xl">
+        <Button 
+          variant="ghost" 
+          className="w-full justify-start text-red-500 hover:bg-red-50 rounded-xl transition-all active:scale-95"
+          onClick={logout}
+        >
           <LogOut className="w-5 h-5 mr-3" />
           <span className="font-semibold text-sm">Logout</span>
         </Button>

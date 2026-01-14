@@ -1,4 +1,4 @@
-import api from '../api/client';
+  import api from '../api/client';
 import { authManager } from '../utils/sessionManager';
 
 export interface BackendUserData {
@@ -82,6 +82,30 @@ export class UserService {
     } catch (error) {
       console.error('Error fetching user by ID:', error);
       throw error;
+    }
+  }
+
+  static async searchUsers(query: string, userId?: string): Promise<BackendUserData[]> {
+    try {
+      const resolvedUserId = userId ?? this.getCurrentUserId();
+      if (!resolvedUserId) {
+        throw new Error('User ID is required to search contacts');
+      }
+
+      const response = await api.get<{ data: { data: BackendUserData[] } | BackendUserData[] }>(
+        `/users/${resolvedUserId}/contacts`,
+        { params: { searchTerm: query } }
+      );
+      
+      // Handle potential nested structure data.data.data or data.data
+      const rawData = (response.data as any).data;
+      if (Array.isArray(rawData)) return rawData;
+      if (rawData && Array.isArray(rawData.data)) return rawData.data;
+      
+      return [];
+    } catch (error) {
+      console.error('Error searching users:', error);
+      return [];
     }
   }
 

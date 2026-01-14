@@ -4,10 +4,11 @@ import { cn } from "@/lib/utils";
 
 export interface StatusBadgeProps {
   status: "active" | "inactive" | "pending" | "resolved" | "expired" | "lost" | "found" | "reunited" | string;
+  variant?: any;
   className?: string;
 }
 
-export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className = "" }) => {
+export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, variant, className = "" }) => {
   const getStatusConfig = (status: string) => {
     const configs: Record<string, { variant: "outline" | "default" | "secondary" | "destructive" | "success" | "warning" | "info"; label: string }> = {
       active: { variant: "success", label: "Active" },
@@ -26,7 +27,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className = ""
 
   return (
     <Badge
-      variant={config.variant as any}
+      variant={variant || config.variant as any}
       className={cn("rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider", className)}
     >
       {config.label}

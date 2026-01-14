@@ -76,7 +76,7 @@ const SuccessStoriesSection: React.FC<SuccessStoriesSectionProps> = ({
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500 rounded-full blur-[120px]"></div>
       </div>
 
-      <Container className="relative z-10">
+      <Container size="full" className="relative z-10">
         <div className="flex flex-col md:flex-row items-end justify-between mb-16 gap-8">
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-bold mb-6">

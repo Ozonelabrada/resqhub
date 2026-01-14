@@ -32,7 +32,7 @@ export const useCategories = (): UseCategoriesReturn => {
           const mappedCategories = [
             { label: 'All Categories', value: null },
             ...data.map((cat: Category) => ({
-              label: cat.name,
+              label: `${cat.icon || '🏷️'} ${cat.name}`,
               value: cat.name
             }))
           ];

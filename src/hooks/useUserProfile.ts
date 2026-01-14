@@ -54,7 +54,7 @@ export const useUserProfile = () => {
     if (!userData) return false;
 
     try {
-      const updatedUser = await UserService.updateUserProfile(userData.id, updates);
+      const updatedUser = await UserService.updateUserProfile(userData.id as string, updates as any);
       const transformedUserData = UserService.transformUserData(updatedUser);
 
       setUserData(transformedUserData);

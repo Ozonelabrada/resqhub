@@ -18,10 +18,15 @@ export const API_CONSTANTS = {
   DEFAULT_TOAST_LIFE: 5000, // 5 seconds - Default duration for toast notifications
 } as const;
 
+// Application Identity
+export const SITE = {
+  name: 'FindrHub',
+} as const;
+
 // Local Storage Keys
 export const STORAGE_KEYS = {
-  TOKEN: 'sherra_token', // JWT token for authentication
-  USER_DATA: 'sherra_user', // User data for session
+  TOKEN: 'findrhub_token', // JWT token for authentication
+  USER_DATA: 'findrhub_user', // User data for session
   INTENDED_ACTION: 'intendedAction', // Action user was trying to perform before login
   RETURN_PATH: 'returnPath', // Path to redirect to after login
 } as const;
@@ -47,7 +52,6 @@ export const TOAST_MESSAGES = {
 export const createAccountMenuItems = (navigate: (path: string) => void, handleLogout: () => void) => [
   { label: 'News Feed', icon: 'pi pi-user', command: () => navigate(ROUTES.HUB) },
   { label: 'Personal Hub', icon: 'pi pi-home', command: () => navigate(ROUTES.PROFILE) },
-  { label: 'My Reports', icon: 'pi pi-list', command: () => navigate(`${ROUTES.PROFILE}?tab=reports`) },
   { label: 'Notifications', icon: 'pi pi-bell', command: () => navigate(ROUTES.NOTIFICATIONS) },
   { label: 'Settings', icon: 'pi pi-cog', command: () => navigate(ROUTES.SETTINGS) },
   { separator: true },
@@ -60,7 +64,8 @@ export const ROUTES = {
   HOME: '/',
   PROFILE: '/profile',
   HUB: '/hub',
-  FEED: '/feed',
+  FEED: '/hub',
+  ABOUT: '/about',
   NOTIFICATIONS: '/notifications',
   SETTINGS: '/settings',
   HELP: '/help',

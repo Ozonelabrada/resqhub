@@ -2,14 +2,12 @@ import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Spinner, 
-  Modal,
   Toast,
   Menu
 } from '../../../ui';
 import { useStatistics } from '../../../../hooks/useStatistics';
 import { useTrendingReports } from '../../../../hooks/useTrendingReports';
 import { ReportModal } from '../../../modals';
-import { CreateReportModal } from '../../../modals/ReportModal/CreateReportModal';
 import {
   HeroSection,
   StatsSection,
@@ -25,26 +23,26 @@ import {
   useHubActions,
   useHubData
 } from './hooks';
+import { useAuth } from '../../../../context/AuthContext';
 
 const HubHomePage: React.FC = () => {
   const { t } = useTranslation();
   const accountMenuRef = useRef<any>(null);
   const toastRef = useRef<any>(null);
-  const guestMenuRef = useRef<any>(null);
 
   // Custom hooks
   const { isBelowDesktop } = useScreenSize();
   const { showBottomBar } = useMobileBottomBar(isBelowDesktop);
   const { isAuthenticated, userData, logout } = useHubAuth();
+  const { openLoginModal } = useAuth();
   const {
     showReportModal,
     setShowReportModal,
     reportType,
-    showLogoutConfirm,
     handleReportAction,
-    cancelLogout,
-    accountMenuItems,
-    guestMenuItems
+    handleGetStartedAction,
+    handleSearchAction,
+    accountMenuItems
   } = useHubActions(isAuthenticated, logout);
 
   const { statistics: stats, loading: statsLoading, error: statsError } = useStatistics();
@@ -82,36 +80,11 @@ const HubHomePage: React.FC = () => {
     <div className="min-h-screen bg-white">
       <Toast ref={toastRef} />
 
-      {/* Modal Components */}
-      <CreateReportModal 
-        isOpen={showReportModal} 
-        onClose={() => setShowReportModal(false)} 
-      />
-
-      {/* Logout Confirmation Modal */}
-      <Modal
-        visible={showLogoutConfirm}
-        onHide={cancelLogout}
-        title={t('home.confirm_logout')}
-      >
-        <div className="py-4">
-          <p className="text-slate-600 font-medium">{t('home.logout_question')}</p>
-        </div>
-      </Modal>
-
       {/* Account Menu */}
       <Menu
         model={accountMenuItems}
         popup
         ref={accountMenuRef}
-        className="mt-2"
-      />
-
-      {/* Guest Menu */}
-      <Menu
-        model={guestMenuItems}
-        popup
-        ref={guestMenuRef}
         className="mt-2"
       />
 
@@ -121,8 +94,10 @@ const HubHomePage: React.FC = () => {
         userData={userData}
         isBelowDesktop={isBelowDesktop}
         onShowAccountMenu={(e) => accountMenuRef.current?.toggle(e)}
-        onShowGuestMenu={(e) => guestMenuRef.current?.toggle(e)}
+        onShowGuestMenu={() => openLoginModal()}
         onReportAction={handleReportAction}
+        onGetStartedAction={handleGetStartedAction}
+        onSearchAction={handleSearchAction}
       />
 
       <StatsSection

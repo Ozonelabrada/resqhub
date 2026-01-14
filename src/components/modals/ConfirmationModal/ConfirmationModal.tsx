@@ -73,6 +73,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       onClose={onHide} 
       title={title}
       size="sm"
+      skipExitConfirmation={true}
     >
       <ModalBody className="p-8 flex flex-col items-center text-center space-y-6">
         <div className={`p-4 rounded-full ${getSeverityStyles().split(' ')[0]} animate-in zoom-in duration-300`}>
@@ -99,7 +100,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         <Button 
           variant={getButtonVariant() as any}
           onClick={onConfirm}
-          isLoading={loading}
+          loading={loading}
           className={`rounded-xl px-8 shadow-lg ${severity === 'danger' ? 'shadow-red-100' : 'shadow-blue-100'}`}
         >
           {confirmLabel}

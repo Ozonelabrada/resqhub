@@ -5,6 +5,7 @@ export interface ProgressBarProps {
   value?: number;
   showValue?: boolean;
   className?: string;
+  color?: string;
   size?: "sm" | "md" | "lg";
   label?: string;
 }
@@ -13,6 +14,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   value = 0,
   showValue = true,
   className = '',
+  color = 'bg-blue-600',
   size = "md",
   label = "Progress"
 }) => {
@@ -34,7 +36,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
       )}
       <div className={cn("w-full bg-slate-100 rounded-full overflow-hidden border border-slate-50", heightClasses[size])}>
         <div 
-          className="h-full bg-blue-600 transition-all duration-500 ease-out shadow-[0_0_10px_rgba(37,99,235,0.3)]"
+          className={cn("h-full transition-all duration-500 ease-out shadow-[0_0_10px_rgba(37,99,235,0.3)]", color)}
           style={{ width: `${percentage}%` }}
         />
       </div>

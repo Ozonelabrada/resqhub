@@ -6,6 +6,7 @@ import {
   Button, 
   Logo 
 } from '../../ui';
+import { SITE } from '../../../constants';
 import { 
   Home, 
   ArrowLeft, 
@@ -60,7 +61,7 @@ const NotFoundPage: React.FC = () => {
 
           <div className="mt-16 pt-8 border-t border-slate-50 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-300">
             <AlertCircle className="w-4 h-4" />
-            SHERRA System Resource
+            {SITE.name} System Resource
           </div>
         </Card>
       </Container>

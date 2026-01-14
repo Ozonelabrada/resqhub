@@ -2,6 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { AuthProvider } from './context/AuthContext';
+import { FeatureFlagProvider } from './context/FeatureFlagContext';
+import { UIProvider } from './context/UIContext';
 import { BrowserRouter } from 'react-router-dom';
 import './lib/i18n';
 import './index.css';
@@ -12,7 +14,11 @@ if (rootElement) {
     <React.StrictMode>
       <BrowserRouter>
         <AuthProvider>
-          <App />
+          <FeatureFlagProvider>
+            <UIProvider>
+              <App />
+            </UIProvider>
+          </FeatureFlagProvider>
         </AuthProvider>
       </BrowserRouter>
     </React.StrictMode>

@@ -8,8 +8,8 @@ interface CommentCardProps {
   timestamp: string;
   isOwner?: boolean;
   isHelpful?: boolean;
-  likesCount: number;
-  isLikedByUser: boolean;
+  reactionsCount: number;
+  isReactedByUser: boolean;
   onLike: () => void;
   onReply: () => void;
   isAuthenticated: boolean;
@@ -21,8 +21,8 @@ const CommentCard: React.FC<CommentCardProps> = ({
   timestamp,
   isOwner = false,
   isHelpful = false,
-  likesCount,
-  isLikedByUser,
+  reactionsCount,
+  isReactedByUser,
   onLike,
   onReply,
   isAuthenticated
@@ -44,68 +44,58 @@ const CommentCard: React.FC<CommentCardProps> = ({
   };
 
   return (
-    <div className="group relative flex items-start gap-4 p-6 rounded-[2rem] bg-white border border-slate-100 hover:border-blue-100 hover:shadow-xl hover:shadow-blue-50/50 transition-all duration-300">
+    <div className="group relative flex items-start gap-3 p-4 rounded-2xl bg-slate-50/50 border border-transparent hover:bg-white hover:border-slate-100 transition-all duration-300">
       <Avatar
-        className={`w-12 h-12 rounded-2xl font-black text-sm ${
-          isOwner ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'
+        className={`w-9 h-9 rounded-xl font-black text-[10px] shrink-0 shadow-sm ${
+          isOwner ? 'bg-teal-600 text-white' : 'bg-white text-slate-600'
         }`}
       >
-        {userName.charAt(0)}
+        {userName ? userName.charAt(0).toUpperCase() : '?'}
       </Avatar>
 
       <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-3">
-            <span className="font-black text-slate-900 truncate">{userName}</span>
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-2">
+            <span className="font-black text-slate-800 text-xs truncate">@{userName}</span>
             {isOwner && (
-              <Badge variant="info" className="bg-blue-50 text-blue-600 border-none text-[10px] font-black uppercase tracking-widest px-2 py-0.5">
+              <span className="text-[8px] font-black uppercase tracking-widest text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded-md">
                 Author
-              </Badge>
-            )}
-            {isHelpful && (
-              <Badge variant="success" className="bg-emerald-50 text-emerald-600 border-none text-[10px] font-black uppercase tracking-widest px-2 py-0.5 flex items-center gap-1">
-                <ShieldCheck size={10} />
-                Helpful
-              </Badge>
+              </span>
             )}
           </div>
-          <div className="flex items-center gap-2 text-slate-400">
-            <Clock size={12} />
-            <span className="text-[10px] font-bold uppercase tracking-wider">{formatTimestamp(timestamp)}</span>
-          </div>
+          <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">{formatTimestamp(timestamp)}</span>
         </div>
 
-        <p className="text-slate-600 font-medium leading-relaxed mb-4">
+        <p className="text-slate-600 font-medium text-sm leading-relaxed mb-3">
           {content}
         </p>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4">
           <button
             onClick={onLike}
             disabled={!isAuthenticated}
-            className={`flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-colors ${
-              isLikedByUser ? 'text-red-500' : 'text-slate-400 hover:text-slate-600'
+            className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest transition-colors ${
+              isReactedByUser ? 'text-rose-600' : 'text-slate-400 hover:text-rose-600'
             }`}
           >
-            <Heart size={14} className={isLikedByUser ? 'fill-current' : ''} />
-            {likesCount > 0 && likesCount}
-            <span className="ml-1">Like</span>
+            <Heart size={12} className={isReactedByUser ? 'fill-current' : ''} />
+            Helpful ({reactionsCount || 0})
           </button>
 
           {isAuthenticated && (
             <button
               onClick={onReply}
-              className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors"
+              className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors"
             >
-              <Reply size={14} />
+              <Reply size={12} />
               Reply
             </button>
           )}
         </div>
       </div>
 
-      <button className="absolute top-6 right-6 p-2 text-slate-300 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-all">
-        <MoreVertical size={18} />
+      <button className="p-1.5 text-slate-300 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-all">
+        <MoreVertical size={14} />
       </button>
     </div>
   );

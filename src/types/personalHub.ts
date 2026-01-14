@@ -6,10 +6,23 @@ export interface UserProfile {
   email: string;
   bio?: string;
   location?: string;
-  profilePicture?: string;
-  coverPhoto?: string;
+  profilePicture?: string | null;
+  coverPhoto?: string | null;
   joinDate?: string;
   lastActive?: string;
+}
+
+export interface NewsFeedItem extends UserReport {
+  user: {
+    id: string;
+    fullName: string;
+    username: string;
+    profilePicture?: string;
+    isVerified?: boolean;
+  };
+  communityName?: string;
+  timeAgo: string;
+  status: 'lost' | 'found' | 'reunited' | 'news' | 'discussion' | 'announcement';
 }
 
 export interface UserReport {
@@ -22,7 +35,10 @@ export interface UserReport {
   time?: string;
   status: string;
   views: number;
-  type: 'lost' | 'found';
+  type: 'lost' | 'found' | 'news' | 'discussion' | 'announcement';
+  isReacted?: boolean;
+  reactionsCount?: number;
+  commentsCount?: number;
   description: string;
   circumstances?: string;
   identifyingFeatures?: string;

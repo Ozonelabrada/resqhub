@@ -85,7 +85,9 @@ export const useUserReports = (userId: string | null) => {
         time: report.incidentTime || '',
         status: report.statusDescription?.toLowerCase() || 'active',
         views: report.viewsCount || report.views || 0,
-        type: report.reportType === 1 ? 'lost' : 'found',
+        type: (String(report.reportType).toLowerCase().includes('lost') || report.reportType === 1 ? 'lost' : 
+              String(report.reportType).toLowerCase().includes('found') || report.reportType === 2 ? 'found' :
+              String(report.reportType).toLowerCase()) as "lost" | "found" | "news" | "discussion" | "announcement",
         description: report.description || '',
         circumstances: report.circumstances || '',
         identifyingFeatures: report.identifyingFeatures || '',
@@ -108,7 +110,9 @@ export const useUserReports = (userId: string | null) => {
         expiresAt: report.expiresAt,
         reportTypeDescription: report.reportTypeDescription,
         verificationStatus: report.verificationStatusDescription,
-        potentialMatches: report.potentialMatchesCount || 0
+        potentialMatches: report.potentialMatchesCount || 0,
+        reactionsCount: report.reactionsCount || 0,
+        commentsCount: report.commentsCount || 0
       }));
 
       if (loadMore) {

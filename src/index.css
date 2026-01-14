@@ -72,6 +72,31 @@
     --input: hsl(214.3 31.8% 91.4%);
     --ring: hsl(173 80% 36%);
     --radius: 1rem; /* More rounded for "friendly" feel */
+    --base-font-size: 16px;
+  }
+
+  html {
+    font-size: var(--base-font-size);
+  }
+
+  html.font-size-xs {
+    --base-font-size: 12px;
+  }
+
+  html.font-size-small {
+    --base-font-size: 14px;
+  }
+
+  html.font-size-medium {
+    --base-font-size: 16px;
+  }
+
+  html.font-size-large {
+    --base-font-size: 18px;
+  }
+
+  html.font-size-xl {
+    --base-font-size: 20px;
   }
 
   .dark {
@@ -103,5 +128,62 @@
   }
   body {
     @apply bg-background text-foreground font-sans;
+  }
+}
+
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    background-clip: padding-box;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #cbd5e1;
+    background-clip: padding-box;
+  }
+  /* Ensure scrollbar has space */
+  .custom-scrollbar {
+    scrollbar-gutter: stable;
+  }
+}
+
+/* Custom Utilities */
+@layer utilities {
+  .scrollbar-hidden {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #cbd5e1;
   }
 }

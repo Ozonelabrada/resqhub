@@ -1,7 +1,8 @@
 import { useRef, useState } from 'react';
-import { useNavigate, useLocation, Outlet } from 'react-router-dom';
+import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
-import { AuthService } from '../services/authService';
+import { useFeatureFlags } from '../hooks';
 import { Menubar, Menu, Avatar, Button, Logo } from '../components/ui';
 import type { MenuRef } from '../components/ui';
 import { LoginModal } from '../components/modals/Auth/LoginModal';
@@ -19,27 +20,25 @@ import {
   Bell, 
   Settings, 
   LogOut, 
-  UserPlus,
   LogIn,
-  MoreVertical,
   Languages
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { SITE } from '../constants/site';
 
 const PublicLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
+  const { isFeatureEnabled } = useFeatureFlags();
   const { 
     isAuthenticated,
-    logout, 
     isLoginModalOpen, 
     openLoginModal, 
     closeLoginModal,
     isSignUpModalOpen,
-    openSignUpModal,
     closeSignUpModal,
     openSettingsModal,
+    openLogoutModal,
   } = useAuth();
 
   const [hasOpenedModalFromState, setHasOpenedModalFromState] = useState(false);
@@ -52,24 +51,6 @@ const PublicLayout = () => {
 
   // Use useRef instead of useState for menu references
   const userMenuRef = useRef<MenuRef>(null);
-  const authMenuRef = useRef<MenuRef>(null);
-
-  // Check if current page should hide the navigation bar
-  const shouldHideNavBar = () => {
-    return location.pathname === '/';
-  };
-
-  // Navigation handler that checks auth for protected actions
-  // const handleProtectedNavigation = (path: string, actionType: 'claim' | 'report') => {
-  //   if (!isAuthenticated) {
-  //     // Store the intended action for after login
-  //     localStorage.setItem('intendedAction', actionType);
-  //     localStorage.setItem('returnPath', path);
-  //     openLoginModal();
-  //   } else {
-  //     navigate(path);
-  //   }
-  // };
 
   const items = [
     {
@@ -78,30 +59,35 @@ const PublicLayout = () => {
       command: () => navigate('/')
     },
     {
+      label: t('common.news_feed'),
+      icon: <List className="w-4 h-4 mr-2" />,
+      command: () => navigate('/hub')
+    },
+    {
       label: t('common.community'),
       icon: <Users className="w-4 h-4 mr-2" />,
       items: [
         {
-          label: t('common.news_feed'),
-          icon: <List className="w-4 h-4 mr-2" />,
-          command: () => navigate('/feed')
+          label: 'Community About',
+          icon: <Info className="w-4 h-4 mr-2" />,
+          command: () => navigate('/about')
         },
         {
           label: t('common.recent_activity'),
           icon: <Clock className="w-4 h-4 mr-2" />,
           command: () => navigate('/activity')
         },
-        {
+        isFeatureEnabled('reports') ? {
           label: t('common.success_stories'),
           icon: <Heart className="w-4 h-4 mr-2" />,
           command: () => navigate('/success-stories')
-        },
+        } : null,
         {
           label: t('common.safety_tips'),
           icon: <Info className="w-4 h-4 mr-2" />,
           command: () => navigate('/safety-tips')
         }
-      ]
+      ].filter(Boolean) as any[]
     }
   ];
 
@@ -111,10 +97,20 @@ const PublicLayout = () => {
       icon: <User className="w-4 h-4 mr-2" />,
       command: () => navigate('/profile')
     },
-    {
+    isFeatureEnabled('reports') ? {
       label: t('common.my_reports'),
       icon: <FileText className="w-4 h-4 mr-2" />,
-      command: () => navigate('/hub')
+      command: () => navigate('/profile')
+    } : null,
+    {
+      label: 'My Watchlist',
+      icon: <Heart className="w-4 h-4 mr-2" />,
+      command: () => navigate('/watchlist')
+    },
+    {
+      label: 'My Activity',
+      icon: <Clock className="w-4 h-4 mr-2" />,
+      command: () => navigate('/activity')
     },
     {
       label: t('common.notifications'),
@@ -127,36 +123,16 @@ const PublicLayout = () => {
     {
       label: t('common.settings'),
       icon: <Settings className="w-4 h-4 mr-2" />,
-      command: () => openSettingsModal()
+      command: () => navigate('/settings')
     },
     {
       label: t('common.sign_out'),
       icon: <LogOut className="w-4 h-4 mr-2" />,
-      command: async () => {
-        try {
-          await AuthService.signOut();
-        } catch (error) {
-          console.error('Logout error:', error);
-        } finally {
-          logout();
-          navigate('/');
-        }
-      }
+      command: () => openLogoutModal()
     }
-  ];
+  ].filter(Boolean) as any[];
 
-  const authMenuItems = [
-    {
-      label: t('common.signup'),
-      icon: <UserPlus className="w-4 h-4 mr-2" />,
-      command: () => openSignUpModal()
-    },
-    {
-      label: t('common.login'),
-      icon: <LogIn className="w-4 h-4 mr-2" />,
-      command: () => openSignInModal()
-    }
-  ];
+  
 
   const start = (
     <div className="flex items-center gap-2">
@@ -170,72 +146,58 @@ const PublicLayout = () => {
   );
 
   const end = (
-    <div className="flex items-center gap-2">
-      {/* Language Quick Switcher */}
-      <Button
-        variant="ghost"
-        className="rounded-full h-10 w-10 p-0 text-white hover:bg-white/10 flex items-center justify-center transition-colors"
-        onClick={() => openSettingsModal()}
-        title={t('common.language')}
-      >
-        <Languages className="w-5 h-5" />
-      </Button>
+          <div className="flex items-center gap-2">
+          {/* Language Quick Switcher */}
+          <Button
+            variant="ghost"
+            className="rounded-full h-10 w-10 p-0 text-white hover:bg-white/10 flex items-center justify-center transition-colors"
+            onClick={() => openSettingsModal()}
+            title={t('common.language')}
+          >
+            <Languages className="w-5 h-5" />
+          </Button>
 
-      {isAuthenticated ? (
-        // Authenticated user menu
-        <div className="flex items-center gap-2">
-          <span className="text-sm hidden md:inline text-white/90 font-medium">
-            {/* {t('common.profile')}, {user?.fullName || user?.username || 'User'} */}
-          </span>
-          <Avatar
-            className="cursor-pointer bg-white/20 border-2 border-white/30 hover:bg-white/30 transition-colors"
-            onClick={(e) => userMenuRef.current?.toggle(e)}
-          >
-            <User className="w-5 h-5 text-white" />
-          </Avatar>
-          <Menu 
-            model={userMenuItems} 
-            popup 
-            ref={userMenuRef}
-          />
-        </div>
-      ) : (
-        // Unauthenticated user menu
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            className="rounded-full text-white hover:bg-white/10 font-bold"
-            onClick={() => openLoginModal()}
-          >
-            <LogIn className="w-4 h-4 mr-2" />
-            {t('common.login')}
-          </Button>
-          <Button
-            variant="ghost"
-            className="rounded-full w-10 h-10 p-0 flex items-center justify-center text-white/70 hover:text-white"
-            onClick={(e) => authMenuRef.current?.toggle(e)}
-          >
-            <MoreVertical size={18} />
-          </Button>
-          <Menu 
-            model={authMenuItems} 
-            popup 
-            ref={authMenuRef}
-          />
-        </div>
-      )}
+          {isAuthenticated ? (
+            // Authenticated user menu
+            <div className="flex items-center gap-2">
+              <span className="text-sm hidden md:inline text-white/90 font-medium" />
+              <Avatar
+                className="cursor-pointer bg-white/20 border-2 border-white/30 hover:bg-white/30 transition-colors"
+                onClick={(e) => userMenuRef.current?.toggle(e)}
+              >
+                <User className="w-5 h-5 text-white" />
+              </Avatar>
+              <Menu 
+                model={userMenuItems} 
+                popup 
+                ref={userMenuRef}
+              />
+            </div>
+          ) : (
+            // Unauthenticated: single, prominent Sign In button (no dropdown)
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                className="rounded-full text-white hover:bg-white/10 font-bold"
+                onClick={() => openLoginModal()}
+              >
+                <LogIn className="w-4 h-4 mr-2" />
+                {t('common.login')}
+              </Button>
+            </div>
+          )}
     </div>
   );
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Conditional Navigation Bar */}
-      {!shouldHideNavBar() && (
+    <div className="min-h-screen flex flex-col bg-slate-50">
+      {/* Navigation Bar - Hide on HomePage (/) */}
+      {location.pathname !== '/' && (
         <Menubar
           model={items}
           start={start}
           end={end}
-          className=""
+          className="sticky top-0 z-[100]"
         />
       )}
 
@@ -265,7 +227,7 @@ const PublicLayout = () => {
       <SettingsModal />
 
       {/* Authentication Status Banner (optional) */}
-      {!isAuthenticated && !shouldHideNavBar() && location.pathname.includes('/item/') && (
+      {!isAuthenticated && location.pathname.includes('/item/') && (
         <div className="w-full p-3 text-center bg-orange-50 border-b border-orange-100 shadow-sm">
           <span className="text-sm text-orange-800 font-semibold flex items-center justify-center gap-2">
             <Info size={16} className="text-orange-600" />
@@ -275,40 +237,34 @@ const PublicLayout = () => {
       )}
 
       {/* Main Content */}
-      <main className="flex-1 w-full py-8">
+      <main className="flex-1 w-full pt-4 pb-8">
         <Outlet />
       </main>
 
-      {/* Conditional Footer - Hide on home and hub pages */}
-      {!shouldHideNavBar() && (
-        <footer className="bg-teal-900 text-white border-t border-teal-800 py-16">
+      {/* Footer */}
+      <footer className="bg-teal-900 text-white border-t border-teal-800 py-8">
           <div className="w-full px-6 md:px-12">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-12">
-              <div className="flex items-center gap-4">
-                <Logo size="medium" variant="full" light={true} />
-                <div className="h-10 w-px bg-white/20 hidden md:block" />
-                <span className="text-sm text-teal-100 font-medium">Reuniting Communities</span>
+            <div className="flex flex-col md:flex-row justify-between items-center gap-8">
+              <div className="flex flex-col md:flex-row items-center gap-4">
+                <Logo size="small" variant="full" light={true} />
+                <div className="h-6 w-px bg-white/20 hidden md:block" />
+                <span className="text-xs text-teal-100 font-medium opacity-80 uppercase tracking-widest hidden lg:block">Reuniting Communities</span>
               </div>
               
-              <div className="flex flex-wrap justify-center gap-10 text-sm font-bold text-teal-50">
-                <a href="/privacy" className="hover:text-orange-400 transition-colors">
-                  Privacy Policy
-                </a>
-                <a href="/terms" className="hover:text-orange-400 transition-colors">
-                  Terms of Service
-                </a>
-                <a href="/contact" className="hover:text-orange-400 transition-colors">
-                  Contact Us
-                </a>
+              <div className="flex flex-wrap justify-center md:justify-center gap-6 lg:gap-12">
+                <Link to="/hub" className="text-xs text-teal-100 hover:text-orange-400 font-bold uppercase tracking-wider transition-colors">Hub</Link>
+                <Link to="/communities" className="text-xs text-teal-100 hover:text-orange-400 font-bold uppercase tracking-wider transition-colors">Communities</Link>
+                <Link to="/privacy-policy" className="text-xs text-teal-100 hover:text-orange-400 font-bold uppercase tracking-wider transition-colors">Privacy</Link>
+                <Link to="/terms-of-service" className="text-xs text-teal-100 hover:text-orange-400 font-bold uppercase tracking-wider transition-colors">Terms</Link>
+                <Link to="/contact-us" className="text-xs text-teal-100 hover:text-orange-400 font-bold uppercase tracking-wider transition-colors">Contact</Link>
               </div>
               
-              <div className="text-sm font-bold text-teal-300">
-                © {new Date().getFullYear()} SHERRA. All rights reserved.
+              <div className="text-[10px] font-black text-teal-500 uppercase tracking-widest opacity-50">
+                © {new Date().getFullYear()} FindrHub
               </div>
             </div>
           </div>
         </footer>
-      )}
     </div>
   );
 };

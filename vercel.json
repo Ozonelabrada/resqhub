@@ -28,7 +28,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://resqhub-be.onrender.com https://*.openstreetmap.org; connect-src 'self' https://resqhub-be.onrender.com https://nominatim.openstreetmap.org;"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://resqhub-api.onrender.com https://resqhub-be.onrender.com https://*.openstreetmap.org https://images.unsplash.com https://*.unsplash.com; connect-src 'self' https://resqhub-api.onrender.com https://resqhub-be.onrender.com https://nominatim.openstreetmap.org;"
         }
       ]
     }

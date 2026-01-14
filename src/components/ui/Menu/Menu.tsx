@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { createPortal } from 'react-dom';
 
 export interface MenuItem {
   label?: string;
@@ -28,11 +29,22 @@ export const Menu = forwardRef<MenuRef, MenuProps>(({ model, popup = false, clas
     toggle: (event: any) => {
       if (popup) {
         const rect = event.currentTarget.getBoundingClientRect();
-        setPosition({
-          top: rect.bottom + window.scrollY,
-          left: rect.left + window.scrollX
-        });
-        setVisible(!visible);
+        
+        // Initial positioning
+        let top = rect.bottom + window.scrollY + 8;
+        let left = rect.left + window.scrollX;
+
+        // Toggle visibility
+        const nextVisible = !visible;
+        setVisible(nextVisible);
+        
+        if (nextVisible) {
+          // Default to right-aligned if button is on the right half of screen
+          if (rect.left > window.innerWidth / 2) {
+            left = rect.right + window.scrollX - 220; // estimate menu width
+          }
+          setPosition({ top, left });
+        }
       }
     }
   }));
@@ -44,14 +56,42 @@ export const Menu = forwardRef<MenuRef, MenuProps>(({ model, popup = false, clas
       }
     };
 
-    if (visible) {
+    if (visible && menuRef.current) {
+      // Small adjustment if it overflows the viewport
+      const rect = menuRef.current.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      let newLeft = position.left;
+      let newTop = position.top;
+
+      // X-axis overflow
+      if (rect.right > viewportWidth) {
+        newLeft -= (rect.right - viewportWidth + 16);
+      }
+      if (rect.left < 0) {
+        newLeft = 16;
+      }
+
+      // Y-axis overflow
+      if (rect.bottom > viewportHeight) {
+        // Show above the target if it overflows the bottom
+        // This is a bit complex since we don't store the target rect
+        // but for now we'll just pull it up a bit if needed
+        newTop -= (rect.bottom - viewportHeight + 16);
+      }
+
+      if (newLeft !== position.left || newTop !== position.top) {
+        setPosition({ top: newTop, left: newLeft });
+      }
+      
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [visible]);
+  }, [visible, position.left, position.top]);
 
   const handleItemClick = (item: MenuItem) => {
     if (item.command) {
@@ -85,13 +125,26 @@ export const Menu = forwardRef<MenuRef, MenuProps>(({ model, popup = false, clas
 
   if (!visible && popup) return null;
 
-  return (
+  const menuContent = (
     <div
       ref={menuRef}
-      className={`bg-white border border-gray-300 rounded shadow-lg ${popup ? 'absolute z-[110]' : ''} ${className}`}
-      style={popup ? { ...style, top: position.top, left: position.left } : style}
+      className={`bg-white border border-gray-100 rounded-lg shadow-xl ${popup ? 'fixed z-[9999]' : ''} ${className}`}
+      style={popup ? { 
+        ...style, 
+        top: position.top - window.scrollY, 
+        left: position.left - window.scrollX,
+        minWidth: '220px'
+      } : style}
     >
-      {model.map((item, index) => renderMenuItem(item, index))}
+      <div className="py-1">
+        {model.map((item, index) => renderMenuItem(item, index))}
+      </div>
     </div>
   );
+
+  if (popup) {
+    return createPortal(menuContent, document.body);
+  }
+
+  return menuContent;
 });

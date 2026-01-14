@@ -47,7 +47,7 @@
     "help_support": "Tulong at Suporta"
   },
   "settings": {
-    "language_description": "Piliin ang iyong gustong wika para sa interface ng SHERRA.",
+    "language_description": "Piliin ang iyong gustong wika para sa interface ng FindrHub.",
     "select_language": "Pumili ng Wika",
     "coming_soon": "Malapit Na",
     "theme_description": "Ang pagpapalit ng tema ng system (Dark/Light mode) ay magiging available sa susunod na update ng komunidad."
@@ -118,7 +118,7 @@
       "title_part1": "Handa ka na bang Tumulong",
       "title_part2": "sa Iyong Komunidad?",
       "subtitle": "Sumali sa libo-libong tao na tumutulong na maibalik ang mga nawalang gamit sa kanilang mga may-ari. Mahalaga ang bawat ulat.",
-      "button": "Sumali sa SHERRA Ngayon",
+      "button": "Sumali sa FindrHub Ngayon",
       "feature_1": "Ligtas na Platform",
       "feature_2": "10k+ na Miyembro",
       "feature_3": "Libre Magpakailanman"
@@ -136,5 +136,64 @@
     "clear_filters": "I-clear ang lahat ng filter",
     "loading_rescues": "Naglo-load ng mga kamangha-manghang rescue...",
     "end_of_feed": "Nakarating ka na sa dulo ng feed! 🎉"
+  },
+  "community": {
+    "create": "Gumawa ng Komunidad",
+    "create_description": "Bumuo ng puwang para sa iyong kapitbahayan, paaralan, o trabaho upang manatiling konektado.",
+    "name": "Pangalan ng Komunidad",
+    "description": "Paglalarawan",
+    "privacy": "Privacy Settings",
+    "privacy_public": "Publiko",
+    "privacy_private": "Pribado",
+    "invite": "Mag-imbita ng Miyembro",
+    "invite_description": "Pumili ng mga miyembro mula sa iyong mga contact o maghanap gamit ang email.",
+    "select_members": "Pumili ng mga miyembro",
+    "search_placeholder": "Maghanap ng mga user...",
+    "send_invites": "Ipadala ang mga Imbitasyon",
+    "sidebar_title": "Mga Komunidad"
+  },
+  "report": {
+    "create_title": "Gumawa ng Bagong Report",
+    "create_subtitle": "Magbigay ng mga detalye tungkol sa item para makatulong sa komunidad.",
+    "type_question": "Ano ang iyong ini-report?",
+    "lost_item": "Nawawalang Item",
+    "found_item": "Nakitang Item",
+    "item_title": "Pamagat ng Item",
+    "item_title_placeholder": "hal., Nawawalang Golden Retriever, Nakitang Blue Wallet",
+    "category": "Kategorya",
+    "category_placeholder": "Pumili ng kategorya",
+    "location": "Lokasyon",
+    "location_placeholder": "Lungsod, Kapitbahayan",
+    "description": "Paglalarawan",
+    "description_placeholder": "Ilarawan ang item, kabilang ang mga pagkakakilanlan...",
+    "contact_info": "Impormasyon sa Kontact",
+    "contact_placeholder": "Telepono o Email",
+    "reward": "Detalye ng Gantimpala",
+    "reward_placeholder": "Opsyonal na gantimpala (hal., ₱500)",
+    "images": "Mga Larawan (Opsyonal)",
+    "upload": "I-upload",
+    "publish": "I-publish ang Report",
+    "success_title": "Na-publish na ang Report",
+    "success_message_lost": "Ang iyong report sa nawawalang item ay matagumpay na na-publish!",
+    "success_message_found": "Ang iyong report sa nakitang item ay matagumpay na na-publish!",
+    "login_required": "Kailangan mong mag-login para makagawa ng report."
+  },
+  "safety": {
+    "title": "Manatiling Ligtas!",
+    "subtitle": "Palaging makipagkita sa mga pampublikong lugar kapag nagbabalik ng mga gamit. I-verify ang pagmamay-ari bago ibigay ang mga mahalagang bagay.",
+    "tip1_title": "Mga Pampublikong Lugar",
+    "tip1_desc": "Makipagkita sa mga lugar na maliwanag at maraming tao gaya ng police station o mall.",
+    "tip2_title": "Katibayan ng Pagmamay-ari",
+    "tip2_desc": "Magtanong ng mga detalyadong paglalarawan o mga larawan na hindi na-share sa post.",
+    "tip3_title": "Magdala ng Kasama",
+    "tip3_desc": "Huwag makipagkita nang mag-isa kung maaari. Sabihan ang iba kung saan ka pupunta.",
+    "tip4_title": "I-share ang Lokasyon",
+    "tip4_desc": "Gamitin ang real-time location sharing sa isang pinagkakatiwalaang contact.",
+    "full_guide": "Basahin ang Buong Gabay sa Kaligtasan"
+  },
+  "hub": {
+    "news": "Balita",
+    "discussion": "Talakayan",
+    "announcements": "Anunsyo"
   }
 }

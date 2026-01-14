@@ -20,7 +20,7 @@ const CallToActionSection: React.FC<CallToActionSectionProps> = ({ isBelowDeskto
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-emerald-600 rounded-full blur-[120px]"></div>
       </div>
 
-      <Container className="relative z-10">
+      <Container size="full" className="relative z-10">
         <Card className="border-none shadow-2xl rounded-[3rem] bg-gradient-to-br from-slate-800 to-slate-900 overflow-hidden">
           <div className="p-12 md:p-20 text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/60 text-sm font-bold mb-8">

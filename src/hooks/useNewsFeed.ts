@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { NewsFeedItem } from '../components/pages/public/PersonalHubPage/personalHub/NewsFeed';
+import { NewsFeedItem } from '@/types/personalHub';
 import { ReportsService } from '../services/reportsService';
 import { useAuth } from '../context/AuthContext';
-import { mockNewsFeedItems } from '../mocks/newsFeedData';
 
 interface UseNewsFeedReturn {
   items: NewsFeedItem[];
@@ -13,7 +12,10 @@ interface UseNewsFeedReturn {
   refetch: () => void;
 }
 
-export const useNewsFeed = (): UseNewsFeedReturn => {
+export const useNewsFeed = (options?: { 
+  reportType?: string; 
+  search?: string;
+}): UseNewsFeedReturn => {
   const [items, setItems] = useState<NewsFeedItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,22 +30,89 @@ export const useNewsFeed = (): UseNewsFeedReturn => {
     setError(null);
 
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
+      const pageSize = 10;
+      const reports = await ReportsService.getReports({
+        reportType: options?.reportType,
+        search: options?.search,
+        page: page,
+        pageSize: pageSize
+      });
 
-      const pageSize = 6; // Show 6 items per page for better visualization
-      const startIndex = (page - 1) * pageSize;
-      const endIndex = startIndex + pageSize;
-      const paginatedItems = mockNewsFeedItems.slice(startIndex, endIndex);
+      const mappedItems: NewsFeedItem[] = reports.map(report => {
+        const type = (report.reportType?.toLowerCase() as any) || 'lost';
+        const contactName = report.user?.fullName || 'Anonymous';
+        const baseUrl = import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com';
+
+        // Helper to format image URLs
+        const formatImageUrl = (url: string) => {
+          if (!url) return '';
+          if (url.startsWith('http')) return url;
+          const cleanBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+          const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+          return `${cleanBase}${cleanUrl}`;
+        };
+
+        const itemImages = (report.images || [])
+          .slice(0, 5)
+          .map(img => formatImageUrl(img.imageUrl))
+          .filter(Boolean);
+
+        return {
+          id: String(report.id),
+          title: report.title || `${report.reportType} Item`,
+          category: report.categoryName || 'Discussion',
+          location: report.location || 'Location not specified',
+          currentLocation: '',
+          date: report.dateCreated || new Date().toISOString(),
+          time: '',
+          status: type,
+          views: 0,
+          type: type,
+          description: report.description || '',
+          circumstances: '',
+          identifyingFeatures: '',
+          condition: 'good',
+          handoverPreference: 'meet',
+          contactInfo: {
+            name: contactName,
+            phone: report.contactInfo || '',
+            email: '',
+            preferredContact: 'phone'
+          },
+          reward: {
+            amount: parseFloat(String(report.rewardDetails || '0').replace(/[^0-9.]/g, '') || '0'),
+            description: report.rewardDetails || ''
+          },
+          images: itemImages,
+          storageLocation: '',
+          createdAt: report.dateCreated || new Date().toISOString(),
+          updatedAt: report.dateCreated || new Date().toISOString(),
+          expiresAt: report.expiresAt || '',
+          reportTypeDescription: report.reportType || 'Report',
+          verificationStatus: 'pending',
+          potentialMatches: 0,
+          user: {
+            id: report.userId || 'unknown',
+            fullName: report.user?.fullName || contactName,
+            username: report.user?.username || String(contactName).toLowerCase().replace(/\s/g, ''),
+            profilePicture: report.user?.profilePictureUrl || '',
+            isVerified: false
+          },
+          reactionsCount: report.reactionsCount || 0,
+          isReacted: report.isReacted || false,
+          commentsCount: report.commentsCount || 0,
+          communityName: report.communityName || '',
+          timeAgo: getTimeAgo(report.dateCreated || new Date().toISOString())
+        };
+      });
 
       if (isLoadMore) {
-        setItems(prev => [...prev, ...paginatedItems]);
+        setItems(prev => [...prev, ...mappedItems]);
       } else {
-        setItems(paginatedItems);
+        setItems(mappedItems);
       }
 
-      // Check if there are more items
-      setHasMore(endIndex < mockNewsFeedItems.length);
+      setHasMore(mappedItems.length === pageSize);
       setCurrentPage(page);
 
     } catch (error) {
@@ -53,7 +122,7 @@ export const useNewsFeed = (): UseNewsFeedReturn => {
     } finally {
       setLoading(false);
     }
-  }, [loading]);
+  }, [loading, options?.reportType, options?.search]);
 
   const loadMore = useCallback(() => {
     if (hasMore && !loading) {
@@ -66,13 +135,12 @@ export const useNewsFeed = (): UseNewsFeedReturn => {
     fetchNewsFeed(1, false);
   }, [fetchNewsFeed]);
 
-  // Initial load
+  // Refetch when options change
   useEffect(() => {
-    // Only fetch news feed after authentication has been initialized
     if (!authLoading) {
       fetchNewsFeed(1, false);
     }
-  }, [authLoading]);
+  }, [authLoading, options?.reportType, options?.search]);
 
   return {
     items,

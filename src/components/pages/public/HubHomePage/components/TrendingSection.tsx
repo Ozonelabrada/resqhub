@@ -55,7 +55,7 @@ const TrendingSection: React.FC<TrendingSectionProps> = ({
 
   return (
     <div className="bg-slate-50 py-24">
-      <Container>
+      <Container size="full">
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-100 text-blue-600 text-sm font-bold mb-6">
             <Activity size={16} />

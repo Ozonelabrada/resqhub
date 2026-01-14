@@ -15,7 +15,7 @@ const mapFormDataToApiPayload = (reportType: string, formData: any) => {
   // Main report payload
   const reportPayload = {
     userId,
-    reportType: reportType === 'lost' ? 1 : 2, // Lost = 1, Found = 2
+    reportType: reportType.toLowerCase() === 'lost' ? 'Lost' : 'Found',
     title: formData.name || formData.title,
     description: formData.description,
     expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days from now

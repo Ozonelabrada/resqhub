@@ -83,7 +83,7 @@ const Logo: React.FC<LogoProps> = ({
         fontSize: `${pixelSize * 0.5}px`,
       }}
     >
-      SHE<span className={light ? "text-emerald-300" : "text-teal-600"}>RRA</span>
+      FINDR<span className={light ? "text-emerald-300" : "text-teal-600"}>HUB</span>
     </span>
   );
 

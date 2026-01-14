@@ -11,6 +11,7 @@ import {
   Spinner,
   Alert,
   Toast,
+  type ToastRef,
   Avatar,
   Card,
   Grid,
@@ -29,6 +30,7 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import { UserService, type BackendUserData } from '../../../services/userService';
+import { STORAGE_KEYS } from '../../../constants';
 
 interface EditProfileModalProps {
   visible: boolean;
@@ -217,32 +219,13 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       reader.readAsDataURL(file);
     }
   };
-      if (!file.type.startsWith('image/')) {
-        toast.current?.show({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Please select a valid image file',
-          life: 3000
-        });
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setCoverPhotoPreview(result);
-        setFormData(prev => ({ ...prev, coverPhoto: result }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   // Remove profile picture
   const removeProfilePicture = () => {
     setProfilePicturePreview('');
     setFormData(prev => ({ ...prev, profilePicture: '' }));
     if (profileUploadRef.current) {
-      profileUploadRef.current.clear();
+      profileUploadRef.current.value = '';
     }
   };
 
@@ -251,7 +234,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     setCoverPhotoPreview('');
     setFormData(prev => ({ ...prev, coverPhoto: '' }));
     if (coverUploadRef.current) {
-      coverUploadRef.current.clear();
+      coverUploadRef.current.value = '';
     }
   };
 
@@ -286,7 +269,8 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       
       // Transform and update local data
       const transformedUserData = UserService.transformUserData(updatedUser);
-      localStorage.setItem('publicUserData', JSON.stringify(transformedUserData));
+      // Persist using centralized storage key so AuthManager picks it up
+      localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(transformedUserData));
       
       // Call parent update function
       onUserDataUpdate(transformedUserData);
@@ -567,7 +551,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         </Button>
         <Button 
           onClick={handleSubmit}
-          isLoading={loading}
+          loading={loading}
           className="rounded-xl px-8 bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200"
         >
           Save Changes

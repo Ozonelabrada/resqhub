@@ -12,6 +12,7 @@ import {
 import { Mail, Lock, LogIn, ArrowRight, Info } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { SITE } from '@/constants/site';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -59,17 +60,16 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
           <DialogHeader className="relative z-10 space-y-2 mb-8">
             <DialogTitle className="text-3xl font-black text-slate-900 tracking-tight">Welcome Back</DialogTitle>
             <DialogDescription className="text-slate-500 font-medium">
-              Sign in to reunite with your items and community on SHERRA.
+              Sign in to reunite with your items and community on {SITE.name}.
             </DialogDescription>
           </DialogHeader>
 
           {error && (
-            <Alert variant="error" className="mb-6 rounded-2xl border-orange-100 bg-orange-50 text-orange-800 animate-in fade-in slide-in-from-top-1">
-              <div className="flex items-center gap-2">
-                <Info className="w-4 h-4 text-orange-600" />
-                {error}
-              </div>
-            </Alert>
+            <Alert 
+              type="error" 
+              message={error}
+              className="mb-6 rounded-2xl border-orange-100 bg-orange-50 text-orange-800 animate-in fade-in slide-in-from-top-1" 
+            />
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
@@ -140,7 +140,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
                     openSignUpModal();
                   }}
                 >
-                  Join SHERRA
+                  Join {SITE.name}
                 </button>
               </p>
             </div>

@@ -7,6 +7,8 @@ import {
   Badge, 
   Avatar, 
   Modal, 
+  ModalBody,
+  ModalFooter,
   ImageGallery, 
   Spinner,
   Container,
@@ -27,10 +29,12 @@ import {
   ChevronRight,
   X,
   Info,
+  CheckCircle2,
   DollarSign,
   User as UserIcon,
   ArrowRight
 } from 'lucide-react';
+import { formatCurrencyPHP, formatDate } from '@/utils';
 
 interface Item {
   id: number;
@@ -167,7 +171,7 @@ const ItemsPage: React.FC = () => {
   ];
 
   const categories = [
-    { label: 'All Categories', value: null },
+    { label: 'All Categories', value: '' },
     { label: 'Electronics', value: 1 },
     { label: 'Accessories', value: 2 },
     { label: 'Keys', value: 3 },
@@ -177,7 +181,7 @@ const ItemsPage: React.FC = () => {
   ];
 
   const statusOptions = [
-    { label: 'All Status', value: null },
+    { label: 'All Status', value: '' },
     { label: 'Active', value: 'active' },
     { label: 'Matched', value: 'matched' },
     { label: 'Closed', value: 'closed' },
@@ -185,7 +189,7 @@ const ItemsPage: React.FC = () => {
   ];
 
   const typeOptions = [
-    { label: 'All Types', value: null },
+    { label: 'All Types', value: '' },
     { label: 'Lost Items', value: 'lost' },
     { label: 'Found Items', value: 'found' }
   ];
@@ -322,7 +326,7 @@ const ItemsPage: React.FC = () => {
                 <div className="text-right">
                   <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Reward</div>
                   <div className="text-2xl font-black text-emerald-600">
-                    ${item.reward_amount}
+                    {formatCurrencyPHP(item.reward_amount)}
                   </div>
                 </div>
               )}
@@ -348,7 +352,7 @@ const ItemsPage: React.FC = () => {
                   <Calendar size={14} />
                   <span className="text-[10px] font-black uppercase tracking-widest">Date</span>
                 </div>
-                <div className="text-sm font-bold text-slate-900">{item.incident_date.toLocaleDateString()}</div>
+                <div className="text-sm font-bold text-slate-900">{formatDate(item.incident_date)}</div>
                 {item.incident_time && (
                   <div className="text-xs font-medium text-slate-500">{item.incident_time}</div>
                 )}
@@ -412,7 +416,7 @@ const ItemsPage: React.FC = () => {
                 {item.estimated_value && (
                   <div className="text-right">
                     <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Value</div>
-                    <div className="text-sm font-black text-slate-900">${item.estimated_value}</div>
+                    <div className="text-sm font-black text-slate-900">{formatCurrencyPHP(item.estimated_value)}</div>
                   </div>
                 )}
               </div>
@@ -493,13 +497,13 @@ const ItemsPage: React.FC = () => {
                       {selectedItem.reward_amount && (
                         <div className="flex justify-between items-center">
                           <span className="text-sm font-medium text-slate-500">Reward Amount</span>
-                          <span className="text-lg font-black text-emerald-600">${selectedItem.reward_amount}</span>
+                          <span className="text-lg font-black text-emerald-600">{formatCurrencyPHP(selectedItem.reward_amount)}</span>
                         </div>
                       )}
                       {selectedItem.estimated_value && (
                         <div className="flex justify-between items-center">
                           <span className="text-sm font-medium text-slate-500">Estimated Value</span>
-                          <span className="text-lg font-black text-slate-900">${selectedItem.estimated_value}</span>
+                          <span className="text-lg font-black text-slate-900">{formatCurrencyPHP(selectedItem.estimated_value)}</span>
                         </div>
                       )}
                     </div>
