@@ -1,70 +1,123 @@
 import React from 'react';
-import { Card } from 'primereact/card';
-import { Avatar } from 'primereact/avatar';
-import { Button } from 'primereact/button';
+import { useNavigate } from 'react-router-dom';
+import { 
+  Card, 
+  Button, 
+  Container,
+  StatusBadge
+} from '../../../ui';
 import { useAuth } from '../../../../context/AuthContext';
+import { 
+  User, 
+  Mail, 
+  Phone, 
+  Calendar, 
+  Pencil, 
+  FileText, 
+  LogIn,
+  ShieldCheck
+} from 'lucide-react';
 
 const ProfilePage: React.FC = () => {
-  const { userData: user } = useAuth() ?? {};
+  const { user, openLoginModal } = useAuth();
+  const navigate = useNavigate();
 
   if (!user) {
     return (
-      <div className="flex flex-column align-items-center justify-content-center" style={{ minHeight: '60vh' }}>
-        <Card className="p-4" style={{ maxWidth: 400 }}>
-          <div className="flex flex-column align-items-center gap-3">
-            <Avatar icon="pi pi-user" size="xlarge" style={{ backgroundColor: '#3B82F6', color: 'white' }} />
-            <h2 className="text-xl font-bold">Not Signed In</h2>
-            <p className="text-gray-600 text-center">Please sign in to view your profile.</p>
-            <Button label="Sign In" icon="pi pi-sign-in" className="p-button-primary" onClick={() => window.location.href = '/signin'} />
+      <div className="min-h-[60vh] flex items-center justify-center p-6">
+        <Card className="max-w-md w-full p-10 text-center rounded-[2.5rem] border-none shadow-2xl bg-white/80 backdrop-blur-xl">
+          <div className="w-20 h-20 rounded-3xl bg-slate-100 flex items-center justify-center text-slate-400 mx-auto mb-8">
+            <User size={40} />
           </div>
+          <h2 className="text-2xl font-black text-slate-900 mb-3">Not Signed In</h2>
+          <p className="text-slate-500 font-medium mb-8">Please sign in to view your profile and manage your reports.</p>
+          <Button 
+            className="w-full rounded-2xl py-4 h-auto font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 shadow-xl shadow-teal-200"
+            onClick={() => openLoginModal()}
+          >
+            <LogIn size={18} />
+            Sign In Now
+          </Button>
         </Card>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-column align-items-center justify-content-center" style={{ minHeight: '60vh', background: 'linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%)' }}>
-      <Card className="p-4 shadow-2" style={{ maxWidth: 480, width: '100%' }}>
-        <div className="flex flex-column align-items-center gap-3">
-          <Avatar
-            icon="pi pi-user"
-            size="xlarge"
-            style={{ backgroundColor: '#3B82F6', color: 'white', width: 80, height: 80, fontSize: 36 }}
-            shape="circle"
-          />
-          <h2 className="text-2xl font-bold text-primary mb-1">{user.name || user.fullName || 'User'}</h2>
-          <span className="text-gray-600">{user.email}</span>
-        </div>
-        <div className="mt-4">
-          <h3 className="text-lg font-semibold mb-2 text-gray-800">Profile Details</h3>
-          <div className="grid">
-            <div className="col-12 md:col-6 mb-2">
-              <span className="font-medium text-gray-700">Full Name:</span>
-              <div>{user.fullName || user.name || '-'}</div>
-            </div>
-            <div className="col-12 md:col-6 mb-2">
-              <span className="font-medium text-gray-700">Email:</span>
-              <div>{user.email || '-'}</div>
-            </div>
-            {user.phone && (
-              <div className="col-12 md:col-6 mb-2">
-                <span className="font-medium text-gray-700">Phone:</span>
-                <div>{user.phone}</div>
+    <div className="min-h-screen bg-slate-50 py-12 px-6">
+      <Container size="sm">
+        <Card className="border-none shadow-2xl rounded-[3rem] bg-white overflow-hidden">
+          {/* Header Section */}
+          <div className="relative h-32 bg-gradient-to-r from-teal-600 to-emerald-700" />
+          
+          <div className="px-8 pb-10 -mt-16">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-32 h-32 rounded-[2.5rem] bg-white p-2 shadow-xl mb-6">
+                <div className="w-full h-full rounded-[2rem] bg-slate-100 flex items-center justify-center text-teal-600">
+                  <User size={56} />
+                </div>
               </div>
-            )}
-            {user.createdAt && (
-              <div className="col-12 md:col-6 mb-2">
-                <span className="font-medium text-gray-700">Joined:</span>
-                <div>{new Date(user.createdAt).toLocaleDateString()}</div>
+              
+              <h2 className="text-3xl font-black text-slate-900 mb-2">
+                {user.name || user.fullName || 'User'}
+              </h2>
+              <div className="flex items-center gap-2 text-slate-500 font-medium mb-8">
+                <Mail size={16} />
+                {user.email}
               </div>
-            )}
+
+              <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6 text-left mb-10">
+                <div className="p-6 rounded-3xl bg-slate-50 border border-slate-100 group hover:border-teal-200 transition-colors">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-2xl bg-teal-100 flex items-center justify-center text-teal-600">
+                      <ShieldCheck size={20} />
+                    </div>
+                    <span className="font-black uppercase tracking-widest text-[10px] text-slate-400">Full Name</span>
+                  </div>
+                  <p className="text-slate-900 font-bold">{user.fullName || user.name || '-'}</p>
+                </div>
+
+                <div className="p-6 rounded-3xl bg-slate-50 border border-slate-100 group hover:border-teal-200 transition-colors">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-600">
+                      <Phone size={20} />
+                    </div>
+                    <span className="font-black uppercase tracking-widest text-[10px] text-slate-400">Phone Number</span>
+                  </div>
+                  <p className="text-slate-900 font-bold">{user.phone || 'Not provided'}</p>
+                </div>
+
+                <div className="p-6 rounded-3xl bg-slate-50 border border-slate-100 group hover:border-teal-200 transition-colors md:col-span-2">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-2xl bg-orange-100 flex items-center justify-center text-orange-600">
+                      <Calendar size={20} />
+                    </div>
+                    <span className="font-black uppercase tracking-widest text-[10px] text-slate-400">Member Since</span>
+                  </div>
+                  <p className="text-slate-900 font-bold">
+                    {user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric'
+                    }) : '-'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="w-full">
+                <Button 
+                  variant="outline"
+                  className="w-full rounded-2xl py-4 h-auto font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3"
+                  onClick={() => navigate('/settings')}
+                >
+                  <Pencil size={18} />
+                  Edit Profile
+                </Button>
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="flex justify-content-end mt-4 gap-2">
-          <Button label="Edit Profile" icon="pi pi-pencil" className="p-button-outlined" onClick={() => window.location.href = '/settings'} />
-          <Button label="My Reports" icon="pi pi-file" className="p-button-secondary" onClick={() => window.location.href = '/hub'} />
-        </div>
-      </Card>
+        </Card>
+      </Container>
     </div>
   );
 };

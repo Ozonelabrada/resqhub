@@ -1,6 +1,19 @@
 import React from 'react';
-import { Dialog } from 'primereact/dialog';
-import { Button } from 'primereact/button';
+import { useTranslation } from 'react-i18next';
+import { 
+  Modal, 
+  ModalHeader, 
+  ModalBody, 
+  ModalFooter, 
+  Button 
+} from '../../ui';
+import { 
+  AlertTriangle, 
+  Info, 
+  CheckCircle2, 
+  AlertCircle,
+  X
+} from 'lucide-react';
 
 interface ConfirmationModalProps {
   visible: boolean;
@@ -19,113 +32,89 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   visible,
   onHide,
   onConfirm,
-  title = 'Confirm Action',
-  message = 'Are you sure you want to proceed?',
-  confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
+  title,
+  message,
+  confirmLabel,
+  cancelLabel,
   severity = 'warning',
   icon,
   loading = false
 }) => {
+  const { t } = useTranslation();
+  
+  const displayTitle = title || t('common.confirm_action');
+  const displayMessage = message || t('common.confirm_question');
+  const displayConfirmLabel = confirmLabel || t('common.confirm');
+  const displayCancelLabel = cancelLabel || t('common.cancel');
+
   // Default icons based on severity
-  const defaultIcons = {
-    danger: 'pi pi-exclamation-triangle',
-    warning: 'pi pi-exclamation-triangle',
-    info: 'pi pi-info-circle',
-    success: 'pi pi-check-circle'
-  };
-
-  const displayIcon = icon || defaultIcons[severity];
-
-  // Color schemes based on severity
-  const colorSchemes = {
-    danger: {
-      headerBg: '#fef2f2',
-      headerText: '#dc2626',
-      iconColor: '#dc2626',
-      confirmButton: 'p-button-danger'
-    },
-    warning: {
-      headerBg: '#fffbeb',
-      headerText: '#d97706',
-      iconColor: '#d97706',
-      confirmButton: 'p-button-warning'
-    },
-    info: {
-      headerBg: '#eff6ff',
-      headerText: '#2563eb',
-      iconColor: '#2563eb',
-      confirmButton: 'p-button-info'
-    },
-    success: {
-      headerBg: '#f0fdf4',
-      headerText: '#16a34a',
-      iconColor: '#16a34a',
-      confirmButton: 'p-button-success'
+  const getIcon = () => {
+    switch (severity) {
+      case 'danger': return <AlertCircle className="w-12 h-12 text-red-500" />;
+      case 'warning': return <AlertTriangle className="w-12 h-12 text-amber-500" />;
+      case 'info': return <Info className="w-12 h-12 text-blue-500" />;
+      case 'success': return <CheckCircle2 className="w-12 h-12 text-green-500" />;
+      default: return <AlertTriangle className="w-12 h-12 text-amber-500" />;
     }
   };
 
-  const scheme = colorSchemes[severity];
+  const getSeverityStyles = () => {
+    switch (severity) {
+      case 'danger': return 'bg-red-50 text-red-900 border-red-100';
+      case 'warning': return 'bg-amber-50 text-amber-900 border-amber-100';
+      case 'info': return 'bg-blue-50 text-blue-900 border-blue-100';
+      case 'success': return 'bg-green-50 text-green-900 border-green-100';
+      default: return 'bg-amber-50 text-amber-900 border-amber-100';
+    }
+  };
 
-  const headerTemplate = () => (
-    <div 
-      className="flex align-items-center gap-3 p-3 border-round-top"
-      style={{ 
-        backgroundColor: scheme.headerBg,
-        color: scheme.headerText,
-        margin: '-1.5rem -1.5rem 0 -1.5rem'
-      }}
-    >
-      <i 
-        className={displayIcon}
-        style={{ 
-          fontSize: '1.5rem',
-          color: scheme.iconColor
-        }}
-      />
-      <h3 className="m-0 font-semibold">{title}</h3>
-    </div>
-  );
-
-  const footerTemplate = () => (
-    <div className="flex justify-content-end gap-2">
-      <Button
-        label={cancelLabel}
-        icon="pi pi-times"
-        className="p-button-outlined"
-        onClick={onHide}
-        disabled={loading}
-      />
-      <Button
-        label={confirmLabel}
-        icon={loading ? "pi pi-spin pi-spinner" : "pi pi-check"}
-        className={scheme.confirmButton}
-        onClick={onConfirm}
-        loading={loading}
-        disabled={loading}
-      />
-    </div>
-  );
+  const getButtonVariant = () => {
+    switch (severity) {
+      case 'danger': return 'danger';
+      default: return 'primary';
+    }
+  };
 
   return (
-    <Dialog
-      visible={visible}
-      onHide={onHide}
-      header={headerTemplate}
-      footer={footerTemplate}
-      modal
-      closable={!loading}
-      className="w-full max-w-md"
-      style={{ width: '90vw', maxWidth: '400px' }}
-      draggable={false}
-      resizable={false}
+    <Modal 
+      isOpen={visible} 
+      onClose={onHide} 
+      title={displayTitle}
+      size="sm"
+      skipExitConfirmation={true}
     >
-      <div className="pt-4 pb-2">
-        <p className="text-gray-700 line-height-3 m-0 text-center">
-          {message}
-        </p>
-      </div>
-    </Dialog>
+      <ModalBody className="p-8 flex flex-col items-center text-center space-y-6">
+        <div className={`p-4 rounded-full ${getSeverityStyles().split(' ')[0]} animate-in zoom-in duration-300`}>
+          {getIcon()}
+        </div>
+        
+        <div className="space-y-2">
+          <h3 className="text-xl font-bold text-slate-800">{displayTitle}</h3>
+          <p className="text-slate-600 leading-relaxed">
+            {displayMessage}
+          </p>
+        </div>
+      </ModalBody>
+
+      <ModalFooter className="bg-slate-50/50 p-6 flex justify-center gap-4">
+        <Button 
+          variant="ghost" 
+          onClick={onHide}
+          disabled={loading}
+          className="rounded-xl px-6"
+        >
+          {displayCancelLabel}
+        </Button>
+        <Button 
+          variant={getButtonVariant() as any}
+          onClick={onConfirm}
+          loading={loading}
+          className={`rounded-xl px-8 shadow-lg ${severity === 'danger' ? 'shadow-red-100' : 'shadow-blue-100'}`}
+        >
+          {displayConfirmLabel}
+        </Button>
+      </ModalFooter>
+    </Modal>
   );
 };
 

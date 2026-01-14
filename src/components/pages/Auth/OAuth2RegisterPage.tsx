@@ -1,14 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { Card } from 'primereact/card';
-import { InputText } from 'primereact/inputtext';
-import { InputTextarea } from 'primereact/inputtextarea';
-import { Button } from 'primereact/button';
-import { Checkbox } from 'primereact/checkbox';
-import { Message } from 'primereact/message';
-import { Dropdown } from 'primereact/dropdown';
-import { ProgressSpinner } from 'primereact/progressspinner';
+import { 
+  Card, 
+  Input, 
+  Textarea, 
+  Button, 
+  Select, 
+  Alert,
+  Container,
+  Logo,
+  Avatar
+} from '../../ui';
+import { 
+  Phone, 
+  MapPin, 
+  Info, 
+  ShieldCheck, 
+  ArrowRight,
+  ArrowLeft,
+  Globe
+} from 'lucide-react';
 import { AuthService } from '../../../services/authService';
+import { STORAGE_KEYS, SITE } from '../../../constants';
 
 const OAuth2RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -86,8 +99,9 @@ const OAuth2RegisterPage: React.FC = () => {
     // If no OAuth2 data found, redirect to sign-in
     if (!userData || (!userData.name && !userData.email)) {
       console.warn('No OAuth2 user data found, redirecting to sign-in');
-      navigate('/signin', {
+      navigate('/', {
         state: { 
+          openLogin: true,
           message: 'Please sign in with Google first to complete registration.' 
         }
       });
@@ -177,14 +191,14 @@ const OAuth2RegisterPage: React.FC = () => {
       
       if (response && response.succeeded) {
         // Save user data - handle different response structures
-        const token = response.data?.token || response.token;
+        const token = (response.data as any)?.user?.token || (response.data as any)?.token || response.token;
         const user = response.data?.user || response.user;
 
         if (token) {
-          localStorage.setItem('publicUserToken', token);
+          localStorage.setItem(STORAGE_KEYS.TOKEN, token);
         }
         if (user) {
-          localStorage.setItem('publicUserData', JSON.stringify(user));
+          localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
         }
 
         // Clear temporary OAuth2 data
@@ -196,7 +210,7 @@ const OAuth2RegisterPage: React.FC = () => {
         
         navigate(returnPath, { 
           state: { 
-            message: `Welcome to ResQHub, ${user?.name || googleUserData.name}! Your account has been created successfully.` 
+            message: `Welcome to ${SITE.name}, ${user?.name || googleUserData.name}! Your account has been created successfully.` 
           }
         });
       } else {
@@ -213,247 +227,163 @@ const OAuth2RegisterPage: React.FC = () => {
   const handleBackToSignIn = () => {
     // Clear any temporary data
     localStorage.removeItem('tempOAuth2UserData');
-    navigate('/signin');
+    navigate('/');
   };
 
   return (
-    <div
-      className="min-h-screen flex align-items-center justify-content-center"
-      style={{
-        background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 25%, #f9fafb 75%, #f3f4f6 100%)',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        padding: '2rem 1rem'
-      }}
-    >
-      {/* Subtle background pattern */}
-      <div 
-        style={{
-          position: 'absolute',
-          inset: 0,
-          opacity: 0.03,
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23059669' fill-opacity='1'%3E%3Cpath d='M20 20c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10zm10 0c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10z'/%3E%3C/g%3E%3C/svg%3E")`
-        }}
-      />
-
-      <Card
-        className="w-full shadow-lg border-0"
-        style={{
-          maxWidth: '600px',
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(20px)',
-          borderRadius: 24,
-          border: '1px solid rgba(229, 231, 235, 0.8)'
-        }}
-      >
-        <div className="p-6">
-          {/* Header */}
-          <div className="text-center mb-6">
-            <div
-              style={{
-                width: 64,
-                height: 64,
-                borderRadius: '16px',
-                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 24px',
-                boxShadow: '0 10px 15px -3px rgba(16, 185, 129, 0.2)'
-              }}
-            >
-              <i className="pi pi-user-plus" style={{ color: 'white', fontSize: 28 }}></i>
-            </div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
-              Complete Your Profile
-            </h1>
-            <p className="text-gray-600">
-              We've connected your Google account. Please provide some additional information.
-            </p>
-          </div>
-
-          {/* Google Account Info - Show actual user data */}
-          <div 
-            className="mb-6 p-4 border-round-lg"
-            style={{ 
-              backgroundColor: '#f0f9ff', 
-              border: '1px solid #0ea5e9'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              {googleUserData.picture ? (
-                <img
-                  src={googleUserData.picture}
-                  alt="Profile"
-                  style={{ 
-                    width: 48, 
-                    height: 48, 
-                    borderRadius: '50%',
-                    border: '2px solid white',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                  }}
-                />
-              ) : (
-                <div
-                  style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: '50%',
-                    background: '#0ea5e9',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                >
-                  <i className="pi pi-user" style={{ color: 'white', fontSize: 20 }}></i>
-                </div>
-              )}
-              <div>
-                <div className="text-lg font-semibold text-sky-800">
-                  {googleUserData.name || 'Google User'}
-                </div>
-                <div className="text-sm text-sky-600">
-                  {googleUserData.email || 'Connected with Google'}
-                </div>
-                <div className="text-xs text-sky-500 mt-1">
-                  ✓ Verified Google Account
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Error Message */}
-          {errors.submit && (
-            <Message severity="error" text={errors.submit} className="w-full mb-4" />
-          )}
-
-          {/* Registration Form - Only additional information */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid">
-              {/* Phone - Required */}
-              <div className="col-12 md:col-6">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Phone Number *
-                </label>
-                <InputText
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
-                  onBlur={(e) => validateField('phone', e.target.value)}
-                  placeholder="Enter your phone number"
-                  className={`w-full ${errors.phone ? 'p-invalid' : ''}`}
-                  disabled={loading}
-                />
-                {errors.phone && <small className="p-error block mt-1">{errors.phone}</small>}
-              </div>
-
-              {/* Location - Optional */}
-              <div className="col-12 md:col-6">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Location
-                </label>
-                <Dropdown
-                  value={formData.location}
-                  options={locationOptions}
-                  onChange={(e) => handleInputChange('location', e.value)}
-                  placeholder="Select your city"
-                  className="w-full"
-                  disabled={loading}
-                />
-              </div>
-
-              {/* Bio - Optional */}
-              <div className="col-12">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  About You (Optional)
-                </label>
-                <InputTextarea
-                  value={formData.bio}
-                  onChange={(e) => handleInputChange('bio', e.target.value)}
-                  placeholder="Tell us a bit about yourself..."
-                  rows={3}
-                  className="w-full"
-                  maxLength={200}
-                  disabled={loading}
-                />
-                <small className="text-gray-500">
-                  {formData.bio.length}/200 characters
-                </small>
-              </div>
-            </div>
-
-            {/* Terms and Newsletter */}
-            <div className="mt-6 space-y-3">
-              <div className="flex align-items-center">
-                <Checkbox
-                  id="agreeToTerms"
-                  checked={formData.agreeToTerms}
-                  onChange={(e) => handleInputChange('agreeToTerms', e.checked || false)}
-                  disabled={loading}
-                />
-                <label htmlFor="agreeToTerms" className="ml-2 text-sm text-gray-700">
-                  I agree to the{' '}
-                  <a href="/terms" className="text-green-600 hover:text-green-700 no-underline">
-                    Terms of Service
-                  </a>{' '}
-                  and{' '}
-                  <a href="/privacy" className="text-green-600 hover:text-green-700 no-underline">
-                    Privacy Policy
-                  </a>{' '}
-                  *
-                </label>
-              </div>
-
-              <div className="flex align-items-center">
-                <Checkbox
-                  id="agreeToNewsletter"
-                  checked={formData.agreeToNewsletter}
-                  onChange={(e) => handleInputChange('agreeToNewsletter', e.checked || false)}
-                  disabled={loading}
-                />
-                <label htmlFor="agreeToNewsletter" className="ml-2 text-sm text-gray-700">
-                  I'd like to receive updates and news about ResQHub
-                </label>
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <div className="mt-8">
-              <Button
-                type="submit"
-                label={loading ? '' : 'Complete Registration'}
-                icon={loading ? '' : 'pi pi-check'}
-                className="w-full p-button-lg"
-                disabled={!isFormValid || loading}
-                style={{
-                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                  border: 'none',
-                  padding: '16px',
-                  borderRadius: 12,
-                  fontWeight: 600
-                }}
-              >
-                {loading && (
-                  <ProgressSpinner
-                    style={{ width: '20px', height: '20px' }}
-                    strokeWidth="3"
-                    animationDuration="1s"
-                  />
-                )}
-              </Button>
-            </div>
-
-            {/* Back to Sign In */}
-            <div className="text-center mt-4">
-              <Button
-                label="Back to Sign In"
-                icon="pi pi-arrow-left"
-                className="p-button-text text-sm"
-                onClick={handleBackToSignIn}
-                disabled={loading}
-              />
-            </div>
-          </form>
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 md:p-8">
+      <Container size="md">
+        <div className="mb-8 text-center">
+          <Logo className="mx-auto mb-6" />
+          <h1 className="text-3xl font-black text-slate-800 tracking-tight">Complete Your Profile</h1>
+          <p className="text-slate-500 mt-2">Just a few more details to get you started with {SITE.name}</p>
         </div>
-      </Card>
+
+        <Card className="overflow-hidden border-none shadow-2xl shadow-slate-200 rounded-[2.5rem]">
+          <div className="flex flex-col md:flex-row">
+            {/* Left Side: Google Info */}
+            <div className="md:w-1/3 bg-teal-600 p-8 md:p-10 text-white flex flex-col items-center text-center space-y-6">
+              <div className="relative">
+                <Avatar 
+                  src={googleUserData.picture} 
+                  alt={googleUserData.name}
+                  size="xl"
+                  className="w-24 h-24 md:w-32 md:h-32 border-4 border-white/20 shadow-xl"
+                />
+                <div className="absolute -bottom-2 -right-2 bg-white p-2 rounded-full shadow-lg">
+                  <Globe className="w-5 h-5 text-teal-600" />
+                </div>
+              </div>
+              
+              <div className="space-y-1">
+                <h3 className="text-xl font-bold">{googleUserData.name}</h3>
+                <p className="text-teal-100 text-sm">{googleUserData.email}</p>
+              </div>
+
+              <div className="pt-6 border-t border-white/10 w-full">
+                <div className="flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-teal-200">
+                  <ShieldCheck className="w-4 h-4" />
+                  Verified Account
+                </div>
+              </div>
+            </div>
+
+            {/* Right Side: Form */}
+            <div className="md:w-2/3 p-8 md:p-12 bg-white">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-teal-500" />
+                      Phone Number *
+                    </label>
+                    <Input
+                      value={formData.phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      placeholder="+1 (555) 000-0000"
+                      error={errors.phone}
+                      className="rounded-2xl"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-emerald-500" />
+                      Location
+                    </label>
+                    <Select
+                      value={formData.location}
+                      onChange={(value) => handleInputChange('location', value)}
+                      options={locationOptions}
+                      placeholder="Select location"
+                      className="rounded-2xl"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2 space-y-2">
+                    <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                      <Info className="w-4 h-4 text-blue-500" />
+                      Bio
+                    </label>
+                    <Textarea
+                      value={formData.bio}
+                      onChange={(e) => handleInputChange('bio', e.target.value)}
+                      placeholder="Tell us a bit about yourself..."
+                      rows={3}
+                      className="rounded-2xl"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-4 pt-4">
+                  <label className="flex items-start gap-3 cursor-pointer group">
+                    <div className="relative flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.agreeToTerms}
+                        onChange={(e) => handleInputChange('agreeToTerms', e.target.checked)}
+                        className="w-5 h-5 rounded-lg border-2 border-slate-200 text-blue-600 focus:ring-blue-500 transition-all cursor-pointer"
+                      />
+                    </div>
+                    <span className="text-sm text-slate-600 group-hover:text-slate-800 transition-colors">
+                      I agree to the <a href="/terms" className="text-blue-600 font-bold hover:underline">Terms of Service</a> and <a href="/privacy" className="text-blue-600 font-bold hover:underline">Privacy Policy</a>
+                    </span>
+                  </label>
+
+                  <label className="flex items-start gap-3 cursor-pointer group">
+                    <div className="relative flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.agreeToNewsletter}
+                        onChange={(e) => handleInputChange('agreeToNewsletter', e.target.checked)}
+                        className="w-5 h-5 rounded-lg border-2 border-slate-200 text-teal-600 focus:ring-teal-500 transition-all cursor-pointer"
+                      />
+                    </div>
+                    <span className="text-sm text-slate-600 group-hover:text-slate-800 transition-colors">
+                      Keep me updated with community news and alerts
+                    </span>
+                  </label>
+                </div>
+
+                {errors.submit && (
+                  <Alert variant="danger" className="rounded-2xl">
+                    {errors.submit}
+                  </Alert>
+                )}
+
+                <div className="flex flex-col gap-4 pt-4">
+                  <Button
+                    type="submit"
+                    loading={loading}
+                    disabled={!isFormValid || loading}
+                    className="w-full py-6 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white shadow-xl shadow-teal-100 font-bold text-lg"
+                  >
+                    Complete Registration
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={handleBackToSignIn}
+                    disabled={loading}
+                    className="w-full py-4 rounded-2xl text-slate-500 hover:text-slate-800 font-medium"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back to Sign In
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </Card>
+
+        <div className="mt-8 text-center">
+          <p className="text-slate-400 text-sm">
+            &copy; {new Date().getFullYear()} {SITE.name}. All rights reserved.
+          </p>
+        </div>
+      </Container>
     </div>
   );
 };

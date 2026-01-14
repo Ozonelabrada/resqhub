@@ -1,4 +1,5 @@
-import api from '../api/client';
+  import api from '../api/client';
+import { authManager } from '../utils/sessionManager';
 
 export interface BackendUserData {
   id: string;
@@ -34,17 +35,12 @@ export interface BackendUserResponse {
 export class UserService {
   static async getCurrentUser(userId?: string): Promise<BackendUserData> {
     try {
-      // If userId is not provided, try to get it from localStorage
+      // If userId is not provided, try to get it from authManager
       let userIdToUse = userId;
       if (!userIdToUse) {
-        const userData = localStorage.getItem('publicUserData');
-        if (userData) {
-          try {
-            const parsedUser = JSON.parse(userData);
-            userIdToUse = parsedUser.id;
-          } catch (error) {
-            console.error('Error parsing user data from localStorage:', error);
-          }
+        const user = authManager.getUser();
+        if (user) {
+          userIdToUse = String(user.id);
         }
       }
 
@@ -86,6 +82,30 @@ export class UserService {
     } catch (error) {
       console.error('Error fetching user by ID:', error);
       throw error;
+    }
+  }
+
+  static async searchUsers(query: string, userId?: string): Promise<BackendUserData[]> {
+    try {
+      const resolvedUserId = userId ?? this.getCurrentUserId();
+      if (!resolvedUserId) {
+        throw new Error('User ID is required to search contacts');
+      }
+
+      const response = await api.get<{ data: { data: BackendUserData[] } | BackendUserData[] }>(
+        `/users/${resolvedUserId}/contacts`,
+        { params: { searchTerm: query } }
+      );
+      
+      // Handle potential nested structure data.data.data or data.data
+      const rawData = (response.data as any).data;
+      if (Array.isArray(rawData)) return rawData;
+      if (rawData && Array.isArray(rawData.data)) return rawData.data;
+      
+      return [];
+    } catch (error) {
+      console.error('Error searching users:', error);
+      return [];
     }
   }
 
@@ -132,15 +152,7 @@ export class UserService {
   }
 
   static getCurrentUserId(): string | null {
-    try {
-      const userData = localStorage.getItem('publicUserData');
-      if (userData) {
-        const parsedUser = JSON.parse(userData);
-        return parsedUser.id || null;
-      }
-    } catch (error) {
-      console.error('Error getting current user ID:', error);
-    }
-    return null;
+    const user = authManager.getUser();
+    return user ? String(user.id) : null;
   }
 }

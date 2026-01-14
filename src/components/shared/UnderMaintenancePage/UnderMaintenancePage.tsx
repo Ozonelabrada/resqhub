@@ -1,292 +1,115 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from 'primereact/button';
-import { ProgressBar } from 'primereact/progressbar';
+import { 
+  Container, 
+  Card, 
+  Button, 
+  Logo,
+  ProgressBar 
+} from '../../ui';
+import { SITE } from '../../../constants';
+import { 
+  Wrench, 
+  Settings, 
+  Home, 
+  RefreshCw,
+  Clock,
+  ShieldCheck
+} from 'lucide-react';
 
 const UnderMaintenancePage: React.FC = () => {
   const navigate = useNavigate();
-  const [isMobile, setIsMobile] = useState(false);
   const [progress, setProgress] = useState(0);
-
-  // Mobile detection
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   // Progress animation
   useEffect(() => {
     const timer = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) return 0;
-        return prev + Math.random() * 10;
+        return prev + Math.random() * 5;
       });
-    }, 800);
+    }, 1000);
 
     return () => clearInterval(timer);
   }, []);
 
-  const handleGoHome = () => {
-    navigate('/dashboard');
-  };
-
-  // Inline styles to ensure rendering
-  const containerStyle: React.CSSProperties = {
-    minHeight: '100vh',
-    background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: isMobile ? '1rem' : '2rem',
-    fontFamily: 'Arial, sans-serif'
-  };
-
-  const cardStyle: React.CSSProperties = {
-    maxWidth: isMobile ? '90%' : '600px',
-    width: '100%',
-    padding: isMobile ? '1.5rem' : '2rem',
-    borderRadius: '16px',
-    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-    textAlign: 'center',
-    backgroundColor: 'white'
-  };
-
-  const iconContainerStyle: React.CSSProperties = {
-    width: '6rem',
-    height: '6rem',
-    margin: '0 auto 1rem auto',
-    backgroundColor: '#fed7aa',
-    borderRadius: '24px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative'
-  };
-
-  const buttonContainerStyle: React.CSSProperties = {
-    display: 'flex',
-    flexDirection: isMobile ? 'column' : 'row',
-    gap: '1rem',
-    marginBottom: '2rem'
-  };
-
-  const infoBoxStyle: React.CSSProperties = {
-    backgroundColor: '#fff7ed',
-    padding: '1rem',
-    borderRadius: '8px',
-    margin: '1rem 0',
-    textAlign: 'left'
-  };
-
-  const statusGridStyle: React.CSSProperties = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-    gap: '1rem',
-    marginTop: '1rem'
-  };
-
   return (
-    <div style={containerStyle}>
-      <div style={cardStyle}>
-        {/* Maintenance Icon */}
-        <div style={{ marginBottom: '2rem' }}>
-          <div style={iconContainerStyle}>
-            <i 
-              className="pi pi-wrench" 
-              style={{ 
-                fontSize: isMobile ? '2.5rem' : '3rem',
-                color: '#ea580c',
-                animation: 'pulse 2s infinite'
-              }}
-            ></i>
-            <div style={{
-              position: 'absolute',
-              top: '-8px',
-              right: '-8px',
-              width: '1rem',
-              height: '1rem',
-              backgroundColor: '#ea580c',
-              borderRadius: '50%',
-              animation: 'pulse 2s infinite'
-            }}></div>
-          </div>
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 md:p-8">
+      <Container size="sm">
+        <div className="text-center mb-8">
+          <Logo className="mx-auto mb-6" />
         </div>
 
-        {/* Content */}
-        <div style={{ marginBottom: '2rem' }}>
-          <h2 style={{ 
-            fontSize: isMobile ? '1.25rem' : '1.5rem', 
-            fontWeight: 'bold', 
-            color: '#1f2937',
-            marginBottom: '1rem'
-          }}>
-            Under Maintenance
-          </h2>
+        <Card className="p-8 md:p-12 border-none shadow-2xl shadow-slate-200 rounded-[3rem] bg-white text-center relative overflow-hidden">
+          {/* Decorative background element */}
+          <div className="absolute -top-24 -right-24 w-64 h-64 bg-teal-50 rounded-full blur-3xl opacity-50"></div>
           
-          <p style={{ 
-            color: '#6b7280', 
-            lineHeight: '1.6',
-            marginBottom: '1rem'
-          }}>
-            We're currently performing some maintenance to improve your ResQHub experience. 
-            This page will be available soon!
-          </p>
-          
-          {/* Progress Bar */}
-          <div style={{ marginBottom: '1rem' }}>
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
-              marginBottom: '0.5rem'
-            }}>
-              <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>Progress</span>
-              <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>{Math.round(progress)}%</span>
+          <div className="relative z-10">
+            <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-teal-50 mb-8 relative">
+              <Wrench className="w-10 h-10 text-teal-600 animate-bounce" />
+              <Settings className="w-6 h-6 text-emerald-400 absolute -top-1 -right-1 animate-spin-slow" />
             </div>
-            <ProgressBar 
-              value={progress} 
-              showValue={false}
-              style={{ height: '8px' }}
-            />
-          </div>
-          
-          {/* ResQHub themed message */}
-          <div style={infoBoxStyle}>
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '0.5rem',
-              color: '#c2410c',
-              marginBottom: '0.5rem'
-            }}>
-              <i className="pi pi-cog"></i>
-              <span style={{ fontWeight: '600' }}>What we're working on:</span>
-            </div>
-            <ul style={{ 
-              color: '#ea580c', 
-              fontSize: '0.875rem',
-              margin: '0.5rem 0 0 0',
-              paddingLeft: '1rem'
-            }}>
-              <li>Enhancing search functionality</li>
-              <li>Improving mobile experience</li>
-              <li>Adding new features</li>
-              <li>Optimizing performance</li>
-            </ul>
-          </div>
-        </div>
 
-        {/* Action Buttons */}
-        <div style={buttonContainerStyle}>
-          <Button 
-            label="Go to Dashboard" 
-            icon="pi pi-home"
-            onClick={handleGoHome}
-            className="p-button-lg"
-            style={{ 
-              borderRadius: '12px',
-              flex: isMobile ? 'none' : 1,
-              width: isMobile ? '100%' : 'auto'
-            }}
-          />
-          <Button 
-            label="Refresh Page" 
-            icon="pi pi-refresh"
-            onClick={() => window.location.reload()}
-            outlined
-            className="p-button-lg"
-            style={{ 
-              borderRadius: '12px',
-              flex: isMobile ? 'none' : 1,
-              width: isMobile ? '100%' : 'auto'
-            }}
-          />
-        </div>
+            <h1 className="text-3xl font-black text-slate-800 mb-4 tracking-tight">System Maintenance</h1>
+            <p className="text-slate-500 text-lg mb-10 max-w-md mx-auto leading-relaxed">
+              We're currently performing some scheduled updates to improve your experience. We'll be back online shortly.
+            </p>
 
-        {/* Status Info */}
-        <div style={{ 
-          marginTop: '2rem', 
-          paddingTop: '1rem',
-          borderTop: '1px solid #e5e7eb'
-        }}>
-          <div style={statusGridStyle}>
-            <div style={{ textAlign: 'center', padding: '0.5rem' }}>
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                gap: '0.25rem',
-                color: '#059669',
-                marginBottom: '0.25rem'
-              }}>
-                <div style={{
-                  width: '8px',
-                  height: '8px',
-                  backgroundColor: '#10b981',
-                  borderRadius: '50%'
-                }}></div>
-                <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>Core Services</span>
+            <div className="space-y-6 mb-12">
+              <div className="flex justify-between items-end mb-2">
+                <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Update Progress</span>
+                <span className="text-2xl font-black text-teal-600">{Math.round(progress)}%</span>
               </div>
-              <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>Operational</div>
+              <ProgressBar 
+                value={progress} 
+                className="h-4 rounded-full bg-slate-100"
+                color="bg-teal-600"
+              />
             </div>
-            
-            <div style={{ textAlign: 'center', padding: '0.5rem' }}>
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                gap: '0.25rem',
-                color: '#d97706',
-                marginBottom: '0.25rem'
-              }}>
-                <div style={{
-                  width: '8px',
-                  height: '8px',
-                  backgroundColor: '#f59e0b',
-                  borderRadius: '50%',
-                  animation: 'pulse 2s infinite'
-                }}></div>
-                <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>This Feature</span>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 text-left">
+                <div className="flex items-center gap-3 mb-1">
+                  <Clock className="w-4 h-4 text-emerald-500" />
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Estimated Time</span>
+                </div>
+                <p className="text-slate-700 font-bold">~ 15 Minutes</p>
               </div>
-              <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>Under Maintenance</div>
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 text-left">
+                <div className="flex items-center gap-3 mb-1">
+                  <RefreshCw className="w-4 h-4 text-orange-500" />
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Status</span>
+                </div>
+                <p className="text-slate-700 font-bold">Optimizing Assets</p>
+              </div>
             </div>
-            
-            <div style={{ textAlign: 'center', padding: '0.5rem' }}>
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                gap: '0.25rem',
-                color: '#2563eb',
-                marginBottom: '0.25rem'
-              }}>
-                <div style={{
-                  width: '8px',
-                  height: '8px',
-                  backgroundColor: '#3b82f6',
-                  borderRadius: '50%',
-                  animation: 'pulse 2s infinite'
-                }}></div>
-                <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>ETA</span>
-              </div>
-              <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>Coming Soon</div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Button
+                onClick={() => navigate('/dashboard')}
+                className="w-full sm:w-auto px-8 py-6 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white shadow-xl shadow-teal-100 font-bold"
+              >
+                <Home className="w-5 h-5 mr-2" />
+                Go to Dashboard
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => window.location.reload()}
+                className="w-full sm:w-auto px-8 py-6 rounded-2xl border-slate-200 hover:bg-slate-50 text-slate-600 font-bold"
+              >
+                <RefreshCw className="w-5 h-5 mr-2" />
+                Check Status
+              </Button>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* CSS Animation for pulse effect */}
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
-      `}</style>
+          <div className="mt-12 pt-8 border-t border-slate-50 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-300">
+            <ShieldCheck className="w-4 h-4" />
+            {SITE.name} Infrastructure
+          </div>
+        </Card>
+      </Container>
     </div>
   );
 };

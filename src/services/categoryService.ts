@@ -1,11 +1,12 @@
-import mainApiClient from '../api/client';
-import type { Category } from '../types/api';
+import api from '../api/client';
+import publicApiClient from '../api/publicClient';
+import type { Category, CategoryResponse } from '../types';
 
 export interface BackendCategoryResponse {
   message: string;
   succeeded: boolean;
   statusCode: number;
-  data: Category | Category[] | null;
+  data: Category | Category[] | any | null;
   errors: any;
   baseEntity: any;
 }
@@ -24,16 +25,33 @@ export class CategoryService {
       const queryParams = new URLSearchParams(query).toString();
       const url = queryParams ? `/categories?${queryParams}` : '/categories';
 
-      const response = await mainApiClient.request<BackendCategoryResponse>({
+      const response = await api.request<any>({
         url,
         method: 'GET',
       });
+
+      console.log('Raw Category API Response:', response.data);
+
+      // Handle triple data nesting: response.data.data.data
+      if (response.data?.data?.data && Array.isArray(response.data.data.data)) {
+        return response.data.data.data;
+      }
+      
+      // Handle double nesting: response.data.data
+      if (response.data?.data && Array.isArray(response.data.data)) {
+        return response.data.data;
+      }
+
+      // Handle direct array in body
       if (Array.isArray(response.data)) {
         return response.data;
       }
-      if (response.data && Array.isArray((response.data as any).data)) {
-        return (response.data as any).data;
+      
+      // Handle "succeeded" wrapper without extra nesting
+      if (response.data?.succeeded && Array.isArray(response.data.data)) {
+        return response.data.data;
       }
+      
       return [];
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -43,12 +61,12 @@ export class CategoryService {
 
   static async getCategoryById(id: number): Promise<Category | null> {
     try {
-      const response = await mainApiClient.request<BackendCategoryResponse>({
+      const response = await api.request<BackendCategoryResponse>({
         url: `/categories/${id}`,
         method: 'GET',
       });
       if (response.data && !Array.isArray(response.data)) {
-        return response.data as unknown as Category;
+        return response.data.data as unknown as Category;
       }
       return null;
     } catch (error) {
@@ -59,7 +77,7 @@ export class CategoryService {
 
   static async createCategory(category: Omit<Category, 'id'>): Promise<Category | null> {
     try {
-      const response = await mainApiClient.request<BackendCategoryResponse>({
+      const response = await api.request<BackendCategoryResponse>({
         url: '/categories',
         method: 'POST',
         data: category,
@@ -77,7 +95,7 @@ export class CategoryService {
 
   static async updateCategory(id: number, updates: Partial<Category>): Promise<Category | null> {
     try {
-      const response = await mainApiClient.request<BackendCategoryResponse>({
+      const response = await api.request<BackendCategoryResponse>({
         url: `/categories/${id}`,
         method: 'PUT',
         data: updates,
@@ -95,7 +113,7 @@ export class CategoryService {
 
   static async deleteCategory(id: number): Promise<boolean> {
     try {
-      await mainApiClient.request<BackendCategoryResponse>({
+      await api.request<BackendCategoryResponse>({
         url: `/categories/${id}`,
         method: 'DELETE',
       });

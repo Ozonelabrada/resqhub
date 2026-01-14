@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { TrendingReportsService, type TrendingReportItem } from '../services/trendingReportsService';
+import { useAuth } from '../context/AuthContext';
 
 interface UseTrendingReportsReturn {
   trendingReports: TrendingReportItem[];
@@ -14,6 +15,7 @@ export const useTrendingReports = (): UseTrendingReportsReturn => {
   const [trendingReports, setTrendingReports] = useState<TrendingReportItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isLoading: authLoading } = useAuth();
 
   const fetchTrendingReports = async () => {
     try {
@@ -62,12 +64,15 @@ export const useTrendingReports = (): UseTrendingReportsReturn => {
   };
 
   useEffect(() => {
-    fetchTrendingReports();
-  }, []);
+    // Only fetch trending reports after authentication has been initialized
+    if (!authLoading) {
+      fetchTrendingReports();
+    }
+  }, [authLoading]);
 
   return {
     trendingReports,
-    loading,
+    loading: loading || authLoading,
     error,
     refetch: fetchTrendingReports,
     calculateAndRefresh

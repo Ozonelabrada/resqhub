@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { StatisticsService } from '../services/statisticsService';
-import type { StatisticsData } from '../types/api';
+import { useAuth } from '../context/AuthContext';
+import type { StatisticsData } from '../types';
 
 interface UseStatisticsReturn {
   statistics: StatisticsData | null;
@@ -13,6 +14,7 @@ export const useStatistics = (): UseStatisticsReturn => {
   const [statistics, setStatistics] = useState<StatisticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isLoading: authLoading } = useAuth();
 
   const fetchStatistics = async () => {
     try {
@@ -33,8 +35,11 @@ export const useStatistics = (): UseStatisticsReturn => {
   };
 
   useEffect(() => {
-    fetchStatistics();
-  }, []);
+    // Only fetch statistics after authentication has been initialized
+    if (!authLoading) {
+      fetchStatistics();
+    }
+  }, [authLoading]);
 
   const refetch = () => {
     fetchStatistics();
@@ -42,7 +47,7 @@ export const useStatistics = (): UseStatisticsReturn => {
 
   return {
     statistics,
-    loading,
+    loading: loading || authLoading,
     error,
     refetch
   };

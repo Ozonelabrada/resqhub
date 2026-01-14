@@ -1,5 +1,5 @@
-import mainApiClient from '../api/client';
-import type { TrendingReportItem } from '../types/api';
+import api from '../api/client';
+import type { TrendingReportItem } from '../types';
 
 interface PaginatedTrendingReportsResponse {
   message: string;
@@ -24,11 +24,11 @@ interface PaginatedTrendingReportsResponse {
 export class TrendingReportsService {
   static async getTrendingReports(): Promise<TrendingReportItem[]> {
     try {
-      const response = await mainApiClient.request<PaginatedTrendingReportsResponse>({
+      const response = await api.request<PaginatedTrendingReportsResponse>({
         url: '/trending-reports/all'
       });
       
-      console.log('Trending reports API response:', response);
+      console.log('Trending reports API response received');
       
       const responseData = response.data;
       if (responseData.succeeded && responseData.data) {
@@ -131,11 +131,11 @@ export class TrendingReportsService {
   }
 
   /**
-   * Calculate/update trending reports (Admin action)
+   * Calculate/update trending reports
    */
   static async calculateTrendingReports(): Promise<void> {
     try {
-      const response = await mainApiClient.request<{
+      const response = await api.request<{
         message: string;
         succeeded: boolean;
         statusCode: number;

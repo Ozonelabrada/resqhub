@@ -1,5 +1,12 @@
 import apiClient from '../api/client';
 import type { SearchParams } from '../types';
+import axios from 'axios';
+
+const getReportsSearch = (page: number, params: any = {}) => {
+  // Always include page number and page size
+  const query = { pageNo: page, pageSize: 10, ...params };
+  return axios.get('/api/reports/all', { params: query });
+};
 
 export const ItemsService = {
   // Main report creation
@@ -56,9 +63,7 @@ export const ItemsService = {
   getReports(userId: string, page: number, categories: string[]) {
     return apiClient.get(`/reports/all?userId=${userId}&page=${page}&categories=${categories.join(',')}`);
   },
-  getReportsSearch(page: number, search: string) {
-    return apiClient.get(`/reports/all?page=${page}&search=${search}`);
-  },
+  getReportsSearch: getReportsSearch,
   getWatchListByUser(userId: string) {
     return apiClient.get(`/reports/all/${userId}`);
   },

@@ -1,10 +1,10 @@
-import  mainApiClient  from '../api/client';
-import type { StatisticsResponse, StatisticsData } from '.././types/api';
+import api from '../api/client';
+import type { StatisticsResponse, StatisticsData } from '../types';
 
 export class StatisticsService {
   static async getStatistics(): Promise<StatisticsData> {
     try {
-      const response = await mainApiClient.request<StatisticsResponse>({ url: '/statistics' });
+      const response = await api.request<StatisticsResponse>({ url: '/statistics' });
       const responseData = response.data;
       
       if (!responseData.succeeded) {
@@ -20,7 +20,7 @@ export class StatisticsService {
 
   static async getLocationStats(cityId: number): Promise<any> {
     try {
-      return await mainApiClient.request({ url: `/statistics/city/${cityId}` });
+      return await api.request({ url: `/statistics/city/${cityId}` });
     } catch (error) {
       console.error('Error fetching location stats:', error);
       throw error;
@@ -50,7 +50,7 @@ export class StatisticsService {
       createdAt: new Date().toISOString(),
       successRate: 27.4,
       averageMatchTimeFormatted: '18.5 hours',
-      totalRewardFormatted: '$12,450.00'
+      totalRewardFormatted: '₱622,500.00'
     };
   }
 }

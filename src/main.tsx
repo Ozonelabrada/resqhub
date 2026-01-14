@@ -2,11 +2,10 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { AuthProvider } from './context/AuthContext';
+import { FeatureFlagProvider } from './context/FeatureFlagContext';
+import { UIProvider } from './context/UIContext';
 import { BrowserRouter } from 'react-router-dom';
-import 'primereact/resources/themes/lara-light-blue/theme.css';
-import 'primereact/resources/primereact.min.css';
-import 'primeicons/primeicons.css';
-import 'primeflex/primeflex.css';
+import './lib/i18n';
 import './index.css';
 
 const rootElement = document.getElementById('root');
@@ -15,7 +14,11 @@ if (rootElement) {
     <React.StrictMode>
       <BrowserRouter>
         <AuthProvider>
-          <App />
+          <FeatureFlagProvider>
+            <UIProvider>
+              <App />
+            </UIProvider>
+          </FeatureFlagProvider>
         </AuthProvider>
       </BrowserRouter>
     </React.StrictMode>

@@ -1,106 +1,223 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { authManager } from '../utils/sessionManager';
+import { AuthService } from '../services/authService';
+import type { UserData as User, SignUpRequest } from '../types';
+import ConfirmationModal from '../components/modals/ConfirmationModal/ConfirmationModal';
+import { useTranslation } from 'react-i18next';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  userData: any;
   token: string | null;
-  setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
-  setUserData: React.Dispatch<React.SetStateAction<any>>;
-  setToken: React.Dispatch<React.SetStateAction<string | null>>;
-  login: (token: string, user: any, isAdmin?: boolean) => void;
+  isLoading: boolean;
+  user: User | null;
+  login: (email: string, password: string) => Promise<void>;
+  signup: (userData: SignUpRequest) => Promise<void>;
   logout: () => void;
+  openLoginModal: () => void;
+  closeLoginModal: () => void;
+  isLoginModalOpen: boolean;
+  openSignUpModal: () => void;
+  closeSignUpModal: () => void;
+  isSignUpModalOpen: boolean;
+  openSettingsModal: () => void;
+  closeSettingsModal: () => void;
+  isSettingsModalOpen: boolean;
+  openLogoutModal: () => void;
+  closeLogoutModal: () => void;
+  isLogoutModalOpen: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [token, setToken] = useState(() => localStorage.getItem('publicUserToken'));
-  const [userData, setUserData] = useState(() => {
-    const data = localStorage.getItem('publicUserData');
-    try {
-      return data ? JSON.parse(data) : null;
-    } catch {
-      return null;
-    }
-  });
-  const location = useLocation();
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(authManager.isAuthenticated());
+  const [token, setToken] = useState<string | null>(authManager.getToken());
+  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(authManager.getUser());
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+  const openLoginModal = () => {
+    setIsSignUpModalOpen(false);
+    setIsLoginModalOpen(true);
+  };
+  const closeLoginModal = () => setIsLoginModalOpen(false);
+
+  const openSignUpModal = () => {
+    setIsLoginModalOpen(false);
+    setIsSignUpModalOpen(true);
+  };
+  const closeSignUpModal = () => setIsSignUpModalOpen(false);
+
+  const openSettingsModal = () => setIsSettingsModalOpen(true);
+  const closeSettingsModal = () => setIsSettingsModalOpen(false);
+
+  const openLogoutModal = () => setIsLogoutModalOpen(true);
+  const closeLogoutModal = () => setIsLogoutModalOpen(false);
 
   useEffect(() => {
-    const fetchAuth = () => {
-      // Check for admin first, then public
-      const adminToken =
-        localStorage.getItem('adminToken') ||
-        document.cookie.split('; ').find(row => row.startsWith('adminToken='))?.split('=')[1] ||
-        null;
-      const adminUser = localStorage.getItem('adminUserData') || null;
-
-      const publicToken =
-        localStorage.getItem('publicUserToken') ||
-        document.cookie.split('; ').find(row => row.startsWith('publicUserToken='))?.split('=')[1] ||
-        null;
-      const publicUser = localStorage.getItem('publicUserData') || null;
-
-      if (adminToken && adminUser) {
-        const parsedUser = JSON.parse(adminUser);
-        if (parsedUser.role && parsedUser.role.toLowerCase() === 'admin') {
-          setToken(adminToken);
-          setUserData(parsedUser);
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
-          setUserData(null);
-          setToken(null);
+    // Initialize auth state
+    const initAuth = async () => {
+      if (authManager.isAuthenticated()) {
+        try {
+          const userData = authManager.getUser();
+          if (userData) {
+            // Verify token by fetching user data - pass the actual ID
+            const response = await AuthService.getCurrentUser(String(userData.id));
+            
+            // If successful, update the session with fresh data
+            // Handle both { succeeded: true, data: user } and direct user object response
+            const freshUser = response?.data || (response?.id ? response : null);
+            
+            if (freshUser) {
+              const token = authManager.getToken();
+              if (token) {
+                authManager.setSession(token, freshUser);
+              }
+            }
+          }
+        } catch (error: any) {
+          console.warn('Token validation failed on init:', error.message);
+          // If it's a 401, the interceptor will handle logout
         }
-      } else if (publicToken && publicUser) {
-        setToken(publicToken);
-        setUserData(JSON.parse(publicUser));
-        setIsAuthenticated(true);
-      } else {
-        setIsAuthenticated(false);
-        setUserData(null);
-        setToken(null);
       }
+      setIsLoading(false);
     };
 
-    fetchAuth();
-    window.addEventListener('storage', fetchAuth);
-    return () => window.removeEventListener('storage', fetchAuth);
-  }, [location]);
+    initAuth();
 
-  const login = (token: string, user: any, isAdmin = false) => {
-    setIsAuthenticated(true);
-    setUserData(user);
-    setToken(token);
-    if (isAdmin) {
-      localStorage.setItem('adminToken', token);
-      localStorage.setItem('adminUserData', JSON.stringify(user));
-      document.cookie = `adminToken=${token}; path=/; max-age=${60 * 60 * 24 * 7}`;
-    } else {
-      localStorage.setItem('publicUserToken', token);
-      localStorage.setItem('publicUserData', JSON.stringify(user));
-      document.cookie = `publicUserToken=${token}; path=/; max-age=${60 * 60 * 24 * 7}`;
+    // Listen for auth changes
+    const handleAuthChange = (updatedUser: User | null) => {
+      setIsAuthenticated(!!updatedUser);
+      setToken(authManager.getToken());
+      setUser(updatedUser);
+    };
+
+    authManager.addListener(handleAuthChange);
+
+    return () => {
+      authManager.removeListener(handleAuthChange);
+    };
+  }, []);
+
+  const login = async (email: string, password: string): Promise<void> => {
+    try {
+      console.log('Attempting login for:', email);
+      const response = await AuthService.signIn({ email, password });
+      console.log('Login response:', response);
+      
+      // Extract token and user from the response structure
+      // Handle multiple possible response formats from the backend
+      let user = response?.data?.user || response?.user;
+      let token = response?.token || user?.token;
+      
+      if (!token && response?.data && (response.data as any).token) {
+        token = (response.data as any).token;
+      }
+
+      // If we have a token and user, consider it a success even if 'succeeded' flag is missing
+      if (token && user) {
+        // Remove token from user object if it exists there to avoid redundancy in storage
+        const { token: _, ...userWithoutToken } = user as any;
+        
+        // Normalize user data
+        const normalizedUser = {
+          ...userWithoutToken,
+          // Ensure role is a string if it comes as a number
+          role: String(userWithoutToken.role) === '0' ? 'user' : String(userWithoutToken.role)
+        };
+        
+        authManager.setSession(token, normalizedUser);
+        console.log('Login successful, session set');
+      } else {
+        // If we don't have token/user, check the succeeded flag or message
+        if (response && 'succeeded' in response && !response.succeeded) {
+          throw new Error(response.message || 'Login failed');
+        }
+        console.error('Login response missing data:', { hasToken: !!token, hasUser: !!user });
+        throw new Error('Invalid login response: missing token or user data');
+      }
+    } catch (error: any) {
+      console.error('Login error details:', error);
+      // Re-throw with a user-friendly message if possible
+      const message = error.response?.data?.message || error.message || 'Login failed';
+      throw new Error(message);
     }
   };
 
-  const logout = () => {
-    setIsAuthenticated(false);
-    setUserData(null);
-    setToken(null);
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminUserData');
-    localStorage.removeItem('publicUserToken');
-    localStorage.removeItem('publicUserData');
-    document.cookie = 'adminToken=; Max-Age=0; path=/;';
-    document.cookie = 'publicUserToken=; Max-Age=0; path=/;';
+  const signup = async (userData: SignUpRequest): Promise<void> => {
+    try {
+      const response = await AuthService.signUp(userData);
+      if (!response?.succeeded) {
+        throw new Error(response?.message || 'Registration failed');
+      }
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const performLogout = (): void => {
+    authManager.logout();
+  };
+
+  const handleConfirmLogout = async () => {
+    try {
+      await AuthService.signOut();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      closeLogoutModal();
+      performLogout();
+      navigate('/');
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, userData, token, setIsAuthenticated, setUserData, setToken, login, logout }}>
+    <AuthContext.Provider value={{
+      isAuthenticated,
+      token,
+      isLoading,
+      user,
+      login,
+      signup,
+      logout: openLogoutModal, // Use confirmation instead of direct logout
+      openLoginModal,
+      closeLoginModal,
+      isLoginModalOpen,
+      openSignUpModal,
+      closeSignUpModal,
+      isSignUpModalOpen,
+      openSettingsModal,
+      closeSettingsModal,
+      isSettingsModalOpen,
+      openLogoutModal,
+      closeLogoutModal,
+      isLogoutModalOpen
+    }}>
       {children}
+      <ConfirmationModal
+        visible={isLogoutModalOpen}
+        onHide={closeLogoutModal}
+        onConfirm={handleConfirmLogout}
+        title={t('home.confirm_logout')}
+        message={t('home.logout_question')}
+        confirmLabel={t('common.logout')}
+        cancelLabel={t('common.cancel')}
+        severity="danger"
+      />
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
