@@ -12,6 +12,12 @@ export interface ReportAbuseRequest {
 export interface ReportAbuseResponse extends ReportAbuseRequest {
   id: number;
   dateCreated: string;
+  user?: {
+    id: string;
+    fullName: string;
+    username: string;
+    profilePicture?: string;
+  };
   report?: any; // The actual reported report object
   comment?: any; // The actual reported comment object
 }

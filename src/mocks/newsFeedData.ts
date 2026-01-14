@@ -13,7 +13,7 @@
  * Each item has complete metadata including contact info, rewards, images, and user details.
  */
 
-import type { NewsFeedItem } from '../components/pages/public/PersonalHubPage/personalHub/NewsFeed';
+import { NewsFeedItem } from '@/types/personalHub';
 
 // Mock data for News Feed demonstration
 export const mockNewsFeedItems: NewsFeedItem[] = [

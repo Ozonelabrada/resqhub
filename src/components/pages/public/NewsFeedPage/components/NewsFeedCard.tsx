@@ -27,7 +27,7 @@ import {
 } from '@/components/ui';
 import type { MenuRef, MenuItem } from '@/components/ui/Menu/Menu';
 import { cn } from "@/lib/utils";
-import type { NewsFeedItem } from '../../PersonalHubPage/personalHub/NewsFeed';
+import type { NewsFeedItem } from '@/types/personalHub';
 import { ReactionsService } from '@/services/reactionsService';
 import { ReportsService, type LostFoundItem } from '@/services/reportsService';
 import CommentSection from '@/components/features/comments/CommentSection';
@@ -182,7 +182,7 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
     const originalCount = reportReactionsCount;
     
     setIsLiked(!originalIsLiked);
-    setReportReactionsCount(prev => originalIsLiked ? prev - 1 : prev + 1);
+    setReportReactionsCount((prev: number) => originalIsLiked ? prev - 1 : prev + 1);
 
     try {
       if (originalIsLiked) {
@@ -253,7 +253,7 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                 />
               ) : item.images.length === 2 ? (
-                item.images.map((img, idx) => (
+                item.images.map((img: string, idx: number) => (
                   <img key={idx} src={img} alt="" className="w-full h-full object-cover" />
                 ))
               ) : (
@@ -267,7 +267,7 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
                     item.images.length === 4 ? "grid-rows-3" : 
                     "grid-cols-2 grid-rows-2"
                   )}>
-                    {item.images.slice(1).map((img, idx) => (
+                    {item.images.slice(1).map((img: string, idx: number) => (
                       <img key={idx} src={img} alt="" className="w-full h-full object-cover" />
                     ))}
                   </div>

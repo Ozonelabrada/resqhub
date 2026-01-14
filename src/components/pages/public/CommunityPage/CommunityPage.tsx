@@ -327,7 +327,7 @@ const CommunityPage: React.FC = () => {
                 activeTab: activeTab,
                 onTabChange: handleTabChange,
                 communityName: community.name,
-                memberCount: community.membersCount,
+                memberCount: community.membersCount || 0,
                 isMember: isMember,
                 isAdmin: isAdmin,
                 isModerator: isModerator
@@ -372,7 +372,7 @@ const CommunityPage: React.FC = () => {
                 {todaysAnnouncements.length > 0 ? (
                   todaysAnnouncements.slice(0, 2).map((ann) => (
                     <div key={ann.id} className="p-3 bg-slate-50 rounded-2xl border border-transparent hover:border-blue-100 transition-colors cursor-pointer" onClick={() => handleTabChange('announcements')}>
-                      <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">{ann.category || 'Zone 2'}</p>
+                      <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">{(ann as any).category || 'Zone 2'}</p>
                       <p className="text-sm font-bold text-slate-800 line-clamp-1">{ann.title}</p>
                     </div>
                   ))

@@ -4,7 +4,7 @@ export interface AvatarProps {
   icon?: string;
   image?: string;
   label?: string;
-  size?: 'normal' | 'large' | 'xlarge' | 'xl';
+  size?: 'sm' | 'md' | 'lg' | 'normal' | 'large' | 'xlarge' | 'xl';
   shape?: 'square' | 'circle';
   className?: string;
   style?: React.CSSProperties;
@@ -12,6 +12,7 @@ export interface AvatarProps {
   children?: React.ReactNode;
   src?: string;
   alt?: string;
+  fallback?: string;
 }
 
 export const Avatar: React.FC<AvatarProps> = ({
@@ -25,9 +26,14 @@ export const Avatar: React.FC<AvatarProps> = ({
   onClick,
   children,
   src,
-  alt
+  alt,
+  fallback
 }) => {
+  const finalLabel = label || fallback;
   const sizeClasses = {
+    sm: 'w-6 h-6 text-[10px]',
+    md: 'w-10 h-10 text-base',
+    lg: 'w-12 h-12 text-lg',
     normal: 'w-8 h-8 text-sm',
     large: 'w-12 h-12 text-lg',
     xl: 'w-24 h-24 text-2xl',
@@ -44,7 +50,7 @@ export const Avatar: React.FC<AvatarProps> = ({
     return (
       <img
         src={currentImage}
-        alt={alt || label || 'Avatar'}
+        alt={alt || finalLabel || 'Avatar'}
         className={`${baseClasses} object-cover`}
         style={style}
         onClick={onClick}
@@ -82,7 +88,7 @@ export const Avatar: React.FC<AvatarProps> = ({
       style={style}
       onClick={onClick}
     >
-      {label ? label.charAt(0).toUpperCase() : '?'}
+      {finalLabel ? finalLabel.charAt(0).toUpperCase() : '?'}
     </div>
   );
 };

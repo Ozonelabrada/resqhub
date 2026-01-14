@@ -8,3 +8,4 @@ export { MessagesService } from './messagesService';
 export { CommentsService } from './commentsService';
 export { ReportsService } from './reportsService';
 export { ReactionsService } from './reactionsService';
+export { StoreService } from './storeService';

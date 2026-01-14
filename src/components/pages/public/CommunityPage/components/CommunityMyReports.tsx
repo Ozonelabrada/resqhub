@@ -205,7 +205,7 @@ export const CommunityMyReports: React.FC<CommunityMyReportsProps> = ({
                         </div>
                         <div className="flex items-center gap-1.5 text-slate-400 group-hover:text-emerald-500 transition-colors">
                           <Heart size={14} />
-                          <span className="text-xs font-bold">{report.reactionCount || 0}</span>
+                          <span className="text-xs font-bold">{report.reactionsCount || 0}</span>
                         </div>
                       </div>
                       

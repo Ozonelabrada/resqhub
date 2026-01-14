@@ -1,7 +1,7 @@
 import React from 'react';
 import { TrendingUp, Clock, Award, Shield } from 'lucide-react';
 import type { UserStats } from '@/types';
-import type { NewsFeedItem } from './NewsFeed';
+import { NewsFeedItem } from '@/types/personalHub';
 import { Card } from '@/components/ui';
 
 interface OverviewGridProps {

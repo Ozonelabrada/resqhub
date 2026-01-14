@@ -7,7 +7,7 @@ import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 
 interface ActionsToolbarProps {
   reportId: number;
-  reactionCount: number;
+  reactionsCount: number;
   commentsCount: number;
   onCommentClick: () => void;
   onShareClick: () => void;
@@ -15,7 +15,7 @@ interface ActionsToolbarProps {
 }
 
 const ActionsToolbar: React.FC<ActionsToolbarProps> = ({
-  reactionCount,
+  reactionsCount,
   commentsCount,
   onCommentClick,
   onShareClick,
@@ -24,7 +24,7 @@ const ActionsToolbar: React.FC<ActionsToolbarProps> = ({
   const { isAuthenticated, openLoginModal } = useAuth();
   const { isFeatureEnabled } = useFeatureFlags();
   const [isLiked, setIsLiked] = useState(false);
-  const [likes, setLikes] = useState(reactionCount);
+  const [likes, setLikes] = useState(reactionsCount);
 
   const handleLike = () => {
     if (!isAuthenticated) {

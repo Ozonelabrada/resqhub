@@ -54,7 +54,7 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
   const fetchJoinRequests = async () => {
     if (!communityId) return;
     try {
-      const data = await CommunityService.getJoinRequests(Number(communityId));
+      const data = await CommunityService.getJoinRequests(String(communityId));
       setJoinRequests(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Failed to fetch join requests:', error);
@@ -77,7 +77,7 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
   const handleApproveRequest = async (requestId: number) => {
     setProcessingId(requestId);
     try {
-      const success = await CommunityService.approveJoinRequest(requestId);
+      const success = await CommunityService.approveJoinRequest(String(communityId), requestId);
       if (success) {
         toast.success('Member approved');
         await fetchJoinRequests();
@@ -90,7 +90,7 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
   const handleRejectRequest = async (requestId: number) => {
     setProcessingId(requestId);
     try {
-      const success = await CommunityService.rejectJoinRequest(requestId);
+      const success = await CommunityService.rejectJoinRequest(String(communityId), requestId);
       if (success) {
         toast.success('Request rejected');
         await fetchJoinRequests();
@@ -302,7 +302,7 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
                     <div className="flex items-center gap-3">
                       {getStatusBadge(selectedReport.status)}
                       <span className="text-sm text-slate-400 font-medium">
-                        Reported by User <b>@{selectedReport.user.username}</b>
+                        Reported by User <b>@{selectedReport.user?.username || selectedReport.userId}</b>
                       </span>
                     </div>
                   </div>

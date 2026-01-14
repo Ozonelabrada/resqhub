@@ -105,11 +105,11 @@ export const MessagesContainer: React.FC<MessagesContainerProps> = ({ initialCon
     console.warn('Attempted to send message without an active recipient');
   };
 
-  const handleDeleteMessage = async (id: string) => {
+  const handleDeleteMessage = async (id: string | number) => {
     await deleteMessage(id);
   };
 
-  const handleMarkUnread = async (id: string) => {
+  const handleMarkUnread = async (id: string | number) => {
     await markMessageUnread(id);
   };
 

@@ -471,7 +471,7 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
             <div className="pt-6">
               <Button
                 type="submit"
-                isLoading={loading}
+                loading={loading}
                 className="w-full py-6 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white shadow-xl shadow-teal-100 font-bold text-lg"
               >
                 {t('report.publish')}

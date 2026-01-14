@@ -27,6 +27,8 @@ export interface SelectProps {
   className?: string;
   fullWidth?: boolean;
   size?: "sm" | "md" | "lg";
+  id?: string;
+  leftIcon?: React.ReactNode;
 }
 
 export const Select: React.FC<SelectProps> = ({
@@ -41,10 +43,12 @@ export const Select: React.FC<SelectProps> = ({
   helperText,
   className = "",
   fullWidth = true,
-  size = "md"
+  size = "md",
+  id,
+  leftIcon
 }) => {
   return (
-    <div className={cn("space-y-2", fullWidth ? "w-full" : "w-fit")}>
+    <div className={cn("space-y-2", fullWidth ? "w-full" : "w-fit")} id={id}>
       {label && (
         <label className="text-sm font-bold text-slate-700 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
           {label}
@@ -52,39 +56,47 @@ export const Select: React.FC<SelectProps> = ({
         </label>
       )}
 
-      <ShadcnSelect 
-        value={value !== undefined && value !== null && value !== "" ? value.toString() : undefined} 
-        onValueChange={onChange}
-        disabled={disabled}
-      >
-        <SelectTrigger 
-          className={cn(
-            "rounded-xl border-slate-200 bg-white",
-            size === "sm" && "h-9 text-xs",
-            size === "lg" && "h-14 text-lg",
-            size === "md" && "h-11",
-            error && "border-red-500 ring-red-500",
-            className
-          )}
+      <div className="relative">
+        {leftIcon && (
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10 pointer-events-none">
+            {leftIcon}
+          </div>
+        )}
+        <ShadcnSelect 
+          value={value !== undefined && value !== null && value !== "" ? value.toString() : undefined} 
+          onValueChange={onChange}
+          disabled={disabled}
         >
-          <SelectValue placeholder={placeholder} />
-        </SelectTrigger>
-        <SelectContent className="rounded-xl border-slate-200 shadow-xl">
-          {options.map((option) => (
-            <SelectItem 
-              key={option.value?.toString() || Math.random().toString()} 
-              value={option.value !== undefined && option.value !== null && option.value !== "" 
-                ? option.value.toString() 
-                : "none"
-              }
-              disabled={option.disabled}
-              className="rounded-lg focus:bg-teal-50 focus:text-teal-600 cursor-pointer"
-            >
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </ShadcnSelect>
+          <SelectTrigger 
+            className={cn(
+              "rounded-xl border-slate-200 bg-white",
+              size === "sm" && "h-9 text-xs",
+              size === "lg" && "h-14 text-lg",
+              size === "md" && "h-11",
+              error && "border-red-500 ring-red-500",
+              leftIcon && "pl-11",
+              className
+            )}
+          >
+            <SelectValue placeholder={placeholder} />
+          </SelectTrigger>
+          <SelectContent className="rounded-xl border-slate-200 shadow-xl">
+            {options.map((option) => (
+              <SelectItem 
+                key={option.value?.toString() || Math.random().toString()} 
+                value={option.value !== undefined && option.value !== null && option.value !== "" 
+                  ? option.value.toString() 
+                  : "none"
+                }
+                disabled={option.disabled}
+                className="rounded-lg focus:bg-teal-50 focus:text-teal-600 cursor-pointer"
+              >
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </ShadcnSelect>
+      </div>
 
       {helperText && !error && (
         <p className="text-[11px] font-medium text-slate-500">{helperText}</p>

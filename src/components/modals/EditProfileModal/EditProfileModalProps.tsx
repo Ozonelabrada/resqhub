@@ -11,6 +11,7 @@ import {
   Spinner,
   Alert,
   Toast,
+  type ToastRef,
   Avatar,
   Card,
   Grid,
@@ -218,32 +219,13 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       reader.readAsDataURL(file);
     }
   };
-      if (!file.type.startsWith('image/')) {
-        toast.current?.show({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Please select a valid image file',
-          life: 3000
-        });
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setCoverPhotoPreview(result);
-        setFormData(prev => ({ ...prev, coverPhoto: result }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   // Remove profile picture
   const removeProfilePicture = () => {
     setProfilePicturePreview('');
     setFormData(prev => ({ ...prev, profilePicture: '' }));
     if (profileUploadRef.current) {
-      profileUploadRef.current.clear();
+      profileUploadRef.current.value = '';
     }
   };
 
@@ -252,7 +234,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     setCoverPhotoPreview('');
     setFormData(prev => ({ ...prev, coverPhoto: '' }));
     if (coverUploadRef.current) {
-      coverUploadRef.current.clear();
+      coverUploadRef.current.value = '';
     }
   };
 
@@ -569,7 +551,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         </Button>
         <Button 
           onClick={handleSubmit}
-          isLoading={loading}
+          loading={loading}
           className="rounded-xl px-8 bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200"
         >
           Save Changes

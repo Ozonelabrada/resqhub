@@ -10,6 +10,7 @@ export interface LostFoundItem {
   location: string;
   contactInfo: string;
   rewardDetails: string | null;
+  specificLocation?: string;
   categoryId: number | null;
   categoryName: string | null;
   verificationStatus: number;

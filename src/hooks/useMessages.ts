@@ -67,7 +67,7 @@ export const useMessages = (
       const isGroupMsg = isGroup && String(activeId) === String(finalCommunityId) && recipientId === 0;
 
       const payload = {
-        directMessageReceiverId: isGroupMsg ? undefined : (recipientId || activeId),
+        directMessageReceiverId: isGroupMsg ? undefined : (recipientId || activeId || undefined),
         groupMessageCommunityId: Number(finalCommunityId) || 0,
         content,
         isGroupMessage: isGroupMsg

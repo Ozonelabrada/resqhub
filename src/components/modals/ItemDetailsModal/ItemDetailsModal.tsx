@@ -27,7 +27,8 @@ import {
   ChevronRight,
   Info,
   CheckCircle2,
-  Clock
+  Clock,
+  Image as ImageIcon
 } from 'lucide-react';
 import CommentSection from '../../features/comments/CommentSection';
 import { useAuth } from '../../../context/AuthContext';
@@ -249,18 +250,18 @@ const ItemDetailsModal: React.FC<ItemDetailsModalProps> = ({ visible, onHide, it
               <Timeline 
                 items={[
                   {
+                    id: '1',
                     title: 'Item Reported',
                     description: `Reported as ${item.type} in ${item.location}`,
-                    time: new Date(item.date).toLocaleDateString(),
-                    icon: <Flag className="w-4 h-4" />,
-                    status: 'completed'
+                    date: new Date(item.date).toLocaleDateString(),
+                    icon: <Flag className="w-4 h-4" />
                   },
                   {
+                    id: '2',
                     title: 'Under Review',
                     description: 'Our team is verifying the report details',
-                    time: 'Processing',
-                    icon: <Info className="w-4 h-4" />,
-                    status: 'current'
+                    date: 'Processing',
+                    icon: <Info className="w-4 h-4" />
                   }
                 ]}
               />

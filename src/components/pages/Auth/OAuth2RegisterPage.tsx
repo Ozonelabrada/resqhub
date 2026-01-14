@@ -191,7 +191,7 @@ const OAuth2RegisterPage: React.FC = () => {
       
       if (response && response.succeeded) {
         // Save user data - handle different response structures
-        const token = response.data?.token || response.token;
+        const token = (response.data as any)?.user?.token || (response.data as any)?.token || response.token;
         const user = response.data?.user || response.user;
 
         if (token) {
@@ -354,7 +354,7 @@ const OAuth2RegisterPage: React.FC = () => {
                 <div className="flex flex-col gap-4 pt-4">
                   <Button
                     type="submit"
-                    isLoading={loading}
+                    loading={loading}
                     disabled={!isFormValid || loading}
                     className="w-full py-6 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white shadow-xl shadow-teal-100 font-bold text-lg"
                   >

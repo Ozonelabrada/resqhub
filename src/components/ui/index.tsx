@@ -64,8 +64,8 @@ export { Badge } from "./badge"; // This is standardized now
 export { StatusBadge } from "./StatusBadge/StatusBadge";
 export type { StatusBadgeProps } from "./StatusBadge/StatusBadge";
 
-export { Grid } from "./Grid/Grid";
-export type { GridProps } from "./Grid/Grid";
+export { Grid, GridItem } from "./Grid/Grid";
+export type { GridProps, GridItemProps } from "./Grid/Grid";
 
 export { Container } from "./Container/Container";
 export type { ContainerProps } from "./Container/Container";

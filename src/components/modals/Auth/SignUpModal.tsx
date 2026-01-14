@@ -194,7 +194,7 @@ export const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSuc
 
                 <Button
                   type="submit"
-                  isLoading={loading}
+                  loading={loading}
                   className="w-full h-12 rounded-xl bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-100 font-bold transition-all"
                 >
                   <UserPlus className="w-5 h-5 mr-2" />

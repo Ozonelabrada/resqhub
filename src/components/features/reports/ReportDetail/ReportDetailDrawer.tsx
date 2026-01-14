@@ -289,7 +289,7 @@ const ReportDetailDrawer: React.FC<ReportDetailDrawerProps> = ({
               {/* Actions Toolbar */}
               <ActionsToolbar 
                 reportId={report.id}
-                reactionCount={report.reactionCount}
+                reactionsCount={report.reactionsCount}
                 commentsCount={report.commentsCount}
                 onCommentClick={() => {}}
                 onShareClick={() => {}}

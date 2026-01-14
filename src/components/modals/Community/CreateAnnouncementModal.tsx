@@ -33,7 +33,11 @@ const CreateAnnouncementModal: React.FC<Props> = ({ isOpen, onClose, communityId
     if (!title.trim() || !content.trim()) return;
     setLoading(true);
     try {
-      await CommunityService.createPost(communityId, { title, content, type });
+      await CommunityService.createPost(communityId, { 
+        title, 
+        description: content, 
+        reportType: type === 'announcement' ? 'Announcement' : 'News' 
+      });
       setTitle('');
       setContent('');
       onSuccess && onSuccess();

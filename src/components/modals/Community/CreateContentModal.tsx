@@ -70,8 +70,8 @@ const CreateContentModal: React.FC<CreateContentModalProps> = ({
     try {
       await CommunityService.createPost(communityId, {
         title: formData.title,
-        content: formData.content,
-        type: activeTab as any
+        description: formData.content,
+        reportType: activeTab.charAt(0).toUpperCase() + activeTab.slice(1)
       });
       setFormData({ title: '', content: '', image: null });
       onSuccess?.();

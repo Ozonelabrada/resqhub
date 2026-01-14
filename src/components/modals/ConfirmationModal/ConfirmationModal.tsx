@@ -100,7 +100,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         <Button 
           variant={getButtonVariant() as any}
           onClick={onConfirm}
-          isLoading={loading}
+          loading={loading}
           className={`rounded-xl px-8 shadow-lg ${severity === 'danger' ? 'shadow-red-100' : 'shadow-blue-100'}`}
         >
           {confirmLabel}

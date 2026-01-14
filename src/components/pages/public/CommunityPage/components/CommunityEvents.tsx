@@ -217,26 +217,6 @@ export const CommunityEvents: React.FC = () => {
               <CalendarIcon size={14} className="text-teal-500" />
               Date: <span className="text-slate-900 ml-auto">{new Date(selectedDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
             </div>
-            
-            <div className="space-y-2">
-              <span className="text-[10px] font-black text-slate-300 uppercase px-2">Categories</span>
-              <div className="grid grid-cols-1 gap-1">
-                {categories.map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setFilter(cat)}
-                    className={cn(
-                      "w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition-all",
-                      filter === cat 
-                        ? "bg-teal-50 text-teal-600" 
-                        : "text-slate-500 hover:bg-slate-50"
-                    )}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
         </Card>
 

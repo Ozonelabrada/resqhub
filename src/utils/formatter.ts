@@ -34,7 +34,7 @@ export const formatNumberCompact = (num: number): string => {
 /**
  * Simple time ago formatter
  */
-export const formatDistanceToNow = (date: Date | string): string => {
+export const formatDistanceToNow = (date: Date | string, _options?: { addSuffix?: boolean }): string => {
   const d = typeof date === 'string' ? new Date(date) : date;
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - d.getTime()) / 1000);

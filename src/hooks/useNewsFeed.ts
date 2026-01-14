@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { NewsFeedItem } from '../components/pages/public/PersonalHubPage/personalHub/NewsFeed';
+import { NewsFeedItem } from '@/types/personalHub';
 import { ReportsService } from '../services/reportsService';
 import { useAuth } from '../context/AuthContext';
 

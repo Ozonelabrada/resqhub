@@ -8,7 +8,7 @@ export interface SignInRequest {
 export interface SignUpRequest {
   name: string;
   email: string;
-  password: string;
+  password?: string;
   phone?: string;
   location?: string;
   bio?: string;
@@ -31,8 +31,10 @@ export type UserData = {
   name: string;
   username: string;
   email: string;
+  token?: string;
   firstName?: string;
   lastName?: string;
+  fullName?: string;
   phone?: string;
   location?: string;
   bio?: string;

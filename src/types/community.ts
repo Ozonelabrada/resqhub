@@ -17,6 +17,7 @@ export interface Community {
   maxMembers?: number | null;
   isMember?: boolean;
   isAdmin?: boolean;
+  isModerator?: boolean;
   isPrivate?: boolean;
   // Feature Flags
   hasLiveChat?: boolean;

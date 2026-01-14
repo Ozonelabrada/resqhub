@@ -25,9 +25,9 @@ import { useAuth } from '@/context/AuthContext';
 interface ChatWindowProps {
   conversation: Conversation | null;
   messages: Message[];
-  onSendMessage: (text: string) => void;
-  onDeleteMessage?: (messageId: string | number) => void;
-  onMarkUnread?: (messageId: string | number) => void;
+  onSendMessage: (text: string) => void | Promise<void>;
+  onDeleteMessage?: (messageId: string | number) => void | Promise<void>;
+  onMarkUnread?: (messageId: string | number) => void | Promise<void>;
   onBack?: () => void;
   showBackButtonOnDesktop?: boolean;
   onLoadMore?: () => void;

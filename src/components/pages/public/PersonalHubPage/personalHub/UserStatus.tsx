@@ -16,7 +16,7 @@ export const UserStatus: React.FC = () => {
             <div className="relative mb-4">
             <div className="p-1 bg-gradient-to-tr from-teal-500 to-emerald-500 rounded-full">
                 <Avatar
-                src={profile.profilePicture}
+                src={profile.profilePicture || undefined}
                 className="w-24 h-24 border-4 border-white"
                 />
             </div>

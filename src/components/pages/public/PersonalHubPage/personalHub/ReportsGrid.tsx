@@ -1,6 +1,6 @@
 import React from 'react';
-import { ItemCard } from '../../../ui';
-import { NewsFeedItem } from '../../../../types/api';
+import { ItemCard } from '@/components/ui';
+import { NewsFeedItem } from '@/types/personalHub';
 
 interface ReportsGridProps {
   reports?: NewsFeedItem[];
@@ -20,8 +20,13 @@ export const ReportsGrid: React.FC<ReportsGridProps> = ({ reports }) => {
       {reports.map((report) => (
         <ItemCard
           key={report.id}
-          item={report}
-          variant="grid"
+          title={report.title}
+          description={report.description}
+          image={report.images?.[0]}
+          status={report.status}
+          location={report.location}
+          date={report.date}
+          category={report.category}
           className="rounded-4xl shadow-sm hover:shadow-xl transition-all border border-slate-50"
         />
       ))}

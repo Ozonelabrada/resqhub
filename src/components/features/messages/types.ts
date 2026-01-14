@@ -1,6 +1,7 @@
 export interface Conversation {
   id: string;
   user: {
+    id: string;
     fullName: string;
     username: string;
     profilePicture?: string;

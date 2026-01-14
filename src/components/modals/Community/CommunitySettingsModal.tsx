@@ -7,7 +7,8 @@ import {
   DialogDescription,
   DialogFooter,
   Button,
-  Spinner
+  Spinner,
+  Switch
 } from '../../ui';
 import { Modal } from '../../ui/Modal/Modal';
 import { Settings, Upload, Save, X, Plus, Trash2 } from 'lucide-react';
@@ -21,6 +22,23 @@ interface CommunitySettingsModalProps {
   onSuccess?: () => void;
 }
 
+const FEATURES = [
+  { id: 'hasLiveChat', label: 'Live Chat', description: 'Enable real-time messaging for members' },
+  { id: 'hasFeedUpdates', label: 'Feed Updates', description: 'Show automated updates in the hub' },
+  { id: 'hasNewsPosts', label: 'News Posts', description: 'Allow posting community-wide news' },
+  { id: 'hasAnnouncements', label: 'Announcements', description: 'Enable official community announcements' },
+  { id: 'hasDiscussionPosts', label: 'Discussion Posts', description: 'Allow members to start discussions' },
+  { id: 'hasIncidentReporting', label: 'Incident Reporting', description: 'Enable reporting of local incidents' },
+  { id: 'hasEmergencyMap', label: 'Emergency Map', description: 'Show a real-time map of reports' },
+  { id: 'hasBroadcastAlerts', label: 'Broadcast Alerts', description: 'Send emergency alerts to everyone' },
+  { id: 'hasMemberDirectory', label: 'Member Directory', description: 'Allow members to find each other' },
+  { id: 'hasSkillMatching', label: 'Skill Matching', description: 'Connect people with specific skills' },
+  { id: 'hasEquipmentSharing', label: 'Equipment Sharing', description: 'Tool and equipment lending library' },
+  { id: 'hasNeedsBoard', label: 'Needs Board', description: 'Requests for help or resources' },
+  { id: 'hasTradeMarket', label: 'Trade Market', description: 'Swap and sell within community' },
+  { id: 'hasEvents', label: 'Events', description: 'Calendar and event organization' },
+];
+
 const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ isOpen, onClose, community, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -28,7 +46,22 @@ const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ isOpen,
     tagline: community.tagline || '',
     description: community.description || '',
     location: community.location || '',
-    rules: Array.isArray(community.rules) ? [...community.rules] : [] as string[]
+    rules: Array.isArray(community.rules) ? [...community.rules] : [] as string[],
+    // Feature Flags
+    hasLiveChat: community.hasLiveChat || false,
+    hasFeedUpdates: community.hasFeedUpdates || false,
+    hasNewsPosts: community.hasNewsPosts || false,
+    hasAnnouncements: community.hasAnnouncements || false,
+    hasDiscussionPosts: community.hasDiscussionPosts || false,
+    hasIncidentReporting: community.hasIncidentReporting || false,
+    hasEmergencyMap: community.hasEmergencyMap || false,
+    hasBroadcastAlerts: community.hasBroadcastAlerts || false,
+    hasMemberDirectory: community.hasMemberDirectory || false,
+    hasSkillMatching: community.hasSkillMatching || false,
+    hasEquipmentSharing: community.hasEquipmentSharing || false,
+    hasNeedsBoard: community.hasNeedsBoard || false,
+    hasTradeMarket: community.hasTradeMarket || false,
+    hasEvents: community.hasEvents || false,
   });
 
   const [newRule, setNewRule] = useState('');
@@ -40,7 +73,22 @@ const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ isOpen,
         tagline: community.tagline || '',
         description: community.description || '',
         location: community.location || '',
-        rules: Array.isArray(community.rules) ? [...community.rules] : []
+        rules: Array.isArray(community.rules) ? [...community.rules] : [],
+        // Feature Flags
+        hasLiveChat: community.hasLiveChat || false,
+        hasFeedUpdates: community.hasFeedUpdates || false,
+        hasNewsPosts: community.hasNewsPosts || false,
+        hasAnnouncements: community.hasAnnouncements || false,
+        hasDiscussionPosts: community.hasDiscussionPosts || false,
+        hasIncidentReporting: community.hasIncidentReporting || false,
+        hasEmergencyMap: community.hasEmergencyMap || false,
+        hasBroadcastAlerts: community.hasBroadcastAlerts || false,
+        hasMemberDirectory: community.hasMemberDirectory || false,
+        hasSkillMatching: community.hasSkillMatching || false,
+        hasEquipmentSharing: community.hasEquipmentSharing || false,
+        hasNeedsBoard: community.hasNeedsBoard || false,
+        hasTradeMarket: community.hasTradeMarket || false,
+        hasEvents: community.hasEvents || false,
       });
     }
   }, [community]);
@@ -48,7 +96,7 @@ const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ isOpen,
   const handleSave = async () => {
     setLoading(true);
     try {
-      await CommunityService.updateCommunity(community.id, formData);
+      await CommunityService.updateCommunity(community.id.toString(), formData);
       onSuccess?.();
       onClose();
     } catch (error) {
@@ -135,9 +183,10 @@ const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ isOpen,
                 />
              </div>
              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Location</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Address / Location</label>
                 <input 
                   className="w-full h-12 px-4 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-teal-500 font-bold text-slate-700" 
+                  placeholder="Where is your community based?"
                   value={formData.location}
                   onChange={e => setFormData({...formData, location: e.target.value})}
                 />
@@ -150,6 +199,25 @@ const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ isOpen,
                   value={formData.description}
                   onChange={e => setFormData({...formData, description: e.target.value})}
                 />
+             </div>
+          </div>
+
+          {/* Feature Subscription */}
+          <div className="space-y-4">
+             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Feature Subscription</label>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {FEATURES.map((feature) => (
+                  <div key={feature.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div className="space-y-0.5">
+                      <p className="text-sm font-bold text-slate-700">{feature.label}</p>
+                      <p className="text-[10px] text-slate-400 font-medium">{feature.description}</p>
+                    </div>
+                    <Switch 
+                      checked={(formData as any)[feature.id]} 
+                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, [feature.id]: checked }))}
+                    />
+                  </div>
+                ))}
              </div>
           </div>
 

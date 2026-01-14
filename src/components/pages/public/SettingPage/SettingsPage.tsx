@@ -19,7 +19,7 @@ import { useFeatureFlags } from '@/hooks';
 import { Flag, ToggleLeft, ToggleRight } from 'lucide-react';
 
 const SettingsPage: React.FC = () => {
-  const { userData: user } = useAuth() ?? {};
+  const { user } = useAuth() ?? {};
   const { flags, toggleFlag } = useFeatureFlags();
 
   const handleMigrate = () => {
@@ -75,7 +75,7 @@ const SettingsPage: React.FC = () => {
                 </p>
               </div>
               <Button
-                variant="warning"
+                variant="secondary"
                 className="rounded-2xl px-8 py-4 h-auto font-black uppercase tracking-widest text-xs flex items-center gap-3 shadow-lg shadow-amber-100"
                 onClick={handleMigrate}
               >

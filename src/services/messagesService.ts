@@ -55,6 +55,7 @@ export const MessagesService = {
           partnerMap.set(partnerId, {
             id: partnerId,
             user: {
+              id: partnerId,
               fullName: msg.senderId === currentUserId ? 'Sent Message' : (msg.senderName || 'User'),
               username: 'user', 
               profilePicture: msg.senderId === currentUserId ? undefined : msg.senderProfilePicture,
@@ -171,17 +172,17 @@ export const MessagesService = {
     }
   },
 
-  async markAsUnread(messageId: string): Promise<boolean> {
+  async markAsUnread(messageId: string | number): Promise<boolean> {
     try {
-      await api.put(`/messages/${messageId}/unread`);
+      await api.patch(`/messages/${messageId}/unread`);
       return true;
     } catch (error) {
-      console.error('Error marking message as unread:', error);
+      console.error('Error marking message unread:', error);
       return false;
     }
   },
 
-  async deleteMessage(messageId: string): Promise<boolean> {
+  async deleteMessage(messageId: string | number): Promise<boolean> {
     try {
       await api.delete(`/messages/${messageId}`);
       return true;

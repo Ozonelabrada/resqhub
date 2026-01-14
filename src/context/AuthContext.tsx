@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 
 interface AuthContextType {
   isAuthenticated: boolean;
+  token: string | null;
   isLoading: boolean;
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
@@ -33,6 +34,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(authManager.isAuthenticated());
+  const [token, setToken] = useState<string | null>(authManager.getToken());
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(authManager.getUser());
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -92,6 +94,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
     // Listen for auth changes
     const handleAuthChange = (updatedUser: User | null) => {
       setIsAuthenticated(!!updatedUser);
+      setToken(authManager.getToken());
       setUser(updatedUser);
     };
 
@@ -177,6 +180,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
   return (
     <AuthContext.Provider value={{
       isAuthenticated,
+      token,
       isLoading,
       user,
       login,

@@ -60,7 +60,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           <div className="relative group">
             <div className="p-1.5 bg-white rounded-4xl shadow-xl">
               <Avatar
-                src={userData.profilePicture}
+                src={userData.profilePicture || undefined}
                 label={userData.fullName?.charAt(0) || userData.username.charAt(0)}
                 className="w-32 h-32 md:w-44 md:h-44 border-4 border-white rounded-3xl object-cover"
               />

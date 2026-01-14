@@ -149,7 +149,7 @@ const CommunityManagementPage: React.FC = () => {
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
                                             <Avatar className="w-8 h-8 rounded-xl border border-white shadow-sm">U</Avatar>
-                                            <span className="text-xs font-bold text-slate-600">Requester ID: ...{item.id.slice(-4)}</span>
+                                            <span className="text-xs font-bold text-slate-600">Requester ID: ...{String(item.id).slice(-4)}</span>
                                         </div>
                                         <span className="text-[10px] font-black text-slate-400 uppercase">2h ago</span>
                                     </div>
@@ -165,14 +165,14 @@ const CommunityManagementPage: React.FC = () => {
                                     <MessageSquare size={20} />
                                 </Button>
                                 <Button 
-                                    onClick={() => handleStatusUpdate(item.id, 'rejected')}
+                                    onClick={() => handleStatusUpdate(String(item.id), 'rejected')}
                                     variant="ghost" 
                                     className="w-12 h-12 rounded-2xl font-black text-rose-500 hover:bg-rose-50 hover:text-rose-600 p-0"
                                 >
                                     <XCircle size={22} />
                                 </Button>
                                 <Button 
-                                    onClick={() => handleStatusUpdate(item.id, 'approved')}
+                                    onClick={() => handleStatusUpdate(String(item.id), 'approved')}
                                     className="flex-1 h-12 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-black shadow-lg shadow-teal-100"
                                 >
                                     <CheckCircle2 size={18} className="mr-2" />

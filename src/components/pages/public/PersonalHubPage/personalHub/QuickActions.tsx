@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Button } from '../../../ui';
+import { Card, Button } from '@/components/ui';
 import { Plus, Map, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 

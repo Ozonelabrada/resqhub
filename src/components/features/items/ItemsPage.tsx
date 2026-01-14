@@ -7,6 +7,8 @@ import {
   Badge, 
   Avatar, 
   Modal, 
+  ModalBody,
+  ModalFooter,
   ImageGallery, 
   Spinner,
   Container,
@@ -27,6 +29,7 @@ import {
   ChevronRight,
   X,
   Info,
+  CheckCircle2,
   DollarSign,
   User as UserIcon,
   ArrowRight
@@ -168,7 +171,7 @@ const ItemsPage: React.FC = () => {
   ];
 
   const categories = [
-    { label: 'All Categories', value: null },
+    { label: 'All Categories', value: '' },
     { label: 'Electronics', value: 1 },
     { label: 'Accessories', value: 2 },
     { label: 'Keys', value: 3 },
@@ -178,7 +181,7 @@ const ItemsPage: React.FC = () => {
   ];
 
   const statusOptions = [
-    { label: 'All Status', value: null },
+    { label: 'All Status', value: '' },
     { label: 'Active', value: 'active' },
     { label: 'Matched', value: 'matched' },
     { label: 'Closed', value: 'closed' },
@@ -186,7 +189,7 @@ const ItemsPage: React.FC = () => {
   ];
 
   const typeOptions = [
-    { label: 'All Types', value: null },
+    { label: 'All Types', value: '' },
     { label: 'Lost Items', value: 'lost' },
     { label: 'Found Items', value: 'found' }
   ];

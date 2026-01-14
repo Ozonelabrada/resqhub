@@ -29,20 +29,7 @@ import {
   Twitter,
   Link as LinkIcon
 } from 'lucide-react';
-import type { UserReport } from '../../../../../types/personalHub';
-
-export interface NewsFeedItem extends UserReport {
-  user: {
-    id: string;
-    fullName: string;
-    username: string;
-    profilePicture?: string;
-    isVerified?: boolean;
-  };
-  communityName?: string;
-  timeAgo: string;
-  status: 'lost' | 'found' | 'reunited';
-}
+import type { UserReport, NewsFeedItem } from '../../../../../types/personalHub';
 
 interface NewsFeedProps {
   items: NewsFeedItem[];

@@ -5,7 +5,7 @@ import { Logo } from '../../ui';
 
 const Header: React.FC = () => {
   const auth = useAuth();
-  const { isAuthenticated, userData } = auth || {};
+  const { isAuthenticated, user } = auth || {};
 
   const navigate = useNavigate();
 
@@ -26,10 +26,10 @@ const Header: React.FC = () => {
           >
             <div className="text-right hidden sm:block">
               <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Authenticated</div>
-              <div className="text-sm font-bold text-slate-700">{userData?.name || userData?.email?.split('@')[0]}</div>
+              <div className="text-sm font-bold text-slate-700">{user?.fullName || user?.username || user?.email?.split('@')[0]}</div>
             </div>
             <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center text-teal-600 border border-teal-100 font-bold">
-              {(userData?.name || userData?.email || 'U')[0].toUpperCase()}
+              {(user?.fullName || user?.username || user?.email || 'U')[0].toUpperCase()}
             </div>
           </div>
         ) : (

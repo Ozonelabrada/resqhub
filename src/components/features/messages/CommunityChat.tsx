@@ -126,6 +126,7 @@ export const CommunityChat: React.FC<CommunityChatProps> = ({
       return {
         id: `group-${normalizedCommunityId}`,
         user: { 
+          id: `group-${normalizedCommunityId}`,
           fullName: communityName, 
           username: 'group', 
           isOnline: true,
@@ -140,6 +141,7 @@ export const CommunityChat: React.FC<CommunityChatProps> = ({
       return {
         id: `direct-${selectedRecipient.id}`,
         user: { 
+          id: String(selectedRecipient.id),
           fullName: selectedRecipient.name || selectedRecipient.username, 
           username: selectedRecipient.username,
           profilePicture: selectedRecipient.profilePicture,
@@ -213,8 +215,8 @@ export const CommunityChat: React.FC<CommunityChatProps> = ({
         conversation={activeConversation}
         messages={chatMessages}
         onSendMessage={handleSendMessage}
-        onDeleteMessage={deleteMessage}
-        onMarkUnread={markMessageUnread}
+        onDeleteMessage={(id) => { deleteMessage(id); }}
+        onMarkUnread={(id) => { markMessageUnread(id); }}
         onLoadMore={loadMore}
         hasMore={hasMore}
         onBack={isAdminOrMod ? handleBack : undefined}

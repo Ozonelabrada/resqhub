@@ -346,7 +346,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
         </Button>
         <Button 
           onClick={handleSubmit}
-          isLoading={loading}
+          loading={loading}
           className="rounded-xl px-8 bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-100 font-bold transition-all active:scale-95"
         >
           Submit Report

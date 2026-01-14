@@ -35,6 +35,7 @@ export const DirectChatModal: React.FC<DirectChatModalProps> = ({
   const conversation: Conversation | null = user ? {
     id: `temp-${user.id}`, // Temporary ID for UI
     user: {
+      id: String(user.id),
       fullName: user.fullName || user.email,
       username: user.username,
       profilePicture: user.profilePicture || '',
@@ -66,8 +67,8 @@ export const DirectChatModal: React.FC<DirectChatModalProps> = ({
                 messages={chatMessages}
                 onSendMessage={handleSendMessage}
                 onBack={onClose}
-                onDeleteMessage={deleteMessage}
-                onMarkUnread={markMessageUnread}
+                onDeleteMessage={(id) => { deleteMessage(id); }}
+                onMarkUnread={(id) => { markMessageUnread(id); }}
                 onLoadMore={loadMore}
                 hasMore={hasMore}
             />

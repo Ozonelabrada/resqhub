@@ -135,7 +135,7 @@ export class TrendingReportsService {
    */
   static async calculateTrendingReports(): Promise<void> {
     try {
-      const response = await mainApiClient.request<{
+      const response = await api.request<{
         message: string;
         succeeded: boolean;
         statusCode: number;
