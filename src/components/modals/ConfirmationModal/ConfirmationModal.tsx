@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   Modal, 
   ModalHeader, 
@@ -31,14 +32,21 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   visible,
   onHide,
   onConfirm,
-  title = 'Confirm Action',
-  message = 'Are you sure you want to proceed?',
-  confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
+  title,
+  message,
+  confirmLabel,
+  cancelLabel,
   severity = 'warning',
   icon,
   loading = false
 }) => {
+  const { t } = useTranslation();
+  
+  const displayTitle = title || t('common.confirm_action');
+  const displayMessage = message || t('common.confirm_question');
+  const displayConfirmLabel = confirmLabel || t('common.confirm');
+  const displayCancelLabel = cancelLabel || t('common.cancel');
+
   // Default icons based on severity
   const getIcon = () => {
     switch (severity) {
@@ -71,7 +79,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     <Modal 
       isOpen={visible} 
       onClose={onHide} 
-      title={title}
+      title={displayTitle}
       size="sm"
       skipExitConfirmation={true}
     >
@@ -81,9 +89,9 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         </div>
         
         <div className="space-y-2">
-          <h3 className="text-xl font-bold text-slate-800">{title}</h3>
+          <h3 className="text-xl font-bold text-slate-800">{displayTitle}</h3>
           <p className="text-slate-600 leading-relaxed">
-            {message}
+            {displayMessage}
           </p>
         </div>
       </ModalBody>
@@ -95,7 +103,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           disabled={loading}
           className="rounded-xl px-6"
         >
-          {cancelLabel}
+          {displayCancelLabel}
         </Button>
         <Button 
           variant={getButtonVariant() as any}
@@ -103,7 +111,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           loading={loading}
           className={`rounded-xl px-8 shadow-lg ${severity === 'danger' ? 'shadow-red-100' : 'shadow-blue-100'}`}
         >
-          {confirmLabel}
+          {displayConfirmLabel}
         </Button>
       </ModalFooter>
     </Modal>

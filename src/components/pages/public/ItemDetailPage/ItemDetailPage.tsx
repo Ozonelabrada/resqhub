@@ -74,11 +74,11 @@ const ItemDetailPage: React.FC = () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">
         <div className="text-center">
-          <h2 className="text-2xl font-black text-slate-800 mb-4">Item Not Found</h2>
-          <p className="text-slate-500 mb-8 text-lg font-medium">The item you are looking for doesn't exist or has been removed.</p>
+          <h2 className="text-2xl font-black text-slate-800 mb-4">{t('report.item_not_found')}</h2>
+          <p className="text-slate-500 mb-8 text-lg font-medium">{t('report.item_not_found_desc')}</p>
           <Button onClick={() => navigate('/hub')} className="bg-teal-600 text-white rounded-2xl px-8 py-4 h-auto font-bold text-lg">
             <ArrowLeft className="mr-2" />
-            Back to Hub
+            {t('report.back_to_hub')}
           </Button>
         </div>
       </div>
@@ -104,7 +104,7 @@ const ItemDetailPage: React.FC = () => {
             <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center group-hover:bg-teal-50 group-hover:text-teal-600 transition-all">
               <ArrowLeft size={20} />
             </div>
-            <span>Back to Feed</span>
+            <span>{t('report.back_to_feed')}</span>
           </button>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -123,7 +123,7 @@ const ItemDetailPage: React.FC = () => {
                   ) : (
                     <div className="text-white opacity-20 flex flex-col items-center font-black uppercase tracking-widest">
                       <Calendar size={64} className="mb-4" />
-                      No Image Provided
+                      {t('report.no_image')}
                     </div>
                   )}
 
@@ -161,7 +161,7 @@ const ItemDetailPage: React.FC = () => {
                 <div className="lg:w-1/2 p-8 lg:p-12 flex flex-col">
                   <div className="flex items-center gap-2 text-teal-600 font-bold text-xs uppercase tracking-[0.2em] mb-4">
                     <Badge variant="outline" className="text-[10px] py-1 border-teal-100 bg-teal-50 text-teal-600 font-black">
-                      {item.categoryName || 'General'}
+                      {item.categoryName || t('report.category_fallback')}
                     </Badge>
                   </div>
 
@@ -175,7 +175,7 @@ const ItemDetailPage: React.FC = () => {
                         <MapPin size={24} />
                       </div>
                       <div>
-                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Location Found/Lost</p>
+                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">{t('report.location_found_lost')}</p>
                         <p className="text-slate-800 font-bold">{item.location}</p>
                         {item.specificLocation && (
                           <p className="text-sm text-slate-500 font-medium mt-0.5">{item.specificLocation}</p>
@@ -188,7 +188,7 @@ const ItemDetailPage: React.FC = () => {
                         <Calendar size={24} />
                       </div>
                       <div>
-                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Date Reported</p>
+                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">{t('report.date_reported')}</p>
                         <p className="text-slate-800 font-bold">{new Date(item.dateCreated).toLocaleDateString()}</p>
                       </div>
                     </div>
@@ -199,7 +199,7 @@ const ItemDetailPage: React.FC = () => {
                            <Award size={24} />
                          </div>
                          <div>
-                            <p className="text-xs font-black text-emerald-600 uppercase tracking-widest mb-0.5">Reward Offered</p>
+                            <p className="text-xs font-black text-emerald-600 uppercase tracking-widest mb-0.5">{t('report.reward_offered')}</p>
                             <p className="text-emerald-700 font-black text-lg">{item.rewardDetails}</p>
                          </div>
                       </div>
@@ -208,9 +208,9 @@ const ItemDetailPage: React.FC = () => {
 
                   <div className="mt-auto">
                     <div className="p-6 rounded-3xl bg-slate-50 border border-slate-100">
-                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Description</p>
+                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">{t('report.description')}</p>
                       <p className="text-slate-600 font-medium leading-relaxed">
-                        {item.description || 'No detailed description provided for this item.'}
+                        {item.description || t('report.no_description')}
                       </p>
                     </div>
                   </div>
@@ -226,8 +226,8 @@ const ItemDetailPage: React.FC = () => {
                     <MessageSquare size={24} />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-black text-slate-900">Discussion</h2>
-                    <p className="text-slate-500 text-sm font-medium">Community messages and updates</p>
+                    <h2 className="text-2xl font-black text-slate-900">{t('report.discussion')}</h2>
+                    <p className="text-slate-500 text-sm font-medium">{t('report.discussion_desc')}</p>
                   </div>
                 </div>
               </div>
@@ -244,7 +244,7 @@ const ItemDetailPage: React.FC = () => {
           <div className="lg:col-span-4 space-y-8">
             {/* Owner Profile Card */}
             <Card className="p-8 border-none shadow-2xl shadow-slate-200/50 rounded-[2.5rem] bg-white">
-              <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">Reported By</h3>
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">{t('report.reported_by')}</h3>
               <div className="flex items-center gap-4 mb-8">
                 <Avatar 
                   src={item.user?.profilePictureUrl} 
@@ -255,7 +255,7 @@ const ItemDetailPage: React.FC = () => {
                     <h4 className="font-black text-slate-900 text-lg">{item.user?.fullName || item.user?.username}</h4>
                     <ShieldCheck size={16} className="text-blue-500 fill-blue-50" />
                   </div>
-                  <p className="text-teal-600 font-bold text-sm">Verified Community Member</p>
+                  <p className="text-teal-600 font-bold text-sm">{t('report.verified_member')}</p>
                 </div>
               </div>
 
@@ -271,21 +271,21 @@ const ItemDetailPage: React.FC = () => {
                   className="w-full h-16 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-base shadow-xl shadow-slate-200 transition-all flex items-center justify-center gap-2"
                 >
                   <User size={20} />
-                  Contact Owner
+                  {t('report.contact_owner')}
                 </Button>
               ) : (
                 <div className="space-y-4 animate-in fade-in zoom-in-95 duration-300">
                   <div className="p-4 rounded-2xl bg-teal-50 border border-teal-100">
-                    <p className="text-xs font-black text-teal-600 uppercase tracking-widest mb-2">Contact Details</p>
+                    <p className="text-xs font-black text-teal-600 uppercase tracking-widest mb-2">{t('report.contact_details')}</p>
                     <p className="text-teal-900 font-bold flex items-center gap-2">
-                       {item.contactInfo || 'Contact details hidden for privacy. Use internal messaging.'}
+                       {item.contactInfo || t('report.contact_hidden')}
                     </p>
                   </div>
                   <Button 
                     className="w-full h-14 rounded-2xl bg-teal-600 text-white font-bold"
                     onClick={() => navigate('/feed?view=messages')}
                   >
-                    Send Private Message
+                    {t('report.send_private_message')}
                   </Button>
                 </div>
               )}

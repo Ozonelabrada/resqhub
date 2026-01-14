@@ -49,7 +49,7 @@ export const CommunityProfileModal: React.FC<CommunityProfileModalProps> = ({ is
            <div className="absolute top-6 right-6 flex gap-2">
               <div className="bg-white/20 backdrop-blur-md border border-white/30 text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
                  <Globe size={12} />
-                 Public Community
+                 {t('community.profile.public')}
               </div>
            </div>
         </div>
@@ -67,12 +67,12 @@ export const CommunityProfileModal: React.FC<CommunityProfileModalProps> = ({ is
                  <div className="flex items-center gap-4 text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">
                     <span className="flex items-center gap-1.5">
                        <Users className="w-3.5 h-3.5 text-teal-600" />
-                       {community.members} Members
+                       {t('community.profile.members', { count: community.members })}
                     </span>
                     <span className="w-1 h-1 bg-slate-300 rounded-full" />
                     <span className="flex items-center gap-1.5">
                        <Activity className="w-3.5 h-3.5 text-orange-500" />
-                       Active Now
+                       {t('community.profile.active_now')}
                     </span>
                  </div>
               </div>
@@ -81,24 +81,24 @@ export const CommunityProfileModal: React.FC<CommunityProfileModalProps> = ({ is
            {/* Stats Overview */}
            <div className="grid grid-cols-3 gap-4 mb-8">
               <div className="p-4 rounded-3xl bg-slate-50 border border-slate-100 text-center">
-                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Reports</p>
+                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('community.profile.stats_reports')}</p>
                  <p className="text-xl font-black text-slate-900">{community.activeReports || 124}</p>
               </div>
               <div className="p-4 rounded-3xl bg-slate-50 border border-slate-100 text-center">
-                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Resolved</p>
+                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('community.profile.stats_resolved')}</p>
                  <p className="text-xl font-black text-emerald-600">86%</p>
               </div>
               <div className="p-4 rounded-3xl bg-slate-50 border border-slate-100 text-center">
-                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Activity</p>
-                 <p className="text-xl font-black text-teal-600">High</p>
+                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('community.profile.stats_activity')}</p>
+                 <p className="text-xl font-black text-teal-600">{t('community.profile.activity_high')}</p>
               </div>
            </div>
 
            {/* Description */}
            <div className="space-y-4 mb-10">
-              <h3 className="text-xs font-black text-slate-900 uppercase tracking-[0.2em]">{t('community.about') || "About this Community"}</h3>
+              <h3 className="text-xs font-black text-slate-900 uppercase tracking-[0.2em]">{t('community.profile.about')}</h3>
               <p className="text-slate-600 font-medium leading-relaxed">
-                 {community.description || `A localized community dedicated to helping neighbors reunite with their lost belongings. We prioritize safety and swift communication across ${SITE.name} districts.`}
+                 {community.description || t('community.description_fallback', { site: SITE.name })}
               </p>
               <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
                  <MapPin size={16} className="text-orange-500" />
@@ -109,16 +109,20 @@ export const CommunityProfileModal: React.FC<CommunityProfileModalProps> = ({ is
            {/* Recent Activity / Posts (Preview) */}
            <div className="space-y-4 mb-10">
               <div className="flex justify-between items-center">
-                 <h3 className="text-xs font-black text-slate-900 uppercase tracking-[0.2em]">Recent community posts</h3>
-                 <Button variant="ghost" size="sm" className="text-teal-600 font-black text-[10px] uppercase tracking-widest">View All</Button>
+                 <h3 className="text-xs font-black text-slate-900 uppercase tracking-[0.2em]">{t('community.recent_posts')}</h3>
+                 <Button variant="ghost" size="sm" className="text-teal-600 font-black text-[10px] uppercase tracking-widest">{t('common.view_all')}</Button>
               </div>
               <div className="space-y-3">
                  {[1, 2].map(i => (
                     <div key={i} className="flex gap-4 p-4 rounded-2xl border border-slate-50 hover:bg-slate-50/50 transition-colors cursor-pointer group">
                        <div className="w-12 h-12 rounded-xl bg-slate-100 shrink-0" />
                        <div className="flex-1 min-w-0">
-                          <h4 className="text-sm font-bold text-slate-900 truncate group-hover:text-teal-600 transition-colors">Lost Golden Retriever near Central...</h4>
-                          <p className="text-xs text-slate-400 font-medium mt-0.5">Reported 2 hours ago • By John D.</p>
+                          <h4 className="text-sm font-bold text-slate-900 truncate group-hover:text-teal-600 transition-colors">
+                            {t('community.profile.activity_title')}
+                          </h4>
+                          <p className="text-xs text-slate-400 font-medium mt-0.5">
+                            {t('community.profile.activity_subtitle', { time: '2h', user: 'John D.' })}
+                          </p>
                        </div>
                     </div>
                  ))}
@@ -130,14 +134,14 @@ export const CommunityProfileModal: React.FC<CommunityProfileModalProps> = ({ is
               <Button 
                 className="flex-1 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl h-14 font-black shadow-lg shadow-teal-100 transition-all active:scale-95 flex items-center justify-center gap-2"
               >
-                Join Community
+                {t('community.profile.join')}
               </Button>
               <Button 
                 variant="outline"
                 className="flex-1 border-2 border-slate-100 hover:border-teal-600 hover:text-teal-600 rounded-2xl h-14 font-black transition-all active:scale-95"
                 onClick={onClose}
               >
-                Close
+                {t('common.close')}
               </Button>
            </div>
         </div>

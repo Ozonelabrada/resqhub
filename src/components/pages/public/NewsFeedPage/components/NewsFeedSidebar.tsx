@@ -152,7 +152,7 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </div>
-              Communities
+              {t('common.communities')}
             </Button>
           </>
         )}
@@ -163,7 +163,7 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
             <div className="px-4 mb-3 flex items-center justify-between">
               <h4 className="text-[10px] font-black text-teal-600 uppercase tracking-[0.2em]">{communityNav.communityName}</h4>
               {!communityNav.isMember && !communityNav.isAdmin && (
-                <Badge variant="outline" className="text-[8px] uppercase tracking-tighter px-1.5 py-0 border-slate-200 text-slate-400">Visitor</Badge>
+                <Badge variant="outline" className="text-[8px] uppercase tracking-tighter px-1.5 py-0 border-slate-200 text-slate-400">{t('common.visitor')}</Badge>
               )}
             </div>
 
@@ -173,7 +173,7 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
                 <Search className="absolute left-7 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 group-focus-within:text-teal-500 transition-colors" />
                 <input 
                   type="text" 
-                  placeholder={`Search ${communityNav.activeTab}...`}
+                  placeholder={`${t('common.search')} ${communityNav.activeTab}...`}
                   className="w-full pl-9 pr-4 py-2 bg-slate-50 border-none rounded-xl text-[10px] font-bold focus:ring-1 focus:ring-teal-500 transition-all outline-none"
                 />
               </div>
@@ -192,7 +192,7 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
                 </svg>
               </div>
-              Feed Updates
+              {t('common.feed')}
             </Button>
 
             <Button 
@@ -206,7 +206,7 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
               <div className={cn("w-5 h-5 mr-3 flex items-center justify-center", communityNav.activeTab === 'needs' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")}>
                 <ShieldAlert className="w-5 h-5" />
               </div>
-              Needs Board
+              {t('common.needs')}
             </Button>
 
             {(communityNav.isMember || communityNav.isAdmin) && (
@@ -220,7 +220,7 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
                   )}
                 >
                   <ShoppingBag className={cn("w-5 h-5 mr-3", communityNav.activeTab === 'trade' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
-                  Trade Market
+                  {t('common.trade_market')}
                 </Button>
 
                 <Button 
@@ -232,7 +232,7 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
                   )}
                 >
                   <Megaphone className={cn("w-5 h-5 mr-3", communityNav.activeTab === 'announcements' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
-                  Announcements
+                  {t('hub.announcements')}
                 </Button>
 
                 <Button 
@@ -244,7 +244,7 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
                   )}
                 >
                   <Calendar className={cn("w-5 h-5 mr-3", communityNav.activeTab === 'events' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
-                  Events
+                  {t('common.events') || 'Events'}
                 </Button>
 
                 <Button 
@@ -256,7 +256,7 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
                   )}
                 >
                   <Users className={cn("w-5 h-5 mr-3", communityNav.activeTab === 'members' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
-                  Members
+                  {t('common.members')}
                 </Button>
 
                 <Button 
@@ -268,7 +268,7 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
                   )}
                 >
                   <BookOpen className={cn("w-5 h-5 mr-3", communityNav.activeTab === 'resources' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
-                  Resources
+                  {t('common.resources')}
                 </Button>
               </>
             )}
@@ -282,7 +282,7 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
               )}
             >
               <Info className={cn("w-5 h-5 mr-3", communityNav.activeTab === 'about' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
-              About
+              {t('common.about')}
             </Button>
           </div>
         )}
@@ -297,7 +297,7 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
             )}
           >
             <MessageSquare className={cn("w-5 h-5 mr-3", currentView === 'messages' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
-            Messages
+            {t('common.messages')}
             {unreadCount > 0 && (
               <Badge className="absolute right-4 bg-orange-500 text-white border-none font-black text-[10px] px-1.5 h-5">
                 {unreadCount > 99 ? '99+' : unreadCount}
@@ -308,14 +308,14 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
 
         {!communityNav && (
           <>
-            <h4 className="px-4 text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-2 mt-4">Resources</h4>
+            <h4 className="px-4 text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-2 mt-4">{t('common.resources')}</h4>
             <Button 
               variant="ghost" 
               onClick={() => navigate('/safety-tips')}
               className="w-full justify-start py-6 rounded-2xl font-bold transition-all border-none text-slate-500 hover:bg-gray-50 hover:text-teal-600 group"
             >
               <ShieldCheck className="w-5 h-5 mr-3 text-slate-400 group-hover:text-teal-600" />
-              Safety Center
+              {t('common.safety_center')}
             </Button>
             <Button 
               variant="ghost" 

@@ -63,66 +63,66 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
     switch (privacy) {
       case 'school':
         return {
-          name: 'School / University Name',
-          namePlaceholder: 'e.g. University of the Philippines',
-          location: 'Campus Location',
-          locationPlaceholder: 'e.g. Quezon City, Diliman',
-          description: 'About the School Hub',
-          descPlaceholder: 'Activities, academic alerts, and student services...'
+          name: t('community.create.labels.school_name'),
+          namePlaceholder: t('community.create.labels.school_placeholder'),
+          location: t('community.create.labels.school_location'),
+          locationPlaceholder: t('community.create.labels.school_location_placeholder'),
+          description: t('community.create.labels.school_description'),
+          descPlaceholder: t('community.create.labels.school_desc_placeholder')
         };
       case 'lgu':
         return {
-          name: 'Government Unit Name',
-          namePlaceholder: 'e.g. Makati City Government',
-          location: 'Jurisdiction / Office',
-          locationPlaceholder: 'e.g. Makati City Hall',
-          description: 'Official Scope',
-          descPlaceholder: 'Public advisories, community services, and civic engagement...'
+          name: t('community.create.labels.lgu_name'),
+          namePlaceholder: t('community.create.labels.lgu_placeholder'),
+          location: t('community.create.labels.lgu_location'),
+          locationPlaceholder: t('community.create.labels.lgu_location_placeholder'),
+          description: t('community.create.labels.lgu_description'),
+          descPlaceholder: t('community.create.labels.lgu_desc_placeholder')
         };
       case 'barangay':
         return {
-          name: 'Barangay Name',
-          namePlaceholder: 'e.g. Brgy. Bel-Air',
-          location: 'Barangay Location',
-          locationPlaceholder: 'e.g. Makati City',
-          description: 'Community Bio',
-          descPlaceholder: 'Barangay updates, safety alerts, and neighborhood news...'
+          name: t('community.create.labels.barangay_name'),
+          namePlaceholder: t('community.create.labels.barangay_placeholder'),
+          location: t('community.create.labels.barangay_location'),
+          locationPlaceholder: t('community.create.labels.barangay_location_placeholder'),
+          description: t('community.create.labels.barangay_description'),
+          descPlaceholder: t('community.create.labels.barangay_desc_placeholder')
         };
       case 'event':
         return {
-          name: 'Event Name',
-          namePlaceholder: 'e.g. First Aid Workshop 2026',
-          location: 'Venue / Area',
-          locationPlaceholder: 'e.g. Community Center or Online',
-          description: 'About the Event',
-          descPlaceholder: 'Purpose of the event, schedule, and details...'
+          name: t('community.create.labels.event_name'),
+          namePlaceholder: t('community.create.labels.event_placeholder'),
+          location: t('community.create.labels.event_location'),
+          locationPlaceholder: t('community.create.labels.event_location_placeholder'),
+          description: t('community.create.labels.event_description'),
+          descPlaceholder: t('community.create.labels.event_desc_placeholder')
         };
       case 'organization':
         return {
-          name: 'Organization Name',
-          namePlaceholder: 'e.g. Red Cross Youth',
-          location: 'HQ / Base Location',
-          locationPlaceholder: 'e.g. Metro Manila',
-          description: 'Mission & Overview',
-          descPlaceholder: 'Organization goals, member roles, and activities...'
+          name: t('community.create.labels.org_name'),
+          namePlaceholder: t('community.create.labels.org_placeholder'),
+          location: t('community.create.labels.org_location'),
+          locationPlaceholder: t('community.create.labels.org_location_placeholder'),
+          description: t('community.create.labels.org_description'),
+          descPlaceholder: t('community.create.labels.org_desc_placeholder')
         };
       case 'city':
         return {
-          name: 'City Name',
-          namePlaceholder: 'e.g. Pasig City',
-          location: 'Region/Province',
-          locationPlaceholder: 'e.g. Metro Manila',
-          description: 'City Hub Description',
-          descPlaceholder: 'City-wide updates, news, and resource mapping...'
+          name: t('community.create.labels.city_name'),
+          namePlaceholder: t('community.create.labels.city_placeholder'),
+          location: t('community.create.labels.location'),
+          locationPlaceholder: t('community.create.labels.location_placeholder'),
+          description: t('community.create.labels.city_description'),
+          descPlaceholder: t('community.create.labels.city_desc_placeholder')
         };
       default:
         return {
-          name: 'Community Name',
-          namePlaceholder: 'e.g. Green Valley Residents',
-          location: 'Primary Location',
-          locationPlaceholder: 'e.g. City, Region or \'Online\'',
-          description: 'Short Description',
-          descPlaceholder: 'What is this community about?'
+          name: t('community.create.labels.name'),
+          namePlaceholder: t('community.create.labels.name_placeholder'),
+          location: t('community.create.labels.location'),
+          locationPlaceholder: t('community.create.labels.location_placeholder'),
+          description: t('community.create.labels.description'),
+          descPlaceholder: t('community.create.labels.description_placeholder')
         };
     }
   };
@@ -134,10 +134,10 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
       <ScrollArea className="flex-1 px-8 py-6">
         <div className="space-y-6 pb-24">
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-teal-600 uppercase tracking-[0.2em]">Community Type & Privacy</label>
+            <label className="text-[10px] font-black text-teal-600 uppercase tracking-[0.2em]">{t('community.create.type_privacy')}</label>
             <Select value={formData.privacy} onValueChange={(v: any) => setFormData({...formData, privacy: v})}>
               <SelectTrigger className="h-14 rounded-2xl border-slate-200 focus:ring-teal-500/20 font-black bg-slate-50/50 text-slate-700">
-                <SelectValue placeholder="Select Privacy" />
+                <SelectValue placeholder={t('community.create.select_privacy')} />
               </SelectTrigger>
               <SelectContent className="rounded-2xl border-slate-100 shadow-2xl p-2 bg-white">
                 <SelectItem value="barangay" className="py-3 rounded-xl focus:bg-teal-50 focus:text-teal-700 font-bold transition-colors">
@@ -145,7 +145,7 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
                     <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center text-teal-600">
                       <ShieldAlert size={18} />
                     </div>
-                    <span>Barangay</span>
+                    <span>{t('community.create.types.barangay')}</span>
                   </div>
                 </SelectItem>
                 <SelectItem value="city" className="py-3 rounded-xl focus:bg-teal-50 focus:text-teal-700 font-bold transition-colors">
@@ -153,7 +153,7 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
                     <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center text-teal-600">
                       <MapPin size={18} />
                     </div>
-                    <span>City</span>
+                    <span>{t('community.create.types.city')}</span>
                   </div>
                 </SelectItem>
                 <SelectItem value="lgu" className="py-3 rounded-xl focus:bg-teal-50 focus:text-teal-700 font-bold transition-colors">
@@ -161,7 +161,7 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
                     <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center text-teal-600">
                       <Landmark size={18} />
                     </div>
-                    <span>LGU (Local Govt)</span>
+                    <span>{t('community.create.types.lgu')}</span>
                   </div>
                 </SelectItem>
                 <SelectItem value="school" className="py-3 rounded-xl focus:bg-teal-50 focus:text-teal-700 font-bold transition-colors">
@@ -169,7 +169,7 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
                     <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center text-teal-600">
                       <GraduationCap size={18} />
                     </div>
-                    <span>School / University</span>
+                    <span>{t('community.create.types.school')}</span>
                   </div>
                 </SelectItem>
                 <SelectItem value="organization" className="py-3 rounded-xl focus:bg-teal-50 focus:text-teal-700 font-bold transition-colors">
@@ -177,7 +177,7 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
                     <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center text-teal-600">
                       <Building2 size={18} />
                     </div>
-                    <span>Organization</span>
+                    <span>{t('community.create.types.organization')}</span>
                   </div>
                 </SelectItem>
                 <SelectItem value="event" className="py-3 rounded-xl focus:bg-teal-50 focus:text-teal-700 font-bold transition-colors">
@@ -185,7 +185,7 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
                     <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center text-teal-600">
                       <Calendar size={18} />
                     </div>
-                    <span>One-time Event</span>
+                    <span>{t('community.create.types.event')}</span>
                   </div>
                 </SelectItem>
                 <SelectItem value="private" className="py-3 rounded-xl focus:bg-teal-50 focus:text-teal-700 font-bold transition-colors">
@@ -193,7 +193,7 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
                     <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
                       <Lock size={18} />
                     </div>
-                    <span>Private</span>
+                    <span>{t('community.create.types.private')}</span>
                   </div>
                 </SelectItem>
               </SelectContent>
@@ -275,9 +275,9 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Member Capacity</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{t('community.create.review.capacity')}</label>
               <span className="text-[10px] font-black text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full uppercase tracking-tighter">
-                {formData.privacy === 'barangay' ? 'Sponsored' : 'Quota Tier'}
+                {formData.privacy === 'barangay' ? t('community.create.review.sponsored') : t('community.create.review.quota_tier')}
               </span>
             </div>
             <Select 
@@ -285,15 +285,15 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
               onValueChange={(v) => setFormData({...formData, maxMembers: parseInt(v)})}
             >
               <SelectTrigger className="h-14 rounded-2xl border-slate-200 focus:ring-teal-500/20 font-black bg-slate-50/50 text-slate-700">
-                <SelectValue placeholder="Select Capacity" />
+                <SelectValue placeholder={t('community.create.review.select_capacity')} />
               </SelectTrigger>
               <SelectContent className="rounded-2xl border-slate-100 shadow-2xl p-2 bg-white">
                 {[
-                  { value: 100, label: '100 Members', price: 0 },
-                  { value: 500, label: '500 Members', price: 500 },
-                  { value: 1000, label: '1,000 Members', price: 1000 },
-                  { value: 5000, label: '5,000 Members', price: 2500 },
-                  { value: 10000, label: 'Unlimited', price: 5000 },
+                  { value: 100, label: t('community.create.review.members_count', { count: 100 }), price: 0 },
+                  { value: 500, label: t('community.create.review.members_count', { count: 500 }), price: 500 },
+                  { value: 1000, label: t('community.create.review.members_count', { count: 1000 }), price: 1000 },
+                  { value: 5000, label: t('community.create.review.members_count', { count: 5000 }), price: 2500 },
+                  { value: 10000, label: t('community.create.review.unlimited'), price: 5000 },
                 ].map((tier) => (
                   <SelectItem 
                     key={tier.value} 
@@ -306,7 +306,7 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
                         <span>{tier.label}</span>
                       </div>
                       <span className="text-[10px] font-black text-teal-600">
-                        {formData.privacy === 'barangay' ? 'FREE' : tier.price === 0 ? 'Base' : `+ ${formatCurrencyPHP(tier.price)}`}
+                        {formData.privacy === 'barangay' ? t('community.create.review.free') : tier.price === 0 ? 'Base' : `+ ${formatCurrencyPHP(tier.price)}`}
                       </span>
                     </div>
                   </SelectItem>
@@ -314,7 +314,7 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
               </SelectContent>
             </Select>
             <p className="text-[10px] text-slate-400 font-bold leading-tight uppercase tracking-tight">
-              Higher capacity requires more server resources. {formData.privacy === 'barangay' ? 'Sponsored by ResQHub Support.' : ''}
+              {t('community.create.review.capacity_notice')} {formData.privacy === 'barangay' ? t('community.create.review.sponsored_notice') : ''}
             </p>
           </div>
         </div>

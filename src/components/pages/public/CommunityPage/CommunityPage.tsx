@@ -11,13 +11,8 @@ import {
   AlertCircle,
   ShieldAlert,
   Megaphone,
-  BookOpen,
   Lock,
-  Bell,
-  BellOff,
   Clock,
-  ArrowLeft,
-  CalendarOff,
   X,
   MessageSquare
 } from 'lucide-react';
@@ -41,6 +36,7 @@ import { CommunityTrade } from './components/CommunityTrade';
 import { CommunityEvents, SAMPLE_EVENTS } from './components/CommunityEvents';
 import { CommunityAnnouncements, SAMPLE_ANNOUNCEMENTS } from './components/CommunityAnnouncements';
 import { CommunityResources } from './components/CommunityResources';
+import { t } from 'i18next';
 
 const CommunityPage: React.FC = () => {
   const { id } = useParams();
@@ -108,15 +104,15 @@ const CommunityPage: React.FC = () => {
         <div className="w-24 h-24 bg-rose-50 rounded-[2.5rem] flex items-center justify-center mb-6 text-rose-500 shadow-xl shadow-rose-100/50">
           <AlertCircle size={48} />
         </div>
-        <h2 className="text-3xl font-black text-slate-800 uppercase tracking-tight mb-2">Community Not Found</h2>
+        <h2 className="text-3xl font-black text-slate-800 uppercase tracking-tight mb-2">{t('newsfeed.community_not_found')}</h2>
         <p className="text-slate-500 font-medium mb-10 max-w-md mx-auto leading-relaxed">
-          {error || "We couldn't find the community you're looking for. It might have been deleted, set to private, or the link is incorrect."}
+          {error || t('newsfeed.community_not_found_desc')}
         </p>
         <Button 
           onClick={() => navigate('/communities')} 
           className="bg-teal-600 hover:bg-teal-700 text-white font-black rounded-2xl px-12 h-16 shadow-xl shadow-teal-100 uppercase tracking-widest text-sm"
         >
-          Explore Other Communities
+          {t('newsfeed.explore_other_communities')}
         </Button>
       </div>
     );
@@ -133,7 +129,7 @@ const CommunityPage: React.FC = () => {
         onClick={handleJoin}
         className="px-10 h-14 bg-teal-600 hover:bg-teal-700 text-white font-black rounded-2xl shadow-xl shadow-teal-100 uppercase tracking-widest text-xs"
       >
-        Join Community to Unlock
+        {t('newsfeed.join_to_unlock')}
       </Button>
     </div>
   );
@@ -163,8 +159,8 @@ const CommunityPage: React.FC = () => {
           <CommunityAnnouncements isAdmin={isAdmin} />
         ) : (
           <RestrictedContent 
-            title="Announcements Locked" 
-            description="Official community updates are reserved for verified members only."
+            title={t('newsfeed.announcements_locked')} 
+            description={t('newsfeed.announcements_locked_desc')}
           />
         );
       case 'events':
@@ -172,16 +168,16 @@ const CommunityPage: React.FC = () => {
           <CommunityEvents />
         ) : (
           <RestrictedContent 
-            title="Community Events Locked" 
-            description="Join the community to see and participate in upcoming local events."
+            title={t('newsfeed.events_locked')} 
+            description={t('newsfeed.events_locked_desc')}
           />
         );
       case 'trade': return isMember || isPrivileged ? (
         <CommunityTrade />
       ) : (
         <RestrictedContent 
-          title="Marketplace Locked" 
-          description="Community trade and marketplace items are only visible to verified members."
+          title={t('newsfeed.marketplace_locked')} 
+          description={t('newsfeed.marketplace_locked_desc')}
         />
       );
       case 'resources':
@@ -189,8 +185,8 @@ const CommunityPage: React.FC = () => {
           <CommunityResources />
         ) : (
           <RestrictedContent 
-            title="Private Resources" 
-            description="Community guidelines and local resources are only visible to members."
+            title={t('newsfeed.resources_locked')} 
+            description={t('newsfeed.resources_locked_desc')}
           />
         );
       case 'needs': 
@@ -207,8 +203,8 @@ const CommunityPage: React.FC = () => {
         />
       ) : (
         <RestrictedContent 
-          title="Members Directory Hidden" 
-          description="To protect our neighborhood's privacy, the members list is only visible to verified community members."
+          title={t('newsfeed.members_locked')} 
+          description={t('newsfeed.members_locked_desc')}
         />
       );
       case 'about': return <CommunityAbout community={community} />;
@@ -266,7 +262,7 @@ const CommunityPage: React.FC = () => {
                       <Button 
                         onClick={() => setIsModerationOpen(true)}
                         className="bg-rose-500 hover:bg-rose-600 text-white h-14 w-14 rounded-2xl flex items-center justify-center transition-all shadow-xl shadow-rose-500/20"
-                        title="Moderation"
+                        title={t('newsfeed.moderation')}
                       >
                         <ShieldAlert size={24} />
                       </Button>
@@ -284,7 +280,7 @@ const CommunityPage: React.FC = () => {
                         disabled
                         className="bg-emerald-50 text-emerald-600 border border-emerald-100 h-14 rounded-2xl px-10 font-black cursor-default opacity-100"
                       >
-                         Joined
+                         {t('newsfeed.joined')}
                       </Button>
                     </div>
                   ) : (
@@ -293,7 +289,7 @@ const CommunityPage: React.FC = () => {
                         onClick={handleJoin}
                         className="bg-emerald-500 hover:bg-emerald-600 text-white h-14 rounded-2xl px-10 font-black shadow-xl shadow-emerald-500/30 transition-all active:scale-95"
                       >
-                        Join Community
+                        {t('newsfeed.join_community')}
                       </Button>
                       <Button 
                         onClick={handleOpenReportModal}
@@ -301,7 +297,7 @@ const CommunityPage: React.FC = () => {
                         className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 h-14 rounded-2xl px-8 font-black transition-all"
                       >
                         <Plus className="mr-2 w-5 h-5" />
-                        Create Post
+                        {t('newsfeed.create_post')}
                       </Button>
                     </div>
                   )}
@@ -361,10 +357,10 @@ const CommunityPage: React.FC = () => {
                   <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center group-hover/card:scale-110 transition-transform">
                     <Megaphone className="text-blue-500 w-5 h-5" />
                   </div>
-                  <h3 className="text-slate-900 font-black text-lg tracking-tight">Today's Updates</h3>
+                  <h3 className="text-slate-900 font-black text-lg tracking-tight">{t('common.todays_updates')}</h3>
                 </div>
                 <Badge variant="outline" className="text-[9px] border-blue-100 text-blue-500 font-black uppercase tracking-tighter">
-                  {todaysAnnouncements.length} New
+                  {t('newsfeed.new_updates_count', { count: todaysAnnouncements.length })}
                 </Badge>
               </div>
 
@@ -377,7 +373,7 @@ const CommunityPage: React.FC = () => {
                     </div>
                   ))
                 ) : (
-                  <p className="text-xs text-slate-400 italic px-2">No new updates for today.</p>
+                  <p className="text-xs text-slate-400 italic px-2">{t('newsfeed.no_new_updates')}</p>
                 )}
               </div>
             </div>
@@ -392,10 +388,10 @@ const CommunityPage: React.FC = () => {
                   <div className="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center group-hover/card:scale-110 transition-transform">
                     <Calendar className="text-emerald-500 w-5 h-5" />
                   </div>
-                  <h3 className="text-slate-900 font-black text-lg tracking-tight">Join the Action</h3>
+                  <h3 className="text-slate-900 font-black text-lg tracking-tight">{t('common.join_the_action')}</h3>
                 </div>
                 <Badge variant="outline" className="text-[9px] border-emerald-100 text-emerald-500 font-black uppercase tracking-tighter">
-                  {todaysEvents.length} Today
+                  {todaysEvents.length} {t('newsfeed.today_caps')}
                 </Badge>
               </div>
 
@@ -417,7 +413,7 @@ const CommunityPage: React.FC = () => {
                     </div>
                   ))
                 ) : (
-                  <p className="text-xs text-slate-400 italic px-2">Quiet day! Check back soon.</p>
+                  <p className="text-xs text-slate-400 italic px-2">{t('newsfeed.quiet_day_check_back')}</p>
                 )}
               </div>
             </div>
@@ -432,7 +428,7 @@ const CommunityPage: React.FC = () => {
               <div className="relative z-10 space-y-7">
                 <div>
                   <h3 className="text-slate-400 font-extrabold text-[11px] uppercase tracking-[0.2em] mb-6">
-                    Local Statistics
+                    {t('common.local_statistics')}
                   </h3>
                   
                   <div className="space-y-5">
@@ -442,7 +438,7 @@ const CommunityPage: React.FC = () => {
                         <MapPin className="text-teal-600 w-5 h-5" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-0.5">Location</p>
+                        <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-0.5">{t('common.location')}</p>
                         <p className="text-sm font-black text-slate-900 truncate">{community.location || 'Manolo Fortich, Bukidnon'}</p>
                       </div>
                     </div>
@@ -453,7 +449,7 @@ const CommunityPage: React.FC = () => {
                         <Calendar className="text-blue-500 w-5 h-5" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-0.5">Active Since</p>
+                        <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-0.5">{t('common.active_since')}</p>
                         <p className="text-sm font-black text-slate-900 truncate">{community.foundedDate || '2024'}</p>
                       </div>
                     </div>
@@ -464,10 +460,10 @@ const CommunityPage: React.FC = () => {
                         <Heart className="text-emerald-500 w-5 h-5" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-0.5">Resolved Cases</p>
+                        <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-0.5">{t('common.resolved_cases')}</p>
                         <div className="flex items-center gap-2">
                           <p className="text-sm font-black text-slate-900">
-                            {'188'} Items
+                            {t('common.items_count', { count: 188 })}
                           </p>
                           <Badge className="bg-emerald-100 text-emerald-600 border-none text-[8px] font-bold px-1.5 h-3.5">
                             +{'12'}%
@@ -482,8 +478,8 @@ const CommunityPage: React.FC = () => {
                         <TrendingUp className="text-amber-500 w-5 h-5" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-0.5">Engagement</p>
-                        <p className="text-sm font-black text-slate-900 truncate">High Activity</p>
+                        <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-0.5">{t('newsfeed.engagement')}</p>
+                        <p className="text-sm font-black text-slate-900 truncate">{t('newsfeed.high_activity')}</p>
                       </div>
                     </div>
                   </div>
@@ -493,7 +489,7 @@ const CommunityPage: React.FC = () => {
                 <div className="pt-6 border-t border-slate-50">
                   <div className="flex items-center justify-between mb-5">
                     <h3 className="text-slate-400 font-extrabold text-[11px] uppercase tracking-[0.2em]">
-                      Contributors
+                      {t('common.top_contributors')}
                     </h3>
                     <Badge variant="outline" className="text-[8px] font-black text-teal-600 border-teal-100 uppercase">
                       {safeMembers.length || 0}

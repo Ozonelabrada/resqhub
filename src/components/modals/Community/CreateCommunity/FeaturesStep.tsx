@@ -23,33 +23,33 @@ export const FeaturesStep: React.FC<StepProps> = ({ formData, setFormData, onNex
     switch (privacy) {
       case 'school':
         return {
-          social: 'Campus Engagement',
-          economy: 'Student Services & Trade',
-          safety: 'Campus Safety & Response'
+          social: t('community.create.sections.campus_social'),
+          economy: t('community.create.sections.campus_economy'),
+          safety: t('community.create.sections.campus_safety')
         };
       case 'lgu':
         return {
-          social: 'Civilian Engagement',
-          economy: 'Public Resources',
-          safety: 'Emergency Operations'
+          social: t('community.create.sections.lgu_social'),
+          economy: t('community.create.sections.lgu_economy'),
+          safety: t('community.create.sections.lgu_safety')
         };
       case 'event':
         return {
-          social: 'Event Communication',
-          economy: 'Equipment & Logistics',
-          safety: 'Incident Response'
+          social: t('community.create.sections.event_social'),
+          economy: t('community.create.sections.event_economy'),
+          safety: t('community.create.sections.event_safety')
         };
       case 'organization':
         return {
-          social: 'Member Engagement',
-          economy: 'Resource Inventory',
-          safety: 'Field Safety'
+          social: t('community.create.sections.org_social'),
+          economy: t('community.create.sections.org_economy'),
+          safety: t('community.create.sections.org_safety')
         };
       default:
         return {
-          social: 'Engagement & Social',
-          economy: 'Support & Economy',
-          safety: 'Safety & Response'
+          social: t('community.create.sections.social'),
+          economy: t('community.create.sections.economy'),
+          safety: t('community.create.sections.safety')
         };
     }
   };
@@ -63,16 +63,16 @@ export const FeaturesStep: React.FC<StepProps> = ({ formData, setFormData, onNex
         <div className="space-y-6 pb-4">
           <CategorySection title={titles.social}>
             <FeatureToggle 
-              label="Live Chat"
-              description="Real-time messaging channels"
+              label={t('community.create.features.live_chat_title')}
+              description={t('community.create.features.live_chat_desc')}
               checked={formData.hasLiveChat}
               onCheckedChange={(v) => setFormData({...formData, hasLiveChat: v})}
               price={isSponsered ? 0 : 250}
             />
 
             <FeatureToggle 
-              label="Events & Planning"
-              description="Calendar & community meetups"
+              label={t('community.create.features.events_title')}
+              description={t('community.create.features.events_desc')}
               checked={formData.hasEvents}
               onCheckedChange={(v) => setFormData({...formData, hasEvents: v})}
               icon={CalendarDays}
@@ -82,8 +82,8 @@ export const FeaturesStep: React.FC<StepProps> = ({ formData, setFormData, onNex
 
             <div className="border-t border-slate-100 pt-3">
               <FeatureToggle 
-                label="Activity Feed"
-                description="Updates, News & Discussions"
+                label={t('community.create.features.feed_title')}
+                description={t('community.create.features.feed_desc')}
                 checked={formData.hasFeedUpdates}
                 onCheckedChange={(v) => setFormData({
                   ...formData, 
@@ -98,21 +98,21 @@ export const FeaturesStep: React.FC<StepProps> = ({ formData, setFormData, onNex
               {formData.hasFeedUpdates && (
                 <div className="ml-4 mt-3 space-y-3 border-l-2 border-slate-100 pl-4 animate-in fade-in slide-in-from-left-2 duration-300">
                   <div className="flex items-center justify-between">
-                    <p className="text-[11px] font-bold text-slate-600">News Posts</p>
+                    <p className="text-[11px] font-bold text-slate-600">{t('community.create.features.news_posts')}</p>
                     <Switch 
                       checked={formData.hasNewsPosts}
                       onCheckedChange={(v) => setFormData({...formData, hasNewsPosts: v})}
                     />
                   </div>
                   <div className="flex items-center justify-between">
-                    <p className="text-[11px] font-bold text-slate-600">Announcements</p>
+                    <p className="text-[11px] font-bold text-slate-600">{t('community.create.features.announcements')}</p>
                     <Switch 
                       checked={formData.hasAnnouncements}
                       onCheckedChange={(v) => setFormData({...formData, hasAnnouncements: v})}
                     />
                   </div>
                   <div className="flex items-center justify-between">
-                    <p className="text-[11px] font-bold text-slate-600">Discussions</p>
+                    <p className="text-[11px] font-bold text-slate-600">{t('community.create.features.discussions')}</p>
                     <Switch 
                       checked={formData.hasDiscussionPosts}
                       onCheckedChange={(v) => setFormData({...formData, hasDiscussionPosts: v})}
@@ -125,8 +125,8 @@ export const FeaturesStep: React.FC<StepProps> = ({ formData, setFormData, onNex
 
           <CategorySection title={titles.economy}>
             <FeatureToggle 
-              label="Needs Board"
-              description="Request help or donate items"
+              label={t('community.create.features.needs_title')}
+              description={t('community.create.features.needs_desc')}
               checked={formData.hasNeedsBoard}
               onCheckedChange={(v) => setFormData({...formData, hasNeedsBoard: v})}
               icon={HeartHandshake}
@@ -134,8 +134,8 @@ export const FeaturesStep: React.FC<StepProps> = ({ formData, setFormData, onNex
               price={isSponsered ? 0 : 200}
             />
             <FeatureToggle 
-              label="Trade Market"
-              description="Buy, sell, or swap within community"
+              label={t('community.create.features.trade_title')}
+              description={t('community.create.features.trade_desc')}
               checked={formData.hasTradeMarket}
               onCheckedChange={(v) => setFormData({...formData, hasTradeMarket: v})}
               icon={ShoppingBag}
@@ -146,8 +146,8 @@ export const FeaturesStep: React.FC<StepProps> = ({ formData, setFormData, onNex
 
           <CategorySection title={titles.safety}>
             <FeatureToggle 
-              label="Incident Management"
-              description="Emergency reporting systems"
+              label={t('community.create.features.incidents_title')}
+              description={t('community.create.features.incidents_desc')}
               checked={formData.hasIncidentReporting}
               onCheckedChange={(v) => setFormData({
                 ...formData, 
@@ -161,15 +161,15 @@ export const FeaturesStep: React.FC<StepProps> = ({ formData, setFormData, onNex
             {formData.hasIncidentReporting && (
               <div className="ml-4 mt-3 space-y-3 border-l-2 border-slate-100 pl-4 animate-in fade-in slide-in-from-left-2 duration-300">
                 <div className="flex items-center justify-between">
-                  <p className="text-[11px] font-bold text-slate-600">Emergency Map</p>
+                  <p className="text-[11px] font-bold text-slate-600">{t('community.create.features.emergency_map')}</p>
                   <Switch 
                     checked={formData.hasEmergencyMap}
                     onCheckedChange={(v) => setFormData({...formData, hasEmergencyMap: v})}
                   />
                 </div>
                 <FeatureToggle 
-                  label="Broadcast Alerts"
-                  description="Immediate community notifications"
+                  label={t('community.create.features.broadcast_title')}
+                  description={t('community.create.features.broadcast_desc')}
                   checked={formData.hasBroadcastAlerts}
                   onCheckedChange={(v) => setFormData({...formData, hasBroadcastAlerts: v})}
                   disabled={subStatus && !subStatus.isPremium}
@@ -180,10 +180,10 @@ export const FeaturesStep: React.FC<StepProps> = ({ formData, setFormData, onNex
             )}
           </CategorySection>
 
-          <CategorySection title="Members & Resources">
+          <CategorySection title={t('community.create.features.members_resources_title')}>
             <FeatureToggle 
-              label="Member Directory"
-              description="List of volunteers & specialists"
+              label={t('community.create.features.member_directory_title')}
+              description={t('community.create.features.member_directory_desc')}
               checked={formData.hasMemberDirectory}
               onCheckedChange={(v) => setFormData({
                 ...formData, 
@@ -197,14 +197,14 @@ export const FeaturesStep: React.FC<StepProps> = ({ formData, setFormData, onNex
             {formData.hasMemberDirectory && (
               <div className="ml-4 mt-3 space-y-3 border-l-2 border-slate-100 pl-4 animate-in fade-in slide-in-from-left-2 duration-300">
                 <div className="flex items-center justify-between">
-                  <p className="text-[11px] font-bold text-slate-600">Skill Matching</p>
+                  <p className="text-[11px] font-bold text-slate-600">{t('community.create.features.skill_matching')}</p>
                   <Switch 
                     checked={formData.hasSkillMatching}
                     onCheckedChange={(v) => setFormData({...formData, hasSkillMatching: v})}
                   />
                 </div>
                 <div className="flex items-center justify-between">
-                  <p className="text-[11px] font-bold text-slate-600">Equipment Sharing</p>
+                  <p className="text-[11px] font-bold text-slate-600">{t('community.create.features.equipment_sharing')}</p>
                   <Switch 
                     checked={formData.hasEquipmentSharing}
                     onCheckedChange={(v) => setFormData({...formData, hasEquipmentSharing: v})}
@@ -218,7 +218,7 @@ export const FeaturesStep: React.FC<StepProps> = ({ formData, setFormData, onNex
 
       <DialogFooter className="p-6 border-t border-slate-50 flex items-center justify-between gap-3 bg-white relative z-10">
         <Button type="button" variant="ghost" onClick={onBack} className="font-bold text-slate-500">
-          Back
+          {t('common.back')}
         </Button>
         <Button 
             type="button" 

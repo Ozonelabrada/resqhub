@@ -303,8 +303,8 @@ const NewsFeedPage: React.FC = () => {
                     <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                       <Search className="text-gray-300 w-8 h-8" />
                     </div>
-                    <h3 className="text-gray-400 font-bold text-lg">No results</h3>
-                    <p className="text-gray-400">Try adjusting your filters or search query.</p>
+                    <h3 className="text-gray-400 font-bold text-lg">{t('newsfeed.no_results')}</h3>
+                    <p className="text-gray-400">{t('newsfeed.no_results_desc')}</p>
                     <Button 
                       variant="ghost" 
                       className="mt-4 text-teal-600"
@@ -368,7 +368,7 @@ const NewsFeedPage: React.FC = () => {
           className="w-full h-14 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl shadow-xl flex items-center justify-center gap-2 text-lg font-bold transition-transform active:scale-95"
         >
           <Plus className="w-6 h-6 border-2 rounded-md" />
-          Report Lost/Found
+          {t('newsfeed.create_report')}
         </Button>
       </div>
 
