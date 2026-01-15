@@ -7,3 +7,4 @@ export * from './trending';
 export * from './category';
 export * from './personalHub';
 export * from './community';
+export * from './admin';

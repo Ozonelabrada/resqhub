@@ -1,11 +1,10 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
-  Modal, 
-  ModalHeader, 
-  ModalBody, 
-  ModalFooter, 
-  Button 
+  Dialog,
+  DialogContent,
+  Button,
+  Logo 
 } from '../../ui';
 import { 
   AlertTriangle, 
@@ -24,7 +23,6 @@ interface ConfirmationModalProps {
   confirmLabel?: string;
   cancelLabel?: string;
   severity?: 'danger' | 'warning' | 'info' | 'success';
-  icon?: string;
   loading?: boolean;
 }
 
@@ -37,7 +35,6 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   confirmLabel,
   cancelLabel,
   severity = 'warning',
-  icon,
   loading = false
 }) => {
   const { t } = useTranslation();
@@ -47,74 +44,99 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   const displayConfirmLabel = confirmLabel || t('common.confirm');
   const displayCancelLabel = cancelLabel || t('common.cancel');
 
-  // Default icons based on severity
-  const getIcon = () => {
+  // Configuration based on severity
+  const getSeverityConfig = () => {
     switch (severity) {
-      case 'danger': return <AlertCircle className="w-12 h-12 text-red-500" />;
-      case 'warning': return <AlertTriangle className="w-12 h-12 text-amber-500" />;
-      case 'info': return <Info className="w-12 h-12 text-blue-500" />;
-      case 'success': return <CheckCircle2 className="w-12 h-12 text-green-500" />;
-      default: return <AlertTriangle className="w-12 h-12 text-amber-500" />;
+      case 'danger':
+        return {
+          icon: <AlertCircle size={44} strokeWidth={2.5} />,
+          gradient: 'from-rose-500 to-red-600',
+          shadow: 'shadow-red-200',
+          bgGradient: 'from-red-50/50',
+          buttonBg: 'bg-red-600 hover:bg-red-700 shadow-red-600/20'
+        };
+      case 'success':
+        return {
+          icon: <CheckCircle2 size={44} strokeWidth={2.5} />,
+          gradient: 'from-emerald-500 to-teal-600',
+          shadow: 'shadow-emerald-200',
+          bgGradient: 'from-emerald-50/50',
+          buttonBg: 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20'
+        };
+      case 'info':
+        return {
+          icon: <Info size={44} strokeWidth={2.5} />,
+          gradient: 'from-blue-500 to-indigo-600',
+          shadow: 'shadow-blue-200',
+          bgGradient: 'from-blue-50/50',
+          buttonBg: 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'
+        };
+      case 'warning':
+      default:
+        return {
+          icon: <AlertTriangle size={44} strokeWidth={2.5} />,
+          gradient: 'from-amber-500 to-orange-600',
+          shadow: 'shadow-amber-200',
+          bgGradient: 'from-amber-50/50',
+          buttonBg: 'bg-amber-600 hover:bg-amber-700 shadow-amber-600/20'
+        };
     }
   };
 
-  const getSeverityStyles = () => {
-    switch (severity) {
-      case 'danger': return 'bg-red-50 text-red-900 border-red-100';
-      case 'warning': return 'bg-amber-50 text-amber-900 border-amber-100';
-      case 'info': return 'bg-blue-50 text-blue-900 border-blue-100';
-      case 'success': return 'bg-green-50 text-green-900 border-green-100';
-      default: return 'bg-amber-50 text-amber-900 border-amber-100';
-    }
-  };
-
-  const getButtonVariant = () => {
-    switch (severity) {
-      case 'danger': return 'danger';
-      default: return 'primary';
-    }
-  };
+  const config = getSeverityConfig();
 
   return (
-    <Modal 
-      isOpen={visible} 
-      onClose={onHide} 
-      title={displayTitle}
-      size="sm"
-      skipExitConfirmation={true}
-    >
-      <ModalBody className="p-8 flex flex-col items-center text-center space-y-6">
-        <div className={`p-4 rounded-full ${getSeverityStyles().split(' ')[0]} animate-in zoom-in duration-300`}>
-          {getIcon()}
-        </div>
-        
-        <div className="space-y-2">
-          <h3 className="text-xl font-bold text-slate-800">{displayTitle}</h3>
-          <p className="text-slate-600 leading-relaxed">
+    <Dialog open={visible} onOpenChange={(open) => !open && onHide()}>
+      <DialogContent className="max-w-md p-0 overflow-hidden rounded-[2rem] border-none shadow-2xl bg-white">
+        <div className="relative p-10 flex flex-col items-center text-center">
+          {/* Decorative background element */}
+          <div className={`absolute top-0 left-0 w-full h-40 bg-gradient-to-b ${config.bgGradient} to-transparent -z-10`} />
+          
+          <button 
+            onClick={onHide}
+            className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-all"
+          >
+            <X size={20} />
+          </button>
+
+          <div className="mb-8">
+             <div className={`w-24 h-24 bg-gradient-to-br ${config.gradient} ${config.shadow} rounded-3xl shadow-xl flex items-center justify-center text-white transform -rotate-3 hover:rotate-0 transition-transform duration-300`}>
+                {config.icon}
+             </div>
+          </div>
+
+          <div className="mb-6">
+            <Logo variant="full" size={48} />
+          </div>
+          
+          <h2 className="text-3xl font-black text-slate-900 mb-3 tracking-tight">
+            {displayTitle}
+          </h2>
+          
+          <p className="text-slate-500 mb-10 leading-relaxed text-lg font-medium max-w-[320px]">
             {displayMessage}
           </p>
-        </div>
-      </ModalBody>
 
-      <ModalFooter className="bg-slate-50/50 p-6 flex justify-center gap-4">
-        <Button 
-          variant="ghost" 
-          onClick={onHide}
-          disabled={loading}
-          className="rounded-xl px-6"
-        >
-          {displayCancelLabel}
-        </Button>
-        <Button 
-          variant={getButtonVariant() as any}
-          onClick={onConfirm}
-          loading={loading}
-          className={`rounded-xl px-8 shadow-lg ${severity === 'danger' ? 'shadow-red-100' : 'shadow-blue-100'}`}
-        >
-          {displayConfirmLabel}
-        </Button>
-      </ModalFooter>
-    </Modal>
+          <div className="flex flex-col w-full gap-4">
+            <Button
+              onClick={onConfirm}
+              loading={loading}
+              className={`w-full py-7 rounded-2xl ${config.buttonBg} text-white font-black text-xl shadow-xl transition-all active:scale-[0.98] border-none`}
+            >
+              {displayConfirmLabel}
+            </Button>
+            
+            <Button
+              onClick={onHide}
+              variant="ghost"
+              className="w-full py-6 rounded-2xl text-slate-400 font-bold hover:bg-slate-50 hover:text-slate-600 text-base"
+            >
+              {displayCancelLabel}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

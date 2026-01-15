@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
-import { useFeatureFlags } from '../hooks';
+import { useFeatureFlags, useScreenSize } from '../hooks';
 import { Menubar, Menu, Avatar, Button, Logo } from '../components/ui';
 import type { MenuRef } from '../components/ui';
 import { LoginModal } from '../components/modals/Auth/LoginModal';
@@ -21,15 +21,21 @@ import {
   Settings, 
   LogOut, 
   LogIn,
-  Languages
+  Languages,
+  Shield,
+  Menu as MenuIcon,
+  X,
+  MessageSquare
 } from 'lucide-react';
 import { SITE } from '../constants/site';
+import { cn } from '@/lib/utils';
 
 const PublicLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
   const { isFeatureEnabled } = useFeatureFlags();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { 
     isAuthenticated,
     isLoginModalOpen, 
@@ -39,6 +45,7 @@ const PublicLayout = () => {
     closeSignUpModal,
     openSettingsModal,
     openLogoutModal,
+    user,
   } = useAuth();
 
   const [hasOpenedModalFromState, setHasOpenedModalFromState] = useState(false);
@@ -97,26 +104,20 @@ const PublicLayout = () => {
       icon: <User className="w-4 h-4 mr-2" />,
       command: () => navigate('/profile')
     },
-    isFeatureEnabled('reports') ? {
-      label: t('common.my_reports'),
-      icon: <FileText className="w-4 h-4 mr-2" />,
-      command: () => navigate('/profile')
-    } : null,
-    {
-      label: t('common.watchlist'),
-      icon: <Heart className="w-4 h-4 mr-2" />,
-      command: () => navigate('/watchlist')
-    },
-    {
-      label: t('common.recent_activity'),
-      icon: <Clock className="w-4 h-4 mr-2" />,
-      command: () => navigate('/activity')
-    },
     {
       label: t('common.notifications'),
       icon: <Bell className="w-4 h-4 mr-2" />,
       command: () => navigate('/notifications')
     },
+    // Admin menu item - only show for admin users
+    (user?.role === 'admin' && isFeatureEnabled('admin_panel')) ? {
+      separator: true
+    } : null,
+    (user?.role === 'admin' && isFeatureEnabled('admin_panel')) ? {
+      label: 'Admin',
+      icon: <Shield className="w-4 h-4 mr-2" />,
+      command: () => navigate('/admin')
+    } : null,
     {
       separator: true
     },
@@ -191,15 +192,162 @@ const PublicLayout = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
-      {/* Navigation Bar - Hide on HomePage (/) */}
-      {location.pathname !== '/' && (
-        <Menubar
-          model={items}
-          start={start}
-          end={end}
-          className="sticky top-0 z-[100]"
+      {/* Desktop Navigation Bar - Hide on HomePage (/) */}
+      <div className="hidden md:block">
+        {location.pathname !== '/' && (
+          <Menubar
+            model={items}
+            start={start}
+            end={end}
+            className="sticky top-0 z-[100]"
+          />
+        )}
+      </div>
+
+      {/* Mobile Header - Always visible on mobile except maybe certain pages */}
+      <div className="md:hidden h-14 bg-teal-600 flex items-center justify-between px-4 sticky top-0 z-[100] shadow-sm">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-white p-0 h-10 w-10 hover:bg-white/10"
+            onClick={() => setIsSidebarOpen(true)}
+          >
+            <MenuIcon size={24} />
+          </Button>
+          <Logo 
+            size="small" 
+            light={true} 
+            onClick={() => navigate('/')} 
+            className="h-8 w-auto"
+          />
+        </div>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-white hover:bg-white/10"
+            onClick={() => openSettingsModal()}
+          >
+            <Languages size={20} />
+          </Button>
+          {!isAuthenticated && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-white hover:bg-white/10"
+              onClick={() => openLoginModal()}
+            >
+              <LogIn size={20} />
+            </Button>
+          )}
+          {isAuthenticated && (
+            <Avatar
+              className="h-8 w-8 cursor-pointer bg-white/20 border-2 border-white/30"
+              onClick={() => navigate('/profile')}
+            >
+              <User className="w-4 h-4 text-white" />
+            </Avatar>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[110] md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
         />
       )}
+
+      {/* Mobile Sidebar */}
+      <aside 
+        className={cn(
+          "fixed inset-y-0 left-0 w-72 bg-white z-[120] transform transition-transform duration-300 ease-in-out md:hidden flex flex-col shadow-2xl",
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <div className="h-20 bg-teal-600 flex items-center justify-between px-6">
+          <Logo variant="full" size="small" light={true} />
+          <Button 
+            variant="ghost"
+            className="p-2 text-white hover:bg-white/10 rounded-xl"
+            onClick={() => setIsSidebarOpen(false)}
+          >
+            <X size={24} />
+          </Button>
+        </div>
+
+        <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
+          <SidebarLink 
+            icon={<Home size={20} />} 
+            label={t('common.home')} 
+            active={location.pathname === '/'}
+            onClick={() => { navigate('/'); setIsSidebarOpen(false); }}
+          />
+          <SidebarLink 
+            icon={<List size={20} />} 
+            label={t('common.news_feed')} 
+            active={location.pathname === '/hub'}
+            onClick={() => { navigate('/hub'); setIsSidebarOpen(false); }}
+          />
+          <SidebarLink 
+            icon={<Users size={20} />} 
+            label={t('common.communities')} 
+            active={location.pathname === '/communities'}
+            onClick={() => { navigate('/communities'); setIsSidebarOpen(false); }}
+          />
+          {isFeatureEnabled('messages') && (
+            <SidebarLink 
+              icon={<MessageSquare size={20} />} 
+              label={t('common.messages')} 
+              active={location.pathname === '/messages'}
+              onClick={() => { navigate('/messages'); setIsSidebarOpen(false); }}
+            />
+          )}
+          
+          <div className="pt-4 pb-2">
+            <div className="h-px bg-slate-100 mx-4" />
+          </div>
+
+          {isAuthenticated ? (
+            <>
+              <SidebarLink 
+                icon={<User size={20} />} 
+                label={t('common.my_profile')} 
+                active={location.pathname === '/profile'}
+                onClick={() => { navigate('/profile'); setIsSidebarOpen(false); }}
+              />
+              <SidebarLink 
+                icon={<Settings size={20} />} 
+                label={t('common.settings')} 
+                active={location.pathname === '/settings'}
+                onClick={() => { navigate('/settings'); setIsSidebarOpen(false); }}
+              />
+              {user?.role === 'admin' && (
+                <SidebarLink 
+                  icon={<Shield size={20} />} 
+                  label="Admin Panel" 
+                  active={location.pathname.startsWith('/admin')}
+                  onClick={() => { navigate('/admin'); setIsSidebarOpen(false); }}
+                />
+              )}
+              <SidebarLink 
+                icon={<LogOut size={20} />} 
+                label={t('common.sign_out')} 
+                onClick={() => { openLogoutModal(); setIsSidebarOpen(false); }}
+                className="text-rose-500 hover:bg-rose-50"
+              />
+            </>
+          ) : (
+            <SidebarLink 
+              icon={<LogIn size={20} />} 
+              label={t('common.login')} 
+              onClick={() => { openLoginModal(); setIsSidebarOpen(false); }}
+            />
+          )}
+        </nav>
+      </aside>
 
       {/* Login Modal */}
       <LoginModal 
@@ -271,4 +419,33 @@ const PublicLayout = () => {
 
 
 export default PublicLayout;
+
+interface SidebarLinkProps {
+  icon: React.ReactNode;
+  label: string;
+  active?: boolean;
+  onClick: () => void;
+  className?: string;
+}
+
+const SidebarLink: React.FC<SidebarLinkProps> = ({ icon, label, active, onClick, className }) => (
+  <button
+    onClick={onClick}
+    className={cn(
+      "w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all duration-200 font-bold text-sm",
+      active 
+        ? "bg-teal-50 text-teal-600 shadow-sm" 
+        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
+      className
+    )}
+  >
+    <div className={cn(
+      "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
+      active ? "bg-teal-100/50" : "bg-slate-100 group-hover:bg-white"
+    )}>
+      {icon}
+    </div>
+    {label}
+  </button>
+);
 

@@ -81,7 +81,7 @@ export const SAMPLE_ANNOUNCEMENTS: Announcement[] = [
   {
     id: '4',
     title: 'Lost Property Procedure Updated',
-    content: 'We have streamlined how lost and found items are logged through the ResQHub app. Please check the Resources tab for the new step-by-step guide.',
+    content: 'We have streamlined how lost and found items are logged through the FindrHub app. Please check the Resources tab for the new step-by-step guide.',
     type: 'Info',
     author: { name: 'Elena Gilbert', role: 'Moderator' },
     createdAt: '1 week ago',
