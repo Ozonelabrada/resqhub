@@ -42,7 +42,7 @@ export class AuthService {
 
   static async signOut(): Promise<void> {
     try {
-      await api.post('/logout');
+      await api.post('/auth/logout');
     } catch (error) {
       console.error('Logout API error:', error);
     }

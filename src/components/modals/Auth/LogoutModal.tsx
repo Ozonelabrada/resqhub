@@ -30,13 +30,6 @@ export const LogoutModal: React.FC<LogoutModalProps> = ({
           {/* Decorative background element */}
           <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-teal-50/50 to-transparent -z-10" />
           
-          <button 
-            onClick={onClose}
-            className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-all"
-          >
-            <X size={20} />
-          </button>
-
           <div className="mb-8">
              <div className="w-24 h-24 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-3xl shadow-xl shadow-teal-200 flex items-center justify-center text-white transform -rotate-3 hover:rotate-0 transition-transform duration-300">
                 <LogOut size={44} strokeWidth={2.5} className="ml-1" />
