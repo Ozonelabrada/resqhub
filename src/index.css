@@ -129,6 +129,20 @@
   body {
     @apply bg-background text-foreground font-sans;
   }
+  button, 
+  a, 
+  [role="button"],
+  [role="link"],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"] {
+    cursor: pointer;
+  }
+  
+  button:disabled,
+  [disabled] {
+    cursor: not-allowed !important;
+  }
 }
 
 
