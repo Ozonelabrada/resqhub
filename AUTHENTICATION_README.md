@@ -226,7 +226,7 @@ POST /auth/refresh
 // Uses refresh token from Authorization header
 
 // Logout
-POST /logout
+POST /auth/logout
 
 // User validation
 GET /me

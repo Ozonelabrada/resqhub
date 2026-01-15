@@ -92,12 +92,6 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           {/* Decorative background element */}
           <div className={`absolute top-0 left-0 w-full h-40 bg-gradient-to-b ${config.bgGradient} to-transparent -z-10`} />
           
-          <button 
-            onClick={onHide}
-            className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-all"
-          >
-            <X size={20} />
-          </button>
 
           <div className="mb-8">
              <div className={`w-24 h-24 bg-gradient-to-br ${config.gradient} ${config.shadow} rounded-3xl shadow-xl flex items-center justify-center text-white transform -rotate-3 hover:rotate-0 transition-transform duration-300`}>

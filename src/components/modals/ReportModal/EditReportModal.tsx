@@ -138,12 +138,6 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({
             <h2 className="text-2xl font-black text-slate-900 tracking-tight">Edit Report</h2>
             <p className="text-slate-500 text-sm font-medium">Update the details of your report</p>
           </div>
-          <button 
-            onClick={onClose}
-            className="p-2 hover:bg-slate-50 rounded-xl transition-colors text-slate-400 hover:text-slate-600"
-          >
-            <X size={24} />
-          </button>
         </div>
 
         {error && (

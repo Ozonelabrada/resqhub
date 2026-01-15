@@ -64,13 +64,6 @@ export const SettingsModal: React.FC = () => {
 
           {/* Content */}
           <div className="flex-1 p-6 lg:p-8 relative flex flex-col overflow-y-auto pt-16 md:pt-8 bg-white">
-            <button 
-                onClick={closeSettingsModal}
-                className="absolute right-6 top-6 p-2 text-slate-400 hover:text-teal-600 transition-colors bg-slate-50 md:bg-transparent rounded-xl z-20"
-            >
-                <X size={20} />
-            </button>
-
             {activeTab === 'language' && (
               <div className="animate-in fade-in slide-in-from-right-2 duration-300">
                 <div className="mb-8">
