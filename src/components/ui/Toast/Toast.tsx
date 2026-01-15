@@ -12,29 +12,22 @@ export interface ToastRef {
 }
 
 const Toast = forwardRef<ToastRef>((props, ref) => {
-  const [messages, setMessages] = useState<(ToastMessage & { id: number })[]>([]);
-  const [nextId, setNextId] = useState(0);
+  const [messages, setMessages] = useState<(ToastMessage & { id: string | number })[]>([]);
 
-  useImperativeHandle(ref, () => ({
-    show: (message: ToastMessage) => {
-      const id = nextId;
-      setNextId(prev => prev + 1);
-      setMessages(prev => [...prev, { ...message, id }]);
-    }
-  }));
-
-  const removeMessage = (id: number) => {
+  const removeMessage = (id: string | number) => {
     setMessages(prev => prev.filter(msg => msg.id !== id));
   };
 
-  useEffect(() => {
-    messages.forEach(msg => {
-      if (msg.life) {
-        const timer = setTimeout(() => removeMessage(msg.id), msg.life);
-        return () => clearTimeout(timer);
+  useImperativeHandle(ref, () => ({
+    show: (message: ToastMessage) => {
+      const id = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      setMessages(prev => [...prev, { ...message, id }]);
+
+      if (message.life) {
+        setTimeout(() => removeMessage(id), message.life);
       }
-    });
-  }, [messages]);
+    }
+  }));
 
   const getSeverityStyles = (severity: ToastMessage['severity']) => {
     switch (severity) {

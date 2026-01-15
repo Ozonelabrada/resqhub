@@ -44,7 +44,7 @@ Use this checklist to verify that the frontend integration with the backend is s
 
 ## 6. Admin Flows
 
-- [ ] **Pending Communities**: Access `/admin/communities`. Verify `GET /admin/communities/pending` is called.
+- [ ] **Pending Communities**: Access `/admin/communities`. Verify `GET /admin/communities` is called.
 - [ ] **Decision**: Clicking "Approve" calls the status update endpoint.
 
 ---
@@ -55,4 +55,4 @@ Use this checklist to verify that the frontend integration with the backend is s
 - Direct Messages: `GET /messages/direct`
 - Send Message: `POST /message`
 - Communities: `GET /communities`
-- Admin Review: `GET /admin/communities/pending`
+- Admin Review: `GET /admin/communities`

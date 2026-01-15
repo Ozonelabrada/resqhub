@@ -262,7 +262,7 @@ const NewsFeedPage: React.FC = () => {
         currentView !== 'feed' && "pt-4"
       )}>
         {/* --- SIDEBAR: PROFILE & NAVIGATION --- */}
-        <div className="order-2 lg:order-1 lg:col-span-2 lg:h-full lg:overflow-y-auto scrollbar-hidden hover:custom-scrollbar transition-all pt-2 pb-6">
+        <div className="hidden lg:block lg:col-span-2 lg:h-full lg:overflow-y-auto scrollbar-hidden hover:custom-scrollbar transition-all pt-2 pb-6">
           <NewsFeedSidebar 
             className="w-full h-auto"
             isAuthenticated={isAuthenticated}

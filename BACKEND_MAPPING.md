@@ -66,7 +66,7 @@ Used in: `AdminCommunityDashboard` (To be implemented)
 
 | Feature                  | Method | Endpoint                          | Payload Type | Description                       |
 | :----------------------- | :----- | :-------------------------------- | :----------- | :-------------------------------- |
-| List Pending Communities | `GET`  | `/admin/communities/pending`      | N/A          | Review queue for new communities. |
+| List Pending Communities | `GET`  | `/admin/communities`              | N/A          | Review queue for new communities. |
 | Approve Community        | `POST` | `/admin/communities/{id}/approve` | `JSON`       | Sets community to active status.  |
 | Reject Community         | `POST` | `/admin/communities/{id}/reject`  | `JSON`       | Rejects with feedback.            |
 

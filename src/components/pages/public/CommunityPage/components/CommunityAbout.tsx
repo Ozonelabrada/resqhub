@@ -83,7 +83,7 @@ export const CommunityAbout: React.FC<CommunityAboutProps> = ({ community }) => 
             <Shield className="w-8 h-8 mb-4 opacity-50" />
             <h3 className="text-sm font-black uppercase tracking-widest mb-2">Safe & Verified</h3>
             <p className="text-teal-50 text-xs font-medium leading-relaxed opacity-90">
-              Every member in {community.name} is verified by ResqHub to ensure the safety of our neighborhood.
+              Every member in {community.name} is verified by FindrHub to ensure the safety of our neighborhood.
             </p>
           </Card>
         </div>

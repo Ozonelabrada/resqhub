@@ -69,7 +69,7 @@ const PersonalHubPage: React.FC = () => {
         <div className="flex flex-col lg:flex-row gap-8">
           
           {/* LEFT COLUMN: Profile info & Status (Sticky) */}
-          <aside className="w-full lg:w-[320px] shrink-0 space-y-6">
+          <aside className="hidden lg:block lg:w-[320px] shrink-0 space-y-6">
             <div className="sticky top-24 space-y-6">
               <UserStatus />
               <QuickActions />

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { authManager } from '../utils/sessionManager';
 import { AuthService } from '../services/authService';
 import type { UserData as User, SignUpRequest } from '../types';
-import ConfirmationModal from '../components/modals/ConfirmationModal/ConfirmationModal';
+import LogoutModal from '../components/modals/Auth/LogoutModal';
 import { useTranslation } from 'react-i18next';
 
 interface AuthContextType {
@@ -153,11 +153,14 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
   const signup = async (userData: SignUpRequest): Promise<void> => {
     try {
       const response = await AuthService.signUp(userData);
-      if (!response?.succeeded) {
-        throw new Error(response?.message || 'Registration failed');
+      if (response && 'succeeded' in response && !response.succeeded) {
+        throw new Error(response.message || 'Registration failed');
       }
-    } catch (error) {
-      throw error;
+    } catch (error: any) {
+      console.error('Sign up error details:', error);
+      // Extract backend error message if available
+      const message = error.response?.data?.message || error.message || 'Registration failed';
+      throw new Error(message);
     }
   };
 
@@ -200,15 +203,10 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
       isLogoutModalOpen
     }}>
       {children}
-      <ConfirmationModal
-        visible={isLogoutModalOpen}
-        onHide={closeLogoutModal}
+      <LogoutModal
+        isOpen={isLogoutModalOpen}
+        onClose={closeLogoutModal}
         onConfirm={handleConfirmLogout}
-        title={t('home.confirm_logout')}
-        message={t('home.logout_question')}
-        confirmLabel={t('common.logout')}
-        cancelLabel={t('common.cancel')}
-        severity="danger"
       />
     </AuthContext.Provider>
   );

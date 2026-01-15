@@ -16,6 +16,11 @@ const CommunityPage = lazy(() => import('./components/pages/public/CommunityPage
 const MessagesPage = lazy(() => import('./components/pages/public/MessagesPage/MessagesPage'));
 const ItemDetailPage = lazy(() => import('./components/pages/public/ItemDetailPage/ItemDetailPage'));
 const CommunityManagementPage = lazy(() => import('./components/pages/admin/CommunityManagementPage'));
+const AdminDashboard = lazy(() => import('./components/pages/admin/AdminDashboard'));
+const CommunityDetailsPage = lazy(() => import('./components/pages/admin/CommunityDetailsPage'));
+const ReportsPage = lazy(() => import('./components/pages/admin/ReportsPage'));
+const SubscriptionsPage = lazy(() => import('./components/pages/admin/SubscriptionsPage'));
+const AdminLayout = lazy(() => import('./layouts/AdminLayout'));
 const SettingsPage = lazy(() => import('./components/pages/public/SettingPage/SettingsPage'));
 const WatchlistPage = lazy(() => import('./components/pages/public/WatchlistPage/WatchlistPage'));
 const ActivityPage = lazy(() => import('./components/pages/public/ActivityPage/ActivityPage'));
@@ -32,6 +37,7 @@ import PublicLayout from './layouts/PublicLayout';
 
 // Auth Components
 import AuthGuard from './components/common/AuthGuard';
+import AdminGuard from './components/common/AdminGuard';
 
 import { useFeatureFlags } from './hooks';
 
@@ -91,14 +97,18 @@ const AppRouter = () => {
         {/* Admin Routes */}
         <Route path="/admin" element={
           isFeatureEnabled('admin_panel') ? (
-            <AuthGuard requireAuth={true}>
-              <PublicLayout />
-            </AuthGuard>
+            <AdminGuard>
+              <AdminLayout />
+            </AdminGuard>
           ) : (
             <Navigate to="/" replace />
           )
         }>
+          <Route index element={<AdminDashboard />} />
           <Route path="communities" element={<CommunityManagementPage />} />
+          <Route path="communities/:id" element={<CommunityDetailsPage />} />
+          <Route path="reports" element={<ReportsPage />} />
+          <Route path="subscriptions" element={<SubscriptionsPage />} />
         </Route>
 
         {/* Utility Routes */}

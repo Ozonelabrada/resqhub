@@ -124,7 +124,7 @@ export const CommunityService = {
 
   async getPendingCommunities(): Promise<Community[]> {
     try {
-      const response = await api.get<{ data: Community[] }>('/admin/communities/pending');
+      const response = await api.get<{ data: Community[] }>('/admin/communities');
       return response.data?.data || [];
     } catch (error) {
       console.error('Error fetching pending communities:', error);

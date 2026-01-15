@@ -17,13 +17,13 @@ import {
   MobileBottomBar
 } from './components';
 import {
-  useScreenSize,
   useMobileBottomBar,
   useHubAuth,
   useHubActions,
   useHubData
 } from './hooks';
 import { useAuth } from '../../../../context/AuthContext';
+import { useScreenSize } from '../../../../hooks/useScreenSize';
 
 const HubHomePage: React.FC = () => {
   const { t } = useTranslation();
