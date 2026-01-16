@@ -57,6 +57,7 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isMatchesOpen, setIsMatchesOpen] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   const isOwner = user?.id && String(item.user?.id) === String(user.id);
 
@@ -295,12 +296,12 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
 
         {/* Content */}
         <div className="flex-1 p-8 flex flex-col">
-          <div className="flex justify-between items-start gap-4 mb-3">
+          <div className="flex justify-between items-start gap-2">
             <div className="flex-1">
-              <h3 className="text-2xl font-black text-slate-900 leading-none group-hover:text-teal-600 transition-colors uppercase tracking-tight mb-2">
+              <h3 className="text-2xl font-black text-slate-900 leading-none group-hover:text-teal-600 transition-colors uppercase tracking-tight">
                 {item.title}
               </h3>
-              <div className="flex flex-wrap items-center gap-4 text-slate-500 font-bold text-xs">
+              <div className="flex flex-wrap items-center gap-4 text-slate-500 font-bold text-xs mt-1">
                 <span className="flex items-center gap-1.5">
                   <MapPin className="w-4 h-4 text-orange-500" />
                   {item.location}
@@ -327,11 +328,30 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
             </div>
           </div>
 
-          <p className="text-slate-600 line-clamp-2 text-base mt-2 leading-relaxed mb-8">
-            {item.description}
-          </p>
+          <div className="mt-3 mb-6">
+            {isDescriptionExpanded ? (
+              <p className="text-slate-600 text-base leading-relaxed whitespace-pre-wrap break-words">
+                {item.description}
+              </p>
+            ) : (
+              <p className="text-slate-600 text-base leading-relaxed line-clamp-2">
+                {item.description}
+              </p>
+            )}
+            {item.description && item.description.length > 100 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsDescriptionExpanded(!isDescriptionExpanded);
+                }}
+                className="text-teal-600 font-black text-sm mt-2 hover:text-teal-700 transition-colors"
+              >
+                {isDescriptionExpanded ? 'See Less' : 'See More'}
+              </button>
+            )}
+          </div>
 
-          <div className="mt-auto pt-6 border-t border-gray-50 flex items-center justify-between">
+          <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="relative group/avatar cursor-pointer" onClick={handleProfileClick}>
                 <Avatar 
@@ -394,7 +414,7 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
 
       {/* Collapsible Comments Section */}
       {isCommentsOpen && (
-        <div className="border-t border-gray-50 bg-gray-50/30 p-8 animate-in slide-in-from-top-2 duration-300">
+        <div className="border-t border-gray-50 bg-gray-50/30 p-4 md:p-6 animate-in slide-in-from-top-2 duration-300">
           <div className="max-w-3xl mx-auto">
             <CommentSection 
               itemId={Number(item.id)} 

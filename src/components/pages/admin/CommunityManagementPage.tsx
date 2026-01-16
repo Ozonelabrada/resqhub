@@ -8,7 +8,8 @@ import {
   Tabs,
   TabList,
   TabTrigger,
-  Avatar
+  Avatar,
+  Input
 } from '../../ui';
 import { 
   Users, 
@@ -16,6 +17,7 @@ import {
   XCircle,
   Eye,
   Inbox,
+  Search
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AdminService } from '../../../services';
@@ -25,11 +27,12 @@ const CommunityManagementPage: React.FC = () => {
   const navigate = useNavigate();
   const [communities, setCommunities] = useState<CommunitySummary[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('pending');
+  const [activeTab, setActiveTab] = useState('active');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchCommunities();
-  }, [activeTab]);
+  }, [activeTab, searchQuery]);
 
   const fetchCommunities = async () => {
     setLoading(true);
@@ -37,7 +40,8 @@ const CommunityManagementPage: React.FC = () => {
       const response = await AdminService.getCommunities({ 
         status: (activeTab === 'pending' || activeTab === 'active' || activeTab === 'disabled' || activeTab === 'rejected') 
           ? activeTab 
-          : 'all'
+          : 'all',
+        query: searchQuery.trim() || undefined
       });
       // Safety check for data structure
       // Handle response.data (if service returns whole body) or response (if service returns inner data)
@@ -81,14 +85,32 @@ const CommunityManagementPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
+        {/* Search Bar */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+            <div className="flex items-center gap-4">
+                <div className="relative flex-1 max-w-md">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                    <Input
+                        placeholder="Search communities by name..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-10 h-12 rounded-xl border-slate-200 focus:border-teal-300 focus:ring-teal-100"
+                    />
+                </div>
+                <div className="text-sm text-slate-500 font-medium">
+                    {communities.length} communities found
+                </div>
+            </div>
+        </div>
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-100 inline-flex mb-8">
-                <TabList className="bg-transparent border-none gap-2">
-                    <TabTrigger value="pending" className="rounded-xl px-6 py-2.5 font-bold data-[state=active]:bg-teal-600 data-[state=active]:text-white transition-all">
-                        Pending Requests
-                    </TabTrigger>
+            <TabList className="bg-transparent border-none gap-2">
                     <TabTrigger value="active" className="rounded-xl px-6 py-2.5 font-bold data-[state=active]:bg-teal-600 data-[state=active]:text-white transition-all">
                         Live Communities
+                    </TabTrigger>
+                    <TabTrigger value="pending" className="rounded-xl px-6 py-2.5 font-bold data-[state=active]:bg-teal-600 data-[state=active]:text-white transition-all">
+                        Pending Requests
                     </TabTrigger>
                     <TabTrigger value="rejected" className="rounded-xl px-6 py-2.5 font-bold data-[state=active]:bg-teal-600 data-[state=active]:text-white transition-all">
                         Archive
@@ -139,7 +161,6 @@ const CommunityManagementPage: React.FC = () => {
                                                 {item.name.charAt(0).toUpperCase()}
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="text-xs font-bold text-slate-600">ID: {item.id}</span>
                                                 <span className="text-[10px] font-bold text-slate-400">{item.membersCount} Members</span>
                                             </div>
                                         </div>

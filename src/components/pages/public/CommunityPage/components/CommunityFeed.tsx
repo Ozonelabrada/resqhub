@@ -26,7 +26,7 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
   onRefresh
 }) => {
   const { isAuthenticated, user, openLoginModal } = useAuth();
-  const [filter, setFilter] = useState<'all' | 'lost' | 'found' | 'news' | 'announcement' | 'discussion'>('all');
+  const [filter, setFilter] = useState<'all' | 'lost' | 'found'>('all');
   const [postTitle, setPostTitle] = useState('');
   const [postContent, setPostContent] = useState('');
   const [postType, setPostType] = useState<string>('discussion');
@@ -129,8 +129,8 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
       {/* Quick Filters - Pill Style consistent with NewsFeed */}
       <div className="flex items-center justify-between gap-4 mb-2">
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2">
-          {(['all', 'lost', 'found', 'news', 'announcement', 'discussion'] as const).map(f => {
-            const isRestrictedFilter = ['news', 'announcement', 'discussion'].includes(f);
+          {(['all', 'lost', 'found'] as const).map(f => {
+            const isRestrictedFilter = false;
             if (!isUserMember && isRestrictedFilter) return null;
 
             return (

@@ -204,53 +204,56 @@ const PublicLayout = () => {
         )}
       </div>
 
-      {/* Mobile Header - Always visible on mobile except maybe certain pages */}
-      <div className="md:hidden h-14 bg-teal-600 flex items-center justify-between px-4 sticky top-0 z-[100] shadow-sm">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-white p-0 h-10 w-10 hover:bg-white/10"
-            onClick={() => setIsSidebarOpen(true)}
-          >
-            <MenuIcon size={24} />
-          </Button>
-          <Logo 
-            size="small" 
-            light={true} 
-            onClick={() => navigate('/')} 
-            className="h-8 w-auto"
-          />
-        </div>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-white hover:bg-white/10"
-            onClick={() => openSettingsModal()}
-          >
-            <Languages size={20} />
-          </Button>
-          {!isAuthenticated && (
+      {/* Mobile Header - Hide on HomePage (/) for consistency */}
+      {location.pathname !== '/' && (
+        <div className="md:hidden h-16 bg-gradient-to-r from-teal-600 to-teal-500 flex items-center justify-between px-3 sticky top-0 z-[100] shadow-lg shadow-teal-600/20 border-b border-teal-700/30">
+          <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
-              className="text-white hover:bg-white/10"
-              onClick={() => openLoginModal()}
+              className="text-white p-0 h-10 w-10 hover:bg-white/15 rounded-lg transition-colors"
+              onClick={() => setIsSidebarOpen(true)}
             >
-              <LogIn size={20} />
+              <MenuIcon size={22} />
             </Button>
-          )}
-          {isAuthenticated && (
-            <Avatar
-              className="h-8 w-8 cursor-pointer bg-white/20 border-2 border-white/30"
-              onClick={() => navigate('/profile')}
+            <Logo 
+              size="small" 
+              light={true} 
+              onClick={() => navigate('/')} 
+              className="h-7 w-auto cursor-pointer"
+            />
+          </div>
+          <div className="flex items-center gap-0.5">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-white hover:bg-white/15 rounded-lg transition-colors p-2"
+              onClick={() => openSettingsModal()}
+              title={t('common.language')}
             >
-              <User className="w-4 h-4 text-white" />
-            </Avatar>
-          )}
+              <Languages size={20} />
+            </Button>
+            {!isAuthenticated && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-white/15 rounded-lg transition-colors p-2 font-bold text-xs"
+                onClick={() => openLoginModal()}
+              >
+                <LogIn size={20} />
+              </Button>
+            )}
+            {isAuthenticated && (
+              <Avatar
+                className="h-8 w-8 cursor-pointer bg-white/25 border-2 border-white/40 hover:bg-white/35 transition-colors rounded-lg"
+                onClick={() => navigate('/profile')}
+              >
+                <User className="w-4 h-4 text-white" />
+              </Avatar>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (

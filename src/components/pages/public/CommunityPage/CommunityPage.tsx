@@ -220,9 +220,9 @@ const CommunityPage: React.FC = () => {
   return (
     <div className="min-h-screen lg:h-[calc(100vh-60px)] flex flex-col bg-slate-50 lg:overflow-hidden lg:-mt-10">
       {/* --- COMMUNITY HEADER: FULL WIDTH TOP SECTION --- */}
-      <div className="w-full relative shrink-0">
+      <div className="w-full relative shrink-0 z-30">
         {/* Community Banner - Full Screen Width Background */}
-        <div className="h-64 md:h-72 bg-slate-900 relative overflow-hidden text-white shadow-2xl">
+        <div className="h-64 md:h-72 bg-slate-900 relative overflow-visible text-white shadow-2xl">
           {/* Decorative background pattern */}
           <div className="absolute inset-0 opacity-20">
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-teal-500 rounded-full -mr-64 -mt-64 blur-[120px]"></div>

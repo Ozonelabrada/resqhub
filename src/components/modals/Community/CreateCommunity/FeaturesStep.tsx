@@ -19,6 +19,38 @@ import { CategorySection } from './components/CategorySection';
 export const FeaturesStep: React.FC<StepProps> = ({ formData, setFormData, onNext, onBack, subStatus }) => {
   const { t } = useTranslation();
 
+  // Helper function to update feature in array and boolean field
+  const updateFeature = (code: string, isActive: boolean) => {
+    const newFeatures = formData.features.map(f => 
+      f.code === code ? { ...f, isActive } : f
+    );
+    
+    const fieldMap: Record<string, keyof typeof formData> = {
+      'live_chat': 'hasLiveChat',
+      'feed_updates': 'hasFeedUpdates',
+      'news_posts': 'hasNewsPosts',
+      'announcements': 'hasAnnouncements',
+      'discussion_posts': 'hasDiscussionPosts',
+      'incident_reporting': 'hasIncidentReporting',
+      'emergency_map': 'hasEmergencyMap',
+      'broadcast_alerts': 'hasBroadcastAlerts',
+      'member_directory': 'hasMemberDirectory',
+      'skill_matching': 'hasSkillMatching',
+      'equipment_sharing': 'hasEquipmentSharing',
+      'needs_board': 'hasNeedsBoard',
+      'trade_market': 'hasTradeMarket',
+      'events': 'hasEvents',
+    };
+    
+    const updateData: any = {
+      ...formData,
+      features: newFeatures,
+      [fieldMap[code]]: isActive,
+    };
+
+    setFormData(updateData);
+  };
+
   const getSectionTitles = (privacy: string) => {
     switch (privacy) {
       case 'school':
@@ -66,7 +98,7 @@ export const FeaturesStep: React.FC<StepProps> = ({ formData, setFormData, onNex
               label={t('community.create.features.live_chat_title')}
               description={t('community.create.features.live_chat_desc')}
               checked={formData.hasLiveChat}
-              onCheckedChange={(v) => setFormData({...formData, hasLiveChat: v})}
+              onCheckedChange={(v) => updateFeature('live_chat', v)}
               price={isSponsered ? 0 : 250}
             />
 
@@ -74,7 +106,7 @@ export const FeaturesStep: React.FC<StepProps> = ({ formData, setFormData, onNex
               label={t('community.create.features.events_title')}
               description={t('community.create.features.events_desc')}
               checked={formData.hasEvents}
-              onCheckedChange={(v) => setFormData({...formData, hasEvents: v})}
+              onCheckedChange={(v) => updateFeature('events', v)}
               icon={CalendarDays}
               iconColor="text-amber-500"
               price={isSponsered ? 0 : 100}
@@ -216,7 +248,7 @@ export const FeaturesStep: React.FC<StepProps> = ({ formData, setFormData, onNex
         </div>
       </ScrollArea>
 
-      <DialogFooter className="p-6 border-t border-slate-50 flex items-center justify-between gap-3 bg-white relative z-10">
+      <DialogFooter className="p-6 border-t border-slate-50 flex items-center justify-between gap-3 bg-white relative z-10 sticky bottom-0 mb-4">
         <Button type="button" variant="ghost" onClick={onBack} className="font-bold text-slate-500">
           {t('common.back')}
         </Button>

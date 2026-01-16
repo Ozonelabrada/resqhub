@@ -30,21 +30,26 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ isOpen, onC
 
   useEffect(() => {
     if (isOpen) {
-      fetchSubscription();
       setStep('details');
       setFormData(INITIAL_FORM_DATA);
     }
   }, [isOpen]);
 
-  const fetchSubscription = async () => {
-    const status = await SubscriptionService.getCurrentSubscription();
-    setSubStatus(status);
-  };
-
   const handleFinalSubmit = async () => {
     setLoading(true);
     try {
-      const result = await CommunityService.submitForReview(formData);
+      // Format the payload according to API requirements
+      const payload = {
+        name: formData.name,
+        description: formData.description,
+        imageUrl: formData.imageUrl,
+        maxMembers: formData.maxMembers,
+        privacy: formData.privacy,
+        location: formData.location,
+        features: formData.features.filter(f => f.isActive),
+      };
+
+      const result = await CommunityService.submitForReview(payload);
       if (result) {
         setStep('success');
         if (onSuccess) onSuccess();

@@ -169,6 +169,9 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
                       {formData.hasLiveChat && <FeatureBadge label={t('community.create.features.live_chat_title')} color="teal" />}
                       {formData.hasEvents && <FeatureBadge label={t('community.create.features.events_title')} color="amber" />}
                       {formData.hasFeedUpdates && <FeatureBadge label={t('community.create.features.feed_title')} color="blue" />}
+                      {formData.hasNewsPosts && <FeatureBadge label={t('community.create.features.news_posts')} color="blue" />}
+                      {formData.hasAnnouncements && <FeatureBadge label={t('community.create.features.announcements')} color="blue" />}
+                      {formData.hasDiscussionPosts && <FeatureBadge label={t('community.create.features.discussions')} color="blue" />}
                       {formData.hasNeedsBoard && <FeatureBadge label={t('community.create.features.needs_title')} color="indigo" />}
                       {formData.hasTradeMarket && <FeatureBadge label={t('community.create.features.trade_title')} color="emerald" />}
                       {formData.hasIncidentReporting && <FeatureBadge label={t('community.create.features.incidents_title')} color="red" />}
@@ -237,7 +240,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
         </div>
       </ScrollArea>
 
-      <div className="p-6 border-t border-slate-50 flex items-center justify-between gap-4 bg-white relative z-10">
+      <div className="p-6 border-t border-slate-50 flex items-center justify-between gap-4 bg-white relative z-10 sticky bottom-0 mb-4">
          <Button variant="ghost" onClick={onBack} className="font-bold text-slate-500">
             {t('common.back')}
          </Button>

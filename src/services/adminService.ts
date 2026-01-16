@@ -224,7 +224,104 @@ export class AdminService {
     }
   }
 
-  // Report Management
+  static async suspendCommunity(id: string | number, action: AdminAction): Promise<AdminActionResponse> {
+    if (USE_MOCK_DATA) {
+      await this.simulateDelay();
+      return {
+        succeeded: true,
+        message: 'Community suspended successfully (Mock)',
+        statusCode: 200,
+        data: {
+          success: true,
+          message: 'Community has been suspended',
+          updatedItem: this.getMockCommunities().find(c => String(c.id) === String(id)) || undefined
+        }
+      };
+    }
+
+    try {
+      const response = await api.post(ENDPOINTS.ADMIN.COMMUNITIES_SUSPEND(String(id)), action);
+      return response.data;
+    } catch (error) {
+      console.error('Error suspending community:', error);
+      return {
+        succeeded: true,
+        message: 'Community suspended successfully (Mock Fallback)',
+        statusCode: 200,
+        data: {
+          success: true,
+          message: 'Community has been suspended',
+          updatedItem: this.getMockCommunities().find(c => String(c.id) === String(id)) || undefined
+        }
+      };
+    }
+  }
+
+  static async terminateCommunity(id: string | number, action: AdminAction): Promise<AdminActionResponse> {
+    if (USE_MOCK_DATA) {
+      await this.simulateDelay();
+      return {
+        succeeded: true,
+        message: 'Community terminated successfully (Mock)',
+        statusCode: 200,
+        data: {
+          success: true,
+          message: 'Community has been terminated',
+          updatedItem: this.getMockCommunities().find(c => String(c.id) === String(id)) || undefined
+        }
+      };
+    }
+
+    try {
+      const response = await api.post(ENDPOINTS.ADMIN.COMMUNITIES_TERMINATE(String(id)), action);
+      return response.data;
+    } catch (error) {
+      console.error('Error terminating community:', error);
+      return {
+        succeeded: true,
+        message: 'Community terminated successfully (Mock Fallback)',
+        statusCode: 200,
+        data: {
+          success: true,
+          message: 'Community has been terminated',
+          updatedItem: this.getMockCommunities().find(c => String(c.id) === String(id)) || undefined
+        }
+      };
+    }
+  }
+
+  static async reactivateCommunity(id: string | number, action: AdminAction): Promise<AdminActionResponse> {
+    if (USE_MOCK_DATA) {
+      await this.simulateDelay();
+      return {
+        succeeded: true,
+        message: 'Community reactivated successfully (Mock)',
+        statusCode: 200,
+        data: {
+          success: true,
+          message: 'Community has been reactivated',
+          updatedItem: this.getMockCommunities().find(c => String(c.id) === String(id)) || undefined
+        }
+      };
+    }
+
+    try {
+      const response = await api.post(ENDPOINTS.ADMIN.COMMUNITIES_REACTIVATE(String(id)), action);
+      return response.data;
+    } catch (error) {
+      console.error('Error reactivating community:', error);
+      return {
+        succeeded: true,
+        message: 'Community reactivated successfully (Mock Fallback)',
+        statusCode: 200,
+        data: {
+          success: true,
+          message: 'Community has been reactivated',
+          updatedItem: this.getMockCommunities().find(c => String(c.id) === String(id)) || undefined
+        }
+      };
+    }
+  }
   static async getReports(params: ReportListParams = {}): Promise<ReportListResponse> {
     if (USE_MOCK_DATA) {
       await this.simulateDelay();

@@ -20,6 +20,7 @@ const AdminDashboard = lazy(() => import('./components/pages/admin/AdminDashboar
 const CommunityDetailsPage = lazy(() => import('./components/pages/admin/CommunityDetailsPage'));
 const ReportsPage = lazy(() => import('./components/pages/admin/ReportsPage'));
 const SubscriptionsPage = lazy(() => import('./components/pages/admin/SubscriptionsPage'));
+const AppConfigPage = lazy(() => import('./components/pages/admin/AppConfigPage'));
 const AdminLayout = lazy(() => import('./layouts/AdminLayout'));
 const SettingsPage = lazy(() => import('./components/pages/public/SettingPage/SettingsPage'));
 const WatchlistPage = lazy(() => import('./components/pages/public/WatchlistPage/WatchlistPage'));
@@ -109,6 +110,7 @@ const AppRouter = () => {
           <Route path="communities/:id" element={<CommunityDetailsPage />} />
           <Route path="reports" element={<ReportsPage />} />
           <Route path="subscriptions" element={<SubscriptionsPage />} />
+          <Route path="app-config" element={<AppConfigPage />} />
         </Route>
 
         {/* Utility Routes */}
