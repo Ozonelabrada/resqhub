@@ -23,11 +23,12 @@ import {
   AlertCircle,
   Edit3
 } from 'lucide-react';
-import { CreateCommunityModal } from '@/components/modals';
 import { CommunityService, StoreService } from '@/services';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import { toast } from 'react-hot-toast';
+import type { Community } from '@/types/community';
+import { CreateCommunityModal } from '../../modals';
 
 interface UserStore {
   id: string | number;
@@ -57,14 +58,19 @@ const MOCK_USER_STORES: UserStore[] = [
 export const CommunitiesContainer: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { communities, loading: communitiesLoading, refresh } = useCommunities();
+  const { communities: hookCommunities, loading: communitiesLoading, refresh } = useCommunities();
   const { isAuthenticated, openLoginModal, user } = useAuth();
-  const joinedCommunities = communities.filter(c => c.isMember);
   
+  // Local state for communities (to handle search results)
+  const [communities, setCommunities] = useState<Community[]>([]);
   const [view, setView] = useState<'list' | 'store-application'>('list');
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [joiningId, setJoiningId] = useState<string | number | null>(null);
+
+  const joinedCommunities = communities.filter(c => c.isMember);
 
   // Store Management State
   const [myStores, setMyStores] = useState<UserStore[]>([]);
@@ -115,11 +121,46 @@ export const CommunitiesContainer: React.FC = () => {
     }
   }, [user?.id]);
 
+  // Initialize local communities state with hook data
   useEffect(() => {
-    if (view === 'store-application' && isAuthenticated) {
-      fetchUserStores();
+    if (hookCommunities.length > 0 && communities.length === 0) {
+      setCommunities(hookCommunities);
+      setLoading(false);
     }
-  }, [view, isAuthenticated, fetchUserStores]);
+  }, [hookCommunities, communities.length]);
+
+  // Debounce search query
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 400);
+
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  // Search communities when debounced query changes
+  useEffect(() => {
+    const searchCommunities = async () => {
+      if (debouncedSearchQuery.trim()) {
+        setLoading(true);
+        try {
+          const searchResults = await CommunityService.searchCommunities(debouncedSearchQuery.trim());
+          setCommunities(searchResults);
+        } catch (error) {
+          console.error('Error searching communities:', error);
+          setCommunities([]);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        // If no search query, use the hook communities
+        setCommunities(hookCommunities);
+        setLoading(communitiesLoading);
+      }
+    };
+
+    searchCommunities();
+  }, [debouncedSearchQuery, hookCommunities, communitiesLoading]);
 
   const handleJoin = async (e: React.MouseEvent, id: string | number) => {
     e.stopPropagation();
@@ -132,17 +173,16 @@ export const CommunitiesContainer: React.FC = () => {
     try {
       const success = await CommunityService.joinCommunity(String(id));
       if (success) {
-        refresh();
+        // Refresh both hook and local state
+        await refresh();
+        // The useEffect will update local communities when hookCommunities changes
       }
     } finally {
       setJoiningId(null);
     }
   };
 
-  const filteredCommunities = communities.filter(c => 
-    c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (c.description && c.description.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filteredCommunities = communities;
 
   const handleCreateStore = async () => {
     if (!newStoreData.name || !user?.id) {
@@ -642,7 +682,7 @@ export const CommunitiesContainer: React.FC = () => {
 
   return (
     <Card className="flex flex-col h-[calc(100vh-140px)] border-none shadow-xl rounded-[2.5rem] bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-500 relative">
-      <div className="p-8 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-6 shrink-0 text-decoration-none">
+      <div className="p-4 md:p-8 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 shrink-0 text-decoration-none">
         <div className="flex flex-col gap-1">
           <h2 className="text-2xl font-black text-slate-900 tracking-tight">
             {t('common.communities', 'Communities')}
@@ -673,7 +713,7 @@ export const CommunitiesContainer: React.FC = () => {
             <div className="relative flex items-center bg-gray-50 rounded-xl border border-transparent group-focus-within:bg-white group-focus-within:border-slate-100 transition-all overflow-hidden px-3">
               <Search className="text-slate-400 w-4 h-4" />
               <Input 
-                placeholder={t('communities.search_placeholder', 'Search...')}
+                placeholder={t('communities.search_placeholder', 'Search communities by name or description...')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="border-none focus-visible:ring-0 h-10 text-slate-800 text-sm font-medium bg-transparent"
@@ -692,14 +732,14 @@ export const CommunitiesContainer: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-        {communitiesLoading ? (
+      <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
+        {communitiesLoading || loading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <Spinner size="lg" />
             <p className="mt-4 text-slate-500 font-medium">Loading communities...</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 gap-4 md:gap-6">
             {filteredCommunities.map((community, idx) => (
               <Card 
                 key={community.id || (community as any)._id || idx}
@@ -728,7 +768,7 @@ export const CommunitiesContainer: React.FC = () => {
                   <div className="absolute -bottom-6 -left-6 w-20 h-20 bg-white/10 rounded-full blur-2xl"></div>
                 </div>
                 
-                <div className="p-5 flex flex-col flex-1">
+                <div className="p-3 md:p-5 flex flex-col flex-1">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2 text-teal-600">
                       <MapPin size={12} />
@@ -747,11 +787,11 @@ export const CommunitiesContainer: React.FC = () => {
                     </h3>
                   </div>
                   
-                  <p className="text-slate-500 text-[11px] leading-relaxed mb-6 line-clamp-3 font-medium flex-1">
+                  <p className="text-slate-500 text-[11px] leading-relaxed mb-4 md:mb-6 line-clamp-3 font-medium flex-1">
                     {community.description || 'No description available for this community.'}
                   </p>
                   
-                  <div className="flex items-center justify-between pt-4 border-t border-slate-50 mt-auto">
+                  <div className="flex items-center justify-between pt-2 md:pt-4 border-t border-slate-50 mt-auto">
                     <div className="flex items-center gap-2 text-slate-400">
                       <Users size={12} />
                       <span className="text-[11px] font-bold text-slate-500">{community.memberCount || community.membersCount || 0} Members</span>
@@ -792,7 +832,7 @@ export const CommunitiesContainer: React.FC = () => {
               </Card>
             ))}
 
-            {filteredCommunities.length === 0 && !communitiesLoading && (
+            {filteredCommunities.length === 0 && !communitiesLoading && !loading && (
               <div className="col-span-full py-20 text-center">
                 <div className="bg-slate-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Users className="text-slate-200 w-10 h-10" />
@@ -808,9 +848,10 @@ export const CommunitiesContainer: React.FC = () => {
       <CreateCommunityModal 
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        onSuccess={() => {
+        onSuccess={async () => {
           setIsCreateModalOpen(false);
-          refresh();
+          await refresh();
+          // The useEffect will update local communities when hookCommunities changes
         }}
       />
     </Card>

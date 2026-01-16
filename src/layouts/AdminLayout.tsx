@@ -103,6 +103,12 @@ const AdminLayout: React.FC = () => {
       path: '/admin/subscriptions'
     },
     {
+      id: 'appconfig',
+      label: 'App Config',
+      icon: <Settings size={20} />,
+      path: '/admin/app-config'
+    },
+    {
       id: 'audit',
       label: 'Audit Trail',
       icon: <History size={20} />,

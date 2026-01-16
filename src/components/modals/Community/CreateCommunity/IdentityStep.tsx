@@ -222,6 +222,21 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
             />
           </div>
 
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Community Banner Image URL</label>
+            <Input 
+              placeholder="https://images.unsplash.com/..."
+              className="h-12 rounded-xl border-slate-200 focus:ring-teal-500/20 font-medium"
+              value={formData.imageUrl || ''}
+              onChange={(e) => setFormData({...formData, imageUrl: e.target.value})}
+            />
+            {formData.imageUrl && (
+              <div className="mt-2 rounded-xl overflow-hidden border border-slate-100 h-24 bg-slate-50">
+                <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" onError={() => {}} />
+              </div>
+            )}
+          </div>
+
           <div className="space-y-2" ref={suggestionRef}>
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{labels.location}</label>
             <div className="relative">
@@ -320,7 +335,7 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
         </div>
       </ScrollArea>
 
-      <DialogFooter className="p-6 border-t border-slate-50 flex items-center justify-end gap-3 bg-white relative z-10">
+      <DialogFooter className="p-6 border-t border-slate-50 flex items-center justify-end gap-3 bg-white relative z-10 sticky bottom-0 mb-4">
         <Button type="button" variant="ghost" onClick={onClose} className="font-bold text-slate-500">
           {t('common.cancel')}
         </Button>

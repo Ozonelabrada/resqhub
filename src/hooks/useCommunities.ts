@@ -48,7 +48,6 @@ export const useCommunityDetail = (id: string | undefined) => {
 
       // Calculate isAdmin if not provided by backend community object
       let updatedCommunity = communityData;
-      let requestsData: JoinRequest[] = [];
       
       if (updatedCommunity && user) {
         const currentUserMember = membersData.find((m: CommunityMember) => String(m.id) === String(user.id));
@@ -62,21 +61,13 @@ export const useCommunityDetail = (id: string | undefined) => {
           isModerator,
           isMember
         };
-
-        // If admin or moderator, fetch join requests
-        if (isAdmin || isModerator) {
-          try {
-            requestsData = await CommunityService.getJoinRequests(id);
-          } catch (reqErr) {
-            console.error('Failed to fetch join requests:', reqErr);
-          }
-        }
       }
 
       setCommunity(updatedCommunity);
       setPosts(Array.isArray(postsData) ? postsData : []);
       setMembers(Array.isArray(membersData) ? membersData : []);
-      setJoinRequests(requestsData);
+      // Don't automatically fetch join requests on page load
+      setJoinRequests([]);
     } catch (err) {
       setError('Failed to fetch community details');
       setPosts([]);

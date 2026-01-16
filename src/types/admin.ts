@@ -41,12 +41,19 @@ export interface CommunitySummary {
   updatedAt?: string;
 }
 
+export interface CommunityFeature {
+  code: string;
+  name: string;
+  isActive: boolean;
+}
+
 export interface CommunityDetail extends CommunitySummary {
   description: string;
   bannerUrl?: string;
   location?: string;
   rules?: string[];
   moderators: UserData[];
+  features?: CommunityFeature[];
   settings: {
     visibility: 'public' | 'private' | 'restricted';
     joinPolicy: 'open' | 'approval_required' | 'invite_only';
@@ -201,7 +208,7 @@ export interface ReportListResponse extends BaseApiResponse {
 
 // Admin Actions
 export interface AdminAction {
-  type: 'approve' | 'reject' | 'disable' | 'enable' | 'resolve' | 'escalate' | 'assign';
+  type: 'approve' | 'reject' | 'disable' | 'enable' | 'resolve' | 'escalate' | 'assign' | 'suspend' | 'terminate' | 'reactivate';
   reason?: string;
   assignedTo?: string;
   notifyUser?: boolean;

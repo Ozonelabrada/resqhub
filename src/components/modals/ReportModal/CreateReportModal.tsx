@@ -282,14 +282,14 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
                   {t('report.type_question')}
                 </label>
                 <Tabs 
-                  defaultValue={isCommunityContext ? "News" : "Lost"} 
+                  defaultValue={isCommunityContext ? "Lost" : "Lost"} 
                   value={formData.reportType} 
                   onValueChange={(val) => handleInputChange('reportType', val)}
                   className="w-full"
                 >
                   <TabsList className={cn(
                     "grid w-full p-1 bg-slate-100 rounded-2xl h-auto min-h-14",
-                    isCommunityContext ? "grid-cols-2 md:grid-cols-5" : "grid-cols-2"
+                    "grid-cols-2"
                   )}>
                     <TabsTrigger 
                       value="Lost" 
@@ -305,24 +305,6 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
                     </TabsTrigger>
                     {isCommunityContext && (
                       <>
-                        <TabsTrigger 
-                          value="News" 
-                          className="rounded-xl font-bold py-2 transition-all data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md"
-                        >
-                          {t('hub.news')}
-                        </TabsTrigger>
-                        <TabsTrigger 
-                          value="Discussion" 
-                          className="rounded-xl font-bold py-2 transition-all data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md"
-                        >
-                          {t('hub.discussion')}
-                        </TabsTrigger>
-                        <TabsTrigger 
-                          value="Announcements" 
-                          className="rounded-xl font-bold py-2 transition-all data-[state=active]:bg-orange-600 data-[state=active]:text-white data-[state=active]:shadow-md"
-                        >
-                          {t('hub.announcements')}
-                        </TabsTrigger>
                       </>
                     )}
                   </TabsList>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../../../ui';
 import { CheckCircle2 } from 'lucide-react';
@@ -10,6 +10,23 @@ interface SuccessStepProps {
 
 export const SuccessStep: React.FC<SuccessStepProps> = ({ communityName, onClose }) => {
   const { t } = useTranslation();
+
+  useEffect(() => {
+    // Reload page after 3 seconds to show success message
+    const timer = setTimeout(() => {
+      window.location.reload();
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleClose = () => {
+    onClose();
+    // Reload page when user manually closes
+    setTimeout(() => {
+      window.location.reload();
+    }, 300);
+  };
 
   return (
     <div className="p-12 text-center space-y-6">
@@ -25,7 +42,7 @@ export const SuccessStep: React.FC<SuccessStepProps> = ({ communityName, onClose
              {t('community.create.success.note')}
           </div>
        </div>
-       <Button onClick={onClose} className="bg-slate-900 text-white font-black px-10 h-12 rounded-xl w-full">
+       <Button onClick={handleClose} className="bg-slate-900 text-white font-black px-10 h-12 rounded-xl w-full">
           {t('community.create.success.button')}
        </Button>
     </div>

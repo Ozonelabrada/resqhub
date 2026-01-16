@@ -15,7 +15,9 @@ import {
   CheckCircle,
   XCircle,
   AlertTriangle,
-  Clock
+  Clock,
+  ChevronDown,
+  MoreVertical
 } from 'lucide-react';
 import {
   Card,
@@ -47,7 +49,11 @@ const CommunityDetailsPage: React.FC = () => {
   // Modals
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
+  const [showSuspendModal, setShowSuspendModal] = useState(false);
+  const [showTerminateModal, setShowTerminateModal] = useState(false);
+  const [showReactivateModal, setShowReactivateModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [showActionDropdown, setShowActionDropdown] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -56,6 +62,18 @@ const CommunityDetailsPage: React.FC = () => {
       setLoading(false);
     }
   }, [id]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showActionDropdown && !(event.target as Element).closest('.action-dropdown')) {
+        setShowActionDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showActionDropdown]);
 
   const loadCommunityDetails = async () => {
     if (!id) return;
@@ -147,6 +165,72 @@ const CommunityDetailsPage: React.FC = () => {
     }
   };
 
+  const handleSuspend = async () => {
+    if (!id) return;
+    
+    try {
+      setActionLoading(true);
+      const success = await AdminService.suspendCommunity(id, {
+        type: 'suspend',
+        reason: 'Community suspended for policy violation',
+        notifyUser: true
+      });
+      
+      if (success && community) {
+        setCommunity({ ...community, status: 'suspended' });
+        setShowSuspendModal(false);
+      }
+    } catch (error) {
+      console.error('Error suspending community:', error);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleTerminate = async () => {
+    if (!id) return;
+    
+    try {
+      setActionLoading(true);
+      const success = await AdminService.terminateCommunity(id, {
+        type: 'terminate',
+        reason: 'Community permanently terminated',
+        notifyUser: true
+      });
+      
+      if (success && community) {
+        setCommunity({ ...community, status: 'terminated' });
+        setShowTerminateModal(false);
+      }
+    } catch (error) {
+      console.error('Error terminating community:', error);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleReactivate = async () => {
+    if (!id) return;
+    
+    try {
+      setActionLoading(true);
+      const success = await AdminService.reactivateCommunity(id, {
+        type: 'reactivate',
+        reason: 'Community has been reactivated',
+        notifyUser: true
+      });
+      
+      if (success && community) {
+        setCommunity({ ...community, status: 'active' });
+        setShowReactivateModal(false);
+      }
+    } catch (error) {
+      console.error('Error reactivating community:', error);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
@@ -157,8 +241,52 @@ const CommunityDetailsPage: React.FC = () => {
         return <Badge className="bg-red-100 text-red-800">Disabled</Badge>;
       case 'rejected':
         return <Badge className="bg-gray-100 text-gray-800">Rejected</Badge>;
+      case 'suspended':
+        return <Badge className="bg-yellow-100 text-yellow-800">Suspended</Badge>;
+      case 'terminated':
+        return <Badge className="bg-red-100 text-red-800">Terminated</Badge>;
       default:
         return <Badge>{status}</Badge>;
+    }
+  };
+
+  const getActionMenuItems = () => {
+    switch (community.status) {
+      case 'pending':
+        return [
+          {
+            label: 'Approve Community',
+            icon: <CheckCircle size={16} className="text-green-600" />,
+            action: () => setShowApproveModal(true),
+            variant: 'success' as const
+          }
+        ];
+      case 'active':
+        return [
+          {
+            label: 'Suspend Community',
+            icon: <AlertTriangle size={16} className="text-yellow-600" />,
+            action: () => setShowSuspendModal(true),
+            variant: 'warning' as const
+          },
+          {
+            label: 'Terminate Community',
+            icon: <XCircle size={16} className="text-red-600" />,
+            action: () => setShowTerminateModal(true),
+            variant: 'danger' as const
+          }
+        ];
+      case 'terminated':
+        return [
+          {
+            label: 'Reactivate Community',
+            icon: <CheckCircle size={16} className="text-green-600" />,
+            action: () => setShowReactivateModal(true),
+            variant: 'success' as const
+          }
+        ];
+      default:
+        return [];
     }
   };
 
@@ -204,25 +332,38 @@ const CommunityDetailsPage: React.FC = () => {
               </div>
 
               {/* Actions */}
-              {community.status === 'pending' && (
-                <div className="flex gap-3">
-                  <Button
-                    onClick={() => setShowRejectModal(true)}
-                    variant="outline"
-                    className="border-red-200 text-red-600 hover:bg-red-50 font-bold gap-2"
-                  >
-                    <XCircle size={16} />
-                    Reject
-                  </Button>
-                  <Button
-                    onClick={() => setShowApproveModal(true)}
-                    className="bg-green-600 hover:bg-green-700 text-white font-bold gap-2"
-                  >
-                    <CheckCircle size={16} />
-                    Approve
-                  </Button>
-                </div>
-              )}
+              <div className="relative action-dropdown">
+                <Button
+                  onClick={() => setShowActionDropdown(!showActionDropdown)}
+                  variant="outline"
+                  className="border-slate-200 hover:bg-slate-50 font-bold gap-2 px-4 py-2"
+                >
+                  <MoreVertical size={16} />
+                  Actions
+                  <ChevronDown size={14} className={cn(
+                    "transition-transform duration-200",
+                    showActionDropdown && "rotate-180"
+                  )} />
+                </Button>
+
+                {showActionDropdown && (
+                  <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-2">
+                    {getActionMenuItems().map((item, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          item.action();
+                          setShowActionDropdown(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors text-left"
+                      >
+                        {item.icon}
+                        <span className="font-medium text-slate-700">{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -313,6 +454,44 @@ const CommunityDetailsPage: React.FC = () => {
                 </div>
               ))}
             </div>
+          </Card>
+
+          {/* Community Features */}
+          <Card className="p-6">
+            <h3 className="text-lg font-black text-slate-900 mb-4">Enabled Features</h3>
+            {community.features && community.features.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {community.features.map((feature) => (
+                  <div
+                    key={feature.code}
+                    className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200 hover:border-teal-300 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={cn(
+                        "w-3 h-3 rounded-full",
+                        feature.isActive ? 'bg-green-500' : 'bg-gray-300'
+                      )} />
+                      <div>
+                        <p className="font-bold text-slate-900">{feature.name}</p>
+                        <p className="text-xs text-slate-500 font-mono">{feature.code}</p>
+                      </div>
+                    </div>
+                    <Badge className={cn(
+                      "font-bold",
+                      feature.isActive 
+                        ? 'bg-green-100 text-green-700' 
+                        : 'bg-gray-100 text-gray-700'
+                    )}>
+                      {feature.isActive ? 'Active' : 'Inactive'}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-slate-500 font-medium">No features enabled for this community</p>
+              </div>
+            )}
           </Card>
         </TabContent>
 
@@ -457,6 +636,39 @@ const CommunityDetailsPage: React.FC = () => {
         message={`Are you sure you want to reject "${community.name}"? This action cannot be undone.`}
         confirmText="Reject"
         variant="danger"
+        loading={actionLoading}
+      />
+
+      <AdminConfirmModal
+        isOpen={showSuspendModal}
+        onClose={() => setShowSuspendModal(false)}
+        onConfirm={handleSuspend}
+        title="Suspend Community"
+        message={`Are you sure you want to suspend "${community.name}"? The community will be temporarily disabled but can be reactivated later.`}
+        confirmText="Suspend"
+        variant="warning"
+        loading={actionLoading}
+      />
+
+      <AdminConfirmModal
+        isOpen={showTerminateModal}
+        onClose={() => setShowTerminateModal(false)}
+        onConfirm={handleTerminate}
+        title="Terminate Community"
+        message={`Are you sure you want to permanently terminate "${community.name}"? This action cannot be undone and will permanently disable the community.`}
+        confirmText="Terminate"
+        variant="danger"
+        loading={actionLoading}
+      />
+
+      <AdminConfirmModal
+        isOpen={showReactivateModal}
+        onClose={() => setShowReactivateModal(false)}
+        onConfirm={handleReactivate}
+        title="Reactivate Community"
+        message={`Are you sure you want to reactivate "${community.name}"? The community will be restored to active status.`}
+        confirmText="Reactivate"
+        variant="success"
         loading={actionLoading}
       />
     </div>
