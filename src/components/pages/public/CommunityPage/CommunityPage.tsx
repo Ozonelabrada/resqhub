@@ -18,7 +18,9 @@ import {
 } from 'lucide-react';
 import { Button, Card, Avatar, Spinner, ShadcnBadge as Badge } from '@/components/ui';
 import { useAuth } from '@/context/AuthContext';
-import { CommunitySettingsModal, CreateReportModal, ModerationOverviewModal } from '@/components/modals';
+import { CommunitySettingsModal, CreateReportModal, ModerationOverviewModal, CreateEventAnnouncementModal, CreateCalendarModal, CommunityReportModal } from '@/components/modals';
+import type { EventAnnouncementFormData } from '@/components/modals/EventAnnouncement/CreateEventAnnouncementModal';
+import type { CreateCalendarFormData } from '@/components/modals/Calendar/CreateCalendarModal';
 import { cn } from '@/lib/utils';
 import { useCommunityDetail } from '@/hooks/useCommunities';
 import { CommunityChat } from '@/components/features/messages/CommunityChat';
@@ -35,6 +37,7 @@ import { CommunityAbout } from './components/CommunityAbout';
 import { CommunityTrade } from './components/CommunityTrade';
 import { CommunityEvents, SAMPLE_EVENTS } from './components/CommunityEvents';
 import { CommunityAnnouncements, SAMPLE_ANNOUNCEMENTS } from './components/CommunityAnnouncements';
+import { CommunityNews } from './components/CommunityNews';
 import { CommunityResources } from './components/CommunityResources';
 import { t } from 'i18next';
 
@@ -61,6 +64,13 @@ const CommunityPage: React.FC = () => {
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isCommunityReportModalOpen, setIsCommunityReportModalOpen] = useState(false);
+  const [communityReportType, setCommunityReportType] = useState<'News' | 'Announcement' | 'Event' | 'Discussion'>('News');
+  const [isUpdatesModalOpen, setIsUpdatesModalOpen] = useState(false);
+  const [isUpdatesModalType, setIsUpdatesModalType] = useState<'announcement' | 'news' | 'events'>('news');
+  const [activeUpdatesSubTab, setActiveUpdatesSubTab] = useState<'news' | 'announcements' | 'events'>('news');
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
+  const [calendarModalType, setCalendarModalType] = useState<'announcement' | 'events'>('announcement');
   const [isModerationOpen, setIsModerationOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
@@ -81,6 +91,51 @@ const CommunityPage: React.FC = () => {
       return;
     }
     setIsReportModalOpen(true);
+  };
+
+  const handleAnnouncementSuccess = (data: EventAnnouncementFormData) => {
+    setIsUpdatesModalOpen(false);
+    console.log('Announcement created:', data);
+    refresh();
+  };
+
+  const handleNewsSuccess = (data: EventAnnouncementFormData) => {
+    setIsUpdatesModalOpen(false);
+    console.log('News created:', data);
+    refresh();
+  };
+
+  const handleEventSuccess = (data: EventAnnouncementFormData) => {
+    setIsUpdatesModalOpen(false);
+    console.log('Event created:', data);
+    refresh();
+  };
+
+  const handleCalendarSuccess = (data: CreateCalendarFormData) => {
+    setIsCalendarModalOpen(false);
+    console.log('Calendar created:', data);
+    refresh();
+  };
+
+  const handleCommunityReportSuccess = () => {
+    setIsCommunityReportModalOpen(false);
+    console.log('Community report created');
+    refresh();
+  };
+
+  const handleOpenCalendarModal = (type: 'announcement' | 'events') => {
+    setCalendarModalType(type);
+    setIsCalendarModalOpen(true);
+  };
+
+  const handleOpenCommunityReportModal = (type: 'News' | 'Announcement' | 'Event' | 'Discussion') => {
+    setCommunityReportType(type);
+    setIsCommunityReportModalOpen(true);
+  };
+
+  const handleOpenUpdatesModal = (type: 'announcement' | 'news' | 'events') => {
+    setIsUpdatesModalType(type);
+    setIsUpdatesModalOpen(true);
   };
 
   const handleJoin = async () => {
@@ -155,21 +210,94 @@ const CommunityPage: React.FC = () => {
           />
         );
       case 'announcements':
+      case 'events':
+      case 'updates':
         return isMember || isAdmin ? (
-          <CommunityAnnouncements isAdmin={isAdmin} />
+          <>
+            {/* Sub-tabs for Updates */}
+            <div className="flex gap-2 mb-6 border-b border-slate-200">
+              <button
+                onClick={() => setActiveUpdatesSubTab('news')}
+                className={`px-6 py-3 font-bold text-sm transition-all border-b-2 -mb-[2px] ${
+                  activeUpdatesSubTab === 'news'
+                    ? 'text-teal-600 border-teal-600'
+                    : 'text-slate-500 border-transparent hover:text-teal-600'
+                }`}
+              >
+                {t('hub.news')}
+              </button>
+              <button
+                onClick={() => setActiveUpdatesSubTab('announcements')}
+                className={`px-6 py-3 font-bold text-sm transition-all border-b-2 -mb-[2px] ${
+                  activeUpdatesSubTab === 'announcements'
+                    ? 'text-teal-600 border-teal-600'
+                    : 'text-slate-500 border-transparent hover:text-teal-600'
+                }`}
+              >
+                {t('hub.announcements')}
+              </button>
+              <button
+                onClick={() => setActiveUpdatesSubTab('events')}
+                className={`px-6 py-3 font-bold text-sm transition-all border-b-2 -mb-[2px] ${
+                  activeUpdatesSubTab === 'events'
+                    ? 'text-teal-600 border-teal-600'
+                    : 'text-slate-500 border-transparent hover:text-teal-600'
+                }`}
+              >
+                {t('common.events')}
+              </button>
+            </div>
+
+            {/* Sub-tab Content */}
+            <div className="space-y-6">
+              {activeUpdatesSubTab === 'news' && (
+                <CommunityNews 
+                  isAdmin={isPrivileged}
+                  onOpenNewsModal={() => handleOpenUpdatesModal('news')}
+                />
+              )}
+              {activeUpdatesSubTab === 'announcements' && (
+                <CommunityAnnouncements 
+                  isAdmin={isPrivileged} 
+                  isAnnouncementModalOpen={false}
+                  onOpenAnnouncementModal={() => handleOpenUpdatesModal('announcement')}
+                  onOpenCalendarModal={() => handleOpenCalendarModal('announcement')}
+                />
+              )}
+              {activeUpdatesSubTab === 'events' && (
+                <CommunityEvents 
+                  isAdmin={isPrivileged}
+                  isEventModalOpen={false}
+                  onOpenEventModal={() => handleOpenUpdatesModal('events')}
+                  onOpenCalendarModal={() => handleOpenCalendarModal('events')}
+                />
+              )}
+            </div>
+
+            <CreateEventAnnouncementModal
+              key="updates-modal-community"
+              isOpen={isUpdatesModalOpen}
+              onClose={() => setIsUpdatesModalOpen(false)}
+              type={isUpdatesModalType}
+              onSuccess={(data) => {
+                if (isUpdatesModalType === 'announcement') handleAnnouncementSuccess(data);
+                else if (isUpdatesModalType === 'news') handleNewsSuccess(data);
+                else handleEventSuccess(data);
+              }}
+            />
+
+            <CreateCalendarModal
+              key="calendar-modal-community"
+              isOpen={isCalendarModalOpen}
+              onClose={() => setIsCalendarModalOpen(false)}
+              type={calendarModalType}
+              onSuccess={handleCalendarSuccess}
+            />
+          </>
         ) : (
           <RestrictedContent 
             title={t('newsfeed.announcements_locked')} 
             description={t('newsfeed.announcements_locked_desc')}
-          />
-        );
-      case 'events':
-        return isMember || isAdmin ? (
-          <CommunityEvents />
-        ) : (
-          <RestrictedContent 
-            title={t('newsfeed.events_locked')} 
-            description={t('newsfeed.events_locked_desc')}
           />
         );
       case 'trade': return isMember || isPrivileged ? (
@@ -382,7 +510,7 @@ const CommunityPage: React.FC = () => {
             <div className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-gray-50 flex flex-col gap-4 group/card hover:shadow-md transition-all shrink-0">
               <div 
                 className="flex items-center justify-between cursor-pointer"
-                onClick={() => handleTabChange('events')}
+                onClick={() => handleTabChange('updates')}
               >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center group-hover/card:scale-110 transition-transform">
@@ -398,7 +526,7 @@ const CommunityPage: React.FC = () => {
               <div className="space-y-3">
                 {todaysEvents.length > 0 ? (
                   todaysEvents.slice(0, 2).map((event) => (
-                    <div key={event.id} className="flex items-center gap-3 p-3 bg-emerald-50/30 rounded-2xl hover:bg-emerald-50 transition-colors cursor-pointer" onClick={() => handleTabChange('events')}>
+                    <div key={event.id} className="flex items-center gap-3 p-3 bg-emerald-50/30 rounded-2xl hover:bg-emerald-50 transition-colors cursor-pointer" onClick={() => handleTabChange('updates')}>
                       <div className="flex flex-col items-center justify-center bg-white min-w-[40px] h-10 rounded-xl shadow-sm border border-emerald-100">
                         <span className="text-[10px] font-black text-emerald-600 leading-none">JAN</span>
                         <span className="text-sm font-black text-slate-800 leading-none">12</span>
@@ -632,6 +760,14 @@ const CommunityPage: React.FC = () => {
         onSuccess={refresh}
         communityId={id}
         initialType={activeTab === 'needs' ? 'Resource' : 'News'}
+      />
+
+      <CommunityReportModal
+        isOpen={isCommunityReportModalOpen}
+        onClose={() => setIsCommunityReportModalOpen(false)}
+        onSuccess={handleCommunityReportSuccess}
+        communityId={id}
+        reportType={communityReportType}
       />
 
       <ModerationOverviewModal 

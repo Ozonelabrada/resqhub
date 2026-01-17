@@ -4,6 +4,7 @@ export { ItemsService } from './itemsService';
 export { TrendingReportsService } from './trendingReportsService';
 export { UserService } from './userService';
 export { CommunityService } from './communityService';
+export { CommunityReportService } from './communityReportService';
 export { MessagesService } from './messagesService';
 export { CommentsService } from './commentsService';
 export { ReportsService } from './reportsService';

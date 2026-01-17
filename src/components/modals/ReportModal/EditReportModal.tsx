@@ -241,9 +241,9 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({
               />
               {showSuggestions && locationSuggestions.length > 0 && (
                 <div className="absolute z-[100] w-full mt-2 bg-white rounded-2xl border border-slate-100 shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2">
-                  {locationSuggestions.map((suggestion, index) => (
+                  {locationSuggestions.map((suggestion) => (
                     <button
-                      key={index}
+                      key={`${suggestion.lat}-${suggestion.lon}`}
                       type="button"
                       className="w-full px-4 py-3 text-left hover:bg-slate-50 transition-colors flex items-center gap-3 border-b border-slate-50 last:border-none"
                       onClick={() => {

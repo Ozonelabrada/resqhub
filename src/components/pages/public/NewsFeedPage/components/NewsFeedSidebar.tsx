@@ -11,7 +11,8 @@ import {
   BookOpen,
   Users,
   ShoppingBag,
-  Search
+  Search,
+  Plus
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -25,7 +26,7 @@ import { MessagesService } from '@/services/messagesService';
 import { useFeatureFlags } from '@/hooks';
 import type { UserData } from '@/types/auth';
 
-export type CommunityTabType = 'feed' | 'needs' | 'chat' | 'members' | 'about' | 'announcements' | 'events' | 'resources' | 'trade';
+export type CommunityTabType = 'feed' | 'needs' | 'chat' | 'members' | 'about' | 'updates' | 'resources' | 'trade';
 
 interface NewsFeedSidebarProps {
   isAuthenticated: boolean;
@@ -225,26 +226,14 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
 
                 <Button 
                   variant="ghost" 
-                  onClick={() => communityNav.onTabChange('announcements')}
+                  onClick={() => communityNav.onTabChange('updates')}
                   className={cn(
                     "w-full justify-start py-6 rounded-2xl font-bold transition-all border-none group",
-                    communityNav.activeTab === 'announcements' ? "text-teal-600 bg-teal-50 shadow-sm" : "text-slate-500 hover:bg-gray-50 hover:text-teal-600"
+                    communityNav.activeTab === 'updates' ? "text-teal-600 bg-teal-50 shadow-sm" : "text-slate-500 hover:bg-gray-50 hover:text-teal-600"
                   )}
                 >
-                  <Megaphone className={cn("w-5 h-5 mr-3", communityNav.activeTab === 'announcements' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
-                  {t('hub.announcements')}
-                </Button>
-
-                <Button 
-                  variant="ghost" 
-                  onClick={() => communityNav.onTabChange('events')}
-                  className={cn(
-                    "w-full justify-start py-6 rounded-2xl font-bold transition-all border-none group",
-                    communityNav.activeTab === 'events' ? "text-teal-600 bg-teal-50 shadow-sm" : "text-slate-500 hover:bg-gray-50 hover:text-teal-600"
-                  )}
-                >
-                  <Calendar className={cn("w-5 h-5 mr-3", communityNav.activeTab === 'events' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
-                  {t('common.events') || 'Events'}
+                  <Megaphone className={cn("w-5 h-5 mr-3", communityNav.activeTab === 'updates' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
+                  {t('hub.announcements')} & {t('common.events')}
                 </Button>
 
                 <Button 

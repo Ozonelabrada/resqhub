@@ -264,9 +264,9 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
                 <div className="absolute z-[300] left-0 right-0 top-full mt-2 bg-white border border-slate-100 shadow-2xl rounded-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                   <ScrollArea className="max-h-[200px]">
                     <div className="p-1">
-                      {locationSuggestions.map((suggestion, index) => (
+                      {locationSuggestions.map((suggestion) => (
                         <button
-                          key={index}
+                          key={`${suggestion.lat}-${suggestion.lon}`}
                           type="button"
                           className="w-full text-left px-4 py-3 hover:bg-teal-50 hover:text-teal-700 transition-colors flex items-start gap-3 rounded-xl mb-1 last:mb-0"
                           onClick={() => {
