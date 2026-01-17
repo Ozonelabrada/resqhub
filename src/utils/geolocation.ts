@@ -32,7 +32,6 @@ export const getGeolocation = (): Promise<GeolocationData> => {
             country: address.country || ''
           });
         } catch (error) {
-          console.warn('Reverse geocoding failed:', error);
           resolve({ latitude, longitude });
         }
       },
@@ -58,21 +57,72 @@ export interface LocationSuggestion {
 }
 
 export const searchLocations = async (query: string): Promise<LocationSuggestion[]> => {
-    if (!query || query.length < 3) return [];
+    if (!query || query.length < 3) {
+        return [];
+    }
     
     try {
-        const response = await fetch(
-            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1&countrycodes=ph`
-        );
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
+        const url = `https://photon.komoot.io/api?q=${encodeURIComponent(query)}&limit=10&lang=en`;
+    
+        const response = await fetch(url);
         const data = await response.json();
-        return Array.isArray(data) ? data : [];
+        
+        if (data.features && Array.isArray(data.features)) {
+            const results = data.features.map((feature: any) => {
+                const props = feature.properties;
+                
+                // Build full address from all available components
+                const addressParts = [];
+                
+                // Add street/name first
+                if (props.street) addressParts.push(props.street);
+                else if (props.name) addressParts.push(props.name);
+                
+                // Add house number if available
+                if (props.housenumber) {
+                    if (addressParts.length > 0) {
+                        addressParts[0] = addressParts[0] + ' ' + props.housenumber;
+                    }
+                }
+                
+                // Add locality/village
+                if (props.village) addressParts.push(props.village);
+                else if (props.suburb) addressParts.push(props.suburb);
+                else if (props.town) addressParts.push(props.town);
+                
+                // Add city
+                if (props.city) addressParts.push(props.city);
+                
+                // Add postal code
+                if (props.postcode) addressParts.push(props.postcode);
+                
+                // Add state/province
+                if (props.state) addressParts.push(props.state);
+                
+                // Add country
+                if (props.country) addressParts.push(props.country);
+                
+                // Build display name (full address)
+                const displayName = addressParts.join(', ') || props.name || 'Location';
+                
+                return {
+                    display_name: displayName,
+                    lat: String(feature.geometry.coordinates[1]),
+                    lon: String(feature.geometry.coordinates[0]),
+                    address: {
+                        city: props.city || '',
+                        town: props.town || '',
+                        village: props.village || '',
+                        suburb: props.suburb || '',
+                        state: props.state || '',
+                        country: props.country || ''
+                    }
+                };
+            });
+            return results;
+        }
+        return [];
     } catch (error) {
-        console.error('Location search failed:', error);
         return [];
     }
 };

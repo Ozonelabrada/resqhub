@@ -11,10 +11,11 @@ import {
   Switch
 } from '../../ui';
 import { Modal } from '../../ui/Modal/Modal';
-import { Settings, Upload, Save, X, Plus, Trash2 } from 'lucide-react';
+import { Settings, Upload, Save, X, Plus, Trash2, MapPin } from 'lucide-react';
 import type { Community } from '@/types/community';
 import { CommunityService } from '@/services';
 import { useTranslation } from 'react-i18next';
+import { searchLocations, type LocationSuggestion } from '@/utils/geolocation';
 
 interface CommunitySettingsModalProps {
   isOpen: boolean;
@@ -67,6 +68,9 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
   });
 
   const [newRule, setNewRule] = useState('');
+  const [locationSuggestions, setLocationSuggestions] = useState<LocationSuggestion[]>([]);
+  const [isSearchingLocation, setIsSearchingLocation] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   useEffect(() => {
     if (community) {
@@ -95,6 +99,28 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
     }
   }, [community]);
 
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (formData.location.length >= 3 && isSearchingLocation) {
+        try {
+          const results = await searchLocations(formData.location);
+          setLocationSuggestions(results || []);
+          setShowSuggestions(true);
+        } catch (error) {
+          console.error('Failed to fetch locations:', error);
+          setLocationSuggestions([]);
+        } finally {
+          setIsSearchingLocation(false);
+        }
+      } else if (formData.location.length < 3) {
+        setShowSuggestions(false);
+        setLocationSuggestions([]);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [formData.location, isSearchingLocation]);
+
   const handleSave = async () => {
     setLoading(true);
     try {
@@ -106,6 +132,12 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSelectLocation = (suggestion: LocationSuggestion) => {
+    setFormData(prev => ({ ...prev, location: suggestion.display_name }));
+    setShowSuggestions(false);
+    setLocationSuggestions([]);
   };
 
   const addRule = () => {
@@ -184,14 +216,44 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                   onChange={e => setFormData({...formData, tagline: e.target.value})}
                 />
              </div>
-             <div className="space-y-2">
+             <div className="space-y-2 relative">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('community.address_location')}</label>
-                <input 
-                  className="w-full h-12 px-4 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-teal-500 font-bold text-slate-700" 
-                  placeholder={t('community.location_placeholder')}
-                  value={formData.location}
-                  onChange={e => setFormData({...formData, location: e.target.value})}
-                />
+                <div className="relative">
+                  <input 
+                    className="w-full h-12 px-4 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-teal-500 font-bold text-slate-700" 
+                    placeholder={t('community.location_placeholder')}
+                    value={formData.location}
+                    onChange={(e) => {
+                      setFormData({...formData, location: e.target.value});
+                      setIsSearchingLocation(true);
+                      setShowSuggestions(true);
+                    }}
+                    onBlur={() => {
+                      setTimeout(() => setShowSuggestions(false), 200);
+                    }}
+                    onFocus={() => {
+                      setShowSuggestions(true);
+                    }}
+                  />
+                  {showSuggestions && locationSuggestions.length > 0 && (
+                    <div className="absolute z-[301] w-full mt-1 bg-white rounded-xl shadow-2xl border border-slate-100 overflow-hidden max-h-60 overflow-y-auto">
+                      {locationSuggestions.map((suggestion) => (
+                        <div
+                          key={`${suggestion.lat}-${suggestion.lon}`}
+                          role="button"
+                          className="w-full text-left px-4 py-3 text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors border-b border-slate-50 last:border-0 flex items-start gap-2 cursor-pointer"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            handleSelectLocation(suggestion);
+                          }}
+                        >
+                          <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-slate-400" />
+                          <span>{suggestion.display_name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
              </div>
              <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('community.description')}</label>

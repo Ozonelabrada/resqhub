@@ -358,9 +358,9 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
                   />
                   {showSuggestions && locationSuggestions.length > 0 && (
                     <div className="absolute z-[301] w-full mt-1 bg-white rounded-xl shadow-2xl border border-slate-100 overflow-hidden max-h-60 overflow-y-auto">
-                      {locationSuggestions.map((suggestion, idx) => (
+                      {locationSuggestions.map((suggestion) => (
                         <div
-                          key={idx}
+                          key={`${suggestion.lat}-${suggestion.lon}`}
                           role="button"
                           className="w-full text-left px-4 py-3 text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors border-b border-slate-50 last:border-0 flex items-start gap-2 cursor-pointer"
                           onMouseDown={(e) => {

@@ -86,7 +86,6 @@
     "items_count": "{{count}} Items",
     "explore_global": "Explore Global activity",
     "next_days": "Next Days",
-    "view_all": "View All",
     "view_items_notice": "You can view items freely. Sign in to claim items or report incidents.",
     "privacy": "Privacy",
     "terms": "Terms",
@@ -95,12 +94,38 @@
   },
   "hub": {
     "title": "Hub",
-    "news": "News",
     "discussion": "Discussion",
     "announcements": "Announcements",
+    "announcement": "Announcement",
+    "news": "News",
+    "events": "Events",
+    "create": "Create",
+    "creating": "Creating...",
+    "error": "An error occurred",
     "success_news": "News posted successfully",
     "success_discussion": "Discussion started successfully",
     "success_announcement": "Announcement published successfully"
+  },
+  "form": {
+    "title": "Title",
+    "titlePlaceholder": "Enter title",
+    "description": "Description",
+    "descriptionPlaceholder": "Enter detailed description",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "time": "Time",
+    "optional": "Optional",
+    "type": "Type",
+    "category": "Category",
+    "selectCategory": "Select a category",
+    "isActive": "Active"
+  },
+  "categories": {
+    "general": "General",
+    "urgent": "Urgent",
+    "community": "Community",
+    "educational": "Educational",
+    "entertainment": "Entertainment"
   },
   "settings": {
     "language_description": "Choose your preferred language for the FindrHub interface.",
@@ -286,7 +311,7 @@
     "full_guide": "Read Full Safety Guide"
   },
   "community": {
-    "create": "Create a Community",
+    "createCommunity": "Create a Community",
     "create_description": "Build a space for your neighborhood, school, or workplace to stay connected.",
     "privacy": "Privacy Settings",
     "privacy_public": "Public",
@@ -501,6 +526,31 @@
       "button_post": "Post",
       "button_posting": "Posting..."
     },
+    "announcements": {
+      "create": {
+        "description": "Create and share important announcements with your community"
+      }
+    },
+    "news": {
+      "create": {
+        "description": "Share the latest news and updates"
+      }
+    },
+    "events": {
+      "create": {
+        "description": "Create and manage events with dates and times"
+      }
+    },
+    "eventAnnouncement": {
+      "validation": {
+        "titleRequired": "Title is required",
+        "descriptionRequired": "Description is required",
+        "startDateRequired": "Start date is required",
+        "endDateRequired": "End date is required",
+        "endDateAfterStart": "End date must be after start date",
+        "categoryRequired": "Category is required"
+      }
+    },
     "create_content": {
       "title": "Create Content",
       "subtitle": "Share updates, reports or start discussions in the community.",
@@ -600,5 +650,21 @@
     "quick_tip_desc": "\"Verifying members through direct chat helps prevent spam and ensures high-quality community interactions.\"",
     "chat": "Chat",
     "chat_message": "Hi {{name}}, I'm the moderator of the community. I'd like to ask a few questions about your join request."
+  },
+  "calendar": {
+    "title": "Calendar",
+    "event_calendar": "Event Calendar",
+    "announcement_calendar": "Announcement Calendar",
+    "create_calendar": "Create a calendar with multiple date entries",
+    "entries": "Calendar Entries",
+    "add_date": "Add Date",
+    "entry": "Entry",
+    "event_title": "Event Title",
+    "event_title_placeholder": "e.g., Community Cleanup",
+    "location_label": "Location",
+    "location_placeholder": "e.g., Community Park",
+    "entry_required": "At least one calendar entry is required",
+    "entry_complete_required": "At least one complete calendar entry (date, title, description, and category) is required",
+    "success_calendar": "Calendar created successfully"
   }
 }
