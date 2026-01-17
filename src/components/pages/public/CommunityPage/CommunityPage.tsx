@@ -209,8 +209,6 @@ const CommunityPage: React.FC = () => {
             onRefresh={refresh}
           />
         );
-      case 'announcements':
-      case 'events':
       case 'updates':
         return isMember || isAdmin ? (
           <>
@@ -479,7 +477,7 @@ const CommunityPage: React.FC = () => {
             <div className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-gray-50 flex flex-col gap-4 group/card hover:shadow-md transition-all shrink-0">
               <div 
                 className="flex items-center justify-between cursor-pointer"
-                onClick={() => handleTabChange('announcements')}
+                onClick={() => handleTabChange('updates')}
               >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center group-hover/card:scale-110 transition-transform">
@@ -495,7 +493,7 @@ const CommunityPage: React.FC = () => {
               <div className="space-y-3">
                 {todaysAnnouncements.length > 0 ? (
                   todaysAnnouncements.slice(0, 2).map((ann) => (
-                    <div key={ann.id} className="p-3 bg-slate-50 rounded-2xl border border-transparent hover:border-blue-100 transition-colors cursor-pointer" onClick={() => handleTabChange('announcements')}>
+                    <div key={ann.id} className="p-3 bg-slate-50 rounded-2xl border border-transparent hover:border-blue-100 transition-colors cursor-pointer" onClick={() => handleTabChange('updates')}>
                       <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">{(ann as any).category || 'Zone 2'}</p>
                       <p className="text-sm font-bold text-slate-800 line-clamp-1">{ann.title}</p>
                     </div>
@@ -766,7 +764,7 @@ const CommunityPage: React.FC = () => {
         isOpen={isCommunityReportModalOpen}
         onClose={() => setIsCommunityReportModalOpen(false)}
         onSuccess={handleCommunityReportSuccess}
-        communityId={id}
+        communityId={id || ''}
         reportType={communityReportType}
       />
 

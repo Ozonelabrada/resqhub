@@ -8,13 +8,15 @@ import {
   Input,
   Button,
   Textarea,
+  Alert,
+} from '@/components/ui';
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Alert,
-} from '@/components/ui';
+} from '@/components/ui/select';
 import {
   FileText,
   Tag,
@@ -295,7 +297,7 @@ export const CommunityReportModal: React.FC<CommunityReportModalProps> = ({
               <Tag className="w-4 h-4 text-teal-600" />
               {t('form.category')}
             </label>
-            <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
+            <Select value={formData.category} onValueChange={(value: string) => handleInputChange('category', value)}>
               <SelectTrigger className="w-full px-4 py-3 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50 font-medium">
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
