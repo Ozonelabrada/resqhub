@@ -51,6 +51,12 @@ const NewsFeedPage: React.FC = () => {
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [selectedCommunityForInvite, setSelectedCommunityForInvite] = useState<string>('');
   const [isSafetyExpanded, setIsSafetyExpanded] = useState(false);
+  const [upcomingNews, setUpcomingNews] = useState<any>({ today: [], tomorrow: [] });
+  const [upcomingAnnouncements, setUpcomingAnnouncements] = useState<any>({ today: [], tomorrow: [] });
+  const [upcomingEvents, setUpcomingEvents] = useState<any>({ today: [], tomorrow: [] });
+  const [newsLoading, setNewsLoading] = useState(false);
+  const [announcementsLoading, setAnnouncementsLoading] = useState(false);
+  const [eventsLoading, setEventsLoading] = useState(false);
 
   // Hooks
   const { 
@@ -113,6 +119,47 @@ const NewsFeedPage: React.FC = () => {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  // Fetch Latest News, Announcements, and Events
+  useEffect(() => {
+    const fetchUpcomingReports = async () => {
+      try {
+        // Fetch News
+        setNewsLoading(true);
+        const newsData = await CommunityService.getUpcomingReports('news');
+        setUpcomingNews({
+          today: newsData.today || [],
+          tomorrow: newsData.tomorrow || []
+        });
+        setNewsLoading(false);
+
+        // Fetch Announcements
+        setAnnouncementsLoading(true);
+        const announcementsData = await CommunityService.getUpcomingReports('announcement');
+        setUpcomingAnnouncements({
+          today: announcementsData.today || [],
+          tomorrow: announcementsData.tomorrow || []
+        });
+        setAnnouncementsLoading(false);
+
+        // Fetch Events
+        setEventsLoading(true);
+        const eventsData = await CommunityService.getUpcomingReports('event');
+        setUpcomingEvents({
+          today: eventsData.today || [],
+          tomorrow: eventsData.tomorrow || []
+        });
+        setEventsLoading(false);
+      } catch (error) {
+        console.error('Error fetching upcoming reports:', error);
+        setNewsLoading(false);
+        setAnnouncementsLoading(false);
+        setEventsLoading(false);
+      }
+    };
+
+    fetchUpcomingReports();
+  }, []);
 
   // Refs for Infinite Scroll
   const observerTarget = useRef<HTMLDivElement>(null);
@@ -356,6 +403,12 @@ const NewsFeedPage: React.FC = () => {
               setIsSafetyExpanded={setIsSafetyExpanded}
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
+              upcomingNews={upcomingNews}
+              upcomingAnnouncements={upcomingAnnouncements}
+              upcomingEvents={upcomingEvents}
+              newsLoading={newsLoading}
+              announcementsLoading={announcementsLoading}
+              eventsLoading={eventsLoading}
             />
           </div>
         )}

@@ -31,7 +31,8 @@ import { searchLocations, type LocationSuggestion } from '@/utils/geolocation';
 
 export interface CalendarEntry {
   id: string;
-  date: string;
+  fromDate: string;
+  toDate: string;
   time?: string;
   title: string;
   description: string;
@@ -55,7 +56,8 @@ const INITIAL_FORM_DATA: CreateCalendarFormData = {
   calendarEntries: [
     {
       id: '1',
-      date: '',
+      fromDate: '',
+      toDate: '',
       time: '',
       title: '',
       description: '',
@@ -111,12 +113,23 @@ const CreateCalendarModal: React.FC<CreateCalendarModalProps> = ({
     }
     
     const hasValidEntry = formData.calendarEntries.some(
-      (entry) => entry.date && entry.title && entry.description && entry.category
+      (entry) => entry.fromDate && entry.toDate && entry.title && entry.description && entry.category
     );
     if (!hasValidEntry) {
-      setError(t('calendar.entry_complete_required') || 'At least one complete calendar entry (date, title, description, and category) is required');
+      setError(t('calendar.entry_complete_required') || 'At least one complete calendar entry (from date, to date, title, description, and category) is required');
       return false;
     }
+
+    // Validate that fromDate is before or equal to toDate
+    for (const entry of formData.calendarEntries) {
+      if (entry.fromDate && entry.toDate) {
+        if (new Date(entry.fromDate) > new Date(entry.toDate)) {
+          setError('End date (to date) must be after or equal to start date (from date)');
+          return false;
+        }
+      }
+    }
+
     return true;
   };
 
@@ -177,7 +190,8 @@ const CreateCalendarModal: React.FC<CreateCalendarModalProps> = ({
         ...prev.calendarEntries,
         {
           id: newId,
-          date: '',
+          fromDate: '',
+          toDate: '',
           time: '',
           title: '',
           description: '',
@@ -281,42 +295,41 @@ const CreateCalendarModal: React.FC<CreateCalendarModalProps> = ({
                     />
                   </div>
 
-                  {/* Category */}
-                  <div>
-                    <label className="block text-xs font-bold text-slate-600 mb-1">
-                      {t('form.category') || 'Category'} <span className="text-red-500">*</span>
-                    </label>
-                    <Select value={entry.category} onValueChange={(value) => handleEntryChange(entry.id, 'category', value)}>
-                      <SelectTrigger className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium text-sm">
-                        <SelectValue placeholder={t('form.selectCategory') || 'Select a category'} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Mission">Mission</SelectItem>
-                        <SelectItem value="Security">Security</SelectItem>
-                        <SelectItem value="Celebration">Celebration</SelectItem>
-                        <SelectItem value="Maintenance">Maintenance</SelectItem>
-                        <SelectItem value="Others">Others</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
                   <div className="grid grid-cols-2 gap-3">
-                    {/* Date */}
+                    {/* From Date */}
                     <div>
-                      <label className="block text-xs font-bold text-slate-600 mb-1">
-                        {t('form.startDate') || 'Date'} <span className="text-red-500">*</span>
+                      <label className="block text-xs font-bold text-slate-600 mb-1 flex items-center gap-1">
+                        <Calendar size={12} />
+                        {t('form.startDate') || 'From Date'} <span className="text-red-500">*</span>
                       </label>
                       <Input
                         type="date"
-                        value={entry.date}
-                        onChange={(e) => handleEntryChange(entry.id, 'date', e.target.value)}
+                        value={entry.fromDate}
+                        onChange={(e) => handleEntryChange(entry.id, 'fromDate', e.target.value)}
                         className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white font-medium text-sm"
                       />
                     </div>
 
+                    {/* To Date */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 mb-1 flex items-center gap-1">
+                        <Calendar size={12} />
+                        {t('form.endDate') || 'To Date'} <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        type="date"
+                        value={entry.toDate}
+                        onChange={(e) => handleEntryChange(entry.id, 'toDate', e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white font-medium text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
                     {/* Time */}
                     <div>
-                      <label className="block text-xs font-bold text-slate-600 mb-1">
+                      <label className="block text-xs font-bold text-slate-600 mb-1 flex items-center gap-1">
+                        <Clock size={12} />
                         {t('form.time') || 'Time'} <span className="text-slate-400">(Optional)</span>
                       </label>
                       <Input
@@ -326,10 +339,30 @@ const CreateCalendarModal: React.FC<CreateCalendarModalProps> = ({
                         className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white font-medium text-sm"
                       />
                     </div>
+
+                    {/* Category */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 mb-1 flex items-center gap-1">
+                        <Tag size={12} />
+                        {t('form.category') || 'Category'} <span className="text-red-500">*</span>
+                      </label>
+                      <Select value={entry.category} onValueChange={(value) => handleEntryChange(entry.id, 'category', value)}>
+                        <SelectTrigger className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium text-sm">
+                          <SelectValue placeholder={t('form.selectCategory') || 'Select a category'} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Mission">Mission</SelectItem>
+                          <SelectItem value="Security">Security</SelectItem>
+                          <SelectItem value="Celebration">Celebration</SelectItem>
+                          <SelectItem value="Maintenance">Maintenance</SelectItem>
+                          <SelectItem value="Others">Others</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
 
                   {/* Location */}
-                  <div className="relative">
+                  <div>
                     <label className="block text-xs font-bold text-slate-600 mb-1 flex items-center gap-1">
                       <MapPin size={12} />
                       {t('calendar.location_label') || 'Location'} <span className="text-slate-400">(Optional)</span>

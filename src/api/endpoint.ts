@@ -20,5 +20,13 @@ export const ENDPOINTS = {
     LOGIN: '/auth/login',
     REGISTER: '/auth/register',
     LOGOUT: '/auth/logout',
+  },
+  COMMUNITIES: {
+    LIST: '/communities',
+    REPORT: '/communities/report',
+    REPORTS: '/communities/reports',
+    CALENDAR: '/communities/calendar',
+    JOIN: (id: string) => `/communities/${id}/join`,
+    LEAVE: (id: string) => `/communities/${id}/leave`,
   }
 };

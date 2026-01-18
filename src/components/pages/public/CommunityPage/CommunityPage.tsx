@@ -24,6 +24,7 @@ import type { CreateCalendarFormData } from '@/components/modals/Calendar/Create
 import { cn } from '@/lib/utils';
 import { useCommunityDetail } from '@/hooks/useCommunities';
 import { CommunityChat } from '@/components/features/messages/CommunityChat';
+import { CommunityService } from '@/services/communityService';
 
 // Global Sidebar Component
 import NewsFeedSidebar from '@/components/pages/public/NewsFeedPage/components/NewsFeedSidebar';
@@ -35,8 +36,8 @@ import { ResourcesWidget } from './components/ResourcesWidget';
 import { CommunityMembers } from './components/CommunityMembers';
 import { CommunityAbout } from './components/CommunityAbout';
 import { CommunityTrade } from './components/CommunityTrade';
-import { CommunityEvents, SAMPLE_EVENTS } from './components/CommunityEvents';
-import { CommunityAnnouncements, SAMPLE_ANNOUNCEMENTS } from './components/CommunityAnnouncements';
+import { CommunityEvents } from './components/CommunityEvents';
+import { CommunityAnnouncements } from './components/CommunityAnnouncements';
 import { CommunityNews } from './components/CommunityNews';
 import { CommunityResources } from './components/CommunityResources';
 import { t } from 'i18next';
@@ -111,10 +112,43 @@ const CommunityPage: React.FC = () => {
     refresh();
   };
 
-  const handleCalendarSuccess = (data: CreateCalendarFormData) => {
-    setIsCalendarModalOpen(false);
-    console.log('Calendar created:', data);
-    refresh();
+  const handleCalendarSuccess = async (data: CreateCalendarFormData) => {
+    try {
+      // Send calendar entries to backend
+      if (data.calendarEntries && data.calendarEntries.length > 0 && community?.id) {
+        const calendarData = {
+          communityId: community.id,
+          events: data.calendarEntries.map(entry => {
+            return {
+              title: entry.title,
+              description: entry.description,
+              category: entry.category,
+              fromDate: entry.fromDate,
+              toDate: entry.toDate,
+              time: entry.time || '00:00',
+              location: entry.location || '',
+            };
+          }),
+        };
+        
+        console.log('Sending calendar data to backend:', calendarData);
+        const result = await CommunityService.createCalendarEvents(calendarData);
+        
+        if (result.success) {
+          console.log('Calendar events saved to backend successfully');
+          setIsCalendarModalOpen(false);
+          refresh();
+        } else {
+          console.error('Failed to save calendar events:', result.message);
+          alert(result.message || 'Failed to create calendar events');
+        }
+      } else {
+        console.error('Missing required data for calendar creation');
+      }
+    } catch (error) {
+      console.error('Error saving calendar events:', error);
+      alert('Error saving calendar events. Please try again.');
+    }
   };
 
   const handleCommunityReportSuccess = () => {
@@ -252,6 +286,7 @@ const CommunityPage: React.FC = () => {
                 <CommunityNews 
                   isAdmin={isPrivileged}
                   onOpenNewsModal={() => handleOpenUpdatesModal('news')}
+                  communityId={community?.id}
                 />
               )}
               {activeUpdatesSubTab === 'announcements' && (
@@ -260,6 +295,7 @@ const CommunityPage: React.FC = () => {
                   isAnnouncementModalOpen={false}
                   onOpenAnnouncementModal={() => handleOpenUpdatesModal('announcement')}
                   onOpenCalendarModal={() => handleOpenCalendarModal('announcement')}
+                  communityId={community?.id}
                 />
               )}
               {activeUpdatesSubTab === 'events' && (
@@ -268,6 +304,7 @@ const CommunityPage: React.FC = () => {
                   isEventModalOpen={false}
                   onOpenEventModal={() => handleOpenUpdatesModal('events')}
                   onOpenCalendarModal={() => handleOpenCalendarModal('events')}
+                  communityId={community?.id}
                 />
               )}
             </div>
@@ -277,6 +314,7 @@ const CommunityPage: React.FC = () => {
               isOpen={isUpdatesModalOpen}
               onClose={() => setIsUpdatesModalOpen(false)}
               type={isUpdatesModalType}
+              communityId={community?.id}
               onSuccess={(data) => {
                 if (isUpdatesModalType === 'announcement') handleAnnouncementSuccess(data);
                 else if (isUpdatesModalType === 'news') handleNewsSuccess(data);
@@ -338,10 +376,11 @@ const CommunityPage: React.FC = () => {
     }
   };
 
-  const today = '2026-01-12';
+  const today = new Date().toISOString().split('T')[0];
 
-  const todaysAnnouncements = SAMPLE_ANNOUNCEMENTS.filter(ann => ann.dateKey === today);
-  const todaysEvents = SAMPLE_EVENTS.filter(event => event.dateKey === today);
+  // These will be populated from backend data in the respective components
+  const todaysAnnouncements: any[] = [];
+  const todaysEvents: any[] = [];
 
   return (
     <div className="min-h-screen lg:h-[calc(100vh-60px)] flex flex-col bg-slate-50 lg:overflow-hidden lg:-mt-10">

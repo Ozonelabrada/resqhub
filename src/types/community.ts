@@ -96,3 +96,49 @@ export interface JoinRequest {
   dateCreated: string;
   status: 'Pending' | 'Approved' | 'Rejected';
 }
+
+export type CommunityContentType = 'announcement' | 'news' | 'events';
+export type CommunityContentCategory = 'community' | 'announcement' | 'news' | 'event';
+
+export interface CommunityAnnouncement {
+  id?: string | number;
+  title: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  reportUrl?: string;
+  category: CommunityContentCategory;
+  type: CommunityContentType;
+  location: string;
+  contactInfo: string;
+  communityId: number | string;
+  createdAt?: string;
+  createdBy?: string;
+  dateCreated?: string;
+  lastModifiedDate?: string;
+  lastModifiedBy?: string;
+  isActive?: boolean;
+}
+
+export interface CommunityNews extends CommunityAnnouncement {
+  type: 'news';
+}
+
+export interface CommunityEvent extends CommunityAnnouncement {
+  type: 'events';
+}
+
+export interface CalendarEvent {
+  title: string;
+  description: string;
+  category: string;
+  fromDate: string; // ISO 8601 format: 2026-01-18T08:07:34.119Z
+  endDate: string;  // ISO 8601 format: 2026-01-20T08:07:34.119Z
+  time?: string; // Time in HH:mm format
+  location: string;
+}
+
+export interface CreateCalendarPayload {
+  communityId: number | string;
+  events: CalendarEvent[];
+}

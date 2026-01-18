@@ -16,11 +16,11 @@ import {
   Avatar,
   Skeleton,
   Button,
-  Badge
+  Badge,
+  Spinner
 } from '../../../../ui';
 import { cn } from "@/lib/utils";
-import { SAMPLE_ANNOUNCEMENTS } from '../../CommunityPage/components/CommunityAnnouncements';
-import { SAMPLE_EVENTS } from '../../CommunityPage/components/CommunityEvents';
+// Note: Sample data has been moved to backend. Components now fetch announcements and events dynamically.
 
 // Static Data for Contributors
 const TOP_CONTRIBUTORS = [
@@ -65,6 +65,12 @@ interface CommunitySidebarProps {
   searchQuery?: string;
   setSearchQuery?: (query: string) => void;
   className?: string;
+  upcomingNews?: { today: any[]; tomorrow: any[] };
+  upcomingAnnouncements?: { today: any[]; tomorrow: any[] };
+  upcomingEvents?: { today: any[]; tomorrow: any[] };
+  newsLoading?: boolean;
+  announcementsLoading?: boolean;
+  eventsLoading?: boolean;
 }
 
 const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
@@ -75,7 +81,13 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
   joinedCommunities,
   isSafetyExpanded,
   setIsSafetyExpanded,
-  className
+  className,
+  upcomingNews = { today: [], tomorrow: [] },
+  upcomingAnnouncements = { today: [], tomorrow: [] },
+  upcomingEvents = { today: [], tomorrow: [] },
+  newsLoading = false,
+  announcementsLoading = false,
+  eventsLoading = false
 }) => {
   const { t } = useTranslation();
 
@@ -86,8 +98,9 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
 
   const joinedCommunityNames = joinedCommunities.map(c => c.name);
 
-  // Filter announcements: Prefer today, fallback to upcoming
-  const allAnnouncements = Array.isArray(SAMPLE_ANNOUNCEMENTS) ? SAMPLE_ANNOUNCEMENTS : [];
+  // Backend data is now fetched directly by individual components
+  // These sidebars will be updated with proper data flow in future iterations
+  const allAnnouncements: any[] = [];
   
   let filteredAnnouncements = allAnnouncements.filter(ann => 
     ann.dateKey === today && 
@@ -97,23 +110,17 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
   const isTodayNews = filteredAnnouncements.length > 0;
 
   if (!isTodayNews) {
-    // If no news for today, show news for next days
     filteredAnnouncements = allAnnouncements
       .filter(ann => 
         ann.dateKey > today && 
         (!ann.communityName || joinedCommunityNames.includes(ann.communityName))
       )
       .sort((a, b) => a.dateKey.localeCompare(b.dateKey))
-      .slice(0, 3); // Limit to next few items
+      .slice(0, 3);
   }
     
   // Filter events for today and tomorrow belonging to user's communities
-  const relevantEvents = Array.isArray(SAMPLE_EVENTS)
-    ? SAMPLE_EVENTS.filter(event => 
-        (event.dateKey === today || event.dateKey === tomorrow) && 
-        (!event.communityName || joinedCommunityNames.includes(event.communityName))
-      )
-    : [];
+  const relevantEvents: any[] = [];
 
   // Grouping functions
   const groupedAnnouncements = filteredAnnouncements.reduce((acc, ann) => {
@@ -132,56 +139,6 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
 
   return (
     <aside className={cn("flex flex-col space-y-4 pt-6 group h-fit", className)}>
-      {/* TODAY'S UPDATES SECTION */}
-      <div className="space-y-3">
-        <div className="bg-white rounded-[2rem] py-5 px-8 shadow-sm border border-gray-50 flex items-center justify-between group/pill cursor-pointer hover:shadow-md transition-all">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center group-hover/pill:scale-110 transition-transform">
-              <Megaphone className="text-blue-500 w-5 h-5" />
-            </div>
-            <h3 className="text-slate-900 font-black text-xl tracking-tight">
-              {isTodayNews ? t('common.todays_updates') : t('common.upcoming_updates')}
-            </h3>
-          </div>
-          <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">
-            {isTodayNews ? todayDisplay : t('common.next_days')}
-          </span>
-        </div>
-        
-        {Object.keys(groupedAnnouncements).length > 0 ? (
-          <div className="px-4 space-y-4">
-            {Object.entries(groupedAnnouncements).map(([community, anns]) => (
-              <div key={community} className="space-y-2">
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">{community}</h4>
-                <div className="space-y-2">
-                  {anns.map(ann => (
-                    <div key={ann.id} className="bg-white/50 hover:bg-white p-4 rounded-2xl border border-transparent hover:border-blue-100 transition-all cursor-pointer group/ann">
-                      <div className="flex items-start gap-3">
-                        <div className={cn(
-                          "w-2 h-2 rounded-full mt-1.5 shrink-0 animate-pulse",
-                          ann.type === 'Alert' ? "bg-red-500" : "bg-blue-500"
-                        )} />
-                        <div>
-                          <p className="text-sm font-bold text-slate-700 leading-tight group-hover/ann:text-blue-600 transition-colors">{ann.title}</p>
-                          <p className="text-[10px] text-slate-400 font-medium mt-1 uppercase tracking-tighter">{ann.author.name} • {ann.createdAt}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-8 px-6 bg-slate-50/50 rounded-[2rem] border border-dashed border-slate-200">
-            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mb-2">
-              <Megaphone className="w-5 h-5 text-slate-300" />
-            </div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">{t('common.no_updates')}</p>
-          </div>
-        )}
-      </div>
-
       {/* JOIN THE ACTION SECTION */}
       <div className="space-y-3">
         <div className="bg-white rounded-[2rem] py-5 px-8 shadow-sm border border-gray-50 flex items-center justify-between group/pill cursor-pointer hover:shadow-md transition-all">
@@ -189,50 +146,276 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
             <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center group-hover/pill:scale-110 transition-transform">
               <Calendar className="text-emerald-500 w-5 h-5" />
             </div>
-            <h3 className="text-slate-900 font-black text-xl tracking-tight">{t('common.join_the_action')}</h3>
+            <h3 className="text-slate-900 font-black text-lg tracking-tight">{t('common.join_the_action')}</h3>
           </div>
-          <div className="flex flex-col items-end">
-             <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">{t('common.upcoming')}</span>
-             <span className="text-[9px] font-bold text-slate-300">{t('common.today')} & {t('common.tomorrow')}</span>
-          </div>
+          <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">
+            {(upcomingEvents?.today?.length || 0) + (upcomingEvents?.tomorrow?.length || 0)}
+          </span>
         </div>
 
-        {Object.keys(groupedEvents).length > 0 ? (
+        {((upcomingEvents?.today?.length || 0) + (upcomingEvents?.tomorrow?.length || 0)) > 0 ? (
           <div className="px-4 space-y-4">
-            {Object.entries(groupedEvents).map(([community, events]) => (
-              <div key={community} className="space-y-2">
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">{community}</h4>
-                <div className="space-y-2">
-                  {events.map(event => (
-                    <div key={event.id} className="bg-white/50 hover:bg-white p-4 rounded-2xl border border-transparent hover:border-emerald-100 transition-all cursor-pointer group/ev">
-                       <div className="flex items-center justify-between mb-2">
-                          <Badge className={cn(
-                             "text-[9px] font-black uppercase tracking-tighter shadow-sm",
-                             event.dateKey === today ? "bg-emerald-500 text-white" : "bg-blue-500 text-white"
-                          )}>
-                            {event.dateKey === today ? t('common.today') : t('common.tomorrow')}
+            {/* Today's Events */}
+            {upcomingEvents?.today && upcomingEvents.today.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">Today</h4>
+                {Object.entries(
+                  upcomingEvents.today.reduce((acc: Record<string, any[]>, event: any) => {
+                    const community = event.communityName || 'General';
+                    if (!acc[community]) acc[community] = [];
+                    acc[community].push(event);
+                    return acc;
+                  }, {} as Record<string, any[]>)
+                ).map(([community, communityEvents]: [string, any[]]) => (
+                  <div key={community} className="space-y-2">
+                    <h5 className="text-[9px] font-black text-slate-500 uppercase tracking-[0.15em] px-2 flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                      {community}
+                    </h5>
+                    <div className="space-y-2">
+                      {communityEvents.slice(0, 2).map(event => (
+                        <div key={event.id} className="bg-white/50 hover:bg-white p-3 rounded-xl border border-transparent hover:border-emerald-100 transition-all cursor-pointer group/ev ml-2">
+                          <Badge className="text-[8px] font-black uppercase tracking-tighter shadow-sm bg-emerald-500 text-white mb-2">
+                            {t('common.today')}
                           </Badge>
-                          <span className="text-[10px] font-bold text-slate-400">{event.time}</span>
-                       </div>
-                       <p className="text-sm font-bold text-slate-700 leading-tight group-hover/ev:text-emerald-600 transition-colors mb-2">{event.title}</p>
-                       <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium">
-                          <div className="w-5 h-5 rounded-md bg-slate-50 flex items-center justify-center shrink-0">
-                            <MapPin className="w-3 h-3 text-emerald-500" />
-                          </div>
-                          <span className="truncate">{event.location}</span>
-                       </div>
+                          <p className="text-xs font-bold text-slate-700 leading-tight group-hover/ev:text-emerald-600 transition-colors truncate">{event.title}</p>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
+
+            {/* Tomorrow's Events */}
+            {upcomingEvents?.tomorrow && upcomingEvents.tomorrow.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">Tomorrow</h4>
+                {Object.entries(
+                  upcomingEvents.tomorrow.reduce((acc: Record<string, any[]>, event: any) => {
+                    const community = event.communityName || 'General';
+                    if (!acc[community]) acc[community] = [];
+                    acc[community].push(event);
+                    return acc;
+                  }, {} as Record<string, any[]>)
+                ).map(([community, communityEvents]: [string, any[]]) => (
+                  <div key={community} className="space-y-2">
+                    <h5 className="text-[9px] font-black text-slate-500 uppercase tracking-[0.15em] px-2 flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                      {community}
+                    </h5>
+                    <div className="space-y-2">
+                      {communityEvents.slice(0, 2).map(event => (
+                        <div key={event.id} className="bg-white/50 hover:bg-white p-3 rounded-xl border border-transparent hover:border-emerald-100 transition-all cursor-pointer group/ev ml-2">
+                          <Badge className="text-[8px] font-black uppercase tracking-tighter shadow-sm bg-blue-500 text-white mb-2">
+                            {t('common.tomorrow')}
+                          </Badge>
+                          <p className="text-xs font-bold text-slate-700 leading-tight group-hover/ev:text-emerald-600 transition-colors truncate">{event.title}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : eventsLoading ? (
+          <div className="flex flex-col items-center justify-center py-6 px-6 bg-slate-50/50 rounded-[2rem] border border-dashed border-slate-200">
+            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mb-2">
+              <Spinner size="sm" className="text-emerald-500" />
+            </div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">{t('common.loading')}</p>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-8 px-6 bg-slate-50/50 rounded-[2rem] border border-dashed border-slate-200">
+          <div className="flex flex-col items-center justify-center py-6 px-6 bg-slate-50/50 rounded-[2rem] border border-dashed border-slate-200">
             <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mb-2">
               <Calendar className="w-5 h-5 text-slate-300" />
             </div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">{t('common.no_events')}</p>
+          </div>
+        )}
+      </div>
+
+      {/* Latest News Section */}
+      <div className="space-y-3">
+        <div className="bg-white rounded-[2rem] py-5 px-8 shadow-sm border border-gray-50 flex items-center justify-between group/pill cursor-pointer hover:shadow-md transition-all">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center group-hover/pill:scale-110 transition-transform">
+              <TrendingUp className="text-purple-500 w-5 h-5" />
+            </div>
+            <h3 className="text-slate-900 font-black text-lg tracking-tight">{t('common.latest_news') || 'Latest News'}</h3>
+          </div>
+          <span className="text-[10px] font-black text-purple-400 uppercase tracking-widest">
+            {(upcomingNews?.today?.length || 0) + (upcomingNews?.tomorrow?.length || 0)}
+          </span>
+        </div>
+
+        {((upcomingNews?.today?.length || 0) + (upcomingNews?.tomorrow?.length || 0)) > 0 ? (
+          <div className="px-4 space-y-4">
+            {/* Today's News */}
+            {upcomingNews?.today && upcomingNews.today.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">Today</h4>
+                {Object.entries(
+                  upcomingNews.today.reduce((acc: Record<string, any[]>, news: any) => {
+                    const community = news.communityName || 'General';
+                    if (!acc[community]) acc[community] = [];
+                    acc[community].push(news);
+                    return acc;
+                  }, {} as Record<string, any[]>)
+                ).map(([community, communityNews]: [string, any[]]) => (
+                  <div key={community} className="space-y-2">
+                    <h5 className="text-[9px] font-black text-slate-500 uppercase tracking-[0.15em] px-2 flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                      {community}
+                    </h5>
+                    <div className="space-y-2">
+                      {communityNews.slice(0, 2).map(news => (
+                        <div key={news.id} className="bg-white/50 hover:bg-white p-3 rounded-xl border border-transparent hover:border-purple-100 transition-all cursor-pointer group/news ml-2" onClick={() => navigate(`/reports/${news.id}`)}>
+                          <p className="text-xs font-bold text-slate-700 leading-tight group-hover/news:text-purple-600 transition-colors truncate">{news.title}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Tomorrow's News */}
+            {upcomingNews?.tomorrow && upcomingNews.tomorrow.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">Tomorrow</h4>
+                {Object.entries(
+                  upcomingNews.tomorrow.reduce((acc: Record<string, any[]>, news: any) => {
+                    const community = news.communityName || 'General';
+                    if (!acc[community]) acc[community] = [];
+                    acc[community].push(news);
+                    return acc;
+                  }, {} as Record<string, any[]>)
+                ).map(([community, communityNews]: [string, any[]]) => (
+                  <div key={community} className="space-y-2">
+                    <h5 className="text-[9px] font-black text-slate-500 uppercase tracking-[0.15em] px-2 flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                      {community}
+                    </h5>
+                    <div className="space-y-2">
+                      {communityNews.slice(0, 2).map(news => (
+                        <div key={news.id} className="bg-white/50 hover:bg-white p-3 rounded-xl border border-transparent hover:border-purple-100 transition-all cursor-pointer group/news ml-2" onClick={() => navigate(`/reports/${news.id}`)}>
+                          <p className="text-xs font-bold text-slate-700 leading-tight group-hover/news:text-purple-600 transition-colors truncate">{news.title}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : newsLoading ? (
+          <div className="flex flex-col items-center justify-center py-6 px-6 bg-slate-50/50 rounded-[2rem] border border-dashed border-slate-200">
+            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mb-2">
+              <Spinner size="sm" className="text-purple-500" />
+            </div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">{t('common.loading')}</p>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-6 px-6 bg-slate-50/50 rounded-[2rem] border border-dashed border-slate-200">
+            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mb-2">
+              <TrendingUp className="w-5 h-5 text-slate-300" />
+            </div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">{t('common.no_news') || 'No news'}</p>
+          </div>
+        )}
+      </div>
+
+      {/* Latest Announcements Section */}
+      <div className="space-y-3">
+        <div className="bg-white rounded-[2rem] py-5 px-8 shadow-sm border border-gray-50 flex items-center justify-between group/pill cursor-pointer hover:shadow-md transition-all">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-yellow-50 flex items-center justify-center group-hover/pill:scale-110 transition-transform">
+              <Megaphone className="text-yellow-500 w-5 h-5" />
+            </div>
+            <h3 className="text-slate-900 font-black text-lg tracking-tight">{t('common.latest_announcements') || 'Latest Announcements'}</h3>
+          </div>
+          <span className="text-[10px] font-black text-yellow-400 uppercase tracking-widest">
+            {(upcomingAnnouncements?.today?.length || 0) + (upcomingAnnouncements?.tomorrow?.length || 0)}
+          </span>
+        </div>
+
+        {((upcomingAnnouncements?.today?.length || 0) + (upcomingAnnouncements?.tomorrow?.length || 0)) > 0 ? (
+          <div className="px-4 space-y-4">
+            {/* Today's Announcements */}
+            {upcomingAnnouncements?.today && upcomingAnnouncements.today.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">Today</h4>
+                {Object.entries(
+                  upcomingAnnouncements.today.reduce((acc: Record<string, any[]>, announcement: any) => {
+                    const community = announcement.communityName || 'General';
+                    if (!acc[community]) acc[community] = [];
+                    acc[community].push(announcement);
+                    return acc;
+                  }, {} as Record<string, any[]>)
+                ).map(([community, communityAnnouncements]: [string, any[]]) => (
+                  <div key={community} className="space-y-2">
+                    <h5 className="text-[9px] font-black text-slate-500 uppercase tracking-[0.15em] px-2 flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" />
+                      {community}
+                    </h5>
+                    <div className="space-y-2">
+                      {communityAnnouncements.slice(0, 2).map(announcement => (
+                        <div key={announcement.id} className="bg-white/50 hover:bg-white p-3 rounded-xl border border-transparent hover:border-yellow-100 transition-all cursor-pointer group/ann ml-2">
+                          <p className="text-xs font-bold text-slate-700 leading-tight group-hover/ann:text-yellow-600 transition-colors truncate">{announcement.title}</p>
+                          <p className="text-[9px] text-slate-400 font-medium mt-0.5 uppercase tracking-tighter">{announcement.category}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Tomorrow's Announcements */}
+            {upcomingAnnouncements?.tomorrow && upcomingAnnouncements.tomorrow.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">Tomorrow</h4>
+                {Object.entries(
+                  upcomingAnnouncements.tomorrow.reduce((acc: Record<string, any[]>, announcement: any) => {
+                    const community = announcement.communityName || 'General';
+                    if (!acc[community]) acc[community] = [];
+                    acc[community].push(announcement);
+                    return acc;
+                  }, {} as Record<string, any[]>)
+                ).map(([community, communityAnnouncements]: [string, any[]]) => (
+                  <div key={community} className="space-y-2">
+                    <h5 className="text-[9px] font-black text-slate-500 uppercase tracking-[0.15em] px-2 flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" />
+                      {community}
+                    </h5>
+                    <div className="space-y-2">
+                      {communityAnnouncements.slice(0, 2).map(announcement => (
+                        <div key={announcement.id} className="bg-white/50 hover:bg-white p-3 rounded-xl border border-transparent hover:border-yellow-100 transition-all cursor-pointer group/ann ml-2">
+                          <p className="text-xs font-bold text-slate-700 leading-tight group-hover/ann:text-yellow-600 transition-colors truncate">{announcement.title}</p>
+                          <p className="text-[9px] text-slate-400 font-medium mt-0.5 uppercase tracking-tighter">{announcement.category}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : announcementsLoading ? (
+          <div className="flex flex-col items-center justify-center py-6 px-6 bg-slate-50/50 rounded-[2rem] border border-dashed border-slate-200">
+            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mb-2">
+              <Spinner size="sm" className="text-yellow-500" />
+            </div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">{t('common.loading')}</p>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-6 px-6 bg-slate-50/50 rounded-[2rem] border border-dashed border-slate-200">
+            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mb-2">
+              <Megaphone className="w-5 h-5 text-slate-300" />
+            </div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">{t('common.no_announcements') || 'No announcements'}</p>
           </div>
         )}
       </div>
