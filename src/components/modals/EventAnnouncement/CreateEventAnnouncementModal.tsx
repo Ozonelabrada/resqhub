@@ -26,7 +26,11 @@ import {
   AlertCircle,
   X,
   Upload,
+  MapPin,
+  Phone,
+  Link as LinkIcon,
 } from 'lucide-react';
+import { CommunityService } from '../../../services/communityService';
 
 // Types
 export type ContentType = 'announcement' | 'news' | 'events';
@@ -40,6 +44,10 @@ export interface EventAnnouncementFormData {
   category: string;
   isActive: boolean;
   type: ContentType;
+  location?: string;
+  contactInfo?: string;
+  reportUrl?: string;
+  communityId?: number | string;
 }
 
 export interface CreateEventAnnouncementModalProps {
@@ -48,6 +56,7 @@ export interface CreateEventAnnouncementModalProps {
   onSuccess?: (data: EventAnnouncementFormData) => void;
   type?: ContentType;
   initialData?: Partial<EventAnnouncementFormData>;
+  communityId?: number | string;
 }
 
 const INITIAL_FORM_DATA: EventAnnouncementFormData = {
@@ -59,6 +68,10 @@ const INITIAL_FORM_DATA: EventAnnouncementFormData = {
   category: '',
   isActive: true,
   type: 'announcement',
+  location: '',
+  contactInfo: '',
+  reportUrl: '',
+  communityId: undefined,
 };
 
 const CreateEventAnnouncementModal: React.FC<CreateEventAnnouncementModalProps> = ({
@@ -67,6 +80,7 @@ const CreateEventAnnouncementModal: React.FC<CreateEventAnnouncementModalProps> 
   onSuccess,
   type = 'announcement',
   initialData,
+  communityId,
 }) => {
   const { t } = useTranslation();
   const [formData, setFormData] = useState<EventAnnouncementFormData>(INITIAL_FORM_DATA);
@@ -88,11 +102,12 @@ const CreateEventAnnouncementModal: React.FC<CreateEventAnnouncementModalProps> 
       setFormData({
         ...INITIAL_FORM_DATA,
         type: contentType,
+        communityId,
         ...initialData,
       });
       setError('');
     }
-  }, [isOpen, contentType, initialData]);
+  }, [isOpen, contentType, initialData, communityId]);
 
   const contentTypeLabels: Record<ContentType, string> = {
     announcement: t('hub.announcement') || 'Announcement',
@@ -140,15 +155,88 @@ const CreateEventAnnouncementModal: React.FC<CreateEventAnnouncementModalProps> 
     }
 
     setLoading(true);
+    setError('');
+    
     try {
+      // If communityId is provided, submit to API
+      if (communityId) {
+        // Convert dates to ISO 8601 format
+        // Date input gives us YYYY-MM-DD, we need to convert to ISO datetime
+        const startDateTime = formData.time 
+          ? new Date(`${formData.startDate}T${formData.time}`).toISOString()
+          : new Date(`${formData.startDate}T00:00:00`).toISOString();
+        
+        const endDateTime = formData.time
+          ? new Date(`${formData.endDate}T${formData.time}`).toISOString()
+          : new Date(`${formData.endDate}T23:59:59`).toISOString();
+
+        console.log(`Submitting ${formData.type} with dates:`, {
+          startDateTime,
+          endDateTime,
+          startDate: formData.startDate,
+          endDate: formData.endDate,
+          time: formData.time
+        });
+
+        // Use calendar API for events, announcement API for announcements/news
+        if (formData.type === 'events') {
+          const result = await CommunityService.createCalendarEvents({
+            communityId,
+            events: [
+              {
+                title: formData.title,
+                description: formData.description,
+                category: formData.category,
+                fromDate: startDateTime,
+                toDate: endDateTime, // Modal sends toDate
+                time: formData.time || '00:00',
+                location: formData.location || '',
+              }
+            ]
+          });
+
+          if (!result.success) {
+            setError(result.message || 'Failed to create event');
+            setLoading(false);
+            return;
+          }
+          
+          console.log('Event created successfully:', result.data);
+        } else {
+          // Use announcement API for announcements and news
+          const result = await CommunityService.createAnnouncement({
+            title: formData.title,
+            description: formData.description,
+            startDate: startDateTime,
+            endDate: endDateTime,
+            reportUrl: formData.reportUrl || '',
+            category: formData.category || 'general',
+            type: formData.type,
+            location: formData.location || '',
+            contactInfo: formData.contactInfo || '',
+            communityId,
+          });
+
+          if (!result.success) {
+            setError(result.message || `Failed to create ${formData.type}`);
+            setLoading(false);
+            return;
+          }
+          
+          console.log(`${formData.type} created successfully:`, result.data);
+        }
+      }
+
       // Call the onSuccess callback with form data
       if (onSuccess) {
         onSuccess(formData);
       }
+      
       // Close the modal
       onClose();
     } catch (err) {
-      setError(t('common.error') || 'An error occurred');
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      setError(errorMessage);
       console.error('Error submitting form:', err);
     } finally {
       setLoading(false);
@@ -335,6 +423,49 @@ const CreateEventAnnouncementModal: React.FC<CreateEventAnnouncementModalProps> 
                 <SelectItem key="cat-entertainment" value="entertainment">{t('categories.entertainment') || 'Entertainment'}</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Location Field */}
+          <div className="mb-6 space-y-2">
+            <label className="block text-sm font-bold text-slate-700 flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-teal-600" />
+              {t('form.location') || 'Location'} ({t('form.optional') || 'Optional'})
+            </label>
+            <Input
+              placeholder={t('form.locationPlaceholder') || 'Enter location'}
+              value={formData.location || ''}
+              onChange={(e) => handleInputChange('location', e.target.value)}
+              className="w-full px-4 py-3 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50 font-medium"
+            />
+          </div>
+
+          {/* Contact Info Field */}
+          <div className="mb-6 space-y-2">
+            <label className="block text-sm font-bold text-slate-700 flex items-center gap-2">
+              <Phone className="h-4 w-4 text-teal-600" />
+              {t('form.contactInfo') || 'Contact Information'} ({t('form.optional') || 'Optional'})
+            </label>
+            <Input
+              placeholder={t('form.contactPlaceholder') || 'Enter phone or email'}
+              value={formData.contactInfo || ''}
+              onChange={(e) => handleInputChange('contactInfo', e.target.value)}
+              className="w-full px-4 py-3 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50 font-medium"
+            />
+          </div>
+
+          {/* Report URL Field */}
+          <div className="mb-6 space-y-2">
+            <label className="block text-sm font-bold text-slate-700 flex items-center gap-2">
+              <LinkIcon className="h-4 w-4 text-teal-600" />
+              {t('form.reportUrl') || 'Report URL'} ({t('form.optional') || 'Optional'})
+            </label>
+            <Input
+              type="url"
+              placeholder={t('form.urlPlaceholder') || 'https://example.com'}
+              value={formData.reportUrl || ''}
+              onChange={(e) => handleInputChange('reportUrl', e.target.value)}
+              className="w-full px-4 py-3 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50 font-medium"
+            />
           </div>
 
           {/* Image Upload */}

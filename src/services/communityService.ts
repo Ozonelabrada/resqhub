@@ -180,5 +180,210 @@ export const CommunityService = {
       console.error('Error rejecting join request:', error);
       return false;
     }
+  },
+
+  async createAnnouncement(payload: {
+    title: string;
+    description: string;
+    startDate: string;
+    endDate: string;
+    reportUrl?: string;
+    category: string;
+    type: 'announcement' | 'news' | 'events';
+    location: string;
+    contactInfo: string;
+    communityId: number | string;
+  }): Promise<{ success: boolean; data?: any; message?: string }> {
+    try {
+      console.log('Creating announcement with payload:', payload);
+      
+      const response = await api.post('/communities/report', payload);
+      console.log('Announcement created successfully:', response.data);
+      
+      return {
+        success: true,
+        data: response.data?.data || response.data
+      };
+    } catch (error: any) {
+      console.error('Error creating community announcement:', error);
+      return {
+        success: false,
+        message: error?.response?.data?.message || error?.message || 'Failed to create announcement'
+      };
+    }
+  },
+
+  async getCommunityReports(filters?: {
+    type?: 'announcement' | 'news' | 'events';
+    category?: string;
+    communityId?: number | string;
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    pageSize?: number;
+  }): Promise<CommunityPost[]> {
+    try {
+      const query = new URLSearchParams();
+      if (filters?.type) query.append('type', filters.type);
+      if (filters?.category) query.append('category', filters.category);
+      if (filters?.communityId) query.append('communityId', String(filters.communityId));
+      if (filters?.startDate) query.append('startDate', filters.startDate);
+      if (filters?.endDate) query.append('endDate', filters.endDate);
+      if (filters?.page) query.append('page', String(filters.page));
+      if (filters?.pageSize) query.append('pageSize', String(filters.pageSize));
+
+      const url = `/communities/reports${query.toString() ? '?' + query.toString() : ''}`;
+      const response = await api.get<any>(url);
+
+      // Extract data from response - handle various response structures
+      const rawData = response.data;
+      let reports: CommunityPost[] = [];
+
+      // Handle structure: { data: { items: [...], total: N } }
+      if (rawData?.data?.items && Array.isArray(rawData.data.items)) {
+        reports = rawData.data.items;
+      } else if (rawData?.data?.data && Array.isArray(rawData.data.data)) {
+        reports = rawData.data.data;
+      } else if (rawData?.data && Array.isArray(rawData.data)) {
+        reports = rawData.data;
+      } else if (Array.isArray(rawData)) {
+        reports = rawData;
+      }
+
+      return reports;
+    } catch (error) {
+      console.error('Error fetching community reports:', error);
+      return [];
+    }
+  },
+
+  async getCalendarEvents(filters?: {
+    communityId?: number | string;
+    category?: string;
+    fromDate?: string; // Format: 1-1-2026
+    toDate?: string; // Format: 12-1-2026
+    page?: number;
+    pageSize?: number;
+  }): Promise<any[]> {
+    try {
+      const query = new URLSearchParams();
+      if (filters?.communityId) query.append('communityId', String(filters.communityId));
+      if (filters?.category) query.append('category', filters.category);
+      if (filters?.fromDate) query.append('fromDate', filters.fromDate);
+      if (filters?.toDate) query.append('toDate', filters.toDate);
+      if (filters?.page) query.append('page', String(filters.page));
+      if (filters?.pageSize) query.append('pageSize', String(filters.pageSize));
+
+      const url = `/communities/calendar${query.toString() ? '?' + query.toString() : ''}`;
+      const response = await api.get<any>(url);
+
+      // Extract data from response - handle the items array from the backend
+      const rawData = response.data;
+      let events: any[] = [];
+
+      // Handle response structure: { data: { items: [...], total, page, pageSize } }
+      if (rawData?.data?.items && Array.isArray(rawData.data.items)) {
+        events = rawData.data.items;
+      } else if (rawData?.data?.data && Array.isArray(rawData.data.data)) {
+        events = rawData.data.data;
+      } else if (rawData?.data && Array.isArray(rawData.data)) {
+        events = rawData.data;
+      } else if (Array.isArray(rawData)) {
+        events = rawData;
+      }
+
+      return events;
+    } catch (error) {
+      console.error('Error fetching calendar events:', error);
+      return [];
+    }
+  },
+
+  async createCalendarEvents(payload: {
+    communityId: number | string;
+    events: Array<{
+      title: string;
+      description: string;
+      category: string;
+      fromDate: string; // ISO 8601 date format
+      toDate?: string;  // ISO 8601 date format (toDate for backward compatibility)
+      endDate?: string; // ISO 8601 date format (endDate for consistency)
+      time?: string;
+      location: string;
+    }>;
+  }): Promise<{ success: boolean; data?: any; message?: string }> {
+    try {
+      // Normalize endDate/toDate field names - accept both for flexibility
+      const normalizedPayload = {
+        ...payload,
+        events: payload.events.map(event => ({
+          title: event.title,
+          description: event.description,
+          category: event.category,
+          fromDate: event.fromDate,
+          endDate: event.endDate || event.toDate, // Use endDate as primary, fall back to toDate
+          time: event.time,
+          location: event.location,
+        }))
+      };
+      
+      console.log('Creating calendar events with payload:', normalizedPayload);
+      
+      const response = await api.post('/communities/calendar', normalizedPayload);
+      console.log('Calendar events created successfully:', response.data);
+      
+      return {
+        success: true,
+        data: response.data?.data || response.data
+      };
+    } catch (error: any) {
+      console.error('Error creating calendar events:', error);
+      return {
+        success: false,
+        message: error?.response?.data?.message || error?.message || 'Failed to create calendar events'
+      };
+    }
+  },
+
+  async getUpcomingReports(type?: 'news' | 'announcement' | 'event'): Promise<{
+    today: any[];
+    tomorrow: any[];
+    totalToday: number;
+    totalTomorrow: number;
+  }> {
+    try {
+      const query = new URLSearchParams();
+      if (type) query.append('type', type);
+
+      const url = `/communities/reports/upcoming${query.toString() ? '?' + query.toString() : ''}`;
+      const response = await api.get<any>(url);
+
+      // Extract data from response structure
+      const rawData = response.data;
+      
+      if (rawData?.data) {
+        return {
+          today: rawData.data.today || [],
+          tomorrow: rawData.data.tomorrow || [],
+          totalToday: rawData.data.totalToday || 0,
+          totalTomorrow: rawData.data.totalTomorrow || 0
+        };
+      }
+
+      return {
+        today: [],
+        tomorrow: [],
+        totalToday: 0,
+        totalTomorrow: 0
+      };
+    } catch (error) {
+      console.error('Error fetching upcoming reports:', error);
+      return {
+        today: [],
+        tomorrow: [],
+        totalToday: 0,
+        totalTomorrow: 0
+      };
+    }
   }
 };
