@@ -119,18 +119,12 @@ const CommunityPage: React.FC = () => {
         const calendarData = {
           communityId: community.id,
           events: data.calendarEntries.map(entry => {
-            // Convert date + time to ISO datetime string
-            const dateTimeStr = entry.time 
-              ? `${entry.date}T${entry.time}:00`
-              : `${entry.date}T00:00:00`;
-            const dateTime = new Date(dateTimeStr).toISOString();
-            
             return {
               title: entry.title,
               description: entry.description,
               category: entry.category,
-              fromDate: dateTime,
-              toDate: dateTime,
+              fromDate: entry.fromDate,
+              toDate: entry.toDate,
               time: entry.time || '00:00',
               location: entry.location || '',
             };
