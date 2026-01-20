@@ -23,17 +23,8 @@ export class AuthService {
 
   static async signUp(userData: SignUpRequest): Promise<AuthResponse> {
     try {
-      // Try /register first, then fallback to /auth/register
-      try {
-        const response = await api.post<AuthResponse>('/register', userData);
-        return response.data;
-      } catch (error: any) {
-        if (error.response?.status === 404) {
-          const response = await api.post<AuthResponse>('/auth/register', userData);
-          return response.data;
-        }
-        throw error;
-      }
+      const response = await api.post<AuthResponse>('/auth/register', userData);
+      return response.data;
     } catch (error) {
       console.error('Sign up error:', error);
       throw error;

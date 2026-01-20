@@ -9,6 +9,7 @@ export const ENDPOINTS = {
     COMMUNITIES_SUSPEND: (id: string) => `/admin/communities/${id}/suspend`,
     COMMUNITIES_TERMINATE: (id: string) => `/admin/communities/${id}/terminate`,
     COMMUNITIES_REACTIVATE: (id: string) => `/admin/communities/${id}/reactivate`,
+    COMMUNITIES_UPDATE: (id: string) => `/communities/${id}`,
     REPORTS: '/admin/reports',
     REPORT_ACTION: (id: string) => `/admin/reports/${id}/action`,
     SUBSCRIPTIONS: '/admin/subscriptions',

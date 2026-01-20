@@ -7,9 +7,14 @@ import {
   DialogDescription,
   Input, 
   Button, 
-  Alert
+  Alert,
+  ShadcnSelect,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem
 } from '../../ui';
-import { Mail, Lock, User, UserPlus, ArrowRight, Info, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, User, UserPlus, ArrowRight, Info, CheckCircle2, Calendar, MapPin, UserCheck } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { SITE } from '@/constants/site';
 import { useTranslation } from 'react-i18next';
@@ -23,8 +28,12 @@ interface SignUpModalProps {
 export const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const { t } = useTranslation();
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
+    dateOfBirth: '',
+    sex: '',
+    address: '',
     password: '',
     confirmPassword: '',
     agreeToTerms: false
@@ -39,9 +48,13 @@ export const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSuc
   };
 
   const validateForm = () => {
-    if (!formData.name.trim()) return 'Name is required';
+    if (!formData.firstName.trim()) return 'First name is required';
+    if (!formData.lastName.trim()) return 'Last name is required';
     if (!formData.email.trim()) return 'Email is required';
     if (!/\S+@\S+\.\S+/.test(formData.email)) return 'Invalid email format';
+    if (!formData.dateOfBirth) return 'Date of birth is required';
+    if (!formData.sex) return 'Sex is required';
+    if (!formData.address.trim()) return 'Address is required';
     if (formData.password.length < 6) return 'Password must be at least 6 characters';
     if (formData.password !== formData.confirmPassword) return 'Passwords do not match';
     if (!formData.agreeToTerms) return 'You must agree to the terms';
@@ -61,7 +74,11 @@ export const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSuc
 
     try {
       await signup({
-        name: formData.name,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        dateOfBirth: formData.dateOfBirth,
+        sex: formData.sex,
+        address: formData.address,
         email: formData.email,
         password: formData.password
       });
@@ -79,16 +96,16 @@ export const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSuc
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[480px] bg-slate-50/95 backdrop-blur-sm border-none shadow-2xl rounded-[2rem] p-0 overflow-hidden">
-        <div className="relative p-8 md:p-10">
+      <DialogContent className="sm:max-w-[550px] bg-white border-none shadow-2xl rounded-[2.5rem] p-0 overflow-hidden">
+        <div className="relative p-8 md:p-10 max-h-[90vh] overflow-y-auto custom-scrollbar">
           <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/10 rounded-full -mr-16 -mt-16 blur-2xl" />
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-emerald-500/10 rounded-full -ml-16 -mb-16 blur-2xl" />
 
           <DialogHeader className="relative z-10 space-y-2 mb-8">
-            <DialogTitle className="text-3xl font-black text-slate-900 tracking-tight">
+            <DialogTitle className="text-3xl font-black text-slate-900 tracking-tight text-center">
               {t('auth.signup_title')}
             </DialogTitle>
-            <DialogDescription className="text-slate-500 font-medium">
+            <DialogDescription className="text-slate-500 font-medium text-center">
               {t('auth.signup_subtitle', { site: SITE.name })}
             </DialogDescription>
           </DialogHeader>
@@ -119,45 +136,120 @@ export const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSuc
                 />
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
+              <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
                 <div className="space-y-4">
+                  {/* Name Group */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <User className="w-3.5 h-3.5 text-teal-500" />
+                        First Name
+                      </label>
+                      <Input
+                        type="text"
+                        value={formData.firstName}
+                        onChange={(e) => handleInputChange('firstName', e.target.value)}
+                        placeholder="John"
+                        required
+                        disabled={loading}
+                        className="rounded-2xl border-slate-100 bg-slate-50/50 focus:bg-white transition-all h-12"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <User className="w-3.5 h-3.5 text-teal-500" />
+                        Last Name
+                      </label>
+                      <Input
+                        type="text"
+                        value={formData.lastName}
+                        onChange={(e) => handleInputChange('lastName', e.target.value)}
+                        placeholder="Doe"
+                        required
+                        disabled={loading}
+                        className="rounded-2xl border-slate-100 bg-slate-50/50 focus:bg-white transition-all h-12"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Date of Birth & Sex Group */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <Calendar className="w-3.5 h-3.5 text-teal-500" />
+                        Date of Birth
+                      </label>
+                      <Input
+                        type="date"
+                        value={formData.dateOfBirth}
+                        onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                        required
+                        disabled={loading}
+                        className="rounded-2xl border-slate-100 bg-slate-50/50 focus:bg-white transition-all h-12"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <UserCheck className="w-3.5 h-3.5 text-teal-500" />
+                        Sex
+                      </label>
+                      <ShadcnSelect
+                        value={formData.sex}
+                        onValueChange={(value) => handleInputChange('sex', value)}
+                        disabled={loading}
+                      >
+                        <SelectTrigger className="rounded-2xl border-slate-100 bg-slate-50/50 focus:bg-white transition-all h-12">
+                          <SelectValue placeholder="Select Sex" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border-slate-100 shadow-xl">
+                          <SelectItem value="male">Male</SelectItem>
+                          <SelectItem value="female">Female</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </ShadcnSelect>
+                    </div>
+                  </div>
+
+                  {/* Address Group */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                      <User className="w-3.5 h-3.5 text-teal-600" />
-                      {t('auth.full_name')}
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                      <MapPin className="w-3.5 h-3.5 text-teal-500" />
+                      Address
                     </label>
                     <Input
                       type="text"
-                      value={formData.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
-                      placeholder="John Doe"
+                      value={formData.address}
+                      onChange={(e) => handleInputChange('address', e.target.value)}
+                      placeholder="123 Rescue St, City, Country"
                       required
                       disabled={loading}
-                      className="rounded-xl border-slate-200 focus:ring-teal-500 bg-white h-11"
+                      className="rounded-2xl border-slate-100 bg-slate-50/50 focus:bg-white transition-all h-12"
                     />
                   </div>
 
+                  {/* Email Group */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                      <Mail className="w-3.5 h-3.5 text-teal-600" />
-                      {t('auth.email')}
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                      <Mail className="w-3.5 h-3.5 text-teal-500" />
+                      Email Address
                     </label>
                     <Input
                       type="email"
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
-                      placeholder="name@example.com"
+                      placeholder="john.doe@example.com"
                       required
                       disabled={loading}
-                      className="rounded-xl border-slate-200 focus:ring-teal-500 bg-white h-11"
+                      className="rounded-2xl border-slate-100 bg-slate-50/50 focus:bg-white transition-all h-12"
                     />
                   </div>
 
+                  {/* Password Group */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                        <Lock className="w-3.5 h-3.5 text-emerald-600" />
-                        {t('auth.password')}
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <Lock className="w-3.5 h-3.5 text-emerald-500" />
+                        Password
                       </label>
                       <Input
                         type="password"
@@ -166,13 +258,13 @@ export const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSuc
                         placeholder="••••••••"
                         required
                         disabled={loading}
-                        className="rounded-xl border-slate-200 focus:ring-teal-500 bg-white h-11"
+                        className="rounded-2xl border-slate-100 bg-slate-50/50 focus:bg-white transition-all h-12"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                        <Lock className="w-3.5 h-3.5 text-emerald-600" />
-                        {t('auth.confirm_password')}
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <Lock className="w-3.5 h-3.5 text-emerald-500" />
+                        Confirm
                       </label>
                       <Input
                         type="password"
@@ -181,7 +273,7 @@ export const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSuc
                         placeholder="••••••••"
                         required
                         disabled={loading}
-                        className="rounded-xl border-slate-200 focus:ring-teal-500 bg-white h-11"
+                        className="rounded-2xl border-slate-100 bg-slate-50/50 focus:bg-white transition-all h-12"
                       />
                     </div>
                   </div>
@@ -193,7 +285,7 @@ export const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSuc
                     id="agreeToTerms"
                     checked={formData.agreeToTerms}
                     onChange={(e) => handleInputChange('agreeToTerms', e.target.checked)}
-                    className="mt-1 w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                    className="mt-1 w-4 h-4 rounded-lg border-slate-300 text-teal-600 focus:ring-teal-500"
                   />
                   <label htmlFor="agreeToTerms" className="text-xs font-medium text-slate-500 leading-normal">
                     {t('auth.agree_terms')}
@@ -204,19 +296,19 @@ export const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSuc
                   type="submit"
                   loading={loading}
                   disabled={!formData.agreeToTerms || loading}
-                  className="w-full h-12 rounded-xl bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-100 font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full h-14 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white shadow-xl shadow-teal-100 font-black transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
                 >
-                  <UserPlus className="w-5 h-5 mr-2" />
-                  {t('auth.create_account')}
+                  <UserPlus className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
+                  Create Your Account
                   <ArrowRight className="w-4 h-4 ml-auto" />
                 </Button>
 
-                <div className="text-center pt-4">
+                <div className="text-center pt-2 pb-4">
                   <p className="text-slate-500 text-sm font-medium">
                     {t('auth.already_account')}{' '}
                     <button
                       type="button"
-                      className="text-teal-600 font-bold hover:underline"
+                      className="text-teal-600 font-black hover:underline"
                       onClick={() => {
                         onClose();
                         openLoginModal();

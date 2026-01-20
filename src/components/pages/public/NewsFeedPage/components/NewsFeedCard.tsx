@@ -15,7 +15,8 @@ import {
   Heart,
   Edit2,
   Trash2,
-  ShieldAlert
+  ShieldAlert,
+  Handshake
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
@@ -33,6 +34,7 @@ import { ReportsService, type LostFoundItem } from '@/services/reportsService';
 import CommentSection from '@/components/features/comments/CommentSection';
 import ReportAbuseModal from '@/components/modals/ReportAbuseModal';
 import EditReportModal from '@/components/modals/ReportModal/EditReportModal';
+import { MatchModal } from '@/components/modals/MatchModal/MatchModal';
 
 import { formatCurrencyPHP } from '@/utils/formatter';
 
@@ -57,6 +59,7 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isMatchesOpen, setIsMatchesOpen] = useState(false);
+  const [isMatchModalOpen, setIsMatchModalOpen] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   const isOwner = user?.id && String(item.user?.id) === String(user.id);
@@ -402,6 +405,19 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
                  <span>{totalCommentsCount}</span>
                </button>
                <button 
+                onClick={(e) => { e.stopPropagation(); setIsMatchModalOpen(true); }}
+                disabled={item.status === 'reunited'}
+                className={cn(
+                  "p-2 transition-colors rounded-xl",
+                  item.status === 'reunited' 
+                    ? "text-slate-200 cursor-not-allowed" 
+                    : "text-slate-400 hover:text-orange-500 hover:bg-orange-50"
+                )}
+                title={item.status === 'reunited' ? "Report already resolved" : "Possible Matches"}
+               >
+                 <Handshake className="w-4 h-4" />
+               </button>
+               <button 
                 onClick={handleShare}
                 className="p-2 text-slate-400 hover:text-teal-500 transition-colors rounded-xl hover:bg-teal-50"
                >
@@ -440,6 +456,12 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
           // Ideally we'd refresh the feed or update the item state
           window.location.reload();
         }}
+      />
+
+      <MatchModal 
+        isOpen={isMatchModalOpen}
+        onClose={() => setIsMatchModalOpen(false)}
+        report={item}
       />
     </Card>
   );

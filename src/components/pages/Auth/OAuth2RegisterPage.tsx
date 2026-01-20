@@ -167,16 +167,25 @@ const OAuth2RegisterPage: React.FC = () => {
 
     try {
       // Combine Google data with additional form data
-      const registrationData = {
+      // Split Google name into first and last name if possible
+      const nameParts = (googleUserData.name || '').split(' ');
+      const firstName = nameParts[0] || 'Unknown';
+      const lastName = nameParts.slice(1).join(' ') || 'User';
+
+      const registrationData: any = {
         // Google provided data
-        name: googleUserData.name,
+        firstName,
+        lastName,
         email: googleUserData.email,
+        dateOfBirth: '2000-01-01', // Default placeholder
+        sex: 'other', // Default placeholder
+        address: formData.location || 'Not Specified', // Default placeholder
         // User provided additional data
         phone: formData.phone,
         location: formData.location,
         bio: formData.bio,
         agreeToNewsletter: formData.agreeToNewsletter,
-        // OAuth2 specific fields that your backend should handle
+        // OAuth2 specific fields
         provider: 'google' as const,
         googleId: googleUserData.googleId,
         profilePicture: googleUserData.picture,

@@ -3,6 +3,7 @@ export { default as CreateReportModal } from './ReportModal/CreateReportModal';
 export { default as EditReportModal } from './ReportModal/EditReportModal';
 export { SettingsModal } from './SettingsModal';
 export { default as CreateCommunityModal } from './Community/CreateCommunityModal';
+export { default as EditCommunityModal } from './Community/EditCommunityModal';
 export { CommunityProfileModal } from './Community/CommunityProfileModal';
 export { default as InviteModal } from './Community/InviteModal';
 export { ProfilePreviewModal } from './ProfilePreviewModal';

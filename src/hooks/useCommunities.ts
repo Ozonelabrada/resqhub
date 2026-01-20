@@ -42,7 +42,7 @@ export const useCommunityDetail = (id: string | undefined) => {
     try {
       const [communityData, postsData, membersData] = await Promise.all([
         CommunityService.getCommunityById(id),
-        CommunityService.getCommunityPosts(id),
+        CommunityService.getCommunityPosts(id, undefined, 'active'), // Fetch only active posts
         CommunityService.getCommunityMembers ? CommunityService.getCommunityMembers(id) : Promise.resolve([])
       ]);
 
@@ -64,7 +64,11 @@ export const useCommunityDetail = (id: string | undefined) => {
       }
 
       setCommunity(updatedCommunity);
-      setPosts(Array.isArray(postsData) ? postsData : []);
+      // Filter for active posts by default
+      const activePosts = Array.isArray(postsData) 
+        ? postsData.filter((post: CommunityPost) => post.status === 'active')
+        : [];
+      setPosts(activePosts);
       setMembers(Array.isArray(membersData) ? membersData : []);
       // Don't automatically fetch join requests on page load
       setJoinRequests([]);

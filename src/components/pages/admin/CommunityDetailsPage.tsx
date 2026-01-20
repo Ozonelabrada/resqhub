@@ -17,7 +17,8 @@ import {
   AlertTriangle,
   Clock,
   ChevronDown,
-  MoreVertical
+  MoreVertical,
+  Layers
 } from 'lucide-react';
 import {
   Card,
@@ -30,6 +31,13 @@ import {
   TabTrigger,
   TabContent
 } from '../../ui';
+import {
+  CreateCommunityModal,
+  EditCommunityModal,
+  InviteModal,
+  CreateReportModal,
+  ProfilePreviewModal
+} from '../../modals';
 import { AdminConfirmModal } from '../../ui/admin';
 import { cn } from '@/lib/utils';
 import { AdminService } from '@/services';
@@ -52,6 +60,7 @@ const CommunityDetailsPage: React.FC = () => {
   const [showSuspendModal, setShowSuspendModal] = useState(false);
   const [showTerminateModal, setShowTerminateModal] = useState(false);
   const [showReactivateModal, setShowReactivateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [showActionDropdown, setShowActionDropdown] = useState(false);
 
@@ -126,15 +135,16 @@ const CommunityDetailsPage: React.FC = () => {
     
     try {
       setActionLoading(true);
-      const success = await AdminService.approveCommunity(id, {
+      const response = await AdminService.approveCommunity(id, {
         type: 'approve',
         reason: 'Community meets all requirements',
         notifyUser: true
       });
       
-      if (success && community) {
+      if (response.succeeded && community) {
         setCommunity({ ...community, status: 'active' });
         setShowApproveModal(false);
+        (window as any).showToast?.('success', 'Approved', 'Community has been approved successfully.');
       }
     } catch (error) {
       console.error('Error approving community:', error);
@@ -148,15 +158,16 @@ const CommunityDetailsPage: React.FC = () => {
     
     try {
       setActionLoading(true);
-      const success = await AdminService.rejectCommunity(id, {
+      const response = await AdminService.rejectCommunity(id, {
         type: 'reject',
         reason: 'Community does not meet platform guidelines',
         notifyUser: true
       });
       
-      if (success && community) {
+      if (response.succeeded && community) {
         setCommunity({ ...community, status: 'rejected' });
         setShowRejectModal(false);
+        (window as any).showToast?.('success', 'Rejected', 'Community request has been rejected.');
       }
     } catch (error) {
       console.error('Error rejecting community:', error);
@@ -170,15 +181,16 @@ const CommunityDetailsPage: React.FC = () => {
     
     try {
       setActionLoading(true);
-      const success = await AdminService.suspendCommunity(id, {
+      const response = await AdminService.suspendCommunity(id, {
         type: 'suspend',
         reason: 'Community suspended for policy violation',
         notifyUser: true
       });
       
-      if (success && community) {
+      if (response.succeeded && community) {
         setCommunity({ ...community, status: 'suspended' });
         setShowSuspendModal(false);
+        (window as any).showToast?.('success', 'Suspended', 'Community has been suspended.');
       }
     } catch (error) {
       console.error('Error suspending community:', error);
@@ -192,15 +204,16 @@ const CommunityDetailsPage: React.FC = () => {
     
     try {
       setActionLoading(true);
-      const success = await AdminService.terminateCommunity(id, {
+      const response = await AdminService.terminateCommunity(id, {
         type: 'terminate',
         reason: 'Community permanently terminated',
         notifyUser: true
       });
       
-      if (success && community) {
+      if (response.succeeded && community) {
         setCommunity({ ...community, status: 'terminated' });
         setShowTerminateModal(false);
+        (window as any).showToast?.('success', 'Terminated', 'Community has been permanently terminated.');
       }
     } catch (error) {
       console.error('Error terminating community:', error);
@@ -214,15 +227,16 @@ const CommunityDetailsPage: React.FC = () => {
     
     try {
       setActionLoading(true);
-      const success = await AdminService.reactivateCommunity(id, {
+      const response = await AdminService.reactivateCommunity(id, {
         type: 'reactivate',
         reason: 'Community has been reactivated',
         notifyUser: true
       });
       
-      if (success && community) {
+      if (response.succeeded && community) {
         setCommunity({ ...community, status: 'active' });
         setShowReactivateModal(false);
+        (window as any).showToast?.('success', 'Reactivated', 'Community has been reactivated.');
       }
     } catch (error) {
       console.error('Error reactivating community:', error);
@@ -251,18 +265,32 @@ const CommunityDetailsPage: React.FC = () => {
   };
 
   const getActionMenuItems = () => {
-    switch (community.status) {
+    const editItem = {
+      label: 'Edit Community Details',
+      icon: <Settings size={16} className="text-slate-600" />,
+      action: () => setShowEditModal(true)
+    };
+
+    switch (community.status.toLowerCase()) {
       case 'pending':
         return [
+          editItem,
           {
             label: 'Approve Community',
             icon: <CheckCircle size={16} className="text-green-600" />,
             action: () => setShowApproveModal(true),
             variant: 'success' as const
+          },
+          {
+            label: 'Reject Community',
+            icon: <XCircle size={16} className="text-red-600" />,
+            action: () => setShowRejectModal(true),
+            variant: 'danger' as const
           }
         ];
       case 'active':
         return [
+          editItem,
           {
             label: 'Suspend Community',
             icon: <AlertTriangle size={16} className="text-yellow-600" />,
@@ -278,6 +306,7 @@ const CommunityDetailsPage: React.FC = () => {
         ];
       case 'terminated':
         return [
+          editItem,
           {
             label: 'Reactivate Community',
             icon: <CheckCircle size={16} className="text-green-600" />,
@@ -286,12 +315,46 @@ const CommunityDetailsPage: React.FC = () => {
           }
         ];
       default:
-        return [];
+        return [editItem];
     }
   };
 
   return (
     <div className="space-y-8">
+      {/* Pending Banner */}
+      {community.status === 'pending' && (
+        <div className="bg-white border-2 border-amber-200 p-6 rounded-[2.5rem] flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-amber-50">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600">
+              <Clock size={28} />
+            </div>
+            <div>
+              <h3 className="text-xl font-black text-slate-900">Pending Approval</h3>
+              <p className="text-slate-500 font-medium">Review this community's details before making a decision.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <Button 
+                onClick={() => setShowRejectModal(true)}
+                variant="ghost" 
+                className="flex-1 md:flex-none h-14 px-8 rounded-2xl font-black text-rose-500 hover:bg-rose-50 hover:text-rose-600"
+                disabled={actionLoading}
+            >
+                <XCircle size={20} className="mr-2" />
+                Reject
+            </Button>
+            <Button 
+                onClick={() => setShowApproveModal(true)}
+                className="flex-1 md:flex-none h-14 px-8 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-black shadow-lg shadow-teal-100"
+                disabled={actionLoading}
+            >
+                <CheckCircle size={20} className="mr-2" />
+                Approve Request
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Community Header summary card */}
       <Card className="p-6">
         <div className="flex flex-col md:flex-row gap-6">
@@ -322,6 +385,12 @@ const CommunityDetailsPage: React.FC = () => {
                     <Calendar size={16} />
                     Created {new Date(community.createdAt).toLocaleDateString()}
                   </div>
+                  {community.parentCommunityName && (
+                    <div className="flex items-center gap-2 text-teal-600 font-bold">
+                      <Shield size={16} />
+                      Part of {community.parentCommunityName}
+                    </div>
+                  )}
                   {community.location && (
                     <div className="flex items-center gap-2">
                       <MapPin size={16} />
@@ -375,6 +444,10 @@ const CommunityDetailsPage: React.FC = () => {
           <TabTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 size={16} />
             Overview
+          </TabTrigger>
+          <TabTrigger value="hierarchy" className="flex items-center gap-2">
+            <Layers size={16} />
+            Sub-Communities
           </TabTrigger>
           <TabTrigger value="members" className="flex items-center gap-2">
             <Users size={16} />
@@ -493,6 +566,59 @@ const CommunityDetailsPage: React.FC = () => {
               </div>
             )}
           </Card>
+        </TabContent>
+
+        {/* Hierarchy Tab */}
+        <TabContent value="hierarchy" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {community.childCommunities && community.childCommunities.length > 0 ? (
+              community.childCommunities.map((child) => (
+                <Card 
+                  key={child.id} 
+                  className="group p-6 hover:shadow-xl transition-all border-slate-100 hover:border-teal-100 cursor-pointer"
+                  onClick={() => navigate(`/admin/communities/${child.id}`)}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center text-teal-600">
+                      <Users size={24} />
+                    </div>
+                    <Badge className={cn(
+                      "px-3 py-1 rounded-full font-bold text-[10px] uppercase border-none",
+                      child.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                    )}>
+                      {child.isActive ? 'Active' : 'Inactive'}
+                    </Badge>
+                  </div>
+                  <h4 className="text-xl font-black text-slate-900 mb-2 truncate" title={child.name}>{child.name}</h4>
+                  <p className="text-sm text-slate-500 line-clamp-2 mb-4 h-10">
+                    {child.description || 'No description provided.'}
+                  </p>
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-50">
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
+                      <Users size={14} />
+                      {child.memberCount} Members
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className="text-[10px] font-black text-slate-400 uppercase">
+                        {new Date(child.dateCreated).toLocaleDateString()}
+                      </span>
+                      <span className="text-[10px] font-black text-slate-300 uppercase">
+                        {child.privacy}
+                      </span>
+                    </div>
+                  </div>
+                </Card>
+              ))
+            ) : (
+              <div className="col-span-full py-16 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center">
+                <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-slate-300 mb-4 shadow-sm">
+                  <Layers size={32} />
+                </div>
+                <h3 className="text-lg font-black text-slate-800 mb-1">No Sub-Communities</h3>
+                <p className="text-slate-500 max-w-xs">This community doesn't have any child communities assigned yet.</p>
+              </div>
+            )}
+          </div>
         </TabContent>
 
         {/* Members Tab */}
@@ -670,6 +796,16 @@ const CommunityDetailsPage: React.FC = () => {
         confirmText="Reactivate"
         variant="success"
         loading={actionLoading}
+      />
+
+      <EditCommunityModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        community={community}
+        onSuccess={(updated) => {
+          setCommunity(updated);
+          setShowEditModal(false);
+        }}
       />
     </div>
   );

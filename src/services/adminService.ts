@@ -175,7 +175,7 @@ export class AdminService {
     }
 
     try {
-      const response = await api.post(ENDPOINTS.ADMIN.COMMUNITIES_APPROVE(String(id)), action);
+      const response = await api.patch(ENDPOINTS.ADMIN.COMMUNITIES_APPROVE(String(id)), action);
       return response.data;
     } catch (error) {
       console.error('Error approving community:', error);
@@ -207,7 +207,7 @@ export class AdminService {
     }
 
     try {
-      const response = await api.post(ENDPOINTS.ADMIN.COMMUNITIES_REJECT(String(id)), action);
+      const response = await api.patch(ENDPOINTS.ADMIN.COMMUNITIES_REJECT(String(id)), action);
       return response.data;
     } catch (error) {
       console.error('Error rejecting community:', error);
@@ -240,7 +240,7 @@ export class AdminService {
     }
 
     try {
-      const response = await api.post(ENDPOINTS.ADMIN.COMMUNITIES_SUSPEND(String(id)), action);
+      const response = await api.patch(ENDPOINTS.ADMIN.COMMUNITIES_SUSPEND(String(id)), action);
       return response.data;
     } catch (error) {
       console.error('Error suspending community:', error);
@@ -273,7 +273,7 @@ export class AdminService {
     }
 
     try {
-      const response = await api.post(ENDPOINTS.ADMIN.COMMUNITIES_TERMINATE(String(id)), action);
+      const response = await api.patch(ENDPOINTS.ADMIN.COMMUNITIES_TERMINATE(String(id)), action);
       return response.data;
     } catch (error) {
       console.error('Error terminating community:', error);
@@ -306,7 +306,7 @@ export class AdminService {
     }
 
     try {
-      const response = await api.post(ENDPOINTS.ADMIN.COMMUNITIES_REACTIVATE(String(id)), action);
+      const response = await api.patch(ENDPOINTS.ADMIN.COMMUNITIES_REACTIVATE(String(id)), action);
       return response.data;
     } catch (error) {
       console.error('Error reactivating community:', error);
@@ -322,6 +322,39 @@ export class AdminService {
       };
     }
   }
+
+  static async updateCommunity(id: string | number, data: Partial<CommunityDetail>): Promise<AdminActionResponse> {
+    if (USE_MOCK_DATA) {
+      await this.simulateDelay();
+      return {
+        succeeded: true,
+        message: 'Community updated successfully (Mock)',
+        statusCode: 200,
+        data: {
+          success: true,
+          message: 'Community details have been updated',
+          updatedItem: { ...this.getMockCommunities().find(c => String(c.id) === String(id)), ...data } as any
+        }
+      };
+    }
+
+    try {
+      const response = await api.put(ENDPOINTS.ADMIN.COMMUNITIES_UPDATE(String(id)), data);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating community:', error);
+      return {
+        succeeded: false,
+        message: 'Failed to update community details',
+        statusCode: 500,
+        data: {
+          success: false,
+          message: 'Failed to update community details'
+        }
+      };
+    }
+  }
+
   static async getReports(params: ReportListParams = {}): Promise<ReportListResponse> {
     if (USE_MOCK_DATA) {
       await this.simulateDelay();
@@ -345,7 +378,9 @@ export class AdminService {
       const queryParams = new URLSearchParams();
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== '') {
-          queryParams.append(key, String(value));
+          // Map key to ReportStatus if it's the status filter
+          const apiKey = key === 'status' ? 'ReportStatus' : key;
+          queryParams.append(apiKey, String(value));
         }
       });
 
