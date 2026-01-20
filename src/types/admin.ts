@@ -52,6 +52,18 @@ export interface CommunityDetail extends CommunitySummary {
   bannerUrl?: string;
   location?: string;
   rules?: string[];
+  parentId?: string | number | null;
+  parentCommunityName?: string | null;
+  childCommunities?: Array<{
+    id: number;
+    name: string;
+    description: string;
+    imageUrl?: string | null;
+    isActive: boolean;
+    memberCount: number;
+    dateCreated: string;
+    privacy: string;
+  }>;
   moderators: UserData[];
   features?: CommunityFeature[];
   settings: {

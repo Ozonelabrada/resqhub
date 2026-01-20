@@ -13,9 +13,6 @@ import {
 } from '../../ui';
 import { 
   Users, 
-  CheckCircle2, 
-  XCircle,
-  Eye,
   Inbox,
   Search
 } from 'lucide-react';
@@ -54,32 +51,6 @@ const CommunityManagementPage: React.FC = () => {
     } finally {
       // Ensure loading is ALWAYS disabled
       setTimeout(() => setLoading(false), 300);
-    }
-  };
-
-  const handleStatusUpdate = async (id: string | number, status: 'approved' | 'rejected') => {
-    try {
-      const response = status === 'approved' 
-        ? await AdminService.approveCommunity(String(id), {
-            type: 'approve',
-            reason: `Community has been approved by admin.`,
-            notifyUser: true
-          })
-        : await AdminService.rejectCommunity(id, {
-            type: 'reject',
-            reason: `Community has been rejected by admin.`,
-            notifyUser: true
-          });
-
-      if (response.succeeded) {
-        setCommunities(communities.filter(c => c.id !== id));
-        (window as any).showToast?.('success', 'Status Updated', `Community has been ${status}.`);
-      } else {
-        (window as any).showToast?.('error', 'Update Failed', response.message || 'Could not update community status.');
-      }
-    } catch (error) {
-      console.error('Error updating status:', error);
-      (window as any).showToast?.('error', 'Error', 'An error occurred while updating status.');
     }
   };
 
@@ -173,38 +144,11 @@ const CommunityManagementPage: React.FC = () => {
 
                             <div className="mt-auto p-4 bg-slate-50/50 flex items-center gap-2 border-t border-slate-50">
                                 <Button 
-                                    variant="ghost" 
-                                    className="w-12 h-12 rounded-2xl font-black text-blue-500 hover:bg-blue-50 p-0"
                                     onClick={() => navigate(`/admin/communities/${item.id}`)}
+                                    className="flex-1 h-12 rounded-2xl bg-slate-800 hover:bg-slate-900 text-white font-black transition-all"
                                 >
-                                    <Eye size={20} />
+                                    Manage
                                 </Button>
-                                {item.status === 'pending' && (
-                                  <>
-                                    <Button 
-                                        onClick={() => handleStatusUpdate(item.id, 'rejected')}
-                                        variant="ghost" 
-                                        className="w-12 h-12 rounded-2xl font-black text-rose-500 hover:bg-rose-50 hover:text-rose-600 p-0"
-                                    >
-                                        <XCircle size={22} />
-                                    </Button>
-                                    <Button 
-                                        onClick={() => handleStatusUpdate(item.id, 'approved')}
-                                        className="flex-1 h-12 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-black shadow-lg shadow-teal-100"
-                                    >
-                                        <CheckCircle2 size={18} className="mr-2" />
-                                        Approve
-                                    </Button>
-                                  </>
-                                )}
-                                {item.status !== 'pending' && (
-                                  <Button 
-                                      onClick={() => navigate(`/admin/communities/${item.id}`)}
-                                      className="flex-1 h-12 rounded-2xl bg-slate-800 hover:bg-slate-900 text-white font-black"
-                                  >
-                                      Manage
-                                  </Button>
-                                )}
                             </div>
                         </Card>
                     ))}

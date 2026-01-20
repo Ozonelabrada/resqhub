@@ -27,7 +27,6 @@ export const useTrendingReports = (): UseTrendingReportsReturn => {
       if (Array.isArray(data)) {
         if (data.length === 0) {
           // If API returns empty array, use fallback data for demo purposes
-          console.log('API returned empty array, using fallback data for demo');
           setTrendingReports(TrendingReportsService.getFallbackTrendingReports());
         } else {
           setTrendingReports(data);

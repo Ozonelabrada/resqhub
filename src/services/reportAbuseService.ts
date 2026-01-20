@@ -48,7 +48,7 @@ export const ReportAbuseService = {
   async getAllReports(params?: { status?: string, pageNumber?: number, pageSize?: number, communityId?: string | number }): Promise<ReportAbuseResponse[]> {
     try {
       const query = new URLSearchParams();
-      if (params?.status) query.append('Status', params.status);
+      if (params?.status) query.append('ReportStatus', params.status);
       if (params?.pageNumber) query.append('pageNumber', String(params.pageNumber));
       if (params?.pageSize) query.append('pageSize', String(params.pageSize));
       if (params?.communityId) query.append('communityId', String(params.communityId));

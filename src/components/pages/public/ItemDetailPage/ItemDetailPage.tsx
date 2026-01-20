@@ -153,7 +153,7 @@ const ItemDetailPage: React.FC = () => {
                   )}
                   
                     <div className="absolute top-6 left-6">
-                      <StatusBadge status={item.status === 2 ? 'reunited' : (item.reportType.toLowerCase() === 'lost' ? 'lost' : 'found')} />
+                      <StatusBadge status={String(item.status).toLowerCase() === 'reunited' ? 'reunited' : (item.reportType.toLowerCase() === 'lost' ? 'lost' : 'found')} />
                     </div>
                 </div>
 

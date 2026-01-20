@@ -54,9 +54,13 @@ export const CommunityService = {
     }
   },
 
-  async getCommunityPosts(id: string, type?: string): Promise<CommunityPost[]> {
+  async getCommunityPosts(id: string, type?: string, status?: string | number): Promise<CommunityPost[]> {
     try {
-      const query = type ? `?type=${type}` : '';
+      const queryParams = new URLSearchParams();
+      if (type) queryParams.append('type', type);
+      if (status !== undefined) queryParams.append('ReportStatus', String(status));
+      
+      const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
       const response = await api.get<{ data: { data: CommunityPost[] } }>(`/reports/communities/${id}/posts${query}`);
       const data = response.data?.data?.data;
       return Array.isArray(data) ? data : [];

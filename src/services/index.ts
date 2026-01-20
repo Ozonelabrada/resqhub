@@ -12,3 +12,4 @@ export { ReactionsService } from './reactionsService';
 export { StoreService } from './storeService';
 export { AdminService } from './adminService';
 export { appConfigService } from './appConfigService';
+export { ReportMatchService } from './reportMatchService';

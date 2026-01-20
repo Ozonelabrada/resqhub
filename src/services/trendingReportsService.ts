@@ -27,9 +27,6 @@ export class TrendingReportsService {
       const response = await api.request<PaginatedTrendingReportsResponse>({
         url: '/trending-reports/all'
       });
-      
-      console.log('Trending reports API response received');
-      
       const responseData = response.data;
       if (responseData.succeeded && responseData.data) {
         const data = responseData.data;
@@ -46,7 +43,6 @@ export class TrendingReportsService {
         
         for (const prop of possibleArrayProperties) {
           if (data[prop] && Array.isArray(data[prop])) {
-            console.log(`Found trending reports in property: ${prop}`, data[prop]);
             return data[prop];
           }
         }
@@ -59,7 +55,6 @@ export class TrendingReportsService {
             const firstItem = data[key][0];
             if (firstItem && typeof firstItem === 'object' && 
                 ('title' in firstItem || 'category' in firstItem || 'reports' in firstItem)) {
-              console.log(`Found trending reports in property: ${key}`, data[key]);
               return data[key];
             }
           }

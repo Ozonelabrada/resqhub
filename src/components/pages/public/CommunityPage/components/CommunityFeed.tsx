@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Avatar, Button, ShadcnBadge as Badge } from '@/components/ui';
-import { Newspaper, Shield, Trash2, Pin, MessageSquare, Heart, ChevronDown, ChevronUp, AlertCircle, Search, Info, Plus } from 'lucide-react';
+import { Newspaper, Shield, Trash2, Pin, MessageSquare, Heart, ChevronDown, ChevronUp, AlertCircle, Search, Info, Plus, Handshake } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDate } from '@/utils';
 import CommentSection from '@/components/features/comments/CommentSection';
@@ -9,6 +9,7 @@ import { CommunityService } from '@/services/communityService';
 import { ReactionsService } from '@/services/reactionsService';
 import { useAuth } from '@/context/AuthContext';
 import { CreateReportModal } from '@/components/modals';
+import { MatchModal } from '@/components/modals/MatchModal/MatchModal';
 
 interface CommunityFeedProps {
   communityId: string;
@@ -33,6 +34,8 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [expandedComments, setExpandedComments] = useState<Record<number, boolean>>({});
+  const [isMatchModalOpen, setIsMatchModalOpen] = useState(false);
+  const [selectedPostForMatch, setSelectedPostForMatch] = useState<CommunityPost | null>(null);
 
   const isUserMember = isMember || isAdmin;
   const canPost = isAuthenticated && isUserMember;
@@ -303,6 +306,20 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
                         {expandedComments[post.id] ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                       </div>
                     </button>
+
+                    <button 
+                      onClick={() => { setSelectedPostForMatch(post); setIsMatchModalOpen(true); }}
+                      disabled={post.status?.toLowerCase() === 'reunited'}
+                      className={cn(
+                        "flex items-center gap-2 group/btn ml-2",
+                        post.status?.toLowerCase() === 'reunited' && "cursor-not-allowed opacity-40"
+                      )}
+                      title={post.status?.toLowerCase() === 'reunited' ? "Already resolved" : "Possible Matches"}
+                    >
+                      <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover/btn:bg-orange-50 group-hover/btn:text-orange-600 transition-all">
+                        <Handshake size={18} />
+                      </div>
+                    </button>
                     
                     {!isUserMember && expandedComments[post.id] && (
                       <div className="ml-auto text-[10px] font-black text-orange-400 uppercase tracking-widest bg-orange-50 px-3 py-1 rounded-lg">
@@ -342,6 +359,17 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
         onSuccess={onRefresh}
         communityId={communityId}
       />
+
+      {selectedPostForMatch && (
+        <MatchModal 
+          isOpen={isMatchModalOpen}
+          onClose={() => setIsMatchModalOpen(false)}
+          report={{
+            ...selectedPostForMatch,
+            status: selectedPostForMatch.reportType?.toLowerCase()
+          }}
+        />
+      )}
     </div>
   );
 };

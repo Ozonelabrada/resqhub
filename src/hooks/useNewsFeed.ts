@@ -15,6 +15,7 @@ interface UseNewsFeedReturn {
 export const useNewsFeed = (options?: { 
   reportType?: string; 
   search?: string;
+  status?: number;
 }): UseNewsFeedReturn => {
   const [items, setItems] = useState<NewsFeedItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -35,7 +36,8 @@ export const useNewsFeed = (options?: {
         reportType: options?.reportType,
         search: options?.search,
         page: page,
-        pageSize: pageSize
+        pageSize: pageSize,
+        status: options?.status !== undefined ? options.status : 'active' // Default to active string
       });
 
       const mappedItems: NewsFeedItem[] = reports.map(report => {
@@ -57,6 +59,12 @@ export const useNewsFeed = (options?: {
           .map(img => formatImageUrl(img.imageUrl))
           .filter(Boolean);
 
+        // Determine effective status string
+        let effectiveStatus = type;
+        if (String(report.status).toLowerCase() === 'reunited') {
+          effectiveStatus = 'reunited';
+        }
+
         return {
           id: String(report.id),
           title: report.title || `${report.reportType} Item`,
@@ -65,7 +73,7 @@ export const useNewsFeed = (options?: {
           currentLocation: '',
           date: report.dateCreated || new Date().toISOString(),
           time: '',
-          status: type,
+          status: effectiveStatus,
           views: 0,
           type: type,
           description: report.description || '',

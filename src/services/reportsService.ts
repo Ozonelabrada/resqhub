@@ -62,6 +62,7 @@ export const ReportsService = {
     page?: number; 
     pageSize?: number;
     search?: string;
+    status?: number | string;
   }): Promise<LostFoundItem[]> {
     try {
       const query = new URLSearchParams();
@@ -73,6 +74,7 @@ export const ReportsService = {
       if (params?.page) query.append('pageNumber', String(params.page));
       if (params?.pageSize) query.append('pageSize', String(params.pageSize));
       if (params?.search) query.append('search', params.search);
+      if (params?.status !== undefined) query.append('ReportStatus', String(params.status));
       
       const url = `/reports/all${query.toString() ? '?' + query.toString() : ''}`;
       const response = await api.get<any>(url);
