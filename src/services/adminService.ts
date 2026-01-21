@@ -658,8 +658,7 @@ export class AdminService {
       {
         id: 5,
         name: "sdsds",
-        status: "",
-        isActive: true,
+        status: "active",
         subscriptionTier: null,
         createdAt: "2026-01-14T03:45:27.433742Z",
         membersCount: 0
@@ -667,8 +666,7 @@ export class AdminService {
       {
         id: 4,
         name: "Local Government Unit of Manolo Fortich",
-        status: "",
-        isActive: true,
+        status: "active",
         subscriptionTier: null,
         createdAt: "2026-01-13T16:44:14.208192Z",
         membersCount: 0
@@ -676,8 +674,7 @@ export class AdminService {
       {
         id: 3,
         name: "FINDRHUB",
-        status: "",
-        isActive: false,
+        status: "inactive",
         subscriptionTier: null,
         createdAt: "2026-01-12T12:35:49.843787Z",
         membersCount: 0
@@ -685,8 +682,7 @@ export class AdminService {
       {
         id: 2,
         name: "Barangay Santo Niño",
-        status: "",
-        isActive: false,
+        status: "inactive",
         subscriptionTier: null,
         createdAt: "2026-01-11T15:55:38.088595Z",
         membersCount: 0
@@ -694,8 +690,7 @@ export class AdminService {
       {
         id: 1,
         name: "Barangay Dicklum",
-        status: "",
-        isActive: true,
+        status: "active",
         subscriptionTier: null,
         createdAt: "2026-01-11T15:37:22.028191Z",
         membersCount: 0

@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
-import { useFeatureFlags, useScreenSize } from '../hooks';
+import { useFeatureFlags, useScreenSize, useNotifications } from '../hooks';
 import { Menubar, Menu, Avatar, Button, Logo } from '../components/ui';
 import type { MenuRef } from '../components/ui';
 import { LoginModal } from '../components/modals/Auth/LoginModal';
@@ -36,6 +36,7 @@ const PublicLayout = () => {
   const { t } = useTranslation();
   const { isFeatureEnabled } = useFeatureFlags();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { unreadCount } = useNotifications();
   const { 
     isAuthenticated,
     isLoginModalOpen, 
@@ -148,6 +149,20 @@ const PublicLayout = () => {
 
   const end = (
           <div className="flex items-center gap-2">
+          {/* Notification Icon */}
+          <button 
+            className="relative p-2 text-white hover:bg-white/10 rounded-xl transition-colors" 
+            title="Notifications"
+            onClick={() => navigate('/notifications')}
+          >
+            <Bell className="w-5 h-5" />
+            {isAuthenticated && unreadCount > 0 && (
+              <span className="absolute top-1 right-1 bg-rose-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </button>
+
           {/* Language Quick Switcher */}
           <Button
             variant="ghost"
@@ -224,6 +239,20 @@ const PublicLayout = () => {
             />
           </div>
           <div className="flex items-center gap-0.5">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="relative text-white hover:bg-white/15 rounded-lg transition-colors p-2"
+              onClick={() => navigate('/notifications')}
+              title="Notifications"
+            >
+              <Bell size={20} />
+              {isAuthenticated && unreadCount > 0 && (
+                <span className="absolute top-0.5 right-0.5 bg-rose-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </Button>
             <Button
               variant="ghost"
               size="sm"

@@ -31,6 +31,7 @@ import {
 } from '../components/ui';
 import type { MenuRef } from '../components/ui';
 import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../hooks/useNotifications';
 import ConfirmationModal from '../components/modals/ConfirmationModal/ConfirmationModal';
 
 const AdminLayout: React.FC = () => {
@@ -38,6 +39,7 @@ const AdminLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { unreadCount } = useNotifications();
 
   const userMenuRef = useRef<MenuRef>(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -254,9 +256,13 @@ const AdminLayout: React.FC = () => {
               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">System Healthy</span>
             </div>
 
-            <button className="relative p-2 text-slate-500 hover:bg-slate-100 rounded-xl transition-all">
+            <button className="relative p-2 text-slate-500 hover:bg-slate-100 rounded-xl transition-all" title="Notifications">
               <Bell size={20} />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 bg-rose-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
             </button>
 
             <div className="h-8 w-px bg-slate-200 mx-2 hidden sm:block" />

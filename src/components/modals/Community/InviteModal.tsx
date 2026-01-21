@@ -169,9 +169,6 @@ const InviteModal: React.FC<InviteModalProps> = ({ isOpen, onClose, communityNam
         </div>
 
         <DialogFooter className="flex items-center justify-end gap-2 pt-4">
-          <Button variant="ghost" onClick={onClose} className="font-bold text-slate-400 rounded-xl h-12">
-            {t('common.cancel')}
-          </Button>
           <Button 
             disabled={loading || selectedUsers.length === 0}
             onClick={handleInvite}

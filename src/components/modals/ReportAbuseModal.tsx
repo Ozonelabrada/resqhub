@@ -149,13 +149,6 @@ const ReportAbuseModal: React.FC<ReportAbuseModalProps> = ({
 
         <DialogFooter className="p-8 pt-0 flex gap-3">
           <Button 
-            variant="ghost" 
-            onClick={handleClose} 
-            className="flex-1 font-bold text-slate-500 h-12 rounded-xl"
-          >
-            Cancel
-          </Button>
-          <Button 
             onClick={handleSubmit}
             disabled={!reason || isSubmitting}
             className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-black h-12 rounded-xl shadow-lg shadow-teal-100"

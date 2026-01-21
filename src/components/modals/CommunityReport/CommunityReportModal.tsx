@@ -449,13 +449,6 @@ export const CommunityReportModal: React.FC<CommunityReportModalProps> = ({
           {/* Form Footer */}
           <div className="flex gap-3 pt-4">
             <Button
-              type="button"
-              onClick={onClose}
-              className="flex-1 h-14 px-8 bg-slate-600 hover:bg-slate-700 text-white font-bold rounded-2xl shadow-lg shadow-slate-100 transition-all"
-            >
-              Cancel
-            </Button>
-            <Button
               type="submit"
               disabled={loading}
               className="flex-1 h-14 px-8 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-2xl shadow-lg shadow-teal-100 transition-all disabled:opacity-50"

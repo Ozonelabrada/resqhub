@@ -14,6 +14,7 @@ const CommunityAboutPage = lazy(() => import('./components/pages/public/Communit
 const CommunitiesPage = lazy(() => import('./components/pages/public/CommunitiesPage/CommunitiesPage'));
 const CommunityPage = lazy(() => import('./components/pages/public/CommunityPage/CommunityPage'));
 const MessagesPage = lazy(() => import('./components/pages/public/MessagesPage/MessagesPage'));
+const NotificationsPage = lazy(() => import('./components/pages/public/NotificationsPage/NotificationsPage'));
 const ItemDetailPage = lazy(() => import('./components/pages/public/ItemDetailPage/ItemDetailPage'));
 const CommunityManagementPage = lazy(() => import('./components/pages/admin/CommunityManagementPage'));
 const AdminDashboard = lazy(() => import('./components/pages/admin/AdminDashboard'));
@@ -82,6 +83,7 @@ const AppRouter = () => {
           
           {/* Protected Routes */}
           <Route path="profile" element={<AuthGuard requireAuth={true}><PersonalHubPage /></AuthGuard>} />
+          <Route path="notifications" element={<AuthGuard requireAuth={true}><NotificationsPage /></AuthGuard>} />
           <Route path="watchlist" element={<Navigate to="/profile?tab=watchlist" replace />} />
           <Route path="activity" element={<Navigate to="/profile?tab=activity" replace />} />
           <Route path="settings" element={<AuthGuard requireAuth={true}><SettingsPage /></AuthGuard>} />

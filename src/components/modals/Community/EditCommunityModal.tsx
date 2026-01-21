@@ -272,14 +272,6 @@ const EditCommunityModal: React.FC<EditCommunityModalProps> = ({
 
           <DialogFooter className="pt-4 gap-3 bg-white border-t border-slate-50 mt-auto">
             <Button
-              type="button"
-              variant="ghost"
-              onClick={onClose}
-              className="rounded-xl font-bold text-slate-500 hover:bg-slate-100"
-            >
-              Cancel
-            </Button>
-            <Button
               type="submit"
               disabled={loading}
               className="bg-teal-600 hover:bg-teal-700 text-white font-black rounded-xl px-8 shadow-lg shadow-teal-100 transition-all"

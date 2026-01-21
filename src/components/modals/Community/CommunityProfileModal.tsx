@@ -136,13 +136,6 @@ export const CommunityProfileModal: React.FC<CommunityProfileModalProps> = ({ is
               >
                 {t('community.profile.join')}
               </Button>
-              <Button 
-                variant="outline"
-                className="flex-1 border-2 border-slate-100 hover:border-teal-600 hover:text-teal-600 rounded-2xl h-14 font-black transition-all active:scale-95"
-                onClick={onClose}
-              >
-                {t('common.close')}
-              </Button>
            </div>
         </div>
       </DialogContent>

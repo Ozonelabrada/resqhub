@@ -25,8 +25,7 @@ export interface AdminActivity {
 export interface CommunitySummary {
   id: number;
   name: string;
-  status: string;
-  isActive: boolean;
+  status: string; // 'active' | 'pending' | 'rejected' | 'disabled' | etc.
   subscriptionTier: string | null;
   createdAt: string;
   membersCount: number;
@@ -59,7 +58,7 @@ export interface CommunityDetail extends CommunitySummary {
     name: string;
     description: string;
     imageUrl?: string | null;
-    isActive: boolean;
+    status: string; // 'active' | 'pending' | 'rejected' | 'disabled' | etc.
     memberCount: number;
     dateCreated: string;
     privacy: string;

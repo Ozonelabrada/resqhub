@@ -1,6 +1,6 @@
 // src/components/pages/public/PersonalHubPage/PersonalHubPage.tsx
 import React, { useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { ProfileHeader } from './personalHub/ProfileHeader';
 import { StatsCards } from './personalHub/StatsCards';
 import { QuickActions } from './personalHub/QuickActions';
@@ -10,11 +10,14 @@ import { Watchlist } from './personalHub/Watchlist';
 import { ReportsGrid } from './personalHub/ReportsGrid';
 import { OverviewGrid } from './personalHub/OverviewGrid';
 import { EditProfileModal } from './personalHub/EditProfileModal';
-import { useUserProfile, useStatistics, useNewsFeed } from '../../../../hooks';
+import { useUserProfile, useStatistics, useNewsFeed, useCommunities } from '../../../../hooks';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../ui/tabs';
-import { LayoutGrid, FileText, Activity, Bookmark, Sparkles } from 'lucide-react';
+import { Card, Avatar, Badge, Button } from '../../../ui';
+import { LayoutGrid, FileText, Activity, Bookmark, Sparkles, Users, Building2, ShieldCheck, Star, TrendingUp, Eye, Heart, MessageSquare, MapPin, Clock, Check } from 'lucide-react';
+import { cn } from '../../../../lib/utils';
 
 const PersonalHubPage: React.FC = () => {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'overview';
   const [showProfileEdit, setShowProfileEdit] = React.useState(false);
@@ -22,6 +25,7 @@ const PersonalHubPage: React.FC = () => {
   const { userData: profile, updateProfile, loading: profileLoading } = useUserProfile();
   const { statistics: stats } = useStatistics();
   const { items: reports } = useNewsFeed();
+  const { communities } = useCommunities();
 
   const setActiveTab = (tab: string) => {
     setSearchParams({ tab });
@@ -33,6 +37,26 @@ const PersonalHubPage: React.FC = () => {
     resolvedReports: stats?.successfulMatches || 0,
     totalViews: 0 // Not available in StatsData
   }), [stats]);
+
+  // Calculate engagement stats from reports
+  const engagementStats = useMemo(() => {
+    const reportsList = reports || [];
+    return {
+      totalReactions: reportsList.reduce((sum: number, r: any) => sum + (r.reactionsCount || 0), 0),
+      totalComments: reportsList.reduce((sum: number, r: any) => sum + (r.commentsCount || 0), 0),
+      totalViews: reportsList.reduce((sum: number, r: any) => sum + (r.views || 0), 0),
+    };
+  }, [reports]);
+
+  // Get user's role badges
+  const getRoleBadges = () => {
+    const badges = [];
+    if (profile?.id) {
+      badges.push({ label: 'Community Member', color: 'bg-teal-100 text-teal-700 border-teal-200' });
+    }
+    // You can add more roles here based on user data
+    return badges;
+  };
 
   const handleEditProfile = () => setShowProfileEdit(true);
   const handleProfilePictureUpload = (event: any) => {
@@ -68,9 +92,61 @@ const PersonalHubPage: React.FC = () => {
       <div className="flex-1 w-full px-4 lg:px-8 -mt-12 relative z-10 pb-20">
         <div className="flex flex-col lg:flex-row gap-8">
           
-          {/* LEFT COLUMN: Profile info & Status (Sticky) */}
+          {/* LEFT COLUMN: Profile Info & Communities (Sticky) */}
           <aside className="hidden lg:block lg:w-[320px] shrink-0 space-y-6">
             <div className="sticky top-24 space-y-6">
+              {/* User Roles & Badges */}
+              {profile && (
+                <Card className="p-6 rounded-3xl">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-teal-100 flex items-center justify-center text-teal-600">
+                      <ShieldCheck size={20} />
+                    </div>
+                    <h3 className="font-bold text-slate-900">Your Roles</h3>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge className="bg-teal-100 text-teal-700 rounded-full px-3 py-1 font-bold text-xs">
+                      <Star size={12} className="mr-1" />
+                      Member
+                    </Badge>
+                  </div>
+                </Card>
+              )}
+
+              {/* Communities Involved */}
+              {communities && communities.length > 0 && (
+                <Card className="p-6 rounded-3xl">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600">
+                        <Building2 size={20} />
+                      </div>
+                      <h3 className="font-bold text-slate-900">Communities</h3>
+                    </div>
+                    <span className="text-xs font-bold text-slate-500">{communities.length}</span>
+                  </div>
+                  <div className="space-y-3 max-h-64 overflow-y-auto">
+                    {communities.map((community: any) => (
+                      <button
+                        key={community.id}
+                        onClick={() => navigate(`/community/${community.id}`)}
+                        className="w-full p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 transition-colors text-left group"
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          <Avatar
+                            src={community.logo || undefined}
+                            label={community.name?.charAt(0) || 'C'}
+                            className="w-6 h-6 rounded-lg text-xs"
+                          />
+                          <span className="text-sm font-bold text-slate-900 truncate group-hover:text-teal-600 transition-colors">{community.name}</span>
+                        </div>
+                        <p className="text-xs text-slate-500 ml-8">{community.memberCount || 0} members</p>
+                      </button>
+                    ))}
+                  </div>
+                </Card>
+              )}
+
               <UserStatus />
               <QuickActions />
             </div>
@@ -81,6 +157,35 @@ const PersonalHubPage: React.FC = () => {
             <div className="space-y-8">
               {/* Stats row */}
               <StatsCards stats={dashboardStats} />
+
+              {/* Engagement Overview Card - Mobile & Desktop */}
+              {(reports && reports.length > 0) && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Card className="p-5 rounded-2xl bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-black uppercase tracking-widest text-[10px] text-slate-400">Total Views</span>
+                      <Eye size={16} className="text-blue-600" />
+                    </div>
+                    <p className="text-2xl font-black text-blue-700">{engagementStats.totalViews.toLocaleString()}</p>
+                  </Card>
+
+                  <Card className="p-5 rounded-2xl bg-gradient-to-br from-rose-50 to-pink-50 border border-rose-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-black uppercase tracking-widest text-[10px] text-slate-400">Reactions</span>
+                      <Heart size={16} className="text-rose-600" />
+                    </div>
+                    <p className="text-2xl font-black text-rose-700">{engagementStats.totalReactions}</p>
+                  </Card>
+
+                  <Card className="p-5 rounded-2xl bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-black uppercase tracking-widest text-[10px] text-slate-400">Comments</span>
+                      <MessageSquare size={16} className="text-orange-600" />
+                    </div>
+                    <p className="text-2xl font-black text-orange-700">{engagementStats.totalComments}</p>
+                  </Card>
+                </div>
+              )}
 
               {/* Content Tabs */}
               <div className="bg-white rounded-4xl p-4 lg:p-8 shadow-sm border border-slate-100">

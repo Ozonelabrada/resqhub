@@ -13,7 +13,7 @@ export interface Community {
   foundedDate?: string;
   dateCreated?: string;
   createdBy?: string;
-  isActive?: boolean;
+  status?: string; // 'active' | 'pending' | 'rejected' | 'disabled' | etc.
   maxMembers?: number | null;
   isMember?: boolean;
   isAdmin?: boolean;

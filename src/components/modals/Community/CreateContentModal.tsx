@@ -179,9 +179,6 @@ const CreateContentModal: React.FC<CreateContentModalProps> = ({
       </ModalBody>
 
       <ModalFooter>
-         <Button variant="ghost" onClick={onClose} className="font-bold text-slate-400 rounded-xl h-12 px-6">
-            {t('common.cancel')}
-         </Button>
          <Button 
            onClick={handleSubmit} 
            disabled={loading || !formData.title.trim() || !formData.content.trim()}

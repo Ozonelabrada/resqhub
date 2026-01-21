@@ -152,7 +152,7 @@ export const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSuc
                         placeholder="John"
                         required
                         disabled={loading}
-                        className="rounded-2xl border-slate-100 bg-slate-50/50 focus:bg-white transition-all h-12"
+                        className="rounded-2xl border-slate-100 bg-slate-50/50 focus:bg-white transition-all h-12 placeholder:text-slate-300 placeholder:font-normal"
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -167,7 +167,7 @@ export const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSuc
                         placeholder="Doe"
                         required
                         disabled={loading}
-                        className="rounded-2xl border-slate-100 bg-slate-50/50 focus:bg-white transition-all h-12"
+                        className="rounded-2xl border-slate-100 bg-slate-50/50 focus:bg-white transition-all h-12 placeholder:text-slate-300 placeholder:font-normal"
                       />
                     </div>
                   </div>
@@ -199,7 +199,7 @@ export const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSuc
                         disabled={loading}
                       >
                         <SelectTrigger className="rounded-2xl border-slate-100 bg-slate-50/50 focus:bg-white transition-all h-12">
-                          <SelectValue placeholder="Select Sex" />
+                          <SelectValue placeholder="Select Sex" className="placeholder:text-slate-300" />
                         </SelectTrigger>
                         <SelectContent className="rounded-2xl border-slate-100 shadow-xl">
                           <SelectItem value="male">Male</SelectItem>
@@ -223,7 +223,7 @@ export const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSuc
                       placeholder="123 Rescue St, City, Country"
                       required
                       disabled={loading}
-                      className="rounded-2xl border-slate-100 bg-slate-50/50 focus:bg-white transition-all h-12"
+                      className="rounded-2xl border-slate-100 bg-slate-50/50 focus:bg-white transition-all h-12 placeholder:text-slate-300 placeholder:font-normal"
                     />
                   </div>
 
@@ -240,7 +240,7 @@ export const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSuc
                       placeholder="john.doe@example.com"
                       required
                       disabled={loading}
-                      className="rounded-2xl border-slate-100 bg-slate-50/50 focus:bg-white transition-all h-12"
+                      className="rounded-xl border-slate-200 focus:ring-teal-500 bg-white h-11 placeholder:text-slate-300 placeholder:font-normal"
                     />
                   </div>
 
@@ -258,7 +258,7 @@ export const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSuc
                         placeholder="••••••••"
                         required
                         disabled={loading}
-                        className="rounded-2xl border-slate-100 bg-slate-50/50 focus:bg-white transition-all h-12"
+                        className="rounded-xl border-slate-200 focus:ring-teal-500 bg-white h-11 placeholder:text-slate-300 placeholder:font-normal"
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -273,7 +273,7 @@ export const SignUpModal: React.FC<SignUpModalProps> = ({ isOpen, onClose, onSuc
                         placeholder="••••••••"
                         required
                         disabled={loading}
-                        className="rounded-2xl border-slate-100 bg-slate-50/50 focus:bg-white transition-all h-12"
+                        className="rounded-xl border-slate-200 focus:ring-teal-500 bg-white h-11 placeholder:text-slate-300 placeholder:font-normal"
                       />
                     </div>
                   </div>

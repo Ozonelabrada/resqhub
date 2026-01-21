@@ -101,7 +101,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
   return (
     <div className="flex flex-col h-full max-h-[80vh]">
       <ScrollArea className="flex-1 px-8 py-6">
-        <div className="space-y-8">
+        <div className="space-y-8 pb-4 max-w-2xl">
           <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100">
              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">{t('community.create.review.overview')}</h4>
              <div className="space-y-4">
