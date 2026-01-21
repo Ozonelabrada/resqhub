@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Avatar, Button, ShadcnBadge as Badge } from '@/components/ui';
-import { Newspaper, Shield, Trash2, Pin, MessageSquare, Heart, ChevronDown, ChevronUp, AlertCircle, Search, Info, Plus, Handshake } from 'lucide-react';
+import { Newspaper, Shield, Trash2, Pin, MessageSquare, Heart, ChevronDown, ChevronUp, AlertCircle, Search, Info, Plus, Handshake, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDate } from '@/utils';
 import CommentSection from '@/components/features/comments/CommentSection';
@@ -8,7 +8,7 @@ import type { CommunityPost } from '@/types/community';
 import { CommunityService } from '@/services/communityService';
 import { ReactionsService } from '@/services/reactionsService';
 import { useAuth } from '@/context/AuthContext';
-import { CreateReportModal } from '@/components/modals';
+import { CreateReportModal, ReportDetailModal } from '@/components/modals';
 import { MatchModal } from '@/components/modals/MatchModal/MatchModal';
 
 interface CommunityFeedProps {
@@ -16,6 +16,7 @@ interface CommunityFeedProps {
   posts: CommunityPost[];
   isMember: boolean;
   isAdmin?: boolean;
+  isModerator?: boolean;
   onRefresh: () => Promise<void>;
 }
 
@@ -24,6 +25,7 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
   posts,
   isMember,
   isAdmin,
+  isModerator,
   onRefresh
 }) => {
   const { isAuthenticated, user, openLoginModal } = useAuth();
@@ -36,9 +38,16 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
   const [expandedComments, setExpandedComments] = useState<Record<number, boolean>>({});
   const [isMatchModalOpen, setIsMatchModalOpen] = useState(false);
   const [selectedPostForMatch, setSelectedPostForMatch] = useState<CommunityPost | null>(null);
+  const [selectedReportForDetail, setSelectedReportForDetail] = useState<CommunityPost | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const isUserMember = isMember || isAdmin;
   const canPost = isAuthenticated && isUserMember;
+
+  const handleOpenDetail = (post: CommunityPost) => {
+    setSelectedReportForDetail(post);
+    setIsDetailModalOpen(true);
+  };
 
   // Sync postType with filter when filter changes (except for 'all')
   useEffect(() => {
@@ -66,9 +75,18 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
     const isNeed = NEED_TYPES.includes(p.reportType || '');
     if (isNeed) return false;
 
+    // Privacy logic: 
+    // If internal: only isAdmin (isPrivileged) can see
+    // If community: members and admins can see
+    const canSeePrivacy = p.privacy === 'internal' 
+      ? isAdmin 
+      : (isUserMember || isAdmin);
+    
+    if (!canSeePrivacy) return false;
+
     // Restrict News/Announcements/Discussions for non-members
     const isRestrictedType = RESTRICTED_TYPES.includes(postTypeLower);
-    if (!isUserMember && isRestrictedType) return false;
+    if (!isUserMember && isRestrictedType && !isAdmin) return false;
     
     return filter === 'all' || postTypeLower === filter.toLowerCase();
   });
@@ -178,27 +196,38 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
       <div className="space-y-6">
         {filteredPosts.length > 0 ? (
           filteredPosts.map(post => (
-            <Card key={post.id} className="p-8 border-none shadow-sm rounded-[2.5rem] bg-white group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-transparent hover:border-teal-50">
+            <Card 
+              key={post.id} 
+              onClick={() => handleOpenDetail(post)}
+              className="p-8 border-none shadow-sm rounded-[2.5rem] bg-white group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-transparent hover:border-teal-50 cursor-pointer"
+            >
               <div className="flex items-start gap-4 md:gap-6">
                 <Avatar className="w-12 h-12 border-4 border-slate-50 shadow-md transition-transform shrink-0 bg-slate-100 uppercase font-black">
                   {post.user?.profilePicture ? (
-                    <img src={post.user.profilePicture} alt={post.user.username} className="w-full h-full object-cover" />
+                    <img src={post.user.profilePicture.startsWith('http') ? post.user.profilePicture : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.user.profilePicture}`} alt={post.user.username} className="w-full h-full object-cover" />
                   ) : (
-                    post.user?.username?.charAt(0) || '?'
+                    post.user?.username?.charAt(0) || post.title?.charAt(0) || '?'
                   )}
                 </Avatar>
                 <div className="flex-1">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                     <div className="flex items-center gap-3">
-                      <span className="font-black text-slate-800 text-base">@{post.user?.username}</span>
+                      <span className="font-black text-slate-800 text-base">@{post.user?.username || 'community_member'}</span>
+                      {post.privacy === 'internal' && (
+                        <Badge className="bg-rose-500/10 text-rose-500 border-none px-2 py-0.5 rounded-lg flex items-center gap-1 font-black text-[9px] uppercase tracking-wider">
+                          <Eye size={10} strokeWidth={3} />
+                          Internal
+                        </Badge>
+                      )}
                       <Badge className={cn(
                         "px-3 py-1 rounded-lg font-black text-[9px] uppercase tracking-[0.1em] border-none",
                         post.reportType?.toLowerCase() === 'lost' ? 'bg-orange-600 text-white' : 
                         post.reportType?.toLowerCase() === 'found' ? 'bg-emerald-600 text-white' :
                         post.reportType?.toLowerCase() === 'news' ? 'bg-teal-600 text-white' :
-                        'bg-blue-600 text-white'
+                        post.reportType?.toLowerCase() === 'announcement' ? 'bg-blue-600 text-white' :
+                        'bg-slate-600 text-white'
                       )}>
-                        {post.reportType}
+                        {post.reportType || 'Post'}
                       </Badge>
                     </div>
                     <div className="flex items-center gap-4">
@@ -269,7 +298,10 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
                   {/* Interaction Bar */}
                   <div className="flex items-center gap-6 py-4 border-t border-slate-50 mt-2">
                     <button 
-                      onClick={() => isUserMember && handlePostReaction(post.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        isUserMember && handlePostReaction(post.id);
+                      }}
                       className={cn(
                         "flex items-center gap-2 group/btn",
                         !isUserMember && "cursor-not-allowed opacity-70"
@@ -295,7 +327,10 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
                     </button>
 
                     <button 
-                      onClick={() => toggleComments(post.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleComments(post.id);
+                      }}
                       className="flex items-center gap-2 group/btn"
                     >
                       <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover/btn:bg-teal-50 group-hover/btn:text-teal-600 transition-all">
@@ -308,7 +343,11 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
                     </button>
 
                     <button 
-                      onClick={() => { setSelectedPostForMatch(post); setIsMatchModalOpen(true); }}
+                      onClick={(e) => { 
+                        e.stopPropagation();
+                        setSelectedPostForMatch(post); 
+                        setIsMatchModalOpen(true); 
+                      }}
                       disabled={post.status?.toLowerCase() === 'reunited'}
                       className={cn(
                         "flex items-center gap-2 group/btn ml-2",
@@ -358,6 +397,12 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
         onClose={() => setIsReportModalOpen(false)} 
         onSuccess={onRefresh}
         communityId={communityId}
+      />
+
+      <ReportDetailModal 
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        report={selectedReportForDetail}
       />
 
       {selectedPostForMatch && (

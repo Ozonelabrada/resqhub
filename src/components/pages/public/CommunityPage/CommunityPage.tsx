@@ -127,6 +127,7 @@ const CommunityPage: React.FC = () => {
               toDate: entry.toDate,
               time: entry.time || '00:00',
               location: entry.location || '',
+              privacy: entry.privacy || 'community',
             };
           }),
         };
@@ -240,6 +241,7 @@ const CommunityPage: React.FC = () => {
             posts={posts || []} 
             isMember={isMember}
             isAdmin={community.isAdmin}
+            isModerator={isModerator}
             onRefresh={refresh}
           />
         );
@@ -315,6 +317,8 @@ const CommunityPage: React.FC = () => {
               onClose={() => setIsUpdatesModalOpen(false)}
               type={isUpdatesModalType}
               communityId={community?.id}
+              isAdmin={isAdmin}
+              isModerator={isModerator}
               onSuccess={(data) => {
                 if (isUpdatesModalType === 'announcement') handleAnnouncementSuccess(data);
                 else if (isUpdatesModalType === 'news') handleNewsSuccess(data);
@@ -327,6 +331,8 @@ const CommunityPage: React.FC = () => {
               isOpen={isCalendarModalOpen}
               onClose={() => setIsCalendarModalOpen(false)}
               type={calendarModalType}
+              isAdmin={isAdmin}
+              isModerator={isModerator}
               onSuccess={handleCalendarSuccess}
             />
           </>
@@ -473,7 +479,7 @@ const CommunityPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="w-full px-4 md:px-6 lg:px-8 py-2 md:pt-4 flex-1 lg:h-full lg:overflow-hidden min-h-0">
+      <div className="w-full px-4 md:px-6 lg:px-8 py-2 lg:pt-32 flex-1 lg:h-full lg:overflow-hidden min-h-0">
         <main className="w-full h-full grid grid-cols-1 lg:grid-cols-10 gap-6 lg:overflow-hidden">
         {/* --- LEFT SIDEBAR: SHARED NAVIGATION --- */}
         <div className="order-2 lg:order-1 lg:col-span-2 lg:h-full lg:overflow-y-auto lg:overflow-x-hidden scrollbar-hidden hover:custom-scrollbar transition-all pt-2 pb-6 min-w-0">
@@ -805,12 +811,8 @@ const CommunityPage: React.FC = () => {
         onSuccess={handleCommunityReportSuccess}
         communityId={id || ''}
         reportType={communityReportType}
-      />
-
-      <ModerationOverviewModal 
-        isOpen={isModerationOpen}
-        onClose={() => setIsModerationOpen(false)}
-        communityId={id}
+        isAdmin={isAdmin}
+        isModerator={isModerator}
       />
     </div>
   );

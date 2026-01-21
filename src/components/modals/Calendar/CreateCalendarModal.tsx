@@ -25,6 +25,8 @@ import {
   X,
   Tag,
   MapPin,
+  Shield,
+  Eye,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { searchLocations, type LocationSuggestion } from '@/utils/geolocation';
@@ -38,6 +40,7 @@ export interface CalendarEntry {
   description: string;
   category: string;
   location?: string;
+  privacy: 'community' | 'internal';
 }
 
 export interface CreateCalendarFormData {
@@ -50,6 +53,8 @@ export interface CreateCalendarModalProps {
   onClose: () => void;
   onSuccess?: (data: CreateCalendarFormData) => void;
   type?: 'announcement' | 'events';
+  isAdmin?: boolean;
+  isModerator?: boolean;
 }
 
 const INITIAL_FORM_DATA: CreateCalendarFormData = {
@@ -63,6 +68,7 @@ const INITIAL_FORM_DATA: CreateCalendarFormData = {
       description: '',
       category: '',
       location: '',
+      privacy: 'community',
     },
   ],
   isActive: true,
@@ -73,6 +79,8 @@ const CreateCalendarModal: React.FC<CreateCalendarModalProps> = ({
   onClose,
   onSuccess,
   type = 'events',
+  isAdmin = false,
+  isModerator = false,
 }) => {
   const { t } = useTranslation();
   const [formData, setFormData] = useState<CreateCalendarFormData>(INITIAL_FORM_DATA);
@@ -197,6 +205,7 @@ const CreateCalendarModal: React.FC<CreateCalendarModalProps> = ({
           description: '',
           category: '',
           location: '',
+          privacy: 'community',
         },
       ],
     }));
@@ -406,6 +415,46 @@ const CreateCalendarModal: React.FC<CreateCalendarModalProps> = ({
                       )}
                     </div>
                   </div>
+
+                  {/* Privacy Status */}
+                  {(isAdmin || isModerator) && (
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 mb-1 flex items-center gap-1">
+                        <Shield size={12} />
+                        Privacy Status <span className="text-red-500">*</span>
+                      </label>
+                      <Select 
+                        value={entry.privacy} 
+                        onValueChange={(value: 'community' | 'internal') => handleEntryChange(entry.id, 'privacy', value)}
+                      >
+                        <SelectTrigger className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium text-sm">
+                          <SelectValue placeholder="Select privacy status" />
+                        </SelectTrigger>
+                        <SelectContent className="z-[302]">
+                          <SelectItem value="community" className="cursor-pointer">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                              <div className="flex flex-col text-left">
+                                <span className="font-bold text-slate-700">Community</span>
+                                <span className="text-[10px] text-slate-500">Visible to all community members</span>
+                              </div>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="internal" className="cursor-pointer">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-rose-500" />
+                              <div className="flex flex-col text-left">
+                                <span className="font-bold text-slate-700">Internal Only</span>
+                                <span className="text-[10px] text-slate-500 italic flex items-center gap-1">
+                                  <Eye size={10} /> Admins & Moderators Only
+                                </span>
+                              </div>
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

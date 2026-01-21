@@ -29,6 +29,8 @@ import {
   MapPin,
   Phone,
   Link as LinkIcon,
+  Shield,
+  Eye,
 } from 'lucide-react';
 import { CommunityService } from '../../../services/communityService';
 
@@ -48,6 +50,7 @@ export interface EventAnnouncementFormData {
   contactInfo?: string;
   reportUrl?: string;
   communityId?: number | string;
+  privacy?: 'community' | 'internal';
 }
 
 export interface CreateEventAnnouncementModalProps {
@@ -57,6 +60,8 @@ export interface CreateEventAnnouncementModalProps {
   type?: ContentType;
   initialData?: Partial<EventAnnouncementFormData>;
   communityId?: number | string;
+  isAdmin?: boolean;
+  isModerator?: boolean;
 }
 
 const INITIAL_FORM_DATA: EventAnnouncementFormData = {
@@ -72,6 +77,7 @@ const INITIAL_FORM_DATA: EventAnnouncementFormData = {
   contactInfo: '',
   reportUrl: '',
   communityId: undefined,
+  privacy: 'community',
 };
 
 const CreateEventAnnouncementModal: React.FC<CreateEventAnnouncementModalProps> = ({
@@ -81,6 +87,8 @@ const CreateEventAnnouncementModal: React.FC<CreateEventAnnouncementModalProps> 
   type = 'announcement',
   initialData,
   communityId,
+  isAdmin = false,
+  isModerator = false,
 }) => {
   const { t } = useTranslation();
   const [formData, setFormData] = useState<EventAnnouncementFormData>(INITIAL_FORM_DATA);
@@ -191,6 +199,7 @@ const CreateEventAnnouncementModal: React.FC<CreateEventAnnouncementModalProps> 
                 toDate: endDateTime, // Modal sends toDate
                 time: formData.time || '00:00',
                 location: formData.location || '',
+                privacy: formData.privacy || 'community',
               }
             ]
           });
@@ -215,6 +224,7 @@ const CreateEventAnnouncementModal: React.FC<CreateEventAnnouncementModalProps> 
             location: formData.location || '',
             contactInfo: formData.contactInfo || '',
             communityId,
+            privacy: formData.privacy || 'community',
           });
 
           if (!result.success) {
@@ -424,6 +434,38 @@ const CreateEventAnnouncementModal: React.FC<CreateEventAnnouncementModalProps> 
               </SelectContent>
             </Select>
           </div>
+
+          {/* Privacy Status Field - Only for admins/moderators */}
+          {(isAdmin || isModerator) && (
+            <div className="mb-6 space-y-2">
+              <label className="block text-sm font-bold text-slate-700 flex items-center gap-2">
+                <Eye className="h-4 w-4 text-teal-600" />
+                Privacy Status <span className="text-red-500">*</span>
+              </label>
+              <Select 
+                value={formData.privacy} 
+                onValueChange={(value: 'community' | 'internal') => handleInputChange('privacy', value)}
+              >
+                <SelectTrigger className="w-full px-4 py-3 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50 font-medium">
+                  <SelectValue placeholder="Select visibility" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border-slate-200 shadow-lg bg-white">
+                  <SelectItem value="community">
+                    <div className="flex flex-col gap-0.5 text-left">
+                      <span className="font-bold">Community Visibility</span>
+                      <span className="text-[10px] text-slate-500">Visible to all community members</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="internal">
+                    <div className="flex flex-col gap-0.5 text-left">
+                      <span className="font-bold">Internal Only</span>
+                      <span className="text-[10px] text-slate-500">Only visible to community admins and moderators</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Location Field */}
           <div className="mb-6 space-y-2">

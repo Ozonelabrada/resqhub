@@ -61,9 +61,25 @@ export const CommunityService = {
       if (status !== undefined) queryParams.append('ReportStatus', String(status));
       
       const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
-      const response = await api.get<{ data: { data: CommunityPost[] } }>(`/reports/communities/${id}/posts${query}`);
-      const data = response.data?.data?.data;
-      return Array.isArray(data) ? data : [];
+      const response = await api.get<any>(`/reports/communities/${id}/posts${query}`);
+      
+      // Handle various response structures: response.data.data.data, response.data.data, response.data.items, etc.
+      const rawData = response.data;
+      let items: any[] = [];
+      
+      if (rawData?.data?.data && Array.isArray(rawData.data.data)) {
+        items = rawData.data.data;
+      } else if (rawData?.data && Array.isArray(rawData.data)) {
+        items = rawData.data;
+      } else if (rawData?.items && Array.isArray(rawData.items)) {
+        items = rawData.items;
+      } else if (Array.isArray(rawData)) {
+        items = rawData;
+      } else if (rawData?.data && rawData.data.items) {
+        items = rawData.data.items;
+      }
+      
+      return items;
     } catch (error) {
       console.error('Error fetching community posts:', error);
       return [];
@@ -197,6 +213,7 @@ export const CommunityService = {
     location: string;
     contactInfo: string;
     communityId: number | string;
+    privacy?: 'community' | 'internal';
   }): Promise<{ success: boolean; data?: any; message?: string }> {
     try {
       console.log('Creating announcement with payload:', payload);
@@ -314,6 +331,7 @@ export const CommunityService = {
       endDate?: string; // ISO 8601 date format (endDate for consistency)
       time?: string;
       location: string;
+      privacy?: 'community' | 'internal';
     }>;
   }): Promise<{ success: boolean; data?: any; message?: string }> {
     try {
@@ -328,6 +346,7 @@ export const CommunityService = {
           endDate: event.endDate || event.toDate, // Use endDate as primary, fall back to toDate
           time: event.time,
           location: event.location,
+          privacy: event.privacy || 'community',
         }))
       };
       

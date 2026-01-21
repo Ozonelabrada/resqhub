@@ -12,12 +12,14 @@ import {
   ChevronRight as ChevronRightIcon,
   Loader,
   AlertTriangle,
-  Phone
+  Phone,
+  Eye
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { YEARLY_ROADMAP, getRoadmapDatesForMonth, getRoadmapDateRange, AnnualEvent } from '@/constants/roadmapData';
 import { CommunityService } from '@/services/communityService';
 import type { CommunityPost } from '@/types/community';
+import { ReportDetailModal } from '@/components/modals';
 
 export const CommunityEvents: React.FC<{
   isAdmin?: boolean;
@@ -46,6 +48,13 @@ export const CommunityEvents: React.FC<{
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [calendarLoading, setCalendarLoading] = useState(false);
+  const [selectedReport, setSelectedReport] = useState<CommunityPost | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  const handleViewDetails = (report: CommunityPost) => {
+    setSelectedReport(report);
+    setIsDetailModalOpen(true);
+  };
 
   // Fetch calendar data from backend
   useEffect(() => {
@@ -91,7 +100,16 @@ export const CommunityEvents: React.FC<{
           page: 1,
           pageSize: 100,
         });
-        setEvents(data);
+        
+        // Filter events based on privacy settings
+        const filteredEvents = (data as CommunityPost[]).filter(item => {
+          if (item.privacy === 'internal') {
+            return isAdmin;
+          }
+          return true;
+        });
+
+        setEvents(filteredEvents);
       } catch (err) {
         console.error('Failed to fetch events:', err);
         setError('Failed to load events');
@@ -450,14 +468,26 @@ export const CommunityEvents: React.FC<{
             </div>
           ) : filteredEvents.length > 0 ? (
             filteredEvents.map((event) => (
-              <Card key={event.id} className="group border-none shadow-sm hover:shadow-xl transition-all duration-500 rounded-[2.5rem] overflow-hidden bg-white">
+              <Card 
+                key={event.id} 
+                onClick={() => handleViewDetails(event)}
+                className="group border-none shadow-sm hover:shadow-xl transition-all duration-500 rounded-[2.5rem] overflow-hidden bg-white cursor-pointer"
+              >
                 <div className="p-8 space-y-6">
                   <div className="flex justify-between items-start">
-                    <Badge className={cn(
-                      "px-4 py-1.5 rounded-xl uppercase text-[10px] font-black tracking-tighter border-none bg-teal-50 text-teal-600"
-                    )}>
-                      {event.categoryName || 'Event'}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge className={cn(
+                        "px-4 py-1.5 rounded-xl uppercase text-[10px] font-black tracking-tighter border-none bg-teal-50 text-teal-600"
+                      )}>
+                        {event.categoryName || 'Event'}
+                      </Badge>
+                      {event.privacy === 'internal' && (
+                        <Badge className="bg-rose-500/10 text-rose-500 border-none px-2 py-1 rounded-lg flex items-center gap-1 font-black text-[9px] uppercase tracking-wider">
+                          <Eye size={10} strokeWidth={3} />
+                          Internal
+                        </Badge>
+                      )}
+                    </div>
                   </div>
 
                   <div className="space-y-3">
@@ -514,7 +544,11 @@ export const CommunityEvents: React.FC<{
                         <span className="text-[10px] font-bold text-slate-400 uppercase">Event Creator</span>
                       </div>
                     </div>
-                    <Button variant="ghost" className="rounded-xl group/btn text-teal-600 font-black text-xs hover:bg-teal-50">
+                    <Button 
+                      onClick={() => handleViewDetails(event)}
+                      variant="ghost" 
+                      className="rounded-xl group/btn text-teal-600 font-black text-xs hover:bg-teal-50"
+                    >
                       DETAILS
                       <ArrowRight size={14} className="ml-2 group-hover/btn:translate-x-1 transition-transform" />
                     </Button>
@@ -547,6 +581,12 @@ export const CommunityEvents: React.FC<{
           )}
         </div>
       </div>
+
+      <ReportDetailModal 
+        isOpen={isDetailModalOpen} 
+        onClose={() => setIsDetailModalOpen(false)} 
+        report={selectedReport} 
+      />
     </div>
   );
 };

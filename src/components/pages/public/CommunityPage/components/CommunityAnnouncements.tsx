@@ -10,12 +10,15 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
-  Loader
+  Loader,
+  ArrowUpRight,
+  Eye
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { YEARLY_ROADMAP, getRoadmapDatesForMonth, getRoadmapDateRange, AnnualEvent } from '@/constants/roadmapData';
 import { CommunityService } from '@/services/communityService';
 import type { CommunityPost } from '@/types/community';
+import { ReportDetailModal } from '@/components/modals';
 
 // Announcements from API have these fields
 // (extends beyond CommunityPost type definition)
@@ -49,6 +52,13 @@ export const CommunityAnnouncements: React.FC<{
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [calendarLoading, setCalendarLoading] = useState(false);
+  const [selectedReport, setSelectedReport] = useState<CommunityPost | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  const handleViewDetails = (report: any) => {
+    setSelectedReport(report as CommunityPost);
+    setIsDetailModalOpen(true);
+  };
 
   const { dates: roadmapDates, events: monthRoadmapEvents } = useMemo(
     () => getRoadmapDatesForMonth(currentMonth.getMonth(), currentMonth.getFullYear(), calendarData),
@@ -99,10 +109,16 @@ export const CommunityAnnouncements: React.FC<{
           page: 1,
           pageSize: 100,
         });
-        console.log('Fetched announcements data:', data);
-        console.log('Announcements is array:', Array.isArray(data));
-        console.log('Announcements length:', data?.length);
-        setAnnouncements(data as any[]);
+        
+        // Filter announcements based on privacy settings
+        const filteredData = (data as any[]).filter(item => {
+          if (item.privacy === 'internal') {
+            return isAdmin;
+          }
+          return true;
+        });
+
+        setAnnouncements(filteredData);
       } catch (err) {
         console.error('Failed to fetch announcements:', err);
         setError('Failed to load announcements');
@@ -490,8 +506,9 @@ export const CommunityAnnouncements: React.FC<{
             filteredAnnouncements.map((announcement) => (
               <Card 
                 key={announcement.id} 
+                onClick={() => handleViewDetails(announcement)}
                 className={cn(
-                  "p-6 md:p-8 border-none shadow-sm hover:shadow-md transition-all rounded-[2.5rem] bg-white relative overflow-hidden group"
+                  "p-6 md:p-8 border-none shadow-sm hover:shadow-md transition-all rounded-[2.5rem] bg-white relative overflow-hidden group cursor-pointer"
                 )}
               >
                 <div className="relative z-10 space-y-4">
@@ -503,13 +520,29 @@ export const CommunityAnnouncements: React.FC<{
                       {getTypeIcon(announcement.reportType)}
                       {announcement.reportType}
                     </Badge>
+                    {announcement.privacy === 'internal' && (
+                      <Badge className="bg-rose-500/10 text-rose-500 border-none px-2 py-0.5 rounded-lg flex items-center gap-1 font-black text-[9px] uppercase tracking-wider">
+                        <Eye size={10} strokeWidth={3} />
+                        Internal
+                      </Badge>
+                    )}
                   </div>
 
                   <div className="space-y-2">
-                    <h3 className="text-2xl font-black text-slate-900 leading-tight group-hover:text-teal-600 transition-colors">
-                      {announcement.title}
-                    </h3>
-                    <p className="text-slate-500 font-medium leading-relaxed">
+                    <div className="flex items-start justify-between gap-4">
+                      <h3 className="text-2xl font-black text-slate-900 leading-tight group-hover:text-teal-600 transition-colors">
+                        {announcement.title}
+                      </h3>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="rounded-xl hover:bg-teal-50 hover:text-teal-600 shrink-0"
+                        onClick={() => handleViewDetails(announcement)}
+                      >
+                        <ArrowUpRight size={20} />
+                      </Button>
+                    </div>
+                    <p className="text-slate-500 font-medium leading-relaxed line-clamp-2">
                       {announcement.description}
                     </p>
                   </div>
@@ -563,6 +596,12 @@ export const CommunityAnnouncements: React.FC<{
           ) : null}
         </div>
       </div>
+      
+      <ReportDetailModal 
+        isOpen={isDetailModalOpen} 
+        onClose={() => setIsDetailModalOpen(false)} 
+        report={selectedReport} 
+      />
     </div>
   );
 };
