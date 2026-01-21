@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../../ui';
-import { Lock, ShieldAlert, ArrowRight, GraduationCap, Calendar, Building2, MapPin, Landmark, Loader2, Users } from 'lucide-react';
+import { Lock, ShieldAlert, ArrowRight, GraduationCap, Calendar, Building2, MapPin, Landmark, Loader2, Users, Upload, X } from 'lucide-react';
 import type { StepProps } from './types';
 import { searchLocations, type LocationSuggestion } from '../../../../utils/geolocation';
 import { formatCurrencyPHP } from '../../../../utils/formatter';
@@ -223,18 +223,71 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Community Banner Image URL</label>
-            <Input 
-              placeholder="https://images.unsplash.com/..."
-              className="h-12 rounded-xl border-slate-200 focus:ring-teal-500/20 font-medium"
-              value={formData.imageUrl || ''}
-              onChange={(e) => setFormData({...formData, imageUrl: e.target.value})}
-            />
-            {formData.imageUrl && (
-              <div className="mt-2 rounded-xl overflow-hidden border border-slate-100 h-24 bg-slate-50">
-                <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" onError={() => {}} />
-              </div>
-            )}
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Community Banner Image <span className="text-slate-300">(Optional)</span></label>
+            <div className="relative">
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                ref={(input) => {
+                  if (input && !input.id) {
+                    input.id = 'banner-upload';
+                  }
+                }}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                      const base64 = event.target?.result as string;
+                      setFormData({...formData, imageUrl: base64});
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+              {!formData.imageUrl ? (
+                <label 
+                  htmlFor="banner-upload"
+                  className="flex flex-col items-center justify-center h-32 rounded-xl border-2 border-dashed border-slate-200 hover:border-teal-400 hover:bg-teal-50/50 transition-colors cursor-pointer bg-slate-50"
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center">
+                      <Upload size={20} className="text-teal-600" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs font-bold text-slate-700">Click to upload or drag and drop</p>
+                      <p className="text-[10px] text-slate-400 font-medium">PNG, JPG, GIF up to 5MB</p>
+                    </div>
+                  </div>
+                </label>
+              ) : (
+                <div className="space-y-3">
+                  <div className="rounded-xl overflow-hidden border border-slate-200 h-32 bg-slate-50">
+                    <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const input = document.getElementById('banner-upload') as HTMLInputElement;
+                        if (input) input.value = '';
+                        setFormData({...formData, imageUrl: ''});
+                      }}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold text-sm transition-colors"
+                    >
+                      <X size={16} /> Remove
+                    </button>
+                    <label 
+                      htmlFor="banner-upload"
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-600 font-bold text-sm transition-colors cursor-pointer border border-teal-200"
+                    >
+                      <Upload size={16} /> Change
+                    </label>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="space-y-2" ref={suggestionRef}>
@@ -336,9 +389,6 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
       </ScrollArea>
 
       <DialogFooter className="p-6 border-t border-slate-50 flex items-center justify-end gap-3 bg-white relative z-10 sticky bottom-0 mb-4">
-        <Button type="button" variant="ghost" onClick={onClose} className="font-bold text-slate-500">
-          {t('common.cancel')}
-        </Button>
         <Button 
             type="button" 
             disabled={!isFormValid}

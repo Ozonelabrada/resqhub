@@ -297,15 +297,6 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({
 
           <div className="pt-6 border-t border-slate-50 flex gap-4">
             <Button
-              type="button"
-              variant="ghost"
-              className="flex-1 h-14 rounded-2xl text-slate-500 font-black uppercase tracking-widest"
-              onClick={onClose}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-            <Button
               type="submit"
               className="flex-1 h-14 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-black uppercase tracking-widest shadow-lg shadow-teal-500/20 transition-all hover:-translate-y-0.5"
               disabled={loading}

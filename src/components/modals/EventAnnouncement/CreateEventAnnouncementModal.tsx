@@ -559,13 +559,6 @@ const CreateEventAnnouncementModal: React.FC<CreateEventAnnouncementModalProps> 
         {/* Action Buttons */}
         <div className="px-8 py-4 bg-white border-t border-slate-200 flex gap-3 justify-end shrink-0">
           <Button
-            onClick={onClose}
-            variant="outline"
-            className="px-8 py-3 rounded-2xl font-bold text-slate-700 border-2 border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all text-sm"
-          >
-            {t('common.cancel') || 'Cancel'}
-          </Button>
-          <Button
             onClick={handleSubmit}
             disabled={loading}
             className="px-8 py-3 rounded-2xl font-bold text-white bg-teal-600 hover:bg-teal-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-all text-sm shadow-lg shadow-teal-100"

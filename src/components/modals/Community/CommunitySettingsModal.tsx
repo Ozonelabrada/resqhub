@@ -315,9 +315,6 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
         </div>
 
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-50">
-           <Button variant="ghost" onClick={onClose} className="font-bold text-slate-400 rounded-xl h-12 px-6">
-              {t('community.discard_changes')}
-           </Button>
            <Button 
              onClick={handleSave} 
              disabled={loading}

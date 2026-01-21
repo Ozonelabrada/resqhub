@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { useCommunities } from '@/hooks/useCommunities';
 import { Card, Button, Spinner, Input, Badge } from '@/components/ui';
 import { Avatar } from '@/components/ui/Avatar/Avatar';
+import { CommunityDetailModal } from '@/components/modals';
 import { 
-  Users, 
   Search, 
   Plus, 
   MapPin, 
@@ -21,7 +21,8 @@ import {
   PlusCircle,
   RefreshCw,
   AlertCircle,
-  Edit3
+  Edit3,
+  Users
 } from 'lucide-react';
 import { CommunityService, StoreService } from '@/services';
 import { useAuth } from '@/context/AuthContext';
@@ -69,6 +70,8 @@ export const CommunitiesContainer: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [joiningId, setJoiningId] = useState<string | number | null>(null);
+  const [selectedCommunityForModal, setSelectedCommunityForModal] = useState<Community | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const joinedCommunities = communities.filter(c => c.isMember);
 
@@ -182,7 +185,16 @@ export const CommunitiesContainer: React.FC = () => {
     }
   };
 
-  const filteredCommunities = communities;
+  // Filter communities based on visibility rules:
+  // - If user is the creator: show all (regardless of status)
+  // - If user is not the creator: only show if status is 'active'
+  const filteredCommunities = communities.filter(community => {
+    const isCreator = user?.id && community.createdBy === user.id;
+    const isActive = community.status === 'active' || community.status === 'Active';
+    
+    // Show if: user is creator OR community is active
+    return isCreator || isActive;
+  });
 
   const handleCreateStore = async () => {
     if (!newStoreData.name || !user?.id) {
@@ -744,7 +756,15 @@ export const CommunitiesContainer: React.FC = () => {
               <Card 
                 key={community.id || (community as any)._id || idx}
                 className="group border border-slate-100 rounded-[2rem] overflow-hidden bg-white hover:shadow-2xl hover:shadow-teal-100/30 transition-all duration-500 cursor-pointer flex flex-col h-full"
-                onClick={() => navigate(`/community/${community.id || (community as any)._id}`)}
+                onClick={() => {
+                  const isPending = community.status === 'pending' || community.status === 'Pending';
+                  if (isPending) {
+                    setSelectedCommunityForModal(community);
+                    setIsDetailModalOpen(true);
+                  } else {
+                    navigate(`/community/${community.id || (community as any)._id}`);
+                  }
+                }}
               >
                 <div className="h-32 relative overflow-hidden shrink-0">
                   {community.banner || community.imageUrl ? (
@@ -757,6 +777,18 @@ export const CommunitiesContainer: React.FC = () => {
                   {isAuthenticated && community.isMember && (
                     <Badge className="absolute top-3 left-3 bg-emerald-500 text-white font-black uppercase text-[8px] tracking-widest px-2 py-0.5 border-none shadow-sm">
                       Joined
+                    </Badge>
+                  )}
+
+                  {/* Show status badge if user is the creator */}
+                  {isAuthenticated && user?.id && community.createdBy === user.id && (
+                    <Badge className={cn(
+                      "absolute top-3 left-3 font-black uppercase text-[8px] tracking-widest px-2 py-0.5 border-none shadow-sm",
+                      community.status === 'active' || community.status === 'Active' ? "bg-green-500 text-white" :
+                      community.status === 'pending' || community.status === 'Pending' ? "bg-amber-500 text-white" :
+                      "bg-red-500 text-white"
+                    )}>
+                      {community.status}
                     </Badge>
                   )}
 
@@ -853,6 +885,15 @@ export const CommunitiesContainer: React.FC = () => {
           await refresh();
           // The useEffect will update local communities when hookCommunities changes
         }}
+      />
+
+      <CommunityDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => {
+          setIsDetailModalOpen(false);
+          setSelectedCommunityForModal(null);
+        }}
+        community={selectedCommunityForModal}
       />
     </Card>
   );

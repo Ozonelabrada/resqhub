@@ -464,12 +464,6 @@ const CreateCalendarModal: React.FC<CreateCalendarModalProps> = ({
         {/* Footer with Action Buttons */}
         <div className="px-8 py-6 bg-white border-t border-slate-100 shrink-0 flex gap-3 justify-end">
           <Button
-            onClick={onClose}
-            className="h-12 px-8 bg-slate-200 hover:bg-slate-300 text-slate-800 font-black rounded-2xl transition-all"
-          >
-            {t('common.cancel') || 'Cancel'}
-          </Button>
-          <Button
             onClick={handleSubmit}
             disabled={loading}
             className="h-12 px-8 bg-teal-600 hover:bg-teal-700 disabled:bg-teal-400 text-white font-black rounded-2xl shadow-xl shadow-teal-100 transition-all flex items-center gap-2"

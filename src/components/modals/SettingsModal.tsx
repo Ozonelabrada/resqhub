@@ -161,9 +161,6 @@ export const SettingsModal: React.FC = () => {
             )}
 
             <div className="pt-8 border-t border-slate-100 flex justify-end gap-3 mt-auto bg-white">
-                <Button variant="ghost" onClick={closeSettingsModal} className="font-bold text-slate-400 hover:text-slate-600">
-                    {t('common.cancel')}
-                </Button>
                 <Button onClick={closeSettingsModal} className="bg-teal-600 hover:bg-teal-700 text-white font-black rounded-2xl px-10 h-14 shadow-xl shadow-teal-100/50 transition-all hover:scale-[1.02] active:scale-[0.98]">
                     {t('common.save')}
                 </Button>

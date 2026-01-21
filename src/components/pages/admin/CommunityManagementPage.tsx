@@ -114,15 +114,15 @@ const CommunityManagementPage: React.FC = () => {
                                     <Badge className={cn(
                                         "border-none px-4 py-1.5 rounded-full font-black text-[10px] uppercase",
                                         item.status === 'pending' ? "bg-amber-100 text-amber-700" :
-                                        (item.status === 'active' || item.isActive) ? "bg-green-100 text-green-700" :
+                                        item.status === 'active' ? "bg-green-100 text-green-700" :
                                         "bg-red-100 text-red-700"
                                     )}>
-                                        {item.status || (item.isActive ? 'active' : 'inactive')}
+                                        {item.status || 'inactive'}
                                     </Badge>
                                 </div>
                                 <h3 className="text-2xl font-black text-slate-900 mb-2 truncate" title={item.name}>{item.name}</h3>
                                 <p className="text-slate-500 font-medium text-sm line-clamp-3 mb-6 leading-relaxed">
-                                    {item.isActive ? 'This community is currently live and active.' : 'This community is currently inactive or pending review.'}
+                                    {item.status === 'active' ? 'This community is currently live and active.' : `This community is currently ${item.status || 'inactive'}.`}
                                 </p>
                                 
                                 <div className="space-y-4 pt-6 border-t border-slate-50">

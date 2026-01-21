@@ -337,14 +337,6 @@ export const ReportModal: React.FC<ReportModalProps> = ({
 
       <ModalFooter className="bg-slate-50/50 p-6 flex justify-end gap-4">
         <Button 
-          variant="ghost" 
-          onClick={onHide}
-          disabled={loading}
-          className="rounded-xl px-6 font-bold"
-        >
-          Cancel
-        </Button>
-        <Button 
           onClick={handleSubmit}
           loading={loading}
           className="rounded-xl px-8 bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-100 font-bold transition-all active:scale-95"

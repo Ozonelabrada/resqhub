@@ -584,9 +584,9 @@ const CommunityDetailsPage: React.FC = () => {
                     </div>
                     <Badge className={cn(
                       "px-3 py-1 rounded-full font-bold text-[10px] uppercase border-none",
-                      child.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                      child.status === 'active' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
                     )}>
-                      {child.isActive ? 'Active' : 'Inactive'}
+                      {child.status || 'inactive'}
                     </Badge>
                   </div>
                   <h4 className="text-xl font-black text-slate-900 mb-2 truncate" title={child.name}>{child.name}</h4>

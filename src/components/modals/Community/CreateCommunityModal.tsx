@@ -89,9 +89,9 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ isOpen, onC
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden border-none shadow-2xl rounded-3xl bg-white max-h-[90vh]">
+      <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white max-h-[90vh]">
         {step !== 'success' && (
-          <DialogHeader className="px-8 pt-8 pb-4 text-left bg-white relative z-10">
+          <DialogHeader className="px-8 pt-8 pb-4 text-left bg-white relative z-10 border-b border-slate-50">
             <div className="flex items-center justify-between mb-2">
               <DialogTitle className="text-2xl font-black text-slate-800 tracking-tight">
                 {t('community.createTitle')}

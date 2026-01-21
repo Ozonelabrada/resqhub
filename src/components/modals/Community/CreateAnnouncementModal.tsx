@@ -255,7 +255,6 @@ const CreateAnnouncementModal: React.FC<Props> = ({ isOpen, onClose, communityId
       </ModalBody>
 
       <ModalFooter>
-        <Button variant="ghost" onClick={onClose} className="font-bold text-slate-500">{t('common.cancel') || 'Cancel'}</Button>
         <Button 
           onClick={handleSubmit} 
           disabled={loading || !title.trim() || !content.trim() || !startDate || !endDate} 
