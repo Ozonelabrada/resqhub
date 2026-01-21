@@ -138,7 +138,7 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
   }, {} as Record<string, typeof relevantEvents>);
 
   return (
-    <aside className={cn("flex flex-col space-y-4 pt-6 group h-fit", className)}>
+    <aside className={cn("flex flex-col space-y-4 pt-6in group h-fit", className)}>
       {/* JOIN THE ACTION SECTION */}
       <div className="space-y-3">
         <div className="bg-white rounded-[2rem] py-5 px-8 shadow-sm border border-gray-50 flex items-center justify-between group/pill cursor-pointer hover:shadow-md transition-all">

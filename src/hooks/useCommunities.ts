@@ -64,9 +64,11 @@ export const useCommunityDetail = (id: string | undefined) => {
       }
 
       setCommunity(updatedCommunity);
-      // Filter for active posts by default
+      // Filter for active posts by default - handle case-insensitivity for 'Active'/'active'
       const activePosts = Array.isArray(postsData) 
-        ? postsData.filter((post: CommunityPost) => post.status === 'active')
+        ? postsData.filter((post: CommunityPost) => 
+            String(post.status).toLowerCase() === 'active'
+          )
         : [];
       setPosts(activePosts);
       setMembers(Array.isArray(membersData) ? membersData : []);

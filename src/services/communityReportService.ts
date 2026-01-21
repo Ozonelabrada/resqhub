@@ -11,6 +11,7 @@ export interface CommunityReportPayload {
   location: string;
   contactInfo: string;
   communityId: number | string;
+  privacy?: 'community' | 'internal';
 }
 
 export interface CommunityReportResponse {
@@ -25,6 +26,7 @@ export interface CommunityReportResponse {
   location: string;
   contactInfo: string;
   communityId: number;
+  privacy?: 'community' | 'internal';
   createdAt: string;
   createdBy?: {
     id: string;

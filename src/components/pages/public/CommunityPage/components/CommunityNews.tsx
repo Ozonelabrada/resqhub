@@ -10,12 +10,15 @@ import {
   Heart,
   MessageCircle,
   Loader,
-  AlertTriangle
+  AlertTriangle,
+  Eye
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { CommunityService } from '@/services/communityService';
 import { getCategoryStyles, formatDateRange } from '@/utils/formatter';
+import { ReportDetailModal } from '@/components/modals';
+import type { CommunityPost } from '@/types/community';
 
 interface CommunityNewsProps {
   isAdmin?: boolean;
@@ -32,6 +35,13 @@ export const CommunityNews: React.FC<CommunityNewsProps> = ({
   const [news, setNews] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedReport, setSelectedReport] = useState<CommunityPost | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  const handleViewDetails = (report: any) => {
+    setSelectedReport(report as CommunityPost);
+    setIsDetailModalOpen(true);
+  };
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -48,7 +58,16 @@ export const CommunityNews: React.FC<CommunityNewsProps> = ({
           page: 1,
           pageSize: 100,
         });
-        setNews(data as any[]);
+        
+        // Filter news items based on privacy settings
+        const filteredNews = (data as any[]).filter(item => {
+          if (item.privacy === 'internal') {
+            return isAdmin;
+          }
+          return true;
+        });
+
+        setNews(filteredNews);
       } catch (err) {
         setError('Failed to load news');
       } finally {
@@ -135,6 +154,7 @@ export const CommunityNews: React.FC<CommunityNewsProps> = ({
                   return (
                     <Card 
                       key={newsItem.id} 
+                      onClick={() => handleViewDetails(newsItem)}
                       className="group overflow-hidden border-none shadow-sm hover:shadow-xl transition-all duration-300 rounded-3xl cursor-pointer"
                     >
                       {/* Content Section */}
@@ -144,6 +164,12 @@ export const CommunityNews: React.FC<CommunityNewsProps> = ({
                             <Badge className={cn(categoryStyle.bg, categoryStyle.text, 'border', categoryStyle.border, 'font-bold text-[10px] uppercase')}>
                               {newsItem.category || 'News'}
                             </Badge>
+                            {newsItem.privacy === 'internal' && (
+                              <Badge className="bg-rose-500/10 text-rose-500 border-none px-2 py-0.5 rounded-lg flex items-center gap-1 font-black text-[9px] uppercase tracking-wider">
+                                <Eye size={10} strokeWidth={3} />
+                                Internal
+                              </Badge>
+                            )}
                             {dateRange.isActive && (
                               <Badge className="bg-emerald-50 text-emerald-600 border border-emerald-100 font-bold text-[10px] uppercase animate-pulse">
                                 Active Now
@@ -214,6 +240,7 @@ export const CommunityNews: React.FC<CommunityNewsProps> = ({
                   return (
                     <Card 
                       key={newsItem.id} 
+                      onClick={() => handleViewDetails(newsItem)}
                       className="p-6 group border-none shadow-sm hover:shadow-md transition-all duration-300 rounded-3xl cursor-pointer"
                     >
                       <div className="flex gap-4 flex-col sm:flex-row">
@@ -224,6 +251,12 @@ export const CommunityNews: React.FC<CommunityNewsProps> = ({
                               <Badge className={cn(categoryStyle.bg, categoryStyle.text, 'border', categoryStyle.border, 'font-bold text-[10px] uppercase')}>
                                 {newsItem.category || 'News'}
                               </Badge>
+                              {newsItem.privacy === 'internal' && (
+                                <Badge className="bg-rose-500/10 text-rose-500 border-none px-2 py-0.5 rounded-lg flex items-center gap-1 font-black text-[9px] uppercase tracking-wider">
+                                  <Eye size={10} strokeWidth={3} />
+                                  Internal
+                                </Badge>
+                              )}
                               {dateRange.isActive && (
                                 <Badge className="bg-emerald-50 text-emerald-600 border border-emerald-100 font-bold text-[10px] uppercase animate-pulse">
                                   Active
@@ -268,6 +301,12 @@ export const CommunityNews: React.FC<CommunityNewsProps> = ({
           )}
         </>
       )}
+
+      <ReportDetailModal 
+        isOpen={isDetailModalOpen} 
+        onClose={() => setIsDetailModalOpen(false)} 
+        report={selectedReport} 
+      />
     </div>
   );
 };

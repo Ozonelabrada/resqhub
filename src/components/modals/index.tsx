@@ -17,4 +17,5 @@ export type { EventAnnouncementFormData, ContentType, CreateEventAnnouncementMod
 export { default as CreateCalendarModal } from './Calendar/CreateCalendarModal';
 export type { CreateCalendarFormData, CalendarEntry, CreateCalendarModalProps } from './Calendar/CreateCalendarModal';
 export { default as CommunityReportModal } from './CommunityReport/CommunityReportModal';
+export { default as ReportDetailModal } from './CommunityReport/ReportDetailModal';
 export type { CommunityReportPayload, CommunityReportResponse } from '@/services/communityReportService';

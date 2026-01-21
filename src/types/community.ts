@@ -48,6 +48,7 @@ export interface CommunityPost {
   location: string;
   contactInfo: string;
   rewardDetails: string | null;
+  privacy?: 'community' | 'internal';
   categoryId: number | null;
   categoryName: string | null;
   communityId: number;
@@ -136,6 +137,7 @@ export interface CalendarEvent {
   endDate: string;  // ISO 8601 format: 2026-01-20T08:07:34.119Z
   time?: string; // Time in HH:mm format
   location: string;
+  privacy?: 'community' | 'internal';
 }
 
 export interface CreateCalendarPayload {

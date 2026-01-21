@@ -26,6 +26,7 @@ import {
   Link as LinkIcon,
   AlertCircle,
   X,
+  Eye,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Modal } from '@/components/ui/Modal/Modal';
@@ -41,6 +42,8 @@ interface CommunityReportModalProps {
   onSuccess?: () => void;
   communityId: string | number;
   reportType?: 'News' | 'Announcement' | 'Event' | 'Discussion';
+  isAdmin?: boolean;
+  isModerator?: boolean;
 }
 
 export const CommunityReportModal: React.FC<CommunityReportModalProps> = ({
@@ -49,6 +52,8 @@ export const CommunityReportModal: React.FC<CommunityReportModalProps> = ({
   onSuccess,
   communityId,
   reportType = 'News',
+  isAdmin = false,
+  isModerator = false,
 }) => {
   const { user } = useAuth();
   const { t } = useTranslation();
@@ -69,6 +74,7 @@ export const CommunityReportModal: React.FC<CommunityReportModalProps> = ({
     type: reportType,
     location: '',
     contactInfo: '',
+    privacy: 'community',
   });
 
   useEffect(() => {
@@ -226,6 +232,7 @@ export const CommunityReportModal: React.FC<CommunityReportModalProps> = ({
         type: reportType,
         location: '',
         contactInfo: '',
+        privacy: 'community',
       });
     } else {
       setError(result.message || 'Failed to create community report');
@@ -310,6 +317,38 @@ export const CommunityReportModal: React.FC<CommunityReportModalProps> = ({
               </SelectContent>
             </Select>
           </div>
+
+          {/* Privacy - Only for admins/moderators */}
+          {(isAdmin || isModerator) && (
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                <Eye className="w-4 h-4 text-teal-600" />
+                Privacy Status
+              </label>
+              <Select 
+                value={formData.privacy} 
+                onValueChange={(value: 'community' | 'internal') => handleInputChange('privacy', value)}
+              >
+                <SelectTrigger className="w-full px-4 py-3 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50 font-medium text-left">
+                  <SelectValue placeholder="Select visibility" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border-slate-200 shadow-lg bg-white">
+                  <SelectItem value="community">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-bold">Community Visibility</span>
+                      <span className="text-[10px] text-slate-500">Visible to all community members</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="internal">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-bold">Internal Only</span>
+                      <span className="text-[10px] text-slate-500">Only visible to community admins and moderators</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Start Date and End Date */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

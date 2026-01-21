@@ -24,9 +24,11 @@ import {
   DollarSign, 
   Phone, 
   ShieldCheck, 
+  Shield,
   Camera, 
   Upload, 
-  X
+  X,
+  Eye
 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { Modal } from '../../ui/Modal/Modal';
@@ -68,7 +70,7 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
     location: '',
     contactInfo: '',
     rewardDetails: '',
-    reportType: initialType || (isCommunityContext ? 'News' : 'Lost')
+    reportType: initialType || (isCommunityContext ? 'News' : 'Lost'),
   });
 
   const [images, setImages] = useState<string[]>([]);
@@ -235,7 +237,7 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
         location: '',
         contactInfo: '',
         rewardDetails: '',
-        reportType: 'Lost'
+        reportType: 'Lost',
       });
       setImages([]);
       setImageFiles([]);
