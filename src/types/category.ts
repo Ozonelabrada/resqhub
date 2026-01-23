@@ -22,10 +22,7 @@ export interface CategoryResponse extends BaseApiResponse {
     pageNumber: number;
     succeeded: boolean;
     data: Category[];
-    errorMessage: string;
+    errorMessage?: string;
     loadMore: boolean;
-    baseEntity: any;
   };
-  errors: any;
-  baseEntity: any;
 }

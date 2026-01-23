@@ -41,7 +41,13 @@ export const useNewsFeed = (options?: {
       });
 
       const mappedItems: NewsFeedItem[] = reports.map(report => {
-        const type = (report.reportType?.toLowerCase() as any) || 'lost';
+        const reportTypeStr = report.reportType || 'lost';
+        const typeStr = typeof reportTypeStr === 'string' ? reportTypeStr.toLowerCase() : 'lost';
+        // Ensure type is one of the allowed literals
+        const type: 'lost' | 'found' | 'news' | 'discussion' | 'announcement' = 
+          (typeStr === 'found' || typeStr === 'lost' || typeStr === 'news' || typeStr === 'discussion' || typeStr === 'announcement') 
+            ? typeStr as 'lost' | 'found' | 'news' | 'discussion' | 'announcement'
+            : 'lost';
         const contactName = report.user?.fullName || 'Anonymous';
         const baseUrl = import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com';
 
@@ -56,13 +62,17 @@ export const useNewsFeed = (options?: {
 
         const itemImages = (report.images || [])
           .slice(0, 5)
-          .map(img => formatImageUrl(img.imageUrl))
+          .map(img => formatImageUrl(img.imageUrl || ''))
           .filter(Boolean);
 
         // Determine effective status string
-        let effectiveStatus = type;
+        let effectiveStatus: 'lost' | 'found' | 'reunited' | 'news' | 'discussion' | 'announcement' = 'lost';
         if (String(report.status).toLowerCase() === 'reunited') {
           effectiveStatus = 'reunited';
+        } else if (type === 'found') {
+          effectiveStatus = 'found';
+        } else if (type.toLowerCase() === 'lost') {
+          effectiveStatus = 'lost';
         }
 
         return {
@@ -96,7 +106,7 @@ export const useNewsFeed = (options?: {
           createdAt: report.dateCreated || new Date().toISOString(),
           updatedAt: report.dateCreated || new Date().toISOString(),
           expiresAt: report.expiresAt || '',
-          reportTypeDescription: report.reportType || 'Report',
+          reportTypeDescription: String(report.reportType || 'Report'),
           verificationStatus: 'pending',
           potentialMatches: 0,
           user: {

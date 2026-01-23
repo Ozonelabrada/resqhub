@@ -1,31 +1,42 @@
 import apiClient from '../api/client';
-import type { SearchParams } from '../types';
+import type { LostFoundItem } from './reportsService';
 import axios from 'axios';
 
-const getReportsSearch = (page: number, params: any = {}) => {
+interface ItemsSearchParams {
+  pageNo: number;
+  pageSize: number;
+  [key: string]: string | number | boolean | undefined;
+}
+
+const getReportsSearch = (page: number, params: ItemsSearchParams = { pageNo: page, pageSize: 10 }): Promise<{ data: { data: LostFoundItem[] } }> => {
   // Always include page number and page size
-  const query = { pageNo: page, pageSize: 10, ...params };
+  const query: ItemsSearchParams = { pageNo: page, pageSize: 10 };
+  Object.keys(params).forEach(key => {
+    if (key !== 'pageNo' && key !== 'pageSize') {
+      query[key] = params[key];
+    }
+  });
   return axios.get('/api/reports/all', { params: query });
 };
 
 export const ItemsService = {
   // Main report creation
-  createReport(reportData: any) {
+  createReport(reportData: Partial<LostFoundItem>): Promise<{ data: Report }> {
     return apiClient.post('/reports/create', reportData);
   },
 
   // Report item details creation
-  createReportItemDetails(itemDetailsData: any) {
+  createReportItemDetails(itemDetailsData: Record<string, unknown>): Promise<{ data: { id: string; reportId: string } }> {
     return apiClient.post('/report-item-details/create', itemDetailsData);
   },
 
   // Report contact info creation
-  createReportContactInfo(contactInfoData: any) {
+  createReportContactInfo(contactInfoData: Record<string, unknown>): Promise<{ data: { id: string; reportId: string } }> {
     return apiClient.post('/report-contact-info/create', contactInfoData);
   },
 
   // Report location details creation
-  createReportLocationDetails(locationDetailsData: any) {
+  createReportLocationDetails(locationDetailsData: Record<string, unknown>): Promise<{ data: { id: string; reportId: string } }> {
     return apiClient.post('/report-location-details/create', locationDetailsData);
   },
 
@@ -68,7 +79,7 @@ export const ItemsService = {
     return apiClient.get(`/reports/all/${userId}`);
   },
 
-  searchItems(params: SearchParams) {
+  searchItems(params: ItemsSearchParams) {
     return apiClient.post('/items/search', params);
   },
 

@@ -1,26 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription,
   Input, 
   Button, 
   Textarea,
   Select,
   Alert,
+  Tabs,
+  TabsList,
+  TabsTrigger,
   Spinner
 } from '../../ui';
 import { 
   FileText, 
   MapPin, 
   Tag, 
-  Info, 
   DollarSign, 
   Phone,
-  Save,
-  X
+  Camera,
+  Upload,
+  X,
+  Save
 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { Modal } from '../../ui/Modal/Modal';
@@ -29,12 +28,30 @@ import { CategoryService } from '../../../services/categoryService';
 import { useTranslation } from 'react-i18next';
 import { searchLocations, type LocationSuggestion } from '../../../utils/geolocation';
 import { cn } from '../../../lib/utils';
+import { showToast } from '../../../types/window';
+import { extractReportData, validateReportData } from '../../../utils/reportDataExtractor';
+import type { FormSubmitEvent } from '../../../types/events';
 
 interface EditReportModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
   report: LostFoundItem;
+}
+
+interface FormData {
+  title: string;
+  description: string;
+  categoryId: string;
+  location: string;
+  contactInfo: string;
+  rewardDetails: string | number;
+  reportType: string;
+}
+
+interface Category {
+  label: string;
+  value: string;
 }
 
 export const EditReportModal: React.FC<EditReportModalProps> = ({ 
@@ -45,36 +62,58 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({
 }) => {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const [categories, setCategories] = useState<{ label: string, value: number }[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const [formData, setFormData] = useState({
-    title: report.title || '',
-    description: report.description || '',
-    categoryId: report.categoryId || 0,
-    location: report.location || '',
-    contactInfo: report.contactInfo || '',
-    rewardDetails: report.rewardDetails || '',
-    reportType: report.reportType || 'Lost'
+  const [formData, setFormData] = useState<FormData>({
+    title: '',
+    description: '',
+    categoryId: '',
+    location: '',
+    contactInfo: '',
+    rewardDetails: '',
+    reportType: 'Lost'
   });
-
+  // Debug effect to log category matching
+  useEffect(() => {
+    if (formData.categoryId && categories.length > 0) {
+      const matched = categories.find(c => String(c.value) === String(formData.categoryId));
+      console.log('Category match debug:', {
+        selectedValue: formData.categoryId,
+        selectedValueType: typeof formData.categoryId,
+        categories: categories.map(c => ({ label: c.label, value: c.value, type: typeof c.value })),
+        matched: matched?.label
+      });
+    }
+  }, [formData.categoryId, categories]);
+  
   const [locationSuggestions, setLocationSuggestions] = useState<LocationSuggestion[]>([]);
   const [isSearchingLocation, setIsSearchingLocation] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      loadCategories();
-      setFormData({
-        title: report.title || '',
-        description: report.description || '',
-        categoryId: report.categoryId || 0,
-        location: report.location || '',
-        contactInfo: report.contactInfo || '',
-        rewardDetails: report.rewardDetails || '',
-        reportType: report.reportType || 'Lost'
-      });
+      // Load categories first, then initialize form data
+      const initializeForm = async () => {
+        await loadCategories();
+        
+        // Use type-safe extraction
+        const extractedData = extractReportData(report);
+        
+        setFormData({
+          title: extractedData.title,
+          description: extractedData.description,
+          categoryId: extractedData.categoryId,
+          location: extractedData.location,
+          contactInfo: String(extractedData.contactInfo),
+          rewardDetails: extractedData.rewardDetails,
+          reportType: extractedData.reportType
+        });
+        setError('');
+      };
+      
+      initializeForm();
     }
   }, [isOpen, report]);
 
@@ -91,227 +130,262 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({
     return () => clearTimeout(timer);
   }, [formData.location, isSearchingLocation]);
 
-  const loadCategories = async () => {
+  const loadCategories = async (): Promise<Category[]> => {
     try {
-      const data = await CategoryService.getCategories();
-      setCategories(data.map((cat: any) => ({
-        label: cat.name,
-        value: cat.id
-      })));
+      const cats = await CategoryService.getCategories();
+      
+      if (cats && cats.length > 0) {
+        const mappedCategories: Category[] = cats.map(c => ({ 
+          label: `${c.icon || '🏷️'} ${c.name}`, 
+          value: String(c.id)
+        }));
+        
+        setCategories(mappedCategories);
+        return mappedCategories;
+      }
+      return [];
     } catch (err) {
-      console.error('Failed to load categories');
+      console.error('Failed to load categories', err);
+      return [];
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleInputChange = (field: keyof FormData, value: string | number): void => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (field === 'location') {
+      setIsSearchingLocation(true);
+    }
+  };
+
+  const handleSelectLocation = (suggestion: LocationSuggestion): void => {
+    setFormData(prev => ({ ...prev, location: String(suggestion.display_name || suggestion.name || '') }));
+    setShowSuggestions(false);
+    setLocationSuggestions([]);
+    setIsSearchingLocation(false);
+  };
+
+  const handleSubmit = async (e: FormSubmitEvent): Promise<void> => {
     e.preventDefault();
     if (!user) return;
+
+    // Validate using type-safe validator
+    const validation = validateReportData(formData);
+    if (!validation.valid) {
+      setError(validation.errors[0] || 'Please check your input');
+      return;
+    }
 
     setLoading(true);
     setError('');
 
     try {
-      // Send as JSON since user said "except the images" and simplified info
-      const result = await ReportsService.updateReport(report.id, {
+      const result = await ReportsService.updateReport(Number(report.id || 0), {
         ...formData,
-        categoryId: Number(formData.categoryId)
+        categoryId: Number(formData.categoryId || 0) // Convert string back to number for API
       });
 
       if (result.success) {
+        // Show success toast
+        let successMsg = t('report.success_message_lost');
+        if (formData.reportType === 'Found') successMsg = t('report.success_message_found');
+
+        showToast(
+          'success', 
+          t('report.success_title') || 'Report Updated',
+          successMsg || 'Your report has been successfully updated.'
+        );
+
         if (onSuccess) onSuccess();
         onClose();
       } else {
-        setError(result.message || 'Failed to update report');
+        setError(result.message || t('report.error_failed_to_update') || 'Failed to update report');
       }
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
+      setError(errorMessage);
+      console.error('Update failed:', err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <div className="p-6 max-w-2xl w-full bg-white rounded-[2rem] shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Edit Report</h2>
-            <p className="text-slate-500 text-sm font-medium">Update the details of your report</p>
-          </div>
+    <Modal 
+      isOpen={isOpen} 
+      onClose={onClose}
+      size="lg"
+      className="p-0 border-none rounded-[2.5rem] overflow-y-auto max-h-[90vh]"
+    >
+      <div className="p-8 md:p-10 space-y-8">
+        {/* Header */}
+        <div>
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+            <div className="w-12 h-12 bg-teal-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-teal-100 shrink-0">
+              <FileText size={24} />
+            </div>
+            <span>{t('report.edit_title') || 'Edit Report'}</span>
+          </h2>
+          <p className="text-slate-500 font-medium text-lg pt-2">
+            {t('report.edit_subtitle') || 'Update the details of your report'}
+          </p>
         </div>
 
         {error && (
-          <Alert variant="error" className="mb-6 rounded-2xl border-rose-100 bg-rose-50/50">
-            {error}
-          </Alert>
+          <Alert 
+            type="error" 
+            message={error}
+            className="rounded-2xl border-orange-100 bg-orange-50 text-orange-800" 
+          />
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Title Section */}
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Report Title</label>
-            <div className="relative group">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-600 transition-colors">
-                <FileText size={18} />
-              </div>
-              <Input
-                placeholder="e.g., Lost Golden Retriever near Central Park"
-                className="pl-12 h-14 rounded-2xl border-slate-200 focus:border-teal-500 focus:ring-teal-500/10 font-medium"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                required
-              />
-            </div>
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Type */}
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Report Type</label>
-              <div className="relative group">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-600 transition-colors z-10">
-                  <Tag size={18} />
-                </div>
-                <select
-                  className="w-full pl-12 h-14 rounded-2xl border-slate-200 focus:border-teal-500 focus:ring-teal-500/10 font-medium bg-white appearance-none cursor-pointer"
-                  value={formData.reportType}
-                  onChange={(e) => setFormData({ ...formData, reportType: e.target.value })}
-                  required
-                >
-                  <option value="Lost">Lost Item</option>
-                  <option value="Found">Found Item</option>
-                  <option value="News">News</option>
-                  <option value="Discussion">Discussion</option>
-                  <option value="Announcement">Announcement</option>
-                </select>
-              </div>
+            {/* Report Type Selection via Tabs */}
+            <div className="space-y-4 col-span-2">
+              <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                <Tag className="w-4 h-4 text-teal-600" />
+                {t('report.type_question')}
+              </label>
+              <Tabs 
+                value={formData.reportType} 
+                onValueChange={(val) => handleInputChange('reportType', val)}
+                className="w-full"
+              >
+                <TabsList className={cn(
+                  "grid w-full p-1 bg-slate-100 rounded-2xl h-auto min-h-14",
+                  "grid-cols-2"
+                )}>
+                  <TabsTrigger 
+                    value="Lost" 
+                    className="rounded-xl font-bold py-2 transition-all data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  >
+                    {t('report.lost_item')}
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="Found" 
+                    className="rounded-xl font-bold py-2 transition-all data-[state=active]:bg-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  >
+                    {t('report.found_item')}
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+
+            {/* Title */}
+            <div className="space-y-2 col-span-2">
+              <label className="text-sm font-bold text-slate-700">{t('report.item_title')}</label>
+              <Input
+                value={formData.title}
+                onChange={(e) => handleInputChange('title', e.target.value)}
+                placeholder={t('report.item_title_placeholder')}
+                required
+                className="rounded-2xl border-slate-100 bg-slate-50 focus-visible:ring-teal-600"
+              />
             </div>
 
             {/* Category */}
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Category</label>
-              <div className="relative group">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-600 transition-colors z-10">
-                  <Info size={18} />
-                </div>
-                <select
-                  className="w-full pl-12 h-14 rounded-2xl border-slate-200 focus:border-teal-500 focus:ring-teal-500/10 font-medium bg-white appearance-none cursor-pointer"
-                  value={formData.categoryId}
-                  onChange={(e) => setFormData({ ...formData, categoryId: Number(e.target.value) })}
-                  required
-                >
-                  <option value={0}>Select Category</option>
-                  {categories.map((cat) => (
-                    <option key={cat.value} value={cat.value}>{cat.label}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Description */}
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Detailed Description</label>
-            <Textarea
-              placeholder="Provide as much detail as possible to help others identify the item or understand the report..."
-              className="min-h-[120px] rounded-2xl border-slate-200 focus:border-teal-500 focus:ring-teal-500/10 font-medium p-4"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              required
-            />
-          </div>
-
-          {/* Location */}
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Last Seen Location / Area</label>
-            <div className="relative group">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-600 transition-colors">
-                <MapPin size={18} />
-              </div>
-              <Input
-                placeholder="Search for a location..."
-                className="pl-12 h-14 rounded-2xl border-slate-200 focus:border-teal-500 focus:ring-teal-500/10 font-medium"
-                value={formData.location}
-                onChange={(e) => {
-                  setFormData({ ...formData, location: e.target.value });
-                  setIsSearchingLocation(true);
-                  if (e.target.value === '') setShowSuggestions(false);
-                }}
-                required
+              <label className="text-sm font-bold text-slate-700">{t('report.category')}</label>
+              <Select
+                value={formData.categoryId}
+                options={categories}
+                onChange={(val) => handleInputChange('categoryId', val)}
+                placeholder={t('report.category_placeholder')}
+                className="rounded-2xl border-slate-100 bg-slate-50"
               />
-              {showSuggestions && locationSuggestions.length > 0 && (
-                <div className="absolute z-[100] w-full mt-2 bg-white rounded-2xl border border-slate-100 shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2">
-                  {locationSuggestions.map((suggestion) => (
-                    <button
-                      key={`${suggestion.lat}-${suggestion.lon}`}
-                      type="button"
-                      className="w-full px-4 py-3 text-left hover:bg-slate-50 transition-colors flex items-center gap-3 border-b border-slate-50 last:border-none"
-                      onClick={() => {
-                        setFormData({ ...formData, location: suggestion.display_name });
-                        setShowSuggestions(false);
-                      }}
-                    >
-                      <MapPin size={14} className="text-teal-500 flex-shrink-0" />
-                      <span className="text-sm text-slate-600 truncate">{suggestion.display_name}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Location */}
+            <div className="space-y-2 relative">
+              <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-orange-500" />
+                {t('report.location')}
+              </label>
+              <div className="relative">
+                <Input
+                  value={formData.location}
+                  onChange={(e) => handleInputChange('location', e.target.value)}
+                  placeholder={t('report.location_placeholder')}
+                  required
+                  className="rounded-2xl border-slate-100 bg-slate-50 focus-visible:ring-teal-600"
+                  onBlur={() => {
+                    setTimeout(() => setShowSuggestions(false), 200);
+                  }}
+                  onFocus={() => {
+                    if (locationSuggestions.length > 0) setShowSuggestions(true);
+                  }}
+                />
+                {showSuggestions && locationSuggestions.length > 0 && (
+                  <div className="absolute z-[301] w-full mt-1 bg-white rounded-xl shadow-2xl border border-slate-100 overflow-hidden max-h-60 overflow-y-auto">
+                    {locationSuggestions.map((suggestion) => (
+                      <div
+                        key={`${suggestion.lat}-${suggestion.lon}`}
+                        role="button"
+                        className="w-full text-left px-4 py-3 text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors border-b border-slate-50 last:border-0 flex items-start gap-2 cursor-pointer"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          handleSelectLocation(suggestion);
+                        }}
+                      >
+                        <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-slate-400" />
+                        <span>{suggestion.display_name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2 col-span-2">
+              <label className="text-sm font-bold text-slate-700">{t('report.description')}</label>
+              <Textarea
+                value={formData.description}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                placeholder={t('report.description_placeholder')}
+                required
+                className="rounded-2xl border-slate-100 bg-slate-50 focus-visible:ring-teal-600 min-h-[120px]"
+              />
+            </div>
+
             {/* Contact Info */}
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Primary Contact Info</label>
-              <div className="relative group">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-600 transition-colors">
-                  <Phone size={18} />
-                </div>
-                <Input
-                  placeholder="e.g., 0912-345-6789"
-                  className="pl-12 h-14 rounded-2xl border-slate-200 focus:border-teal-500 focus:ring-teal-500/10 font-medium"
-                  value={formData.contactInfo}
-                  onChange={(e) => setFormData({ ...formData, contactInfo: e.target.value })}
-                  required
-                />
-              </div>
+              <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                <Phone className="w-4 h-4 text-emerald-600" />
+                {t('report.contact_info')}
+              </label>
+              <Input
+                value={formData.contactInfo}
+                onChange={(e) => handleInputChange('contactInfo', e.target.value)}
+                placeholder={t('report.contact_placeholder')}
+                required
+                className="rounded-2xl border-slate-100 bg-slate-50 focus-visible:ring-teal-600"
+              />
             </div>
 
             {/* Reward */}
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Reward Details (Optional)</label>
-              <div className="relative group">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-600 transition-colors">
-                  <DollarSign size={18} />
-                </div>
-                <Input
-                  placeholder="e.g., PHP 5,000 or 'Token of appreciation'"
-                  className="pl-12 h-14 rounded-2xl border-slate-200 focus:border-teal-500 focus:ring-teal-500/10 font-medium"
-                  value={formData.rewardDetails}
-                  onChange={(e) => setFormData({ ...formData, rewardDetails: e.target.value })}
-                />
-              </div>
+              <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                <DollarSign className="w-4 h-4 text-amber-500" />
+                {t('report.reward')}
+              </label>
+              <Input
+                value={formData.rewardDetails}
+                onChange={(e) => handleInputChange('rewardDetails', e.target.value)}
+                placeholder={t('report.reward_placeholder')}
+                className="rounded-2xl border-slate-100 bg-slate-50 focus-visible:ring-teal-600"
+              />
             </div>
           </div>
 
-          <div className="pt-6 border-t border-slate-50 flex gap-4">
+          <div className="pt-6">
             <Button
               type="submit"
-              className="flex-1 h-14 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-black uppercase tracking-widest shadow-lg shadow-teal-500/20 transition-all hover:-translate-y-0.5"
-              disabled={loading}
+              loading={loading}
+              className="w-full py-6 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white shadow-xl shadow-teal-100 font-bold text-lg"
             >
-              {loading ? (
-                <div className="flex items-center gap-2">
-                  <Spinner size="sm" />
-                  <span>Updating...</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Save size={18} />
-                  <span>Update Report</span>
-                </div>
-              )}
+              {t('report.edit') || 'Edit'}
+              <Save className="w-5 h-5 ml-2" />
             </Button>
           </div>
         </form>

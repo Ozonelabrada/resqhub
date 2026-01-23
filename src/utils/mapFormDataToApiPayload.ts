@@ -1,6 +1,74 @@
 import { authManager } from './sessionManager';
 
-const mapFormDataToApiPayload = (reportType: string, formData: any) => {
+// Type definition for form data
+interface FormDataPayload {
+  name?: string;
+  title?: string;
+  description?: string;
+  condition?: string;
+  handoverPreference?: string;
+  location?: string;
+  currentLocation?: string;
+  date?: Date;
+  time?: string;
+  latitude?: number;
+  longitude?: number;
+  city?: string;
+  state?: string;
+  country?: string;
+  contactInfo: {
+    name: string;
+    phone?: string;
+    email?: string;
+    preferredContact?: string;
+  };
+  additionalInfo: {
+    identifyingFeatures?: string;
+    reward?: string;
+    storageLocation?: string;
+    circumstances?: string;
+  };
+  standardSpecs?: string;
+  images?: File[];
+}
+
+interface ReportPayload {
+  userId: string;
+  reportType: 'Lost' | 'Found';
+  title: string;
+  description: string;
+  expiresAt: string;
+  reportItemDetailsId: number;
+  reportContactInfoId: number;
+  reportLocationDetailsId: number;
+}
+
+interface ItemDetailsPayload {
+  reportId: number;
+  itemId: number;
+  description: string;
+  color?: string;
+  size?: string;
+  condition?: number;
+  serialNumber?: string;
+  distinguishingMarks: string;
+  estimatedValue?: number;
+  handoverPreference?: number;
+  storageLocation: string;
+  rewardAmount?: number;
+  rewardNotes: string;
+  imageUrls: string[];
+}
+
+interface ContactInfoPayload {
+  reportId: number;
+  contactName: string;
+  contactPhone: string;
+  contactEmail: string;
+  preferredContactMethod?: number;
+}
+
+const mapFormDataToApiPayload = (reportType: string, formData: FormDataPayload) => {
   // Get the current user ID
   const getCurrentUserId = (): string => {
     const user = authManager.getUser();
@@ -13,11 +81,11 @@ const mapFormDataToApiPayload = (reportType: string, formData: any) => {
   const userId = getCurrentUserId();
 
   // Main report payload
-  const reportPayload = {
+  const reportPayload: ReportPayload = {
     userId,
     reportType: reportType.toLowerCase() === 'lost' ? 'Lost' : 'Found',
-    title: formData.name || formData.title,
-    description: formData.description,
+    title: formData.name || formData.title || '',
+    description: formData.description || '',
     expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days from now
     reportItemDetailsId: 0, // Will be set after creating item details
     reportContactInfoId: 0, // Will be set after creating contact info
@@ -25,40 +93,40 @@ const mapFormDataToApiPayload = (reportType: string, formData: any) => {
   };
 
   // Report Item Details payload
-  const itemDetailsPayload = {
+  const itemDetailsPayload: ItemDetailsPayload = {
     reportId: 0, // Will be set after creating the main report
     itemId: 0, // Not using separate items API anymore
-    description: formData.description,
-    color: extractColorFromDescription(formData.description, formData.additionalInfo.identifyingFeatures),
-    size: extractSizeFromDescription(formData.description, formData.additionalInfo.identifyingFeatures),
-    condition: getConditionId(formData.condition),
-    serialNumber: extractSerialNumber(formData.standardSpecs),
-    distinguishingMarks: formData.additionalInfo.identifyingFeatures || "",
-    estimatedValue: extractEstimatedValue(formData.additionalInfo.reward),
-    handoverPreference: reportType === 'found' ? getHandoverPreferenceId(formData.handoverPreference) : 1,
-    storageLocation: formData.additionalInfo.storageLocation || "",
-    rewardAmount: extractRewardAmount(formData.additionalInfo.reward),
-    rewardNotes: formData.additionalInfo.reward || "",
+    description: formData.description || '',
+    color: extractColorFromDescription(formData.description || '', formData.additionalInfo?.identifyingFeatures || ''),
+    size: extractSizeFromDescription(formData.description || '', formData.additionalInfo?.identifyingFeatures || ''),
+    condition: getConditionId(formData.condition || ''),
+    serialNumber: extractSerialNumber(formData.standardSpecs || ''),
+    distinguishingMarks: formData.additionalInfo?.identifyingFeatures || '',
+    estimatedValue: extractEstimatedValue(formData.additionalInfo?.reward || ''),
+    handoverPreference: reportType.toLowerCase() === 'found' ? getHandoverPreferenceId(formData.handoverPreference || '') : 1,
+    storageLocation: formData.additionalInfo?.storageLocation || '',
+    rewardAmount: extractRewardAmount(formData.additionalInfo?.reward || ''),
+    rewardNotes: formData.additionalInfo?.reward || '',
     imageUrls: [] // Will be populated after image upload if implemented
   };
 
   // Report Contact Info payload
-  const contactInfoPayload = {
+  const contactInfoPayload: ContactInfoPayload = {
     reportId: 0, // Will be set after creating the main report
-    contactName: formData.contactInfo.name,
-    contactPhone: formData.contactInfo.phone || "",
-    contactEmail: formData.contactInfo.email || "",
-    preferredContactMethod: getContactMethodId(formData.contactInfo.preferredContact)
+    contactName: formData.contactInfo?.name || '',
+    contactPhone: formData.contactInfo?.phone || '',
+    contactEmail: formData.contactInfo?.email || '',
+    preferredContactMethod: formData.contactInfo?.preferredContact ? getContactMethodId(formData.contactInfo.preferredContact) : 1
   };
 
   // Report Location Details payload
   const locationDetailsPayload = {
     reportId: 0, // Will be set after creating the main report
-    incidentLocation: formData.location,
+    incidentLocation: formData.location || "",
     currentLocation: formData.currentLocation || "",
     incidentDate: formData.date ? formData.date.toISOString() : new Date().toISOString(),
     incidentTime: formData.time || "",
-    circumstances: formData.additionalInfo.circumstances || "",
+    circumstances: formData.additionalInfo?.circumstances || "",
     latitude: formData.latitude || 0,
     longitude: formData.longitude || 0,
     city: formData.city || "",

@@ -1,40 +1,70 @@
 import api from '../api/client';
 
 export interface LostFoundItem {
-  id: number;
-  userId: string;
-  reportType: 'Lost' | 'Found' | string;
-  status: number;
-  title: string;
-  description: string;
-  location: string;
-  contactInfo: string;
-  rewardDetails: string | null;
+  id?: number;
+  reportId?: number;
+  userId?: string;
+  reportType?: 'Lost' | 'Found' | number | string;
+  status?: number;
+  statusDescription?: string;
+  title?: string;
+  itemName?: string;
+  description?: string;
+  location?: string;
+  incidentLocation?: string;
+  currentLocation?: string;
+  contactInfo?: string;
+  rewardDetails?: string | null;
   specificLocation?: string;
-  categoryId: number | null;
-  categoryName: string | null;
-  verificationStatus: number;
-  isFeatured: boolean;
-  expiresAt: string | null;
-  resolvedAt: string | null;
-  images: Array<{
-    id: number;
-    imageUrl: string;
-    description: string | null;
+  categoryId?: number | null;
+  categoryName?: string | null;
+  category?: string;
+  itemCategory?: string;
+  verificationStatus?: number;
+  verificationStatusDescription?: string;
+  isFeatured?: boolean;
+  expiresAt?: string | null;
+  resolvedAt?: string | null;
+  images?: Array<{
+    id?: number;
+    imageUrl?: string;
+    description?: string | null;
   }>;
-  user: {
-    id: string;
-    fullName: string;
-    username: string;
-    profilePictureUrl: string;
+  imageUrls?: string[];
+  user?: {
+    id?: string;
+    fullName?: string;
+    username?: string;
+    profilePictureUrl?: string;
   };
   reactionsCount?: number;
   commentsCount?: number;
+  viewsCount?: number;
+  views?: number;
   isReacted?: boolean;
   communityName?: string;
   isAbusive?: boolean;
-  dateCreated: string;
-  lastModifiedDate: string;
+  dateCreated?: string;
+  lastModifiedDate?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  incidentDate?: string;
+  incidentTime?: string;
+  circumstances?: string;
+  identifyingFeatures?: string;
+  condition?: string | number;
+  handoverPreference?: string | number;
+  contactName?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  preferredContactMethod?: string | number;
+  rewardAmount?: number;
+  rewardDescription?: string;
+  storageLocation?: string;
+  dateModified?: string;
+  reportTypeDescription?: string;
+  potentialMatchesCount?: number;
+  type?: 'lost' | 'found' | 'news' | 'discussion' | 'announcement';
 }
 
 export const ReportsService = {

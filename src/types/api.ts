@@ -1,7 +1,3 @@
 // This file is being reorganized. Please import from '@/types' instead.
+// All types are now centralized in types/index.ts
 export * from '../api/types';
-export * from './auth';
-export * from './statistics';
-export * from './items';
-export * from './trending';
-export * from './category';

@@ -30,7 +30,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref
   ) => {
-    const variantMap: Record<string, any> = {
+    const variantMap: Record<string, "default" | "link" | "primary" | "secondary" | "accent" | "destructive" | "danger" | "outline" | "ghost" | null | undefined> = {
       primary: "default",
       secondary: "secondary",
       danger: "destructive",
@@ -39,7 +39,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       link: "link",
     };
 
-    const sizeMap: Record<string, any> = {
+    const sizeMap: Record<string, "icon" | "default" | "sm" | "lg" | null | undefined> = {
       sm: "sm",
       md: "default",
       lg: "lg",
@@ -49,8 +49,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <ShadcnButton
         ref={ref}
-        variant={variantMap[variant] || "default"}
-        size={sizeMap[size] || "default"}
+        variant={(variantMap[variant] || "default") as any}
+        size={(sizeMap[size] || "default") as any}
         className={cn(
           "rounded-xl font-medium transition-all duration-200",
           fullWidth && "w-full",

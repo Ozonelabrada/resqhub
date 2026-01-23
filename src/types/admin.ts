@@ -81,7 +81,7 @@ export interface CommunityDetail extends CommunitySummary {
 
 export interface CommunityListParams {
   query?: string;
-  status?: 'all' | 'pending' | 'active' | 'disabled' | 'rejected';
+  status?: 'all' | 'pending' | 'active' | 'approved' | 'disabled' | 'rejected';
   subscriptionTier?: string;
   page?: number;
   pageSize?: number;

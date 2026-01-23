@@ -98,9 +98,13 @@ export class UserService {
       );
       
       // Handle potential nested structure data.data.data or data.data
-      const rawData = (response.data as any).data;
+      const responseData = response.data as Record<string, unknown>;
+      const rawData = responseData.data;
       if (Array.isArray(rawData)) return rawData;
-      if (rawData && Array.isArray(rawData.data)) return rawData.data;
+      if (rawData && typeof rawData === 'object') {
+        const nestedData = (rawData as Record<string, unknown>).data;
+        if (Array.isArray(nestedData)) return nestedData;
+      }
       
       return [];
     } catch (error) {

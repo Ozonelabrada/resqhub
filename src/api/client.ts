@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { authManager } from '../utils/sessionManager';
 import { serverHealth } from './serverHealth';
+import { getWindowExt } from '../types/window';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com',
@@ -45,19 +46,22 @@ api.interceptors.response.use(
       console.warn('Session expired - logging out');
       authManager.logout();
       
-      if ((window as any).showToast) {
-        (window as any).showToast('warn', 'Session Expired', 'Please log in again.');
+      const toast = getWindowExt()?.showToast;
+      if (toast) {
+        toast('warn', 'Session Expired', 'Please log in again.');
       }
     } else if (error.response?.status === 403) {
       // Forbidden - current user doesn't have permission for this specific endpoint
       console.error('Permission denied (403)');
-      if ((window as any).showToast) {
-        (window as any).showToast('error', 'Access Denied', 'You do not have permission to perform this action.');
+      const toast = getWindowExt()?.showToast;
+      if (toast) {
+        toast('error', 'Access Denied', 'You do not have permission to perform this action.');
       }
     } else if (error.response) {
       // Other API errors
-      if ((window as any).showToast) {
-        (window as any).showToast('error', 'API Error', error.response.data?.message || 'Something went wrong.');
+      const toast = getWindowExt()?.showToast;
+      if (toast) {
+        toast('error', 'API Error', error.response.data?.message || 'Something went wrong.');
       }
     } else if (error.request || error.message === 'SERVER_UNREACHABLE') {
       // Network errors or circuit breaker triggered

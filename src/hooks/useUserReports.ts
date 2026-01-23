@@ -1,5 +1,6 @@
 // hooks/useUserReports.ts
 import { useState, useEffect, useCallback } from 'react';
+import type { LostFoundItem } from '../types';
 import { ItemsService } from '../services/itemsService';
 import { UserService } from '../services/userService';
 import type { UserReport } from '../types/personalHub';
@@ -48,40 +49,41 @@ export const useUserReports = (userId: string | null) => {
     try {
       const response = await ItemsService.getReportsByUser(userId, loadMore ? currentPage + 1 : 1);
 
-      let reportsArray: any[] = [];
+      let reportsArray: LostFoundItem[] = [];
       let hasMoreData = false;
 
       // Handle nested response structure
       if (response && typeof response === 'object') {
+        const responseAsRecord = response as unknown as Record<string, unknown>;
         if (
-          'data' in response &&
-          response.data &&
-          typeof response.data === 'object' &&
-          'data' in response.data &&
-          Array.isArray((response.data as any).data)
+          'data' in responseAsRecord &&
+          responseAsRecord.data &&
+          typeof responseAsRecord.data === 'object' &&
+          'data' in (responseAsRecord.data as Record<string, unknown>) &&
+          Array.isArray((responseAsRecord.data as Record<string, unknown>).data)
         ) {
-          reportsArray = (response.data as any).data;
-          hasMoreData = (response.data as any).hasMore || (response.data as any).loadMore || false;
-        } else if ('data' in response && Array.isArray(response.data)) {
-          reportsArray = response.data;
-          hasMoreData = (response as any).hasMore || false;
-        } else if ('reports' in response && Array.isArray(response.reports)) {
-          reportsArray = response.reports;
-          hasMoreData = (response as any).hasMore || false;
+          reportsArray = ((responseAsRecord.data as Record<string, unknown>).data as LostFoundItem[]);
+          hasMoreData = ((responseAsRecord.data as Record<string, unknown>).hasMore as boolean) || ((responseAsRecord.data as Record<string, unknown>).loadMore as boolean) || false;
+        } else if ('data' in responseAsRecord && Array.isArray(responseAsRecord.data)) {
+          reportsArray = responseAsRecord.data as LostFoundItem[];
+          hasMoreData = (responseAsRecord.hasMore as boolean) || false;
+        } else if ('reports' in responseAsRecord && Array.isArray(responseAsRecord.reports)) {
+          reportsArray = responseAsRecord.reports as LostFoundItem[];
+          hasMoreData = (responseAsRecord.hasMore as boolean) || false;
         } else if (Array.isArray(response)) {
-          reportsArray = response;
+          reportsArray = response as LostFoundItem[];
           hasMoreData = false;
         }
       }
 
       // Transform reports
       const mappedReports: UserReport[] = reportsArray.map((report) => ({
-        id: report.id || report.reportId,
+        id: report.id ? String(report.id) : (report.reportId ? String(report.reportId) : undefined),
         title: report.title || report.itemName || 'Untitled Report',
         category: report.category || report.itemCategory || 'Other',
         location: report.incidentLocation || report.location || 'Unknown Location',
         currentLocation: report.currentLocation || '',
-        date: report.incidentDate !== '0001-01-01T00:00:00' ? report.incidentDate : report.createdAt || new Date().toISOString(),
+        date: report.incidentDate && report.incidentDate !== '0001-01-01T00:00:00' ? report.incidentDate : (report.createdAt || new Date().toISOString()),
         time: report.incidentTime || '',
         status: report.statusDescription?.toLowerCase() || 'active',
         views: report.viewsCount || report.views || 0,
@@ -91,13 +93,13 @@ export const useUserReports = (userId: string | null) => {
         description: report.description || '',
         circumstances: report.circumstances || '',
         identifyingFeatures: report.identifyingFeatures || '',
-        condition: getConditionLabel(report.condition || 2),
-        handoverPreference: getHandoverLabel(report.handoverPreference || 1),
+        condition: getConditionLabel(typeof report.condition === 'number' ? report.condition : (report.condition ? parseInt(String(report.condition)) : 2)),
+        handoverPreference: getHandoverLabel(typeof report.handoverPreference === 'number' ? report.handoverPreference : (report.handoverPreference ? parseInt(String(report.handoverPreference)) : 1)),
         contactInfo: {
           name: report.contactName || 'Unknown',
           phone: report.contactPhone || '',
           email: report.contactEmail || '',
-          preferredContact: getContactMethodLabel(report.preferredContactMethod || 1)
+          preferredContact: getContactMethodLabel(typeof report.preferredContactMethod === 'number' ? report.preferredContactMethod : (report.preferredContactMethod ? parseInt(String(report.preferredContactMethod)) : 1))
         },
         reward: {
           amount: report.rewardAmount || 0,

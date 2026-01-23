@@ -6,6 +6,9 @@ import { Toast, Spinner } from './components/ui';
 import type { ToastRef } from './components/ui/Toast/Toast';
 import { Toaster } from 'react-hot-toast';
 
+// Utilities
+import { getWindowExt } from './types/window';
+
 // Public Pages (Lazy Loaded)
 const PersonalHubPage = lazy(() => import('./components/pages/public/PersonalHubPage/PersonalHubPage'));
 const HubHomePage = lazy(() => import('./components/pages/public/HubHomePage/HubHomePage'));
@@ -131,14 +134,21 @@ const App = () => {
 
   // Expose toast to window for global access if needed
   useEffect(() => {
-    (window as any).showToast = (severity: 'success' | 'info' | 'warn' | 'error', summary: string, detail: string) => {
-      toast.current?.show({ severity, summary, detail, life: 3000 });
+    const showToastImpl = (severity: 'success' | 'info' | 'warn' | 'error', summary: string, detail?: string): void => {
+      toast.current?.show({ severity, summary, detail: detail || '', life: 3000 });
     };
+    const winExt = getWindowExt();
+    if (winExt) {
+      (winExt.showToast as any) = showToastImpl;
+    }
   }, []);
 
   useEffect(() => {
-    const handleServerStatus = (e: any) => {
-      setIsServerDown(e.detail.isDown);
+    const handleServerStatus = (e: Event): void => {
+      const customEvent = e as CustomEvent<{ isDown: boolean }>;
+      if (customEvent?.detail?.isDown !== undefined) {
+        setIsServerDown(customEvent.detail.isDown);
+      }
     };
 
     window.addEventListener('server-status-change', handleServerStatus);

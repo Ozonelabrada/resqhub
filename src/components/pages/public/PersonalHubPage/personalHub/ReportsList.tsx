@@ -77,7 +77,7 @@ export const ReportsList: React.FC<ReportsListProps> = ({
                     </div>
                     <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
                       <Calendar size={12} className="text-teal-500" />
-                      {new Date(report.date).toLocaleDateString()}
+                      {new Date(report.date || new Date().toISOString()).toLocaleDateString()}
                     </div>
                     <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
                       <Eye size={12} className="text-teal-500" />

@@ -85,13 +85,13 @@ export const MatchModal: React.FC<MatchModalProps> = ({ isOpen, onClose, report 
           await ReportMatchService.updateMatchStatus(matchId, 'confirmed', 'Match initiated from search');
         }
         
-        (window as any).showToast?.('success', 'Match Request Sent', 'Waiting for confirmation from the owner.');
+        (window as any).showToast?.('success', t('match.match_request_sent') || 'Match Request Sent', t('match.match_request_waiting') || 'Waiting for confirmation from the owner.');
       } else {
-        (window as any).showToast?.('error', 'Match Failed', createRes.message || 'Could not initiate match.');
+        (window as any).showToast?.('error', t('match.match_failed') || 'Match Failed', createRes.message || 'Could not initiate match.');
       }
     } catch (error) {
       console.error('Match selection error:', error);
-      (window as any).showToast?.('error', 'Match Failed', 'An unexpected error occurred.');
+      (window as any).showToast?.('error', t('match.match_failed') || 'Match Failed', t('match.match_failed_unexpected') || 'An unexpected error occurred.');
     } finally {
       onClose();
     }
@@ -115,16 +115,16 @@ export const MatchModal: React.FC<MatchModalProps> = ({ isOpen, onClose, report 
                   <Layers size={24} />
                 </div>
                 <div>
-                  <DialogTitle className="text-2xl font-black text-slate-900">Possible Matches</DialogTitle>
+                  <DialogTitle className="text-2xl font-black text-slate-900">{t('match.possible_matches') || 'Possible Matches'}</DialogTitle>
                   <DialogDescription className="text-slate-500 font-medium">
-                    Link this report to an existing {oppositeTypeLabel.toLowerCase()} report
+                    {t('match.link_report') || 'Link this report to an existing report'}
                   </DialogDescription>
                 </div>
               </div>
             </DialogHeader>
 
             <div className="bg-slate-50 rounded-2xl p-4 mb-6 border border-slate-100">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Selected Report</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('match.selected_report') || 'Selected Report'}</p>
               <div className="flex gap-4">
                 <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-200 shrink-0">
                   {report.images?.[0] ? (
@@ -154,7 +154,7 @@ export const MatchModal: React.FC<MatchModalProps> = ({ isOpen, onClose, report 
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <Spinner size="lg" className="text-teal-600 mb-4" />
-                  <p className="text-slate-400 font-bold">Scanning for matches...</p>
+                  <p className="text-slate-400 font-bold">{t('match.scanning_for_matches') || 'Scanning for matches...'}</p>
                 </div>
               ) : candidates.length > 0 ? (
                 candidates.map((candidate) => (
@@ -176,7 +176,7 @@ export const MatchModal: React.FC<MatchModalProps> = ({ isOpen, onClose, report 
                         <h5 className="font-black text-slate-900 truncate">{candidate.title}</h5>
                         {candidate.rewardDetails && (
                           <span className="text-[10px] font-black text-emerald-600 whitespace-nowrap">
-                            Reward Available
+                            {t('match.reward_available') || 'Reward Available'}
                           </span>
                         )}
                       </div>
@@ -187,14 +187,14 @@ export const MatchModal: React.FC<MatchModalProps> = ({ isOpen, onClose, report 
                         </span>
                         <span className="flex items-center gap-1.5 truncate">
                           <Calendar size={12} className="text-teal-400" />
-                          {new Date(candidate.dateCreated).toLocaleDateString()}
+                          {new Date(candidate.dateCreated || new Date().toISOString()).toLocaleDateString()}
                         </span>
                       </div>
                     </div>
                     <Button 
                       size="sm"
                       className="rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black"
-                      onClick={() => handleMatchSelect(candidate.id)}
+                      onClick={() => handleMatchSelect(candidate.id || 0)}
                     >
                       Match
                     </Button>
@@ -205,9 +205,9 @@ export const MatchModal: React.FC<MatchModalProps> = ({ isOpen, onClose, report 
                   <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-slate-200">
                     <Search size={32} />
                   </div>
-                  <h5 className="text-slate-800 font-black">No candidates found</h5>
+                  <h5 className="text-slate-800 font-black">{t('match.no_candidates_found') || 'No candidates found'}</h5>
                   <p className="text-slate-400 text-sm font-medium px-8 mt-1">
-                    We couldn't find any current {oppositeTypeLabel.toLowerCase()} reports that match.
+                    {t('match.no_candidates_message') || 'We couldn\'t find any current reports that match.'}
                   </p>
                 </div>
               )}
@@ -220,16 +220,16 @@ export const MatchModal: React.FC<MatchModalProps> = ({ isOpen, onClose, report 
                 <div className="w-10 h-10 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center mx-auto mb-3">
                   <CheckCircle2 size={24} />
                 </div>
-                <h5 className="text-slate-900 font-black">Don't see your report?</h5>
+                <h5 className="text-slate-900 font-black">{t('match.dont_see_report') || 'Don\'t see your report?'}</h5>
                 <p className="text-slate-500 text-sm font-medium mt-1 mb-4 leading-relaxed">
-                  If this is your item but you haven't posted a {oppositeTypeLabel.toLowerCase()} report yet, create one now to claim it.
+                  {t('match.create_proof_post_message') || 'If this is your item but you haven\'t posted a report yet, create one now to claim it.'}
                 </p>
                 <Button 
                    onClick={handleCreateProofPost}
                    className="w-full h-12 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-black shadow-lg shadow-teal-100"
                 >
                   <Plus size={18} className="mr-2" />
-                  Create {oppositeTypeLabel} Report
+                  {t('match.create_proof_post') || 'Create Report'}
                   <ArrowRight size={16} className="ml-auto" />
                 </Button>
               </div>
@@ -238,7 +238,7 @@ export const MatchModal: React.FC<MatchModalProps> = ({ isOpen, onClose, report 
                 onClick={onClose}
                 className="text-slate-400 font-bold text-sm hover:text-slate-600 transition-colors"
               >
-                Close and search manually
+                {t('match.close_and_search') || 'Close and search manually'}
               </button>
             </div>
           </div>

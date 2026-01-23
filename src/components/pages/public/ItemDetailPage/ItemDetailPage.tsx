@@ -86,12 +86,12 @@ const ItemDetailPage: React.FC = () => {
   }
 
   const nextImage = () => {
-    if (item.images && item.images.length > 0) {
-      setActiveImageIndex((prev) => (prev + 1) % item.images.length);
+    if (item?.images && item?.images.length > 0) {
+      setActiveImageIndex((prev) => (prev + 1) % (item.images?.length || 1));
     }
   };
 
-  const images = item.images?.length > 0 ? item.images.map(img => img.imageUrl) : [];
+  const images = (item?.images && item.images.length > 0) ? item.images.map(img => img.imageUrl) : [];
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-20">
@@ -153,7 +153,7 @@ const ItemDetailPage: React.FC = () => {
                   )}
                   
                     <div className="absolute top-6 left-6">
-                      <StatusBadge status={String(item.status).toLowerCase() === 'reunited' ? 'reunited' : (item.reportType.toLowerCase() === 'lost' ? 'lost' : 'found')} />
+                      <StatusBadge status={String(item.status).toLowerCase() === 'reunited' ? 'reunited' : (String(item.reportType || '').toLowerCase() === 'lost' ? 'lost' : 'found')} />
                     </div>
                 </div>
 
@@ -189,7 +189,7 @@ const ItemDetailPage: React.FC = () => {
                       </div>
                       <div>
                         <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">{t('report.date_reported')}</p>
-                        <p className="text-slate-800 font-bold">{new Date(item.dateCreated).toLocaleDateString()}</p>
+                        <p className="text-slate-800 font-bold">{new Date(item.dateCreated || new Date().toISOString()).toLocaleDateString()}</p>
                       </div>
                     </div>
 
@@ -233,9 +233,9 @@ const ItemDetailPage: React.FC = () => {
               </div>
               
               <CommentSection 
-                itemId={item.id} 
-                itemType={item.reportType.toLowerCase() === 'lost' ? 'lost' : 'found'} 
-                itemOwnerId={item.user?.id}
+                itemId={Number(item.id || 0)} 
+                itemType={String(item.reportType || '').toLowerCase() === 'lost' ? 'lost' : 'found'} 
+                itemOwnerId={String(item.user?.id || '')}
               />
             </Card>
           </div>
@@ -252,7 +252,7 @@ const ItemDetailPage: React.FC = () => {
                 />
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <h4 className="font-black text-slate-900 text-lg">{item.user?.fullName || item.user?.username}</h4>
+                    <h4 className="font-black text-slate-900 text-lg">{item.user?.fullName || item.user?.username || 'Unknown'}</h4>
                     <ShieldCheck size={16} className="text-blue-500 fill-blue-50" />
                   </div>
                   <p className="text-teal-600 font-bold text-sm">{t('report.verified_member')}</p>
@@ -278,7 +278,7 @@ const ItemDetailPage: React.FC = () => {
                   <div className="p-4 rounded-2xl bg-teal-50 border border-teal-100">
                     <p className="text-xs font-black text-teal-600 uppercase tracking-widest mb-2">{t('report.contact_details')}</p>
                     <p className="text-teal-900 font-bold flex items-center gap-2">
-                       {item.contactInfo || t('report.contact_hidden')}
+                       {String(item.contactInfo || t('report.contact_hidden'))}
                     </p>
                   </div>
                   <Button 
@@ -334,7 +334,7 @@ const ItemDetailPage: React.FC = () => {
     <ReportAbuseModal
       isOpen={isReportModalOpen}
       onClose={() => setIsReportModalOpen(false)}
-      targetId={item.id}
+      targetId={Number(item?.id || 0)}
       targetType="report"
     />
   </div>
