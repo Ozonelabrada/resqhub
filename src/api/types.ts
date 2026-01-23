@@ -14,10 +14,13 @@ export interface PaginatedResponse<T> extends BaseApiResponse {
     pageNumber: number;
     succeeded: boolean;
     data: T[];
-    errorMessage: string;
+    errorMessage?: string;
     loadMore: boolean;
-    baseEntity: any;
   };
-  errors: any;
-  baseEntity: any;
+}
+
+// Generic report type (placeholder - actual structure depends on backend)
+export interface Report {
+  id?: number | string;
+  [key: string]: unknown;
 }

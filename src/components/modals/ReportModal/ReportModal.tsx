@@ -143,7 +143,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
     setLoading(true);
     try {
       const reportPayload = {
-        userId: user?.id,
+        userId: user?.id ? String(user.id) : undefined,
         categoryId: formData.categoryId,
         title: sanitizeInput(formData.title),
         description: formData.description,
@@ -159,7 +159,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
       };
 
       const response = await ItemsService.createReport(reportPayload);
-      const reportId = response.data?.id;
+      const reportId = (response?.data as any)?.id || (response as any)?.id;
 
       // Upload images if any
       if (reportId && formData.images.length > 0) {

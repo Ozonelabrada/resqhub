@@ -24,7 +24,7 @@ const CommunityManagementPage: React.FC = () => {
   const navigate = useNavigate();
   const [communities, setCommunities] = useState<CommunitySummary[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('active');
+  const [activeTab, setActiveTab] = useState('live');
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -34,10 +34,18 @@ const CommunityManagementPage: React.FC = () => {
   const fetchCommunities = async () => {
     setLoading(true);
     try {
+      // For 'live' tab, fetch 'approved' communities
+      let statusParam: 'pending' | 'approved' | 'disabled' | 'rejected' | 'all' = 'all';
+      
+      if (activeTab === 'live') {
+        // Fetch approved communities
+        statusParam = 'approved';
+      } else if (activeTab === 'pending' || activeTab === 'disabled' || activeTab === 'rejected') {
+        statusParam = activeTab as 'pending' | 'disabled' | 'rejected';
+      }
+      
       const response = await AdminService.getCommunities({ 
-        status: (activeTab === 'pending' || activeTab === 'active' || activeTab === 'disabled' || activeTab === 'rejected') 
-          ? activeTab 
-          : 'all',
+        status: statusParam,
         query: searchQuery.trim() || undefined
       });
       // Safety check for data structure
@@ -77,8 +85,8 @@ const CommunityManagementPage: React.FC = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-100 inline-flex mb-8">
             <TabList className="bg-transparent border-none gap-2">
-                    <TabTrigger value="active" className="rounded-xl px-6 py-2.5 font-bold data-[state=active]:bg-teal-600 data-[state=active]:text-white transition-all">
-                        Live Communities
+                    <TabTrigger value="live" className="rounded-xl px-6 py-2.5 font-bold data-[state=active]:bg-teal-600 data-[state=active]:text-white transition-all">
+                        Approved & Active
                     </TabTrigger>
                     <TabTrigger value="pending" className="rounded-xl px-6 py-2.5 font-bold data-[state=active]:bg-teal-600 data-[state=active]:text-white transition-all">
                         Pending Requests

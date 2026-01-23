@@ -1,11 +1,12 @@
 // hooks/useUserProfile.ts
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserService } from '../services/userService';
+import { UserService, type BackendUserData } from '../services/userService';
 import { useAuth } from '../context/AuthContext';
 import { authManager } from '../utils/sessionManager';
 import { STORAGE_KEYS } from '../constants';
 import type { UserProfile } from '../types/personalHub';
+import type { UserData } from '../types/auth';
 
 export const useUserProfile = () => {
   const navigate = useNavigate();
@@ -26,13 +27,13 @@ export const useUserProfile = () => {
       const currentUserId = UserService.getCurrentUserId();
 
       const backendUserData = await UserService.getCurrentUser(currentUserId || undefined);
-      const transformedUserData = UserService.transformUserData(backendUserData);
+      const transformedUserData = UserService.transformUserData(backendUserData) as any as UserProfile;
 
       setUserData(transformedUserData);
       // Update authManager with fresh user data
       const token = authManager.getToken();
       if (token) {
-        authManager.setSession(token, transformedUserData as any);
+        authManager.setSession(token, transformedUserData as any as UserData);
       }
 
     } catch (err) {
@@ -41,7 +42,7 @@ export const useUserProfile = () => {
       // Fallback to authManager
       const localUser = authManager.getUser();
       if (localUser) {
-        setUserData(localUser as any);
+        setUserData(localUser as any as UserProfile);
       } else {
         setError('Failed to load user profile');
       }
@@ -50,17 +51,17 @@ export const useUserProfile = () => {
     }
   };
 
-  const updateProfile = async (updates: Partial<UserProfile>) => {
+  const updateProfile = async (updates: Partial<BackendUserData>): Promise<boolean> => {
     if (!userData) return false;
 
     try {
-      const updatedUser = await UserService.updateUserProfile(userData.id as string, updates as any);
-      const transformedUserData = UserService.transformUserData(updatedUser);
+      const updatedUser = await UserService.updateUserProfile(userData.id as string, updates);
+      const transformedUserData = UserService.transformUserData(updatedUser) as any as UserProfile;
 
       setUserData(transformedUserData);
       // Update authManager with fresh user data
       if (auth?.token) {
-        authManager.setSession(auth.token, transformedUserData as any);
+        authManager.setSession(auth.token, transformedUserData as any as UserData);
       }
       return true;
     } catch (err) {

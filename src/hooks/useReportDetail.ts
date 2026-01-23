@@ -27,9 +27,10 @@ export const useReportDetail = (id: string | number | undefined): UseReportDetai
       } else {
         setError('Report not found');
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch report detail');
-      console.error(err);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to fetch report detail';
+      setError(message);
+      console.error(error);
     } finally {
       setLoading(false);
     }

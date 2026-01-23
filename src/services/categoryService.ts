@@ -2,13 +2,14 @@ import api from '../api/client';
 import publicApiClient from '../api/publicClient';
 import type { Category, CategoryResponse } from '../types';
 
+/**
+ * Typed response structure for category API responses
+ */
 export interface BackendCategoryResponse {
   message: string;
   succeeded: boolean;
   statusCode: number;
-  data: Category | Category[] | any | null;
-  errors: any;
-  baseEntity: any;
+  data: Category | Category[] | null;
 }
 
 export class CategoryService {
@@ -25,31 +26,34 @@ export class CategoryService {
       const queryParams = new URLSearchParams(query).toString();
       const url = queryParams ? `/categories?${queryParams}` : '/categories';
 
-      const response = await api.request<any>({
+      const response = await api.request<BackendCategoryResponse>({
         url,
         method: 'GET',
       });
 
       console.log('Raw Category API Response:', response.data);
 
-      // Handle triple data nesting: response.data.data.data
-      if (response.data?.data?.data && Array.isArray(response.data.data.data)) {
-        return response.data.data.data;
+      // Handle different response structures
+      const responseData = response.data as unknown as Record<string, unknown>;
+      
+      // If it's already an array, return it
+      if (Array.isArray(responseData)) {
+        return responseData;
       }
       
-      // Handle double nesting: response.data.data
-      if (response.data?.data && Array.isArray(response.data.data)) {
-        return response.data.data;
-      }
-
-      // Handle direct array in body
-      if (Array.isArray(response.data)) {
-        return response.data;
-      }
-      
-      // Handle "succeeded" wrapper without extra nesting
-      if (response.data?.succeeded && Array.isArray(response.data.data)) {
-        return response.data.data;
+      // If it's an object with a data property
+      if (responseData && typeof responseData === 'object' && 'data' in responseData) {
+        const nested = (responseData as Record<string, unknown>).data;
+        if (Array.isArray(nested)) {
+          return nested;
+        }
+        // Handle nested data.data
+        if (nested && typeof nested === 'object' && 'data' in nested) {
+          const doubleNested = (nested as Record<string, unknown>).data;
+          if (Array.isArray(doubleNested)) {
+            return doubleNested;
+          }
+        }
       }
       
       return [];

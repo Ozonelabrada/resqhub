@@ -187,13 +187,14 @@ export const CommunitiesContainer: React.FC = () => {
 
   // Filter communities based on visibility rules:
   // - If user is the creator: show all (regardless of status)
-  // - If user is not the creator: only show if status is 'active'
+  // - If user is not the creator: only show if status is 'active' AND not 'suspended'
   const filteredCommunities = communities.filter(community => {
     const isCreator = user?.id && community.createdBy === user.id;
-    const isActive = community.status === 'active' || community.status === 'Active';
+    const isActive = community.status === 'approved' || community.status === 'Approved';
+    const isSuspended = community.status === 'suspended' || community.status === 'Suspended';
     
-    // Show if: user is creator OR community is active
-    return isCreator || isActive;
+    // Show if: user is creator OR (community is active AND not suspended)
+    return isCreator || (isActive && !isSuspended);
   });
 
   const handleCreateStore = async () => {
@@ -780,12 +781,16 @@ export const CommunitiesContainer: React.FC = () => {
                     </Badge>
                   )}
 
-                  {/* Show status badge if user is the creator */}
-                  {isAuthenticated && user?.id && community.createdBy === user.id && (
+                  {/* Show status badge if user is the creator AND status is not active/approved */}
+                  {isAuthenticated && user?.id && community.createdBy === user.id && 
+                    (community.status === 'pending' || community.status === 'Pending' || 
+                     community.status === 'suspended' || community.status === 'Suspended' || 
+                     community.status === 'rejected' || community.status === 'Rejected' || 
+                     community.status === 'disabled' || community.status === 'Disabled') && (
                     <Badge className={cn(
                       "absolute top-3 left-3 font-black uppercase text-[8px] tracking-widest px-2 py-0.5 border-none shadow-sm",
-                      community.status === 'active' || community.status === 'Active' ? "bg-green-500 text-white" :
                       community.status === 'pending' || community.status === 'Pending' ? "bg-amber-500 text-white" :
+                      community.status === 'suspended' || community.status === 'Suspended' ? "bg-rose-500 text-white" :
                       "bg-red-500 text-white"
                     )}>
                       {community.status}

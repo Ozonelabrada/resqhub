@@ -47,8 +47,8 @@ export const CommunityMyReports: React.FC<CommunityMyReportsProps> = ({
   }, [communityId, userId]);
 
   const filteredReports = reports.filter(r => {
-    const matchesSearch = r.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          r.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (r.title || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          (r.description || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = filterType === 'all' || r.reportType === filterType;
     return matchesSearch && matchesType;
   });
@@ -160,14 +160,14 @@ export const CommunityMyReports: React.FC<CommunityMyReportsProps> = ({
                     "group border-none shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden bg-white",
                     viewMode === 'grid' ? "rounded-[2.5rem]" : "rounded-3xl flex items-center pr-6"
                   )}
-                  onClick={() => handleReportClick(report.id)}
+                  onClick={() => handleReportClick(Number(report.id || 0))}  
                 >
                   <div className={cn(
                     "relative overflow-hidden bg-slate-100",
                     viewMode === 'grid' ? "w-full aspect-[4/3]" : "w-40 aspect-square shrink-0"
                   )}>
                     {report.images && report.images.length > 0 ? (
-                      <img src={report.images[0].imageUrl} alt={report.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                      <img src={report.images[0].imageUrl} alt={report.title || ''} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-slate-300">
                         <Heart size={40} className="opacity-20" />
@@ -185,7 +185,7 @@ export const CommunityMyReports: React.FC<CommunityMyReportsProps> = ({
 
                   <div className="p-6 flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-2">
-                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{new Date(report.dateCreated).toLocaleDateString()}</span>
+                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{new Date(report.dateCreated || new Date().toISOString()).toLocaleDateString()}</span>
                        <div className="flex items-center gap-1.5">
                          {report.status === 1 ? (
                            <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[9px] uppercase">Open</Badge>

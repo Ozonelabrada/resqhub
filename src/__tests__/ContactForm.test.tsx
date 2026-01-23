@@ -52,10 +52,11 @@ describe('ContactForm', () => {
   });
 
   it('submits the form successfully and shows success message', async () => {
-    (contactService.sendContact as any).mockResolvedValue({
+    const mockResponse: { success: boolean; ticketId: string } = {
       success: true,
       ticketId: 'MOCK-123',
-    });
+    };
+    (contactService.sendContact as jest.Mock).mockResolvedValue(mockResponse);
 
     renderContactForm();
     
@@ -75,10 +76,11 @@ describe('ContactForm', () => {
   });
 
   it('shows error alert on submission failure', async () => {
-    (contactService.sendContact as any).mockResolvedValue({
+    const mockErrorResponse: { success: boolean; error: string } = {
       success: false,
       error: 'Submission failed',
-    });
+    };
+    (contactService.sendContact as jest.Mock).mockResolvedValue(mockErrorResponse);
 
     renderContactForm();
     

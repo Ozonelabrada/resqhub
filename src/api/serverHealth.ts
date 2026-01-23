@@ -1,5 +1,6 @@
 
 import axios from 'axios';
+import { getWindowExt } from '../types/window';
 
 /**
  * Server Health Manager
@@ -47,8 +48,9 @@ class ServerHealthManager {
     
     window.dispatchEvent(new CustomEvent('server-status-change', { detail: { isDown: false } }));
     
-    if ((window as any).showToast) {
-      (window as any).showToast('success', 'Server Reconnected', 'Connection to the server has been restored.');
+    const toast = getWindowExt()?.showToast;
+    if (toast) {
+      toast('success', 'Server Reconnected', 'Connection to the server has been restored.');
     }
   }
 

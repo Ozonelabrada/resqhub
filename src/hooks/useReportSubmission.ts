@@ -1,12 +1,13 @@
 // Optional: Auto-trigger trending calculation when new reports are submitted
 import { useState } from 'react';
+import type { LostFoundItem } from '../types';
 import { ItemsService } from '../services/itemsService';
 import { TrendingReportsService } from '../services/trendingReportsService';
 
 export const useReportSubmission = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const submitReport = async (reportData: any) => {
+  const submitReport = async (reportData: Partial<LostFoundItem>): Promise<void> => {
     try {
       setIsSubmitting(true);
 

@@ -120,12 +120,12 @@ export const NewsFeed: React.FC<NewsFeedProps> = ({
   };
 
   const handleContact = (item: NewsFeedItem) => {
-    setActiveItem(item.id);
+    setActiveItem(String(item.id || ''));
     setShowContactModal(true);
   };
 
   const handleShare = (item: NewsFeedItem) => {
-    setActiveItem(item.id);
+    setActiveItem(String(item.id || ''));
     setShowShareModal(true);
   };
 
@@ -154,16 +154,17 @@ export const NewsFeed: React.FC<NewsFeedProps> = ({
       <div className={`space-y-6 ${className}`}>
         {items.map((item) => {
           const style = getStatusStyles(item.status);
-          const isVisible = visibleCards.has(item.id);
-          const isSaved = savedItems.has(item.id);
-          const commentsOpen = commentSections.has(item.id);
+          const itemIdStr = String(item.id || '');
+          const isVisible = visibleCards.has(itemIdStr);
+          const isSaved = savedItems.has(itemIdStr);
+          const commentsOpen = commentSections.has(itemIdStr);
 
           return (
             <div
-              key={item.id}
-              id={item.id}
+              key={String(item.id || '')}
+              id={String(item.id || '')}
               ref={(el) => {
-                if (el) cardRefs.current.set(item.id, el);
+                if (el) cardRefs.current.set(String(item.id || ''), el);
               }}
               className={`transition-all duration-700 ${
                 isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
@@ -234,18 +235,18 @@ export const NewsFeed: React.FC<NewsFeedProps> = ({
             <div className="p-5">
               <h2 className="text-xl font-black text-slate-900 mb-2 leading-tight">{item.title}</h2>
               <div className="text-slate-600 text-sm leading-relaxed mb-3">
-                {expandedItems.has(item.id) ? item.description : item.description.length > 150 ? `${item.description.substring(0, 150)}...` : item.description}
-                {item.description.length > 150 && (
-                  <button onClick={() => toggleExpanded(item.id)} className="text-teal-600 hover:text-teal-800 ml-1 font-medium underline-offset-4 hover:underline">
-                    {expandedItems.has(item.id) ? 'Show less' : 'Read more'}
+                {expandedItems.has(itemIdStr) ? item.description : (item.description || '').length > 150 ? `${(item.description || '').substring(0, 150)}...` : item.description}
+                {(item.description || '').length > 150 && (
+                  <button onClick={() => toggleExpanded(itemIdStr)} className="text-teal-600 hover:text-teal-800 ml-1 font-medium underline-offset-4 hover:underline">
+                    {expandedItems.has(itemIdStr) ? 'Show less' : 'Read more'}
                   </button>
                 )}
               </div>
               
               <div className="flex items-center gap-4 text-xs text-slate-500 mb-4">
-                <span className="flex items-center gap-1"><MapPin size={12} /> {item.location}</span>
-                <span className="flex items-center gap-1"><Calendar size={12} /> {item.date}</span>
-                <span className="flex items-center gap-1"><Tag size={12} /> {item.category}</span>
+                <span className="flex items-center gap-1"><MapPin size={12} /> {String(item.location || '')}</span>
+                <span className="flex items-center gap-1"><Calendar size={12} /> {String(item.date || '')}</span>
+                <span className="flex items-center gap-1"><Tag size={12} /> {String(item.category || '')}</span>
               </div>
               
               <div className="flex flex-wrap gap-2 mt-4">
@@ -293,7 +294,7 @@ export const NewsFeed: React.FC<NewsFeedProps> = ({
                 <div className="flex gap-4">
                   <button 
                     className="flex items-center gap-1.5 text-slate-400 hover:text-teal-600 transition-colors" 
-                    onClick={() => toggleComments(item.id)}
+                    onClick={() => toggleComments(itemIdStr)}
                   >
                     <MessageSquare size={18} /> 
                     <span className="text-xs font-bold">12</span>
@@ -311,7 +312,7 @@ export const NewsFeed: React.FC<NewsFeedProps> = ({
                     variant="ghost"
                     size="sm"
                     className={`transition-all duration-300 ${isSaved ? 'text-teal-600' : 'text-slate-400'}`} 
-                    onClick={() => toggleSaved(item.id)} 
+                    onClick={() => toggleSaved(itemIdStr)} 
                   >
                     <Bookmark size={18} className={isSaved ? 'fill-teal-600' : ''} />
                   </Button>

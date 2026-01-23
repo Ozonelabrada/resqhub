@@ -287,7 +287,7 @@ const NewsFeedPage: React.FC = () => {
     <div className="bg-gray-50 lg:h-[calc(100vh-100px)] lg:overflow-hidden flex flex-col lg:-mt-6">
       {/* --- UNIFIED FULL-WIDTH HEADER --- */}
       {currentView === 'feed' && (
-        <div className="w-full px-0 md:px-6 lg:px-8 pt-2 md:pt-4 pb-1 md:pb-2 z-50 bg-gray-50 border-b border-gray-100/30">
+        <div className="w-full px-3 md:px-6 lg:px-8 pt-1 md:pt-2 pb-1 md:pb-2 z-50 bg-gray-50 border-b border-gray-100/30">
           <div className="max-w-[1920px] mx-auto">
             <NewsFeedHeader 
               searchQuery={searchQuery}
@@ -305,11 +305,11 @@ const NewsFeedPage: React.FC = () => {
       )}
 
       <main className={cn(
-        "w-full px-0 md:px-6 lg:px-8 py-0 flex-1 grid grid-cols-1 lg:grid-cols-10 gap-4 md:gap-8 min-h-0 overflow-y-auto lg:overflow-hidden",
-        currentView !== 'feed' && "pt-4"
+        "w-full px-2 md:px-6 lg:px-8 py-2 md:py-4 flex-1 grid grid-cols-1 lg:grid-cols-10 gap-2 md:gap-4 lg:gap-8 min-h-0 overflow-y-auto lg:overflow-hidden",
+        currentView !== 'feed' && "pt-2 md:pt-4"
       )}>
         {/* --- SIDEBAR: PROFILE & NAVIGATION --- */}
-        <div className="hidden lg:block lg:col-span-2 lg:h-full lg:overflow-y-auto scrollbar-hidden hover:custom-scrollbar transition-all pt-2 pb-6">
+        <div className="hidden lg:block lg:col-span-2 lg:h-full lg:overflow-y-auto scrollbar-hidden hover:custom-scrollbar transition-all pt-1 md:pt-2 pb-6">
           <NewsFeedSidebar 
             className="w-full h-auto"
             isAuthenticated={isAuthenticated}
@@ -324,14 +324,14 @@ const NewsFeedPage: React.FC = () => {
         {/* --- CENTER: MAIN FEED (50%) or MESSAGES (ORDER 1 ON MOBILE, INDEPENDENT SCROLL ON DESKTOP) --- */}
         <div 
           className={cn(
-            "order-1 pb-20 lg:pb-6 scroll-smooth lg:h-full lg:overflow-y-auto scrollbar-hidden hover:custom-scrollbar transition-all pt-2 px-0 md:px-1",
+            "order-1 pb-16 md:pb-20 lg:pb-6 scroll-smooth lg:h-full lg:overflow-y-auto scrollbar-hidden hover:custom-scrollbar transition-all pt-1 md:pt-2 px-1 md:px-1",
             currentView === 'feed' ? "lg:col-span-5 lg:order-2" : "lg:col-span-8 lg:order-2"
           )}
         >
           {currentView === 'feed' ? (
-            <div className="space-y-3 md:space-y-6 h-auto w-full">
+            <div className="space-y-2 md:space-y-4 h-auto w-full">
               {/* MAIN FEED */}
-              <div className="space-y-3 md:space-y-6">
+              <div className="space-y-2 md:space-y-4">
                 {newsFeedItems.length === 0 && newsFeedLoading ? (
                   Array.from({ length: 3 }).map((_, i) => (
                     <NewsFeedSkeleton key={i} />
@@ -343,10 +343,11 @@ const NewsFeedPage: React.FC = () => {
                       item={item} 
                       onProfileClick={handleOpenProfile}
                       onCommunityClick={handleOpenCommunity}
+                      onReportUpdate={refetchNewsFeed}
                     />
                   ))
                 ) : (
-                  <div className="text-center py-12 md:py-20 bg-white rounded-lg md:rounded-3xl border border-dashed border-gray-200 mx-3 md:mx-0">
+                  <div className="text-center py-8 md:py-12 bg-white rounded-2xl md:rounded-3xl border border-dashed border-gray-200 mx-1 md:mx-0">
                     <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                       <Search className="text-gray-300 w-8 h-8" />
                     </div>
@@ -363,7 +364,7 @@ const NewsFeedPage: React.FC = () => {
                 )}
 
                 {/* INFINITE SCROLL SENTINEL */}
-                <div ref={observerTarget} className="py-8 flex justify-center">
+                <div ref={observerTarget} className="py-6 md:py-8 flex justify-center">
                   {newsFeedLoading && (
                     <div className="flex flex-col items-center gap-2">
                       <Spinner size="lg" className="text-teal-600" />
@@ -385,7 +386,7 @@ const NewsFeedPage: React.FC = () => {
 
         {/* --- SIDEBAR: COMMUNITY STATS & TRENDING - Hidden on mobile --- */}
         {currentView === 'feed' && (
-          <div className="hidden lg:block lg:col-span-3 lg:h-full lg:overflow-y-auto scrollbar-hidden hover:custom-scrollbar transition-all pt-2 pb-6 lg:order-3">
+          <div className="hidden lg:block lg:col-span-3 lg:h-full lg:overflow-y-auto scrollbar-hidden hover:custom-scrollbar transition-all pt-1 md:pt-2 pb-6 lg:order-3">
             <CommunitySidebar 
               className="w-full h-auto"
               statistics={statistics}

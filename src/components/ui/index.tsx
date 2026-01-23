@@ -35,6 +35,7 @@ export { Tabs, TabsList, TabsTrigger, TabsContent, TabList, TabTrigger, TabConte
 export { Badge as ShadcnBadge } from "./badge";
 export { ScrollArea, ScrollBar } from "./scroll-area";
 export { Switch } from "./switch";
+export { Checkbox } from "./Checkbox/Checkbox";
 
 // Compatibility Shims (The ones used throughout the app)
 export { Button } from "./Button/Button";

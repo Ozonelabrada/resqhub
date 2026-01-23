@@ -12,6 +12,16 @@ export interface UserProfile {
   lastActive?: string;
 }
 
+export interface PossibleMatch {
+  id: string;
+  reportId: string;
+  name?: string;
+  username?: string;
+  title?: string;
+  description?: string;
+  similarity?: number;
+}
+
 export interface NewsFeedItem extends UserReport {
   user: {
     id: string;
@@ -23,15 +33,17 @@ export interface NewsFeedItem extends UserReport {
   communityName?: string;
   timeAgo: string;
   status: 'lost' | 'found' | 'reunited' | 'news' | 'discussion' | 'announcement';
+  isAbusive?: boolean;
+  possibleMatches?: PossibleMatch[];
 }
 
 export interface UserReport {
-  id: string;
+  id?: string | number;
   title: string;
   category: string;
   location: string;
   currentLocation?: string;
-  date: string;
+  date?: string;
   time?: string;
   status: string;
   views: number;
@@ -58,7 +70,7 @@ export interface UserReport {
   storageLocation?: string;
   createdAt: string;
   updatedAt: string;
-  expiresAt?: string;
+  expiresAt?: string | null;
   reportTypeDescription?: string;
   verificationStatus?: string;
   potentialMatches: number;
