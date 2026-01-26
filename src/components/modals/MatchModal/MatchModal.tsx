@@ -32,27 +32,36 @@ import { CreateReportModal } from '../ReportModal/CreateReportModal';
 interface MatchModalProps {
   isOpen: boolean;
   onClose: () => void;
-  report: any; // NewsFeedItem or LostFoundItem
+  report?: any; // NewsFeedItem or LostFoundItem
+  sourceReportId?: number;
+  sourceReportTitle?: string;
+  sourceReportImages?: string[];
+  onMatchSelect?: (targetReport: any) => void;
 }
 
-export const MatchModal: React.FC<MatchModalProps> = ({ isOpen, onClose, report }) => {
+export const MatchModal: React.FC<MatchModalProps> = ({ isOpen, onClose, report, sourceReportId, sourceReportTitle, sourceReportImages, onMatchSelect }) => {
   const { t } = useTranslation();
   const { isAuthenticated, openLoginModal } = useAuth();
   const [loading, setLoading] = useState(true);
   const [candidates, setCandidates] = useState<LostFoundItem[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
+  // Use sourceReportId if provided, otherwise use report.id
+  const reportId = sourceReportId ?? report?.id;
+  const reportStatus = report?.status;
+  const reportTitle = sourceReportTitle ?? report?.title;
+
   useEffect(() => {
-    if (isOpen && report) {
+    if (isOpen && (reportId || report)) {
       fetchCandidates();
     }
-  }, [isOpen, report]);
+  }, [isOpen, reportId, report]);
 
   const fetchCandidates = async () => {
     setLoading(true);
     try {
       // Find opposite type
-      const oppositeType = String(report.status).toLowerCase() === 'found' ? 'lost' : 'found';
+      const oppositeType = String(reportStatus).toLowerCase() === 'found' ? 'lost' : 'found';
       
       // Fetch reports of opposite type that might match
       const results = await ReportsService.getReports({
@@ -63,7 +72,7 @@ export const MatchModal: React.FC<MatchModalProps> = ({ isOpen, onClose, report 
       
       // Filter candidates (simple heuristic for now: same category or similar title)
       // Realistic matching would happen on backend
-      const filtered = results.filter(item => item.id !== report.id);
+      const filtered = results.filter(item => item.id !== reportId);
       setCandidates(filtered);
     } catch (error) {
       console.error('Error fetching match candidates:', error);
@@ -75,7 +84,7 @@ export const MatchModal: React.FC<MatchModalProps> = ({ isOpen, onClose, report 
   const handleMatchSelect = async (candidateId: number) => {
     try {
       // 1. Create the match link
-      const createRes = await ReportMatchService.createMatch(report.id, candidateId);
+      const createRes = await ReportMatchService.createMatch(reportId, candidateId);
       
       if (createRes.success) {
         const matchId = createRes.data?.id;
@@ -83,6 +92,12 @@ export const MatchModal: React.FC<MatchModalProps> = ({ isOpen, onClose, report 
         // 2. Automatically update status to 'confirmed' as per requirement
         if (matchId) {
           await ReportMatchService.updateMatchStatus(matchId, 'confirmed', 'Match initiated from search');
+        }
+        
+        // Call the callback with the candidate report if provided
+        if (onMatchSelect) {
+          const selectedCandidate = candidates.find(c => c.id === candidateId);
+          onMatchSelect(selectedCandidate);
         }
         
         (window as any).showToast?.('success', t('match.match_request_sent') || 'Match Request Sent', t('match.match_request_waiting') || 'Waiting for confirmation from the owner.');
@@ -102,7 +117,7 @@ export const MatchModal: React.FC<MatchModalProps> = ({ isOpen, onClose, report 
     setIsCreateModalOpen(true);
   };
 
-  const oppositeTypeLabel = report.status === 'found' ? 'Lost' : 'Found';
+  const oppositeTypeLabel = reportStatus === 'found' ? 'Lost' : 'Found';
 
   return (
     <>
@@ -127,8 +142,8 @@ export const MatchModal: React.FC<MatchModalProps> = ({ isOpen, onClose, report 
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('match.selected_report') || 'Selected Report'}</p>
               <div className="flex gap-4">
                 <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-200 shrink-0">
-                  {report.images?.[0] ? (
-                    <img src={report.images[0]} alt="" className="w-full h-full object-cover" />
+                  {sourceReportImages?.[0] ? (
+                    <img src={sourceReportImages[0]} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-slate-400">
                       <Layers size={20} />
@@ -136,15 +151,15 @@ export const MatchModal: React.FC<MatchModalProps> = ({ isOpen, onClose, report 
                   )}
                 </div>
                 <div>
-                  <h4 className="font-black text-slate-900">{report.title}</h4>
+                  <h4 className="font-black text-slate-900">{sourceReportTitle || 'Unknown Item'}</h4>
                   <div className="flex items-center gap-2 mt-1">
                     <Badge className={cn(
                       "text-[9px] font-black uppercase px-2 py-0 border-none",
-                      report.status === 'found' ? "bg-emerald-100 text-emerald-600" : "bg-orange-100 text-orange-600"
+                      reportStatus === 'found' ? "bg-emerald-100 text-emerald-600" : "bg-orange-100 text-orange-600"
                     )}>
-                      {report.status}
+                      {reportStatus}
                     </Badge>
-                    <span className="text-xs text-slate-400">{report.location}</span>
+                    <span className="text-xs text-slate-400">{report?.location || 'Unknown Location'}</span>
                   </div>
                 </div>
               </div>

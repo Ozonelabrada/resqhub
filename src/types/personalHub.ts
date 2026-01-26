@@ -74,6 +74,7 @@ export interface UserReport {
   reportTypeDescription?: string;
   verificationStatus?: string;
   potentialMatches: number;
+  matchId?: number | null;
 }
 
 export interface WatchListItem {

@@ -32,8 +32,9 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { Modal } from '../../ui/Modal/Modal';
-import { ReportsService } from '../../../services/reportsService';
+import { ReportsService, type CreateReportPayload } from '../../../services/reportsService';
 import { CategoryService } from '../../../services/categoryService';
+import { uploadMultipleImagesToCloudinary } from '../../../services/cloudinaryService';
 import { useTranslation } from 'react-i18next';
 import { searchLocations, type LocationSuggestion } from '../../../utils/geolocation';
 import { cn } from '../../../lib/utils';
@@ -169,8 +170,8 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
-        setError(t('report.login_required'));
-        return;
+      setError(t('report.login_required'));
+      return;
     }
 
     // Basic Validation
@@ -187,64 +188,90 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
     setLoading(true);
     setError('');
 
-    const formDataPayload = new FormData();
-    formDataPayload.append('UserId', String(user.id));
-    formDataPayload.append('CategoryId', String(formData.categoryId));
-    formDataPayload.append('Title', formData.title);
-    formDataPayload.append('Description', formData.description);
-    formDataPayload.append('Location', formData.location);
-    formDataPayload.append('ContactInfo', formData.contactInfo);
-    formDataPayload.append('RewardDetails', formData.rewardDetails || '');
-    formDataPayload.append('ReportType', String(formData.reportType));
-    
-    if (communityId) {
-      formDataPayload.append('CommunityId', String(communityId));
-    }
-    
-    // Ensure imageFiles is a flat array and append files
-    if (Array.isArray(imageFiles)) {
-      imageFiles.forEach(file => {
-        if (file instanceof File) {
-          formDataPayload.append('ImageFiles', file);
+    try {
+      // Step 1: Upload images to Cloudinary first
+      let imageUrls: string[] = [];
+      if (Array.isArray(imageFiles) && imageFiles.length > 0) {
+        try {
+          imageUrls = await uploadMultipleImagesToCloudinary(imageFiles);
+        } catch (uploadError: any) {
+          setError(uploadError.message || 'Failed to upload images. Please try again.');
+          setLoading(false);
+          return;
         }
-      });
-    }
-
-    const result = await ReportsService.createReport(formDataPayload);
-    if (result.success) {
-      // Show success toast
-      if ((window as any).showToast) {
-        let successMsg = t('report.success_message_lost');
-        if (formData.reportType === 'Found') successMsg = t('report.success_message_found');
-        if (formData.reportType === 'News') successMsg = t('hub.success_news');
-        if (formData.reportType === 'Discussion') successMsg = t('hub.success_discussion');
-        if (formData.reportType === 'Announcements') successMsg = t('hub.success_announcement');
-
-        (window as any).showToast(
-          'success', 
-          t('report.success_title'), 
-          successMsg
-        );
       }
-      
-      if (onSuccess) onSuccess();
-      onClose();
-      // Reset form
-      setFormData({
-        title: '',
-        description: '',
-        categoryId: categories.length > 0 ? categories[0].value : 0,
-        location: '',
-        contactInfo: '',
-        rewardDetails: '',
-        reportType: 'Lost',
-      });
-      setImages([]);
-      setImageFiles([]);
-    } else {
-      setError(result.message || t('report.error_failed_to_create'));
+
+      // Step 2: Build JSON payload with Cloudinary URLs
+      const reportPayload: CreateReportPayload = {
+        userId: String(user.id),
+        title: formData.title,
+        description: formData.description,
+        location: formData.location,
+        contactInfo: formData.contactInfo,
+        reportType: String(formData.reportType),
+        categoryId: Number(formData.categoryId),
+        imageUrls: imageUrls,
+        rewardDetails: formData.rewardDetails || '',
+      };
+
+      // Add communityId if present
+      if (communityId) {
+        reportPayload.communityId = communityId;
+      }
+
+      // Step 3: Create the report with JSON payload
+      const result = await ReportsService.createReport(reportPayload);
+      if (result.success) {
+        // Step 4: Save image URLs to backend if images exist
+        if (imageUrls.length > 0 && result.data?.id) {
+          const reportId = result.data.id;
+          try {
+            await ReportsService.saveReportImages(reportId, imageUrls);
+          } catch (imageError: any) {
+            console.error('Error saving images to backend:', imageError);
+            // Don't fail the whole operation if image saving fails
+            // Images are already in Cloudinary and linked via JSON payload
+          }
+        }
+
+        // Show success toast
+        if ((window as any).showToast) {
+          let successMsg = t('report.success_message_lost');
+          if (formData.reportType === 'Found') successMsg = t('report.success_message_found');
+          if (formData.reportType === 'News') successMsg = t('hub.success_news');
+          if (formData.reportType === 'Discussion') successMsg = t('hub.success_discussion');
+          if (formData.reportType === 'Announcements') successMsg = t('hub.success_announcement');
+
+          (window as any).showToast(
+            'success',
+            t('report.success_title'),
+            successMsg
+          );
+        }
+
+        if (onSuccess) onSuccess();
+        onClose();
+        // Reset form
+        setFormData({
+          title: '',
+          description: '',
+          categoryId: categories.length > 0 ? categories[0].value : 0,
+          location: '',
+          contactInfo: '',
+          rewardDetails: '',
+          reportType: 'Lost',
+        });
+        setImages([]);
+        setImageFiles([]);
+      } else {
+        setError(result.message || t('report.error_failed_to_create'));
+      }
+    } catch (error: any) {
+      console.error('Report creation error:', error);
+      setError(error.message || t('report.error_failed_to_create') || 'An error occurred. Please try again.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

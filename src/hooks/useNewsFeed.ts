@@ -109,6 +109,7 @@ export const useNewsFeed = (options?: {
           reportTypeDescription: String(report.reportType || 'Report'),
           verificationStatus: 'pending',
           potentialMatches: 0,
+          matchId: report.matchId || null,
           user: {
             id: report.userId || 'unknown',
             fullName: report.user?.fullName || contactName,
