@@ -1,5 +1,18 @@
 import api from '../api/client';
 
+export interface CreateReportPayload {
+  userId: string;
+  title: string;
+  description: string;
+  location: string;
+  contactInfo: string;
+  reportType: string;
+  categoryId: number;
+  imageUrls: string[];
+  rewardDetails?: string;
+  communityId?: string | number;
+}
+
 export interface LostFoundItem {
   id?: number;
   reportId?: number;
@@ -63,7 +76,9 @@ export interface LostFoundItem {
   storageLocation?: string;
   dateModified?: string;
   reportTypeDescription?: string;
+  potentialMatches?: number;
   potentialMatchesCount?: number;
+  matchId?: number | null;
   type?: 'lost' | 'found' | 'news' | 'discussion' | 'announcement';
 }
 
@@ -151,9 +166,12 @@ export const ReportsService = {
    * - ReportType (string: "news" | "discussion" | "announcement" | "lost" | "found")
    * - ImageFiles[] (files)
    */
-  async createReport(payload: FormData): Promise<{ success: boolean; data?: any; message?: string }> {
+  /**
+   * Creates a new report with provided data and Cloudinary image URLs
+   * @param payload JSON object containing report data with image URLs
+   */
+  async createReport(payload: CreateReportPayload): Promise<{ success: boolean; data?: any; message?: string }> {
     try {
-      // The client interceptor handles removing Content-Type for FormData
       const response = await api.post('/reports', payload);
       return { 
         success: true, 
@@ -182,5 +200,72 @@ export const ReportsService = {
         message: error?.response?.data?.message || 'Failed to update report' 
       };
     }
+  },
+
+  /**
+   * Saves image URLs to the backend for a specific report
+   * @param reportId The ID of the report
+   * @param imageUrl The Cloudinary URL of the image
+   * @param description Optional description for the image
+   */
+  async saveReportImage(reportId: number | string, imageUrl: string, description: string = ''): Promise<{ success: boolean; data?: any; message?: string }> {
+    try {
+      const response = await api.post('/report-images/create', {
+        reportId: Number(reportId),
+        imageUrl,
+        description
+      });
+      return { 
+        success: true, 
+        data: response.data?.data || response.data 
+      };
+    } catch (error: any) {
+      console.error('Error saving report image:', error);
+      return { 
+        success: false, 
+        message: error?.response?.data?.message || 'Failed to save image' 
+      };
+    }
+  },
+
+  /**
+   * Saves multiple image URLs to the backend
+   * @param reportId The ID of the report
+   * @param imageUrls Array of Cloudinary URLs
+   */
+  async saveReportImages(reportId: number | string, imageUrls: string[]): Promise<{ success: boolean; data?: any; message?: string }> {
+    if (!imageUrls || imageUrls.length === 0) {
+      return { success: true, data: [] };
+    }
+
+    try {
+      // Save all images concurrently
+      const savePromises = imageUrls.map(url => 
+        this.saveReportImage(reportId, url)
+      );
+      const results = await Promise.all(savePromises);
+      
+      // Check if all were successful
+      const allSuccess = results.every(r => r.success);
+      if (!allSuccess) {
+        const failedCount = results.filter(r => !r.success).length;
+        return { 
+          success: false, 
+          message: `Failed to save ${failedCount} out of ${imageUrls.length} images` 
+        };
+      }
+
+      return { 
+        success: true, 
+        data: results 
+      };
+    } catch (error: any) {
+      console.error('Error saving report images:', error);
+      return { 
+        success: false, 
+        message: error?.message || 'Failed to save images' 
+      };
+    }
   }
 };
+

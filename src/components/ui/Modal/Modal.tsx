@@ -98,9 +98,9 @@ export const Modal: React.FC<ModalProps> = ({
       >
         {/* custom Exit Confirmation Overlay */}
         {showExitConfirm && (
-          <div className="absolute inset-0 z-[100] flex items-center justify-center p-6 bg-white/90 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="max-w-xs w-full bg-white rounded-2xl shadow-2xl border border-slate-100 p-8 text-center space-y-6 animate-in zoom-in duration-300">
-              <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto">
+          <div className="absolute inset-0 z-[100] flex items-center justify-center p-6 bg-white/90 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="max-w-xs w-full bg-white rounded-2xl shadow-2xl border border-slate-100 p-8 text-center space-y-6 animate-in zoom-in-95 duration-300">
+              <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto animate-in scale-in duration-300">
                 <svg className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
@@ -112,13 +112,13 @@ export const Modal: React.FC<ModalProps> = ({
               <div className="flex gap-3">
                 <button 
                   onClick={cancelExit}
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all duration-200"
                 >
                   Cancel
                 </button>
                 <button 
                   onClick={confirmExit}
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-teal-600 text-sm font-bold text-white hover:bg-teal-700 shadow-lg shadow-teal-100 transition-all"
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-teal-600 text-sm font-bold text-white hover:bg-teal-700 shadow-lg shadow-teal-100 transition-all duration-200"
                 >
                   Proceed
                 </button>

@@ -40,6 +40,7 @@ import EditReportModal from '@/components/modals/ReportModal/EditReportModal';
 import { MatchModal } from '@/components/modals/MatchModal/MatchModal';
 import { MatchManagementModal } from '@/components/modals/MatchModal/MatchManagementModal';
 import { MatchSuccessModal } from '@/components/modals/MatchModal/MatchSuccessModal';
+import { ImageViewerModal } from '@/components/modals/ImageViewerModal';
 import { formatCurrencyPHP } from '@/utils/formatter';
 import { showToast, getWindowExt } from '@/types/window';
 import { safeStopPropagation, extractSyntheticEvent } from '@/types/events';
@@ -82,9 +83,16 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
   const [isPendingModalOpen, setIsPendingModalOpen] = useState(false);
   const [isResolvedModalOpen, setIsResolvedModalOpen] = useState(false);
   const [isNoMatchesModalOpen, setIsNoMatchesModalOpen] = useState(false);
+  const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
+  const [selectedImageUrl, setSelectedImageUrl] = useState('');
 
   // Ensure boolean result to avoid union types like '' | 0 leaking through
   const isOwner = !!user?.id && String(item.user?.id) === String(user.id);
+
+  const handleImageClick = (imageUrl: string) => {
+    setSelectedImageUrl(imageUrl);
+    setIsImageViewerOpen(true);
+  };
 
   const handleMenuCommandEdit = (e: MenuCommandEvent): void => {
     safeStopPropagation(e);
@@ -147,30 +155,6 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
       setTotalCommentsCount(item.commentsCount);
     }
   }, [item.commentsCount]);
-
-  // Check for existing matches when item changes (for User 2 - found report owner)
-  useEffect(() => {
-    const checkExistingMatch = async () => {
-      try {
-        const matchResult = await ReportMatchService.getMatchesForReport(Number(item.id));
-        if (matchResult.success && matchResult.data && matchResult.data.length > 0) {
-          const match = matchResult.data[0];
-          setExistingMatchId(match.id as number);
-          const status = (match.status || '').toLowerCase() as 'pending' | 'confirmed' | 'resolved' | 'dismissed' | null;
-          setMatchStatus(status || null);
-        } else {
-          setExistingMatchId(null);
-          setMatchStatus(null);
-        }
-      } catch (error) {
-        console.error('Error checking existing matches:', error);
-      }
-    };
-
-    if (item.id && isOwner) {
-      checkExistingMatch();
-    }
-  }, [item.id, isOwner]);
 
   const getStatusDisplay = (status: string) => {
     switch (status.toLowerCase()) {
@@ -257,7 +241,7 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
         id: createResult.data?.id,
         sourceReport: item,
         targetReport: targetReport,
-        initiator: targetReport.user,
+        actedByUser: targetReport.user,
         status: 'confirmed' // Match is created as confirmed, now needs owner verification
       };
       setMatchToVerify(realMatch);
@@ -273,80 +257,52 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
   const handleOpenMatchButton = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    // USER 2 (Found Report Owner) LOGIC
-    // Step 1: Check if a match already exists
-    if (existingMatchId && matchStatus) {
-      // Match exists - check its status
-      if (matchStatus === 'resolved' || matchStatus === 'dismissed') {
-        // Match is already resolved or dismissed
-        setIsResolvedModalOpen(true);
-        return;
-      } else if (matchStatus === 'pending' || matchStatus === 'confirmed') {
-        // Match is under review - prevent duplicate creation
-        setIsPendingModalOpen(true);
-        return;
-      }
-    }
-
-    // Step 2: No existing match - fetch from backend to determine next action
     try {
       setIsLoadingMatch(true);
-      const checkRes = await ReportMatchService.getMatchesForReportRecord(Number(item.id), 1, 10, 10);
-      
-      if (checkRes.success && checkRes.data) {
-        // API FORMAT: 
-        // Confirmed match: { match: {...}, reportDetails: {...}, matchReportDetails: {...}, hasConfirmedMatch: true }
-        // Suggested matches: { matches: [...], pagination: {...}, hasConfirmedMatch: false }
-        
-        const hasConfirmedMatch = checkRes.data?.hasConfirmedMatch || false;
-        const matches = checkRes.data?.matches || [];
 
-        // Case 1: Has a confirmed match - data is already in the response
-        if (hasConfirmedMatch && checkRes.data.match) {
-          // Construct normalized match object from the response data
-          const matchData = {
-            match: checkRes.data.match,
-            reportDetails: checkRes.data.reportDetails,
-            matchReportDetails: checkRes.data.matchReportDetails
-          };
-          const normalized = normalizeMatchEntry(matchData);
-          if (normalized) {
-            setExistingMatch(normalized);
-            setIsShowingExistingMatch(true);
-            setIsMatchesOpen(false);
-            setExistingMatchId(getMatchId(normalized));
-            setMatchStatus(normalized.status?.toLowerCase() || null);
+      // Path 1: Report already has a confirmed matchId - Open management modal
+      if (item.matchId) {
+        try {
+          const matchDetailsRes = await ReportMatchService.getMatchById(item.matchId);
+          if (matchDetailsRes.success && matchDetailsRes.data) {
+            const matchData = matchDetailsRes.data;
+            
+            // Normalize the match data to the expected format for MatchManagementModal
+            const normalizedMatch = {
+              id: matchData.match?.id || matchData.id,
+              sourceReport: matchData.reportDetails || null,
+              targetReport: matchData.matchReportDetails || null,
+              actedByUser: matchData.actedByUser || null,
+              status: matchData.match?.status || matchData.status || 'confirmed'
+            };
+
+            setMatchToVerify(normalizedMatch);
+            setIsMatchModalOpen(true);
             return;
           }
-        }
-
-        // Case 2: Has candidate matches (array of suggested matches)
-        if (matches.length > 0) {
-          // Response has suggested matches - show possible matches modal
-          setIsMatchesOpen(true);
-          setIsMatchSearchOpen(false);
-          return;
-        }
-
-        // Case 3: Empty array - "No matches found"
-        if (matches.length === 0) {
-          setIsNoMatchesModalOpen(true);
+        } catch (error) {
+          console.error('Error fetching match details:', error);
+          showToast('error', 'Error', 'Could not load match details');
           return;
         }
       }
-    } catch (err) {
-      console.error('Error checking matches for report:', err);
-    } finally {
-      setIsLoadingMatch(false);
-    }
 
-    // Step 3: No matches from backend - fall back to pre-loaded possible matches or search modal
-    if (item.possibleMatches && item.possibleMatches.length > 0) {
-      setIsMatchesOpen(!isMatchesOpen);
-    } else {
-      // No pre-loaded matches - open the searchable Match modal so user can find candidates
+      // Path 2: No matchId - Find possible matches
+      // First check if preloaded matches exist
+      if (item.possibleMatches && item.possibleMatches.length > 0) {
+        setIsMatchesOpen(true);
+        return;
+      }
+
+      // Otherwise open searchable match modal to find candidates
       setIsMatchSearchOpen(true);
       setIsMatchesOpen(false);
+
+    } catch (err) {
+      console.error('Error in match button handler:', err);
+      showToast('error', 'Error', 'Could not process match request');
+    } finally {
+      setIsLoadingMatch(false);
     }
   };
 
@@ -475,84 +431,175 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
       <div 
         className="flex flex-col md:flex-row w-full"
       >
-        {/* Image Container - Only render if images exist */}
+        {/* Image Container - Professional Collage Layout */}
         {item.images && item.images.length > 0 && (
-          <div className="relative w-full md:w-[28rem] h-40 sm:h-48 md:h-80 min-h-[10rem] md:min-h-[20rem] overflow-hidden bg-gray-100 border-b md:border-b-0 md:border-r border-gray-50">
-
-          {/* Possible Matches - Only visible to report owner */}
-          {isOwner && item.possibleMatches && item.possibleMatches.length > 0 && (
-            <div className="p-4 border-t border-slate-50 bg-slate-50">
-              <button
-                onClick={(e) => { e.stopPropagation(); setIsMatchesOpen(prev => !prev); }}
-                className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-white shadow-sm hover:shadow-md"
-              >
-                <span className="text-sm font-black text-slate-700">Possible Matches ({item.possibleMatches.length})</span>
-                {isMatchesOpen ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
-              </button>
-
-              {isMatchesOpen && (
-                <div className="mt-3 space-y-2">
-                  {item.possibleMatches.map((match: PossibleMatch, idx: number) => (
-                    <button
-                      key={`${match.id}-${idx}`}
-                      onClick={(e) => handleOpenMatch(e, match.reportId || match.id)}
-                      className="w-full text-left px-3 py-2 rounded-lg bg-white/90 hover:bg-teal-50 border border-slate-100 flex items-center justify-between"
-                    >
-                      <div className="truncate">
-                        <div className="text-sm font-black text-slate-800 truncate">{match.name || match.username || 'Unknown'}</div>
-                        <div className="text-xs text-slate-400 truncate">{match.title || match.description || ''}</div>
-                      </div>
-                      <div className="text-xs text-teal-600 font-black">View</div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-            <div className={cn(
-              "w-full h-full grid gap-0.5",
-              item.images.length === 1 ? "grid-cols-1" : 
-              item.images.length === 2 ? "grid-cols-2" :
-              "grid-cols-2" 
-            )}>
+          <div className="relative w-full md:w-[28rem] h-32 sm:h-40 md:h-56 lg:h-64 overflow-hidden bg-gray-100 border-b md:border-b-0 md:border-r border-gray-50">
+            
+            {/* Dynamic Collage Grid */}
+            <div className="w-full h-full grid grid-cols-2 grid-rows-3 gap-0.5">
               {item.images.length === 1 ? (
+                // 1 Image: Full container
                 <img 
                   loading="lazy"
                   src={item.images[0]} 
-                  alt={item.title} 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                  alt={item.title}
+                  onClick={() => handleImageClick(item.images[0])}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 col-span-2 row-span-3 cursor-pointer" 
                 />
               ) : item.images.length === 2 ? (
+                // 2 Images: Side-by-side full height
                 item.images.map((img: string, idx: number) => (
-                  <img key={idx} src={img} alt="" className="w-full h-full object-cover" />
+                  <img 
+                    key={idx} 
+                    src={img} 
+                    alt="" 
+                    onClick={() => handleImageClick(img)}
+                    className="w-full h-full object-cover col-span-1 row-span-3 cursor-pointer" 
+                  />
                 ))
-              ) : (
+              ) : item.images.length === 3 ? (
+                // 3 Images: Large left (row-span-3), two stacked right collage
                 <>
-                  <div className="h-full">
-                    <img src={item.images[0]} alt="" className="w-full h-full object-cover" />
-                  </div>
-                  <div className={cn(
-                    "grid gap-0.5 h-full",
-                    item.images.length === 3 ? "grid-rows-2" : 
-                    item.images.length === 4 ? "grid-rows-3" : 
-                    "grid-cols-2 grid-rows-2"
-                  )}>
-                    {item.images.slice(1).map((img: string, idx: number) => (
-                      <img key={idx} src={img} alt="" className="w-full h-full object-cover" />
-                    ))}
+                  <img 
+                    src={item.images[0]} 
+                    alt="" 
+                    onClick={() => handleImageClick(item.images[0])}
+                    className="w-full h-full object-cover row-span-3 col-span-1 cursor-pointer" 
+                  />
+                  <img 
+                    src={item.images[1]} 
+                    alt="" 
+                    onClick={() => handleImageClick(item.images[1])}
+                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer" 
+                  />
+                  <img 
+                    src={item.images[2]} 
+                    alt="" 
+                    onClick={() => handleImageClick(item.images[2])}
+                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer" 
+                  />
+                  <div className="col-span-1 row-span-1"></div>
+                </>
+              ) : item.images.length === 4 ? (
+                // 4 Images: 2x2 grid collage
+                <>
+                  <img 
+                    src={item.images[0]} 
+                    alt="" 
+                    onClick={() => handleImageClick(item.images[0])}
+                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer" 
+                  />
+                  <img 
+                    src={item.images[1]} 
+                    alt="" 
+                    onClick={() => handleImageClick(item.images[1])}
+                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer" 
+                  />
+                  <img 
+                    src={item.images[2]} 
+                    alt="" 
+                    onClick={() => handleImageClick(item.images[2])}
+                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer" 
+                  />
+                  <img 
+                    src={item.images[3]} 
+                    alt="" 
+                    onClick={() => handleImageClick(item.images[3])}
+                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer" 
+                  />
+                  <div className="col-span-2 row-span-1"></div>
+                </>
+              ) : (
+                // 5+ Images: Large top left + 2x2 grid on right + 1 row below
+                <>
+                  <img 
+                    src={item.images[0]} 
+                    alt="" 
+                    onClick={() => handleImageClick(item.images[0])}
+                    className="w-full h-full object-cover row-span-2 col-span-1 cursor-pointer" 
+                  />
+                  <img 
+                    src={item.images[1]} 
+                    alt="" 
+                    onClick={() => handleImageClick(item.images[1])}
+                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer" 
+                  />
+                  <img 
+                    src={item.images[2]} 
+                    alt="" 
+                    onClick={() => handleImageClick(item.images[2])}
+                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer" 
+                  />
+                  <img 
+                    src={item.images[3]} 
+                    alt="" 
+                    onClick={() => handleImageClick(item.images[3])}
+                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer" 
+                  />
+                  <div className="relative w-full h-full object-cover col-span-1 row-span-1 overflow-hidden bg-gray-200 cursor-pointer" onClick={() => handleImageClick(item.images[4])}>
+                    <img 
+                      src={item.images[4]} 
+                      alt="" 
+                      className="w-full h-full object-cover" 
+                    />
+                    {item.images.length > 5 && (
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                        <span className="text-white font-black text-2xl">+{item.images.length - 5}</span>
+                      </div>
+                    )}
                   </div>
                 </>
               )}
             </div>
-            <div className="absolute top-4 left-4 flex gap-2">
+
+            {/* Badges - Top Overlay */}
+            <div className="absolute top-4 left-4 flex gap-2 z-20 pointer-events-none">
               <Badge className={cn("border shadow-md px-4 py-1.5 font-black uppercase text-[10px] tracking-widest rounded-full", status.color)}>
-                  {status.label}
+                {status.label}
               </Badge>
+              {item.matchId && (
+                <Badge className="border shadow-md px-4 py-1.5 font-black uppercase text-[10px] tracking-widest rounded-full bg-emerald-50 text-emerald-600 border-emerald-100">
+                  Possible Match
+                </Badge>
+              )}
             </div>
+
+            {/* Reward Badge - Top Right */}
             {item.reward?.amount > 0 && (
-              <div className="absolute top-4 right-4 bg-orange-600 text-white px-3 py-1.5 rounded-full text-[10px] font-black shadow-lg flex items-center gap-1.5 border border-orange-500">
+              <div className="absolute top-4 right-4 bg-orange-600 text-white px-3 py-1.5 rounded-full text-[10px] font-black shadow-lg flex items-center gap-1.5 border border-orange-500 z-20 pointer-events-none">
                 <Award className="w-3.5 h-3.5" />
                 {formatCurrencyPHP(item.reward.amount)} {t('common.reward')}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Possible Matches - Moved Outside Image Container */}
+        {isOwner && item.possibleMatches && item.possibleMatches.length > 0 && item.images && item.images.length > 0 && (
+          <div className="p-4 border-t border-slate-50 bg-slate-50">
+            <button
+              onClick={(e) => { e.stopPropagation(); setIsMatchesOpen(prev => !prev); }}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-white shadow-sm hover:shadow-md"
+            >
+              <span className="text-sm font-black text-slate-700">Possible Matches ({item.possibleMatches.length})</span>
+              {isMatchesOpen ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+            </button>
+
+            {isMatchesOpen && (
+              <div className="mt-3 space-y-2">
+                {item.possibleMatches.map((match: PossibleMatch, idx: number) => (
+                  <button
+                    key={`${match.id}-${idx}`}
+                    onClick={(e) => handleOpenMatch(e, match.reportId || match.id)}
+                    className="w-full text-left px-3 py-2 rounded-lg bg-white/90 hover:bg-teal-50 border border-slate-100 flex items-center justify-between"
+                  >
+                    <div className="truncate">
+                      <div className="text-sm font-black text-slate-800 truncate">{match.name || match.username || 'Unknown'}</div>
+                      <div className="text-xs text-slate-400 truncate">{match.title || match.description || ''}</div>
+                    </div>
+                    <div className="text-xs text-teal-600 font-black">View</div>
+                  </button>
+                ))}
               </div>
             )}
           </div>
@@ -748,6 +795,20 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
         }}
       />
 
+      <MatchModal
+        isOpen={isMatchSearchOpen}
+        onClose={() => {
+          setIsMatchSearchOpen(false);
+        }}
+        sourceReportId={Number(item.id)}
+        sourceReportTitle={item.title}
+        sourceReportImages={item.images}
+        onMatchSelect={(targetReport) => {
+          setIsMatchSearchOpen(false);
+          // Optionally open the match management modal with the selected match
+        }}
+      />
+
       {/* Existing Match Success Modal */}
       {existingMatch && (
         <MatchSuccessModal
@@ -872,6 +933,14 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
           </div>
         </div>
       )}
+
+      {/* Image Viewer Modal */}
+      <ImageViewerModal 
+        isOpen={isImageViewerOpen}
+        imageUrl={selectedImageUrl}
+        imageAlt={item.title}
+        onClose={() => setIsImageViewerOpen(false)}
+      />
     </Card>
   );
 };

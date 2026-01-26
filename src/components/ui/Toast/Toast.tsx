@@ -45,7 +45,7 @@ const Toast = forwardRef<ToastRef>((props, ref) => {
   };
 
   return (
-    <div className="fixed top-6 right-6 z-100 flex flex-col gap-3 pointer-events-none">
+    <div className="fixed top-16 md:top-20 lg:top-24 right-4 md:right-6 z-[9999] flex flex-col gap-3 pointer-events-none">
       {messages.map(msg => (
         <div
           key={msg.id}

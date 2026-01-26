@@ -13,7 +13,7 @@ export interface ReportMatchData {
   status: string;
   sourceReport?: any;
   targetReport?: any;
-  initiator?: any;
+  actedByUser?: any;
 }
 
 export const ReportMatchService = {
@@ -70,13 +70,14 @@ export const ReportMatchService = {
 
   /**
    * Initiates a match between two reports
-   * backend may have a POST /report-matches endpoint
+   * Calls POST /report-matches/confirm with reportId and matchReportId
    */
-  async createMatch(sourceReportId: number | string, targetReportId: number | string): Promise<{ success: boolean; data?: any; message?: string }> {
+  async createMatch(sourceReportId: number | string, targetReportId: number | string, notes: string = ''): Promise<{ success: boolean; data?: any; message?: string }> {
     try {
-      const response = await api.post('/report-matches', {
-        sourceReportId: Number(sourceReportId),
-        targetReportId: Number(targetReportId)
+      const response = await api.post('/report-matches/confirm', {
+        reportId: Number(sourceReportId),
+        matchReportId: Number(targetReportId),
+        notes: notes || 'Match initiated'
       });
       return { success: true, data: response.data?.data };
     } catch (error: any) {
@@ -89,27 +90,39 @@ export const ReportMatchService = {
   },
 
   /**
-   * Get matches for a specific report and check for confirmed matches
-   * @param reportId The ID of the report to check
+   * Get match suggestions/details for a specific match
+   * @param matchId The ID of the match to get details/suggestions for
    */
-  async getMatchesForReportRecord(reportId: number | string, page: number = 1, limit: number = 10, pageSize: number = 10): Promise<{ success: boolean; data?: any; message?: string }> {
+  async getMatchesForReportRecord(matchId: number | string): Promise<{ success: boolean; data?: any; message?: string }> {
     try {
-      const response = await api.get(`/report-matches/reports/${reportId}`, {
-        params: {
-          page,
-          limit,
-          pageSize
-        }
-      });
+      const response = await api.get(`/report-matches/${matchId}`);
 
       // The backend returns a wrapped data object as shown in the example
       const data = response.data?.data || response.data;
       return { success: true, data };
     } catch (error: any) {
-      console.error('Error fetching report-specific matches:', error);
+      console.error('Error fetching match details:', error);
       return { 
         success: false, 
-        message: error?.response?.data?.message || 'Failed to fetch report matches' 
+        message: error?.response?.data?.message || 'Failed to fetch match details' 
+      };
+    }
+  },
+
+  /**
+   * Fetch a specific match by ID
+   * @param matchId The ID of the match to retrieve
+   */
+  async getMatchById(matchId: number | string): Promise<{ success: boolean; data?: any; message?: string }> {
+    try {
+      const response = await api.get(`/report-matches/${matchId}`);
+      const data = response.data?.data || response.data;
+      return { success: true, data };
+    } catch (error: any) {
+      console.error('Error fetching match by ID:', error);
+      return { 
+        success: false, 
+        message: error?.response?.data?.message || 'Failed to fetch match details' 
       };
     }
   }
