@@ -14,7 +14,7 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   // Circuit breaker: Prevent requests if server is down
   if (serverHealth.isServerDown()) {
-    return Promise.reject(new Error('SERVER_UNREACHABLE'));
+    return Promise.reject(new Error('SERVER UNREACHABLE'));
   }
 
   // Get token from auth manager
@@ -63,7 +63,7 @@ api.interceptors.response.use(
       if (toast) {
         toast('error', 'API Error', error.response.data?.message || 'Something went wrong.');
       }
-    } else if (error.request || error.message === 'SERVER_UNREACHABLE') {
+    } else if (error.request || error.message === 'SERVER UNREACHABLE') {
       // Network errors or circuit breaker triggered
       serverHealth.reportNetworkError();
       // No toast here as the top notification banner in App.tsx handles this

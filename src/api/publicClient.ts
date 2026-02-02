@@ -11,7 +11,7 @@ const publicApi = axios.create({
 
 publicApi.interceptors.request.use((config) => {
   if (serverHealth.isServerDown()) {
-    return Promise.reject(new Error('SERVER_UNREACHABLE'));
+    return Promise.reject(new Error('SERVER UNREACHABLE'));
   }
   return config;
 });
@@ -19,7 +19,7 @@ publicApi.interceptors.request.use((config) => {
 publicApi.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.request || error.message === 'SERVER_UNREACHABLE') {
+    if (error.request || error.message === 'SERVER UNREACHABLE') {
       serverHealth.reportNetworkError();
     }
     return Promise.reject(error);

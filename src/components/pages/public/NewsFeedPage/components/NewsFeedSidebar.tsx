@@ -42,6 +42,7 @@ interface NewsFeedSidebarProps {
     communityName: string;
     memberCount: number;
     isMember?: boolean;
+    memberIsApproved?: boolean;
     isAdmin?: boolean;
     isModerator?: boolean;
   };
@@ -210,7 +211,7 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
               {t('common.needs')}
             </Button>
 
-            {(communityNav.isMember || communityNav.isAdmin) && (
+            {((communityNav.isMember && communityNav.memberIsApproved) || communityNav.isAdmin) && (
               <>
                 <Button 
                   variant="ghost" 
@@ -236,17 +237,19 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
                   {t('hub.announcements')} & {t('common.events')}
                 </Button>
 
-                <Button 
-                  variant="ghost" 
-                  onClick={() => communityNav.onTabChange('members')}
-                  className={cn(
-                    "w-full justify-start py-6 rounded-2xl font-bold transition-all border-none group",
-                    communityNav.activeTab === 'members' ? "text-teal-600 bg-teal-50 shadow-sm" : "text-slate-500 hover:bg-gray-50 hover:text-teal-600"
-                  )}
-                >
-                  <Users className={cn("w-5 h-5 mr-3", communityNav.activeTab === 'members' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
-                  {t('common.members')}
-                </Button>
+                {(communityNav.isAdmin || communityNav.isModerator) && (
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => communityNav.onTabChange('members')}
+                    className={cn(
+                      "w-full justify-start py-6 rounded-2xl font-bold transition-all border-none group",
+                      communityNav.activeTab === 'members' ? "text-teal-600 bg-teal-50 shadow-sm" : "text-slate-500 hover:bg-gray-50 hover:text-teal-600"
+                    )}
+                  >
+                    <Users className={cn("w-5 h-5 mr-3", communityNav.activeTab === 'members' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
+                    {t('common.members')}
+                  </Button>
+                )}
 
                 <Button 
                   variant="ghost" 

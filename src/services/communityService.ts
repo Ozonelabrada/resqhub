@@ -111,7 +111,8 @@ export const CommunityService = {
           role: m.role,
           joinedAt: m.joinedDate,
           profilePicture: m.profilePictureUrl,
-          isSeller: m.isSeller
+          isSeller: m.isSeller,
+          memberIsApproved: m.memberIsApproved
         }));
       }
       
@@ -407,6 +408,25 @@ export const CommunityService = {
         totalToday: 0,
         totalTomorrow: 0
       };
+    }
+  },
+
+
+
+  async addVolunteersToCommunity(
+    communityId: string | number,
+    userIds: string[]
+  ): Promise<boolean> {
+    try {
+      await api.post('/community-members/volunteers', {
+        communityId: Number(communityId),
+        userIds,
+        isVolunteer: true
+      });
+      return true;
+    } catch (error) {
+      console.error('Error adding volunteers to community:', error);
+      return false;
     }
   }
 };

@@ -59,7 +59,8 @@ export const useCommunityDetail = (id: string | undefined) => {
           ...updatedCommunity,
           isAdmin,
           isModerator,
-          isMember
+          isMember,
+          memberIsApproved: currentUserMember?.memberIsApproved
         };
       }
 

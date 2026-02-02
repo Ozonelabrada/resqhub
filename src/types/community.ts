@@ -15,7 +15,8 @@ export interface Community {
   createdBy?: string;
   status?: string; // 'active' | 'pending' | 'rejected' | 'disabled' | etc.
   maxMembers?: number | null;
-  isMember?: boolean;
+  isMember?: boolean | string; // Can be boolean or string ('true'/'false') from API
+  memberIsApproved?: boolean;
   isAdmin?: boolean;
   isModerator?: boolean;
   isPrivate?: boolean;
@@ -85,6 +86,7 @@ export interface CommunityMember {
   joinedAt: string;
   profilePicture?: string;
   isSeller?: boolean;
+  memberIsApproved?: boolean;
 }
 
 export interface JoinRequest {
@@ -92,10 +94,19 @@ export interface JoinRequest {
   userId: string;
   userName: string;
   userFullName: string;
+  userEmail?: string;
   profilePictureUrl?: string;
   communityId: number;
   dateCreated: string;
   status: 'Pending' | 'Approved' | 'Rejected';
+  // Admin review fields
+  userAddress?: string;
+  userPhone?: string;
+  userAge?: number;
+  userSex?: string;
+  userLocation?: string;
+  requestMessage?: string;
+  verificationStatus?: string;
 }
 
 export type CommunityContentType = 'announcement' | 'news' | 'events';
