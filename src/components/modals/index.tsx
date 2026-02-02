@@ -8,6 +8,7 @@ export { CommunityProfileModal } from './Community/CommunityProfileModal';
 export { CommunityDetailModal } from './Community/CommunityDetailModal';
 export { default as InviteModal } from './Community/InviteModal';
 export { ProfilePreviewModal } from './ProfilePreviewModal';
+export { ReportProfileModal } from './ReportProfileModal';
 export { default as CreateAnnouncementModal } from './Community/CreateAnnouncementModal';
 export { default as CommunitySettingsModal } from './Community/CommunitySettingsModal';
 export { default as CreateContentModal } from './Community/CreateContentModal';
@@ -20,3 +21,4 @@ export type { CreateCalendarFormData, CalendarEntry, CreateCalendarModalProps } 
 export { default as CommunityReportModal } from './CommunityReport/CommunityReportModal';
 export { default as ReportDetailModal } from './CommunityReport/ReportDetailModal';
 export type { CommunityReportPayload, CommunityReportResponse } from '@/services/communityReportService';
+export { default as AddVolunteerModal } from './AddVolunteerModal';

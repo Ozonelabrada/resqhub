@@ -43,18 +43,22 @@ interface UserStore {
   isVerified?: boolean;
 }
 
-const MOCK_USER_STORES: UserStore[] = [
-  {
-    id: 1,
-    name: "My Emergency Gear",
-    description: "Personal store for disaster preparedness items.",
-    bannerImage: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=800",
-    avatar: "https://i.pravatar.cc/150?u=my-store-1",
-    contactInfo: "+63 912 345 6789",
-    communitiesJoined: ['1', '2'],
-    itemsCount: 15
+// Helper function to safely check if user is a member
+const isCommunityMember = (community: Community): boolean => {
+  // Handle boolean, string, null, undefined values
+  if (typeof community.isMember === 'boolean') {
+    return community.isMember;
   }
-];
+  if (typeof community.isMember === 'string') {
+    return community.isMember.toLowerCase() === 'true';
+  }
+  return false;
+};
+
+// Helper function to check if member is approved
+const isMemberApproved = (community: Community): boolean => {
+  return community.memberIsApproved === true;
+};
 
 export const CommunitiesContainer: React.FC = () => {
   const { t } = useTranslation();
@@ -128,6 +132,7 @@ export const CommunitiesContainer: React.FC = () => {
   useEffect(() => {
     if (hookCommunities.length > 0 && communities.length === 0) {
       setCommunities(hookCommunities);
+      console.log('🔍 Communities loaded:', hookCommunities.map(c => ({ id: c.id, name: c.name, isMember: c.isMember, memberIsApproved: c.memberIsApproved, status: c.status })));
       setLoading(false);
     }
   }, [hookCommunities, communities.length]);
@@ -148,6 +153,7 @@ export const CommunitiesContainer: React.FC = () => {
         setLoading(true);
         try {
           const searchResults = await CommunityService.searchCommunities(debouncedSearchQuery.trim());
+          console.log('🔍 Search results:', searchResults.map(c => ({ id: c.id, name: c.name, isMember: c.isMember, memberIsApproved: c.memberIsApproved, status: c.status })));
           setCommunities(searchResults);
         } catch (error) {
           console.error('Error searching communities:', error);
@@ -187,14 +193,16 @@ export const CommunitiesContainer: React.FC = () => {
 
   // Filter communities based on visibility rules:
   // - If user is the creator: show all (regardless of status)
-  // - If user is not the creator: only show if status is 'active' AND not 'suspended'
+  // - If user is a member: show it (regardless of status)
+  // - If user is not a member/creator: only show if status is 'approved' AND not 'suspended'
   const filteredCommunities = communities.filter(community => {
     const isCreator = user?.id && community.createdBy === user.id;
-    const isActive = community.status === 'approved' || community.status === 'Approved';
-    const isSuspended = community.status === 'suspended' || community.status === 'Suspended';
+    const isMember = isCommunityMember(community);
+    const isApproved = community.status?.toLowerCase() === 'approved';
+    const isSuspended = community.status?.toLowerCase() === 'suspended';
     
-    // Show if: user is creator OR (community is active AND not suspended)
-    return isCreator || (isActive && !isSuspended);
+    // Show if: user is creator OR user is member OR (community is approved AND not suspended)
+    return isCreator || isMember || (isApproved && !isSuspended);
   });
 
   const handleCreateStore = async () => {
@@ -713,7 +721,7 @@ export const CommunitiesContainer: React.FC = () => {
                 className="bg-slate-900 hover:bg-slate-800 text-white font-black h-10 px-4 rounded-xl transition-all flex items-center gap-2 group"
              >
                 <StoreIcon className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                <span className="hidden sm:inline">Apply to Sale</span>
+                <span className="hidden sm:inline">Apply to Sell</span>
              </Button>
              <div className="flex flex-col leading-none">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Stores</span>
@@ -753,7 +761,8 @@ export const CommunitiesContainer: React.FC = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 gap-4 md:gap-6">
-            {filteredCommunities.map((community, idx) => (
+            {filteredCommunities.map((community, idx) => {
+              return (
               <Card 
                 key={community.id || (community as any)._id || idx}
                 className="group border border-slate-100 rounded-[2rem] overflow-hidden bg-white hover:shadow-2xl hover:shadow-teal-100/30 transition-all duration-500 cursor-pointer flex flex-col h-full"
@@ -775,22 +784,26 @@ export const CommunitiesContainer: React.FC = () => {
                   )}
                   <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] pointer-events-none"></div>
                   
-                  {isAuthenticated && community.isMember && (
+                  {isAuthenticated && isCommunityMember(community) && isMemberApproved(community) && (
                     <Badge className="absolute top-3 left-3 bg-emerald-500 text-white font-black uppercase text-[8px] tracking-widest px-2 py-0.5 border-none shadow-sm">
                       Joined
                     </Badge>
                   )}
 
-                  {/* Show status badge if user is the creator AND status is not active/approved */}
-                  {isAuthenticated && user?.id && community.createdBy === user.id && 
-                    (community.status === 'pending' || community.status === 'Pending' || 
-                     community.status === 'suspended' || community.status === 'Suspended' || 
-                     community.status === 'rejected' || community.status === 'Rejected' || 
-                     community.status === 'disabled' || community.status === 'Disabled') && (
+                  {/* Show "Pending Approval" badge if user is member but not approved AND not the creator */}
+                  {isAuthenticated && isCommunityMember(community) && !isMemberApproved(community) && !(user?.id && community.createdBy === user.id) && (
+                    <Badge className="absolute top-3 left-3 bg-amber-500 text-white font-black uppercase text-[8px] tracking-widest px-2 py-0.5 border-none shadow-sm">
+                      Pending Approval
+                    </Badge>
+                  )}
+
+                  {/* Show status badge if community is pending, suspended, rejected, or disabled */}
+                  {isAuthenticated && 
+                    ['pending', 'suspended', 'rejected', 'disabled'].includes(community.status?.toLowerCase() || '') && (
                     <Badge className={cn(
                       "absolute top-3 left-3 font-black uppercase text-[8px] tracking-widest px-2 py-0.5 border-none shadow-sm",
-                      community.status === 'pending' || community.status === 'Pending' ? "bg-amber-500 text-white" :
-                      community.status === 'suspended' || community.status === 'Suspended' ? "bg-rose-500 text-white" :
+                      community.status?.toLowerCase() === 'pending' ? "bg-amber-500 text-white" :
+                      community.status?.toLowerCase() === 'suspended' ? "bg-rose-500 text-white" :
                       "bg-red-500 text-white"
                     )}>
                       {community.status}
@@ -833,15 +846,41 @@ export const CommunitiesContainer: React.FC = () => {
                       <Users size={12} />
                       <span className="text-[11px] font-bold text-slate-500">{community.memberCount || community.membersCount || 0} Members</span>
                     </div>
-                    
-                    {isAuthenticated && community.isMember ? (
+                    {isAuthenticated && isCommunityMember(community) && isMemberApproved(community) ? (
                       <Button 
+                        onClick={() => navigate(`/community/${community.id || (community as any)._id}`)}
                         variant="ghost" 
                         size="sm" 
                         className="p-0 h-auto hover:bg-transparent text-teal-600 font-extrabold text-[10px] uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all"
                       >
                         Visit Hub
                         <ArrowRight size={14} />
+                      </Button>
+                    ) : isAuthenticated && isCommunityMember(community) && !isMemberApproved(community) && !(user?.id && community.createdBy === user.id) ? (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        disabled
+                        className="p-0 h-auto hover:bg-transparent text-amber-600 font-extrabold text-[10px] uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all opacity-60"
+                      >
+                        Waiting for Approval
+                      </Button>
+                    ) : !isAuthenticated ? (
+                      <Button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openLoginModal();
+                        }}
+                        size="sm"
+                        className={cn(
+                          "h-8 rounded-lg px-4 text-[10px] font-black uppercase tracking-widest transition-all",
+                          "bg-teal-600 hover:bg-teal-700 text-white shadow-sm shadow-teal-100"
+                        )}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <UserPlus size={12} strokeWidth={3} />
+                          Sign In
+                        </div>
                       </Button>
                     ) : (
                       <Button 
@@ -867,7 +906,8 @@ export const CommunitiesContainer: React.FC = () => {
                   </div>
                 </div>
               </Card>
-            ))}
+              );
+            })}
 
             {filteredCommunities.length === 0 && !communitiesLoading && !loading && (
               <div className="col-span-full py-20 text-center">

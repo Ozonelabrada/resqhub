@@ -77,7 +77,10 @@ const CommunityPage: React.FC = () => {
 
   const safeMembers = Array.isArray(members) ? members : [];
   const safeJoinRequests = Array.isArray(joinRequests) ? joinRequests : [];
-  const isMember = community?.isMember || false;
+  const isMember = community?.isMember === true || community?.isMember === 'true';
+  const memberIsApproved = community?.memberIsApproved === true;
+  const isFullMember = isMember && memberIsApproved; // User has full member access
+  const isPendingMember = isMember && !memberIsApproved; // User is member but not approved
   const isAdmin = community?.isAdmin || false;
   const isModerator = community?.isModerator || false;
   const isPrivileged = isAdmin || isModerator;
@@ -87,8 +90,8 @@ const CommunityPage: React.FC = () => {
       openLoginModal();
       return;
     }
-    if (!isMember && !isAdmin) {
-      // Logic for non-members - maybe show join prompt
+    if (!isFullMember && !isAdmin) {
+      // Logic for non-members or non-approved members
       return;
     }
     setIsReportModalOpen(true);
@@ -246,7 +249,7 @@ const CommunityPage: React.FC = () => {
           />
         );
       case 'updates':
-        return isMember || isAdmin ? (
+        return isFullMember || isAdmin ? (
           <>
             {/* Sub-tabs for Updates */}
             <div className="flex gap-2 mb-6 border-b border-slate-200">
@@ -342,31 +345,39 @@ const CommunityPage: React.FC = () => {
             description={t('newsfeed.announcements_locked_desc')}
           />
         );
-      case 'trade': return isMember || isPrivileged ? (
+      case 'trade': return isFullMember || isPrivileged ? (
         <CommunityTrade />
       ) : (
         <RestrictedContent 
-          title={t('newsfeed.marketplace_locked')} 
-          description={t('newsfeed.marketplace_locked_desc')}
+          title={isPendingMember ? 'Limited Access During Review' : t('newsfeed.marketplace_locked')} 
+          description={isPendingMember ? 'Trading features are available after your membership is approved.' : t('newsfeed.marketplace_locked_desc')}
         />
       );
       case 'resources':
-        return isMember || isAdmin ? (
+        return isFullMember || isAdmin ? (
           <CommunityResources />
         ) : (
           <RestrictedContent 
-            title={t('newsfeed.resources_locked')} 
-            description={t('newsfeed.resources_locked_desc')}
+            title={isPendingMember ? 'Limited Access During Review' : t('newsfeed.resources_locked')} 
+            description={isPendingMember ? 'Resource features are available after your membership is approved.' : t('newsfeed.resources_locked_desc')}
           />
         );
       case 'needs': 
-        return <NeedsBoard posts={posts?.filter(p => ['Resource', 'Service', 'Volunteer', 'Request', 'Need'].includes(p.reportType || ''))} />;
-      case 'members': return isMember || isPrivileged ? (
+        return isFullMember || isAdmin ? (
+          <NeedsBoard posts={posts?.filter(p => ['Resource', 'Service', 'Volunteer', 'Request', 'Need'].includes(p.reportType || ''))} />
+        ) : (
+          <RestrictedContent 
+            title={isPendingMember ? 'Limited Access During Review' : t('newsfeed.needs_locked')} 
+            description={isPendingMember ? 'Needs board is available after your membership is approved.' : t('newsfeed.needs_locked_desc')}
+          />
+        );
+      case 'members': return isFullMember || isPrivileged ? (
         <CommunityMembers 
           members={safeMembers} 
           joinRequests={safeJoinRequests}
           isAdmin={isAdmin} 
           isModerator={isModerator}
+          communityId={id}
           onApprove={approveRequest}
           onReject={rejectRequest}
           onRefresh={refresh}
@@ -496,6 +507,7 @@ const CommunityPage: React.FC = () => {
                 communityName: community.name,
                 memberCount: community.membersCount || 0,
                 isMember: isMember,
+                memberIsApproved: memberIsApproved,
                 isAdmin: isAdmin,
                 isModerator: isModerator
               }}
@@ -507,6 +519,21 @@ const CommunityPage: React.FC = () => {
           "order-1 pb-20 lg:pb-6 lg:h-full lg:overflow-y-auto lg:overflow-x-hidden scrollbar-hidden hover:custom-scrollbar transition-all pt-2 px-1 scroll-smooth min-w-0",
           (activeTab === 'feed' || activeTab === 'needs') ? "lg:col-span-5 lg:order-2" : "lg:col-span-8 lg:order-2"
         )}>
+          {/* PENDING APPROVAL BANNER */}
+          {isPendingMember && (
+            <div className="mb-6 p-4 bg-amber-50 border-2 border-amber-200 rounded-2xl flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
+                <Clock size={20} className="text-amber-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-black text-amber-900 text-sm uppercase tracking-wide mb-1">Pending Approval</h3>
+                <p className="text-xs text-amber-800 leading-relaxed">
+                  Your membership is awaiting approval from community administrators. Some features are currently limited. You'll get full access once your membership is approved.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* MAIN CONTENT AREA */}
           <div className="space-y-6">
             {renderTabContent()}

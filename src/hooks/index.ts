@@ -5,6 +5,7 @@ export { useCommunities, useCommunityDetail } from './useCommunities';
 export { useMessages } from './useMessages';
 export { useNotifications } from './useNotifications';
 export { useUserProfile } from './useUserProfile';
+export { useFetchUserProfile } from './useFetchUserProfile';
 export { useUserReports } from './useUserReports';
 export { useWatchList } from './useWatchList';
 export { useNewsFeed } from './useNewsFeed';
