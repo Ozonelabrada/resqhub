@@ -282,9 +282,10 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
         {isFeatureEnabled('messages') && !communityNav && (
           <Button 
             variant="ghost"
+            disabled
             onClick={() => onViewChange?.('messages')}
             className={cn(
-              "w-full justify-start py-6 rounded-2xl font-bold transition-all relative border-none",
+              "w-full justify-start py-6 rounded-2xl font-bold transition-all relative border-none opacity-50 cursor-not-allowed",
               currentView === 'messages' ? "text-teal-600 bg-teal-50 shadow-sm" : "text-slate-500 hover:bg-gray-50 hover:text-teal-600 group"
             )}
           >
@@ -303,16 +304,18 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
             <h4 className="px-4 text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-2 mt-4">{t('common.resources')}</h4>
             <Button 
               variant="ghost" 
+              disabled
               onClick={() => navigate('/safety-tips')}
-              className="w-full justify-start py-6 rounded-2xl font-bold transition-all border-none text-slate-500 hover:bg-gray-50 hover:text-teal-600 group"
+              className="w-full justify-start py-6 rounded-2xl font-bold transition-all border-none text-slate-500 hover:bg-gray-50 hover:text-teal-600 group opacity-50 cursor-not-allowed"
             >
               <ShieldCheck className="w-5 h-5 mr-3 text-slate-400 group-hover:text-teal-600" />
               {t('common.safety_center')}
             </Button>
             <Button 
               variant="ghost" 
+              disabled
               onClick={() => navigate('/map')}
-              className="w-full justify-start py-6 rounded-2xl font-bold transition-all border-none text-slate-500 hover:bg-gray-50 hover:text-teal-600 group"
+              className="w-full justify-start py-6 rounded-2xl font-bold transition-all border-none text-slate-500 hover:bg-gray-50 hover:text-teal-600 group opacity-50 cursor-not-allowed"
             >
               <Map className="w-5 h-5 mr-3 text-slate-400 group-hover:text-teal-600" />
               Global Map
