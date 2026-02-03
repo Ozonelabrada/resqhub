@@ -183,9 +183,9 @@ export const CommunityService = {
     }
   },
 
-  async approveJoinRequest(communityId: string, requestId: number): Promise<boolean> {
+  async approveJoinRequest(communityId: string, requestId: number, userId: string): Promise<boolean> {
     try {
-      await api.patch(`/communities/${communityId}/join-requests/${requestId}/approve`);
+      await api.patch(`/community-members/communities/${communityId}/members/${userId}/approve`);
       return true;
     } catch (error) {
       console.error('Error approving join request:', error);
@@ -193,9 +193,9 @@ export const CommunityService = {
     }
   },
 
-  async rejectJoinRequest(communityId: string, requestId: number): Promise<boolean> {
+  async rejectJoinRequest(communityId: string, requestId: number, userId: string): Promise<boolean> {
     try {
-      await api.patch(`/communities/${communityId}/join-requests/${requestId}/reject`);
+      await api.patch(`/community-members/communities/${communityId}/members/${userId}/reject`);
       return true;
     } catch (error) {
       console.error('Error rejecting join request:', error);

@@ -32,8 +32,8 @@ interface CommunityMembersProps {
   isAdmin?: boolean;
   isModerator?: boolean;
   communityId?: string | number;
-  onApprove?: (requestId: number) => Promise<boolean>;
-  onReject?: (requestId: number) => Promise<boolean>;
+  onApprove?: (requestId: number, userId: string) => Promise<boolean>;
+  onReject?: (requestId: number, userId: string) => Promise<boolean>;
   onRefresh?: () => void;
 }
 
@@ -100,11 +100,11 @@ export const CommunityMembers: React.FC<CommunityMembersProps> = ({
   ];
   const pendingRequests = allPendingRequests;
 
-  const handleApprove = async (requestId: number) => {
+  const handleApprove = async (requestId: number, userId: string) => {
     if (!onApprove) return;
     setProcessingId(requestId);
     try {
-      const success = await onApprove(requestId);
+      const success = await onApprove(requestId, userId);
       if (success) {
         toast.success('Member approved successfully');
       } else {
@@ -115,11 +115,11 @@ export const CommunityMembers: React.FC<CommunityMembersProps> = ({
     }
   };
 
-  const handleReject = async (requestId: number) => {
+  const handleReject = async (requestId: number, userId: string) => {
     if (!onReject) return;
     setProcessingId(requestId);
     try {
-      const success = await onReject(requestId);
+      const success = await onReject(requestId, userId);
       if (success) {
         toast.success('Join request rejected');
       } else {
@@ -608,7 +608,7 @@ export const CommunityMembers: React.FC<CommunityMembersProps> = ({
                     {/* Approve/Reject Action Buttons */}
                     <div className="grid grid-cols-2 gap-3">
                       <Button 
-                        onClick={() => handleReject(request.id)} 
+                        onClick={() => handleReject(request.id, request.userId)} 
                         disabled={processingId === request.id} 
                         className="h-10 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-black text-[10px] uppercase tracking-widest transition-all border border-rose-200 hover:border-rose-300 flex items-center justify-center gap-1.5 disabled:opacity-60"
                       >
@@ -622,7 +622,7 @@ export const CommunityMembers: React.FC<CommunityMembersProps> = ({
                         )}
                       </Button>
                       <Button 
-                        onClick={() => handleApprove(request.id)} 
+                        onClick={() => handleApprove(request.id, request.userId)} 
                         disabled={processingId === request.id} 
                         className="h-10 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-emerald-200 hover:shadow-emerald-300 flex items-center justify-center gap-1.5 disabled:opacity-60"
                       >
