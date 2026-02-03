@@ -240,7 +240,7 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
                   
                   {/* Images Display - Enhanced Collage Layout */}
                   {post.images && post.images.length > 0 && (
-                    <div className="w-full h-64 overflow-hidden bg-gray-100 border border-gray-50 rounded-2xl mb-6">
+                    <div className="w-full h-80 overflow-hidden bg-gray-100 border border-gray-50 rounded-2xl mb-6">
                       {/* Dynamic Collage Grid */}
                       <div className="w-full h-full grid grid-cols-2 grid-rows-3 gap-0.5">
                         {post.images.length === 1 ? (
