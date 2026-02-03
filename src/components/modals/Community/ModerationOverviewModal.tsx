@@ -76,10 +76,10 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
     }
   }, [isOpen, communityId]);
 
-  const handleApproveRequest = async (requestId: number) => {
+  const handleApproveRequest = async (requestId: number, userId: string) => {
     setProcessingId(requestId);
     try {
-      const success = await CommunityService.approveJoinRequest(String(communityId), requestId);
+      const success = await CommunityService.approveJoinRequest(String(communityId), requestId, userId);
       if (success) {
         toast.success(t('moderation.member_approved'));
         await fetchJoinRequests();
@@ -89,10 +89,10 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
     }
   };
 
-  const handleRejectRequest = async (requestId: number) => {
+  const handleRejectRequest = async (requestId: number, userId: string) => {
     setProcessingId(requestId);
     try {
-      const success = await CommunityService.rejectJoinRequest(String(communityId), requestId);
+      const success = await CommunityService.rejectJoinRequest(String(communityId), requestId, userId);
       if (success) {
         toast.success(t('moderation.request_rejected'));
         await fetchJoinRequests();
@@ -268,7 +268,7 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
                          <MessageCircle size={12} /> {t('moderation.chat')}
                       </Button>
                       <Button
-                        onClick={() => handleRejectRequest(request.id)}
+                        onClick={() => handleRejectRequest(request.id, request.userId)}
                         disabled={!!processingId}
                         variant="outline"
                         size="sm"
@@ -277,7 +277,7 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
                         {processingId === request.id ? <Spinner size="sm" /> : <X size={14} />}
                       </Button>
                       <Button
-                        onClick={() => handleApproveRequest(request.id)}
+                        onClick={() => handleApproveRequest(request.id, request.userId)}
                         disabled={!!processingId}
                         size="sm"
                         className="h-8 w-8 px-0 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white"
