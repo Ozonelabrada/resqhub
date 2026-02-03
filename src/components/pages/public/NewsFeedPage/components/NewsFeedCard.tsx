@@ -458,92 +458,126 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
                   />
                 ))
               ) : item.images.length === 3 ? (
-                // 3 Images: Large left (row-span-3), two stacked right collage
+                // 3 Images: Enhanced layout - Large main image + 2 stacked images
                 <>
                   <img 
                     src={item.images[0]} 
                     alt="" 
                     onClick={() => handleImageClick(item.images[0])}
-                    className="w-full h-full object-cover row-span-3 col-span-1 cursor-pointer" 
+                    className="w-full h-full object-cover row-span-3 col-span-1 cursor-pointer hover:brightness-110 transition-all duration-300" 
                   />
                   <img 
                     src={item.images[1]} 
                     alt="" 
                     onClick={() => handleImageClick(item.images[1])}
-                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer" 
+                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300" 
                   />
                   <img 
                     src={item.images[2]} 
                     alt="" 
                     onClick={() => handleImageClick(item.images[2])}
-                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer" 
+                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300" 
                   />
                   <div className="col-span-1 row-span-1"></div>
                 </>
               ) : item.images.length === 4 ? (
-                // 4 Images: 2x2 grid collage
+                // 4 Images: Enhanced 2x2 balanced grid with hover effects
                 <>
                   <img 
                     src={item.images[0]} 
                     alt="" 
                     onClick={() => handleImageClick(item.images[0])}
-                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer" 
+                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300" 
                   />
                   <img 
                     src={item.images[1]} 
                     alt="" 
                     onClick={() => handleImageClick(item.images[1])}
-                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer" 
+                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300" 
                   />
                   <img 
                     src={item.images[2]} 
                     alt="" 
                     onClick={() => handleImageClick(item.images[2])}
-                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer" 
+                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300" 
                   />
                   <img 
                     src={item.images[3]} 
                     alt="" 
                     onClick={() => handleImageClick(item.images[3])}
-                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer" 
+                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300" 
                   />
                   <div className="col-span-2 row-span-1"></div>
                 </>
-              ) : (
-                // 5+ Images: Large top left + 2x2 grid on right + 1 row below
+              ) : item.images.length === 5 ? (
+                // 5 Images: Optimized layout - Large main + 2x2 secondary images
                 <>
                   <img 
                     src={item.images[0]} 
                     alt="" 
                     onClick={() => handleImageClick(item.images[0])}
-                    className="w-full h-full object-cover row-span-2 col-span-1 cursor-pointer" 
+                    className="w-full h-full object-cover row-span-3 col-span-1 cursor-pointer hover:brightness-110 transition-all duration-300" 
                   />
                   <img 
                     src={item.images[1]} 
                     alt="" 
                     onClick={() => handleImageClick(item.images[1])}
-                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer" 
+                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300" 
                   />
                   <img 
                     src={item.images[2]} 
                     alt="" 
                     onClick={() => handleImageClick(item.images[2])}
-                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer" 
+                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300" 
                   />
                   <img 
                     src={item.images[3]} 
                     alt="" 
                     onClick={() => handleImageClick(item.images[3])}
-                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer" 
+                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300" 
+                  />
+                  <img 
+                    src={item.images[4]} 
+                    alt="" 
+                    onClick={() => handleImageClick(item.images[4])}
+                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300" 
+                  />
+                </>
+              ) : (
+                // 6+ Images: Large prominent first image + 2x2 grid + additional images with count overlay
+                <>
+                  <img 
+                    src={item.images[0]} 
+                    alt="" 
+                    onClick={() => handleImageClick(item.images[0])}
+                    className="w-full h-full object-cover row-span-2 col-span-1 cursor-pointer hover:brightness-110 transition-all duration-300" 
+                  />
+                  <img 
+                    src={item.images[1]} 
+                    alt="" 
+                    onClick={() => handleImageClick(item.images[1])}
+                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300" 
+                  />
+                  <img 
+                    src={item.images[2]} 
+                    alt="" 
+                    onClick={() => handleImageClick(item.images[2])}
+                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300" 
+                  />
+                  <img 
+                    src={item.images[3]} 
+                    alt="" 
+                    onClick={() => handleImageClick(item.images[3])}
+                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300" 
                   />
                   <div className="relative w-full h-full object-cover col-span-1 row-span-1 overflow-hidden bg-gray-200 cursor-pointer" onClick={() => handleImageClick(item.images[4])}>
                     <img 
                       src={item.images[4]} 
                       alt="" 
-                      className="w-full h-full object-cover" 
+                      className="w-full h-full object-cover hover:brightness-110 transition-all duration-300" 
                     />
                     {item.images.length > 5 && (
-                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center hover:bg-black/40 transition-all duration-300">
                         <span className="text-white font-black text-2xl">+{item.images.length - 5}</span>
                       </div>
                     )}

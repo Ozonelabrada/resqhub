@@ -238,18 +238,140 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
                   <h3 className="font-black text-xl text-slate-900 mb-2 group-hover:text-teal-600 transition-colors uppercase tracking-tight leading-tight">{post.title}</h3>
                   <p className="text-slate-600 font-medium text-base mb-4 leading-relaxed line-clamp-4">{post.description}</p>
                   
-                  {/* Images Display */}
+                  {/* Images Display - Enhanced Collage Layout */}
                   {post.images && post.images.length > 0 && (
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
-                      {post.images.map(img => (
-                        <div key={img.id} className="aspect-video rounded-2xl overflow-hidden bg-slate-100 border border-slate-50">
+                    <div className="w-full h-64 overflow-hidden bg-gray-100 border border-gray-50 rounded-2xl mb-6">
+                      {/* Dynamic Collage Grid */}
+                      <div className="w-full h-full grid grid-cols-2 grid-rows-3 gap-0.5">
+                        {post.images.length === 1 ? (
+                          // 1 Image: Full container
                           <img 
-                            src={img.imageUrl.startsWith('http') ? img.imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${img.imageUrl}`} 
-                            alt={post.title} 
-                            className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
+                            src={post.images[0].imageUrl.startsWith('http') ? post.images[0].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[0].imageUrl}`}
+                            alt={post.title}
+                            className="w-full h-full object-cover col-span-2 row-span-3 cursor-pointer hover:brightness-110 transition-all duration-300"
                           />
-                        </div>
-                      ))}
+                        ) : post.images.length === 2 ? (
+                          // 2 Images: Side-by-side full height
+                          post.images.map((img) => (
+                            <img 
+                              key={img.id}
+                              src={img.imageUrl.startsWith('http') ? img.imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${img.imageUrl}`}
+                              alt={post.title}
+                              className="w-full h-full object-cover col-span-1 row-span-3 cursor-pointer hover:brightness-110 transition-all duration-300"
+                            />
+                          ))
+                        ) : post.images.length === 3 ? (
+                          // 3 Images: Enhanced layout - Large main image + 2 stacked images
+                          <>
+                            <img 
+                              src={post.images[0].imageUrl.startsWith('http') ? post.images[0].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[0].imageUrl}`}
+                              alt={post.title}
+                              className="w-full h-full object-cover row-span-3 col-span-1 cursor-pointer hover:brightness-110 transition-all duration-300"
+                            />
+                            <img 
+                              src={post.images[1].imageUrl.startsWith('http') ? post.images[1].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[1].imageUrl}`}
+                              alt={post.title}
+                              className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300"
+                            />
+                            <img 
+                              src={post.images[2].imageUrl.startsWith('http') ? post.images[2].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[2].imageUrl}`}
+                              alt={post.title}
+                              className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300"
+                            />
+                            <div className="col-span-1 row-span-1"></div>
+                          </>
+                        ) : post.images.length === 4 ? (
+                          // 4 Images: Enhanced 2x2 balanced grid with hover effects
+                          <>
+                            <img 
+                              src={post.images[0].imageUrl.startsWith('http') ? post.images[0].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[0].imageUrl}`}
+                              alt={post.title}
+                              className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300"
+                            />
+                            <img 
+                              src={post.images[1].imageUrl.startsWith('http') ? post.images[1].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[1].imageUrl}`}
+                              alt={post.title}
+                              className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300"
+                            />
+                            <img 
+                              src={post.images[2].imageUrl.startsWith('http') ? post.images[2].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[2].imageUrl}`}
+                              alt={post.title}
+                              className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300"
+                            />
+                            <img 
+                              src={post.images[3].imageUrl.startsWith('http') ? post.images[3].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[3].imageUrl}`}
+                              alt={post.title}
+                              className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300"
+                            />
+                            <div className="col-span-2 row-span-1"></div>
+                          </>
+                        ) : post.images.length === 5 ? (
+                          // 5 Images: Optimized layout - Large main + 2x2 secondary images
+                          <>
+                            <img 
+                              src={post.images[0].imageUrl.startsWith('http') ? post.images[0].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[0].imageUrl}`}
+                              alt={post.title}
+                              className="w-full h-full object-cover row-span-3 col-span-1 cursor-pointer hover:brightness-110 transition-all duration-300"
+                            />
+                            <img 
+                              src={post.images[1].imageUrl.startsWith('http') ? post.images[1].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[1].imageUrl}`}
+                              alt={post.title}
+                              className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300"
+                            />
+                            <img 
+                              src={post.images[2].imageUrl.startsWith('http') ? post.images[2].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[2].imageUrl}`}
+                              alt={post.title}
+                              className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300"
+                            />
+                            <img 
+                              src={post.images[3].imageUrl.startsWith('http') ? post.images[3].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[3].imageUrl}`}
+                              alt={post.title}
+                              className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300"
+                            />
+                            <img 
+                              src={post.images[4].imageUrl.startsWith('http') ? post.images[4].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[4].imageUrl}`}
+                              alt={post.title}
+                              className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300"
+                            />
+                          </>
+                        ) : (
+                          // 6+ Images: Large prominent first image + 2x2 grid + additional images with count overlay
+                          <>
+                            <img 
+                              src={post.images[0].imageUrl.startsWith('http') ? post.images[0].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[0].imageUrl}`}
+                              alt={post.title}
+                              className="w-full h-full object-cover row-span-2 col-span-1 cursor-pointer hover:brightness-110 transition-all duration-300"
+                            />
+                            <img 
+                              src={post.images[1].imageUrl.startsWith('http') ? post.images[1].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[1].imageUrl}`}
+                              alt={post.title}
+                              className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300"
+                            />
+                            <img 
+                              src={post.images[2].imageUrl.startsWith('http') ? post.images[2].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[2].imageUrl}`}
+                              alt={post.title}
+                              className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300"
+                            />
+                            <img 
+                              src={post.images[3].imageUrl.startsWith('http') ? post.images[3].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[3].imageUrl}`}
+                              alt={post.title}
+                              className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300"
+                            />
+                            <div className="relative w-full h-full object-cover col-span-1 row-span-1 overflow-hidden bg-gray-200 cursor-pointer">
+                              <img 
+                                src={post.images[4].imageUrl.startsWith('http') ? post.images[4].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[4].imageUrl}`}
+                                alt={post.title}
+                                className="w-full h-full object-cover hover:brightness-110 transition-all duration-300"
+                              />
+                              {post.images.length > 5 && (
+                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center hover:bg-black/40 transition-all duration-300">
+                                  <span className="text-white font-black text-2xl">+{post.images.length - 5}</span>
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
                   )}
 
