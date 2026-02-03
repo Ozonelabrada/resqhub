@@ -465,24 +465,7 @@ const CommunityPage: React.FC = () => {
                          {t('newsfeed.joined')}
                       </Button>
                     </div>
-                  ) : (
-                    <div className="flex gap-3">
-                      <Button 
-                        onClick={handleJoin}
-                        className="bg-emerald-500 hover:bg-emerald-600 text-white h-14 rounded-2xl px-10 font-black shadow-xl shadow-emerald-500/30 transition-all active:scale-95"
-                      >
-                        {t('newsfeed.join_community')}
-                      </Button>
-                      <Button 
-                        onClick={handleOpenReportModal}
-                        variant="ghost"
-                        className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 h-14 rounded-2xl px-8 font-black transition-all"
-                      >
-                        <Plus className="mr-2 w-5 h-5" />
-                        {t('newsfeed.create_post')}
-                      </Button>
-                    </div>
-                  )}
+                  ) : null}
                 </div>
               </div>
             </div>
