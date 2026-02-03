@@ -433,7 +433,7 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
       >
         {/* Image Container - Professional Collage Layout */}
         {item.images && item.images.length > 0 && (
-          <div className="relative w-full md:w-[28rem] h-32 sm:h-40 md:h-56 lg:h-64 overflow-hidden bg-gray-100 border-b md:border-b-0 md:border-r border-gray-50">
+          <div className="relative w-full md:w-[32rem] h-48 sm:h-56 md:h-80 lg:h-96 overflow-hidden bg-gray-100 border-b md:border-b-0 md:border-r border-gray-50">
             
             {/* Dynamic Collage Grid */}
             <div className="w-full h-full grid grid-cols-2 grid-rows-3 gap-0.5">
