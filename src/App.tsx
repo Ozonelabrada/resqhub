@@ -16,6 +16,7 @@ const NewsFeedPage = lazy(() => import('./components/pages/public/NewsFeedPage/N
 const CommunityAboutPage = lazy(() => import('./components/pages/public/CommunityAboutPage/CommunityAboutPage'));
 const CommunitiesPage = lazy(() => import('./components/pages/public/CommunitiesPage/CommunitiesPage'));
 const CommunityPage = lazy(() => import('./components/pages/public/CommunityPage/CommunityPage'));
+const EventDetailPage = lazy(() => import('./components/pages/public/EventDetailPage/EventDetailPage'));
 const MessagesPage = lazy(() => import('./components/pages/public/MessagesPage/MessagesPage'));
 const NotificationsPage = lazy(() => import('./components/pages/public/NotificationsPage/NotificationsPage'));
 const ItemDetailPage = lazy(() => import('./components/pages/public/ItemDetailPage/ItemDetailPage'));
@@ -74,6 +75,7 @@ const AppRouter = () => {
           {/* Communities */}
           <Route path="communities" element={<CommunitiesPage />} />
           <Route path="community/:id" element={<CommunityPage />} />
+          <Route path="community/:id/event/:eventId" element={<EventDetailPage />} />
           
           {/* Legal and Support */}
           <Route path="privacy-policy" element={<PrivacyPolicyPage />} />

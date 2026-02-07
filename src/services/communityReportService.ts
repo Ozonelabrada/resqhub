@@ -3,15 +3,23 @@ import api from '../api/client';
 export interface CommunityReportPayload {
   title: string;
   description: string;
-  startDate: string; // ISO 8601 date string
-  endDate: string; // ISO 8601 date string
-  reportUrl?: string;
   category: string;
-  type: string; // 'News' | 'Announcement' | 'Event' | etc.
+  type: string; // 'News' | 'Announcement'
+  communityId: number | string;
+  privacy?: 'community' | 'internal';
+}
+
+export interface EventPayload {
+  title: string;
+  description: string;
+  startDate: string; // ISO 8601 datetime string
+  endDate: string; // ISO 8601 datetime string
+  category: string;
   location: string;
   contactInfo: string;
   communityId: number | string;
   privacy?: 'community' | 'internal';
+  type: 'Event';
 }
 
 export interface CommunityReportResponse {
@@ -140,6 +148,29 @@ export const CommunityReportService = {
       return {
         success: false,
         message: error?.response?.data?.message || 'Failed to delete community report'
+      };
+    }
+  },
+
+  /**
+   * Create a new community event
+   * @param payload - The event data
+   * @returns Promise with success status and response data
+   */
+  async createEvent(
+    payload: EventPayload
+  ): Promise<{ success: boolean; data?: CommunityReportResponse; message?: string }> {
+    try {
+      const response = await api.post('/reports/communities/events', payload);
+      return {
+        success: true,
+        data: response.data?.data || response.data
+      };
+    } catch (error: any) {
+      console.error('Error creating event:', error);
+      return {
+        success: false,
+        message: error?.response?.data?.message || 'Failed to create event'
       };
     }
   }

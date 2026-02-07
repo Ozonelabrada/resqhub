@@ -18,21 +18,27 @@ import {
 } from 'lucide-react';
 import { Button, Card, Avatar, Spinner, ShadcnBadge as Badge } from '@/components/ui';
 import { useAuth } from '@/context/AuthContext';
-import { CommunitySettingsModal, CreateReportModal, ModerationOverviewModal, CreateEventAnnouncementModal, CreateCalendarModal, CommunityReportModal } from '@/components/modals';
-import type { EventAnnouncementFormData } from '@/components/modals/EventAnnouncement/CreateEventAnnouncementModal';
-import type { CreateCalendarFormData } from '@/components/modals/Calendar/CreateCalendarModal';
+import {
+  CommunitySettingsModal,
+  CreateReportModal,
+  ModerationOverviewModal,
+  CreateNewsModal,
+  CreateEventModal,
+  CommunityReportModal,
+} from '@/components/modals';
+import { CreateAnnouncementModal } from '@/components/modals/Announcement/CreateAnnouncementModal';
+import type { NewsFormData } from '@/components/modals/News/CreateNewsModal';
+import type { AnnouncementFormData } from '@/components/modals/Announcement/CreateAnnouncementModal';
+import type { EventFormData } from '@/components/modals/Event/CreateEventModal';
 import { cn } from '@/lib/utils';
 import { useCommunityDetail } from '@/hooks/useCommunities';
 import { CommunityChat } from '@/components/features/messages/CommunityChat';
-import { CommunityService } from '@/services/communityService';
 
 // Global Sidebar Component
 import NewsFeedSidebar from '@/components/pages/public/NewsFeedPage/components/NewsFeedSidebar';
 import type { CommunityTabType } from '@/components/pages/public/NewsFeedPage/components/NewsFeedSidebar';
 
 import { CommunityFeed } from './components/CommunityFeed';
-import { NeedsBoard } from './components/NeedsBoard';
-import { ResourcesWidget } from './components/ResourcesWidget';
 import { CommunityMembers } from './components/CommunityMembers';
 import { CommunityAbout } from './components/CommunityAbout';
 import { CommunityTrade } from './components/CommunityTrade';
@@ -66,14 +72,14 @@ const CommunityPage: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isCommunityReportModalOpen, setIsCommunityReportModalOpen] = useState(false);
-  const [communityReportType, setCommunityReportType] = useState<'News' | 'Announcement' | 'Event' | 'Discussion'>('News');
-  const [isUpdatesModalOpen, setIsUpdatesModalOpen] = useState(false);
-  const [isUpdatesModalType, setIsUpdatesModalType] = useState<'announcement' | 'news' | 'events'>('news');
-  const [activeUpdatesSubTab, setActiveUpdatesSubTab] = useState<'news' | 'announcements' | 'events'>('news');
-  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
-  const [calendarModalType, setCalendarModalType] = useState<'announcement' | 'events'>('announcement');
+  const [communityReportType, setCommunityReportType] = useState<'News' | 'Announcement'>('News');
+  const [isNewsModalOpen, setIsNewsModalOpen] = useState(false);
+  const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+  const [activeUpdatesSubTab, setActiveUpdatesSubTab] = useState<'news' | 'announcements'>('news');
   const [isModerationOpen, setIsModerationOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isAddResourceModalOpen, setIsAddResourceModalOpen] = useState(false);
 
   const safeMembers = Array.isArray(members) ? members : [];
   const safeJoinRequests = Array.isArray(joinRequests) ? joinRequests : [];
@@ -97,62 +103,22 @@ const CommunityPage: React.FC = () => {
     setIsReportModalOpen(true);
   };
 
-  const handleAnnouncementSuccess = (data: EventAnnouncementFormData) => {
-    setIsUpdatesModalOpen(false);
-    console.log('Announcement created:', data);
-    refresh();
-  };
-
-  const handleNewsSuccess = (data: EventAnnouncementFormData) => {
-    setIsUpdatesModalOpen(false);
+  const handleNewsSuccess = (data: NewsFormData) => {
+    setIsNewsModalOpen(false);
     console.log('News created:', data);
     refresh();
   };
 
-  const handleEventSuccess = (data: EventAnnouncementFormData) => {
-    setIsUpdatesModalOpen(false);
-    console.log('Event created:', data);
+  const handleAnnouncementSuccess = (data: AnnouncementFormData) => {
+    setIsAnnouncementModalOpen(false);
+    console.log('Announcement created:', data);
     refresh();
   };
 
-  const handleCalendarSuccess = async (data: CreateCalendarFormData) => {
-    try {
-      // Send calendar entries to backend
-      if (data.calendarEntries && data.calendarEntries.length > 0 && community?.id) {
-        const calendarData = {
-          communityId: community.id,
-          events: data.calendarEntries.map(entry => {
-            return {
-              title: entry.title,
-              description: entry.description,
-              category: entry.category,
-              fromDate: entry.fromDate,
-              toDate: entry.toDate,
-              time: entry.time || '00:00',
-              location: entry.location || '',
-              privacy: entry.privacy || 'community',
-            };
-          }),
-        };
-        
-        console.log('Sending calendar data to backend:', calendarData);
-        const result = await CommunityService.createCalendarEvents(calendarData);
-        
-        if (result.success) {
-          console.log('Calendar events saved to backend successfully');
-          setIsCalendarModalOpen(false);
-          refresh();
-        } else {
-          console.error('Failed to save calendar events:', result.message);
-          alert(result.message || 'Failed to create calendar events');
-        }
-      } else {
-        console.error('Missing required data for calendar creation');
-      }
-    } catch (error) {
-      console.error('Error saving calendar events:', error);
-      alert('Error saving calendar events. Please try again.');
-    }
+  const handleEventSuccess = (data: EventFormData) => {
+    setIsEventModalOpen(false);
+    console.log('Event created:', data);
+    refresh();
   };
 
   const handleCommunityReportSuccess = () => {
@@ -161,19 +127,9 @@ const CommunityPage: React.FC = () => {
     refresh();
   };
 
-  const handleOpenCalendarModal = (type: 'announcement' | 'events') => {
-    setCalendarModalType(type);
-    setIsCalendarModalOpen(true);
-  };
-
-  const handleOpenCommunityReportModal = (type: 'News' | 'Announcement' | 'Event' | 'Discussion') => {
+  const handleOpenCommunityReportModal = (type: 'News' | 'Announcement') => {
     setCommunityReportType(type);
     setIsCommunityReportModalOpen(true);
-  };
-
-  const handleOpenUpdatesModal = (type: 'announcement' | 'news' | 'events') => {
-    setIsUpdatesModalType(type);
-    setIsUpdatesModalOpen(true);
   };
 
   const handleJoin = async () => {
@@ -251,7 +207,7 @@ const CommunityPage: React.FC = () => {
       case 'updates':
         return isFullMember || isAdmin ? (
           <>
-            {/* Sub-tabs for Updates */}
+            {/* Sub-tabs for News and Announcements */}
             <div className="flex gap-2 mb-6 border-b border-slate-200">
               <button
                 onClick={() => setActiveUpdatesSubTab('news')}
@@ -273,16 +229,6 @@ const CommunityPage: React.FC = () => {
               >
                 {t('hub.announcements')}
               </button>
-              <button
-                onClick={() => setActiveUpdatesSubTab('events')}
-                className={`px-6 py-3 font-bold text-sm transition-all border-b-2 -mb-[2px] ${
-                  activeUpdatesSubTab === 'events'
-                    ? 'text-teal-600 border-teal-600'
-                    : 'text-slate-500 border-transparent hover:text-teal-600'
-                }`}
-              >
-                {t('common.events')}
-              </button>
             </div>
 
             {/* Sub-tab Content */}
@@ -290,53 +236,53 @@ const CommunityPage: React.FC = () => {
               {activeUpdatesSubTab === 'news' && (
                 <CommunityNews 
                   isAdmin={isPrivileged}
-                  onOpenNewsModal={() => handleOpenUpdatesModal('news')}
+                  onOpenNewsModal={() => setIsNewsModalOpen(true)}
                   communityId={community?.id}
                 />
               )}
               {activeUpdatesSubTab === 'announcements' && (
                 <CommunityAnnouncements 
                   isAdmin={isPrivileged} 
-                  isAnnouncementModalOpen={false}
-                  onOpenAnnouncementModal={() => handleOpenUpdatesModal('announcement')}
-                  onOpenCalendarModal={() => handleOpenCalendarModal('announcement')}
-                  communityId={community?.id}
-                />
-              )}
-              {activeUpdatesSubTab === 'events' && (
-                <CommunityEvents 
-                  isAdmin={isPrivileged}
-                  isEventModalOpen={false}
-                  onOpenEventModal={() => handleOpenUpdatesModal('events')}
-                  onOpenCalendarModal={() => handleOpenCalendarModal('events')}
+                  onOpenAnnouncementModal={() => setIsAnnouncementModalOpen(true)}
                   communityId={community?.id}
                 />
               )}
             </div>
 
-            <CreateEventAnnouncementModal
-              key="updates-modal-community"
-              isOpen={isUpdatesModalOpen}
-              onClose={() => setIsUpdatesModalOpen(false)}
-              type={isUpdatesModalType}
-              communityId={community?.id}
-              isAdmin={isAdmin}
-              isModerator={isModerator}
-              onSuccess={(data) => {
-                if (isUpdatesModalType === 'announcement') handleAnnouncementSuccess(data);
-                else if (isUpdatesModalType === 'news') handleNewsSuccess(data);
-                else handleEventSuccess(data);
-              }}
+            <CreateNewsModal
+              isOpen={isNewsModalOpen}
+              onClose={() => setIsNewsModalOpen(false)}
+              onSubmit={handleNewsSuccess}
+              communityId={String(community?.id)}
             />
 
-            <CreateCalendarModal
-              key="calendar-modal-community"
-              isOpen={isCalendarModalOpen}
-              onClose={() => setIsCalendarModalOpen(false)}
-              type={calendarModalType}
-              isAdmin={isAdmin}
-              isModerator={isModerator}
-              onSuccess={handleCalendarSuccess}
+            <CreateAnnouncementModal
+              isOpen={isAnnouncementModalOpen}
+              onClose={() => setIsAnnouncementModalOpen(false)}
+              onSubmit={handleAnnouncementSuccess}
+              communityId={String(community?.id)}
+            />
+          </>
+        ) : (
+          <RestrictedContent 
+            title={t('newsfeed.announcements_locked')} 
+            description={t('newsfeed.announcements_locked_desc')}
+          />
+        );
+      case 'events':
+        return isFullMember || isAdmin ? (
+          <>
+            <CommunityEvents 
+              isAdmin={isPrivileged}
+              onOpenEventModal={() => setIsEventModalOpen(true)}
+              communityId={community?.id}
+            />
+
+            <CreateEventModal
+              isOpen={isEventModalOpen}
+              onClose={() => setIsEventModalOpen(false)}
+              onSubmit={handleEventSuccess}
+              communityId={String(community?.id)}
             />
           </>
         ) : (
@@ -355,20 +301,15 @@ const CommunityPage: React.FC = () => {
       );
       case 'resources':
         return isFullMember || isAdmin ? (
-          <CommunityResources />
+          <CommunityResources 
+            isAdmin={isPrivileged}
+            onOpenAddResourceModal={() => setIsAddResourceModalOpen(true)}
+            communityId={String(community?.id)}
+          />
         ) : (
           <RestrictedContent 
             title={isPendingMember ? 'Limited Access During Review' : t('newsfeed.resources_locked')} 
             description={isPendingMember ? 'Resource features are available after your membership is approved.' : t('newsfeed.resources_locked_desc')}
-          />
-        );
-      case 'needs': 
-        return isFullMember || isAdmin ? (
-          <NeedsBoard posts={posts?.filter(p => ['Resource', 'Service', 'Volunteer', 'Request', 'Need'].includes(p.reportType || ''))} />
-        ) : (
-          <RestrictedContent 
-            title={isPendingMember ? 'Limited Access During Review' : t('newsfeed.needs_locked')} 
-            description={isPendingMember ? 'Needs board is available after your membership is approved.' : t('newsfeed.needs_locked_desc')}
           />
         );
       case 'members': return isFullMember || isPrivileged ? (
@@ -500,7 +441,7 @@ const CommunityPage: React.FC = () => {
         {/* --- CENTER: COMMUNITY CONTENT --- */}
         <div className={cn(
           "order-1 pb-20 lg:pb-6 lg:h-full lg:overflow-y-auto lg:overflow-x-hidden scrollbar-hidden hover:custom-scrollbar transition-all pt-2 px-1 scroll-smooth min-w-0",
-          (activeTab === 'feed' || activeTab === 'needs') ? "lg:col-span-5 lg:order-2" : "lg:col-span-8 lg:order-2"
+          (activeTab === 'feed') ? "lg:col-span-5 lg:order-2" : "lg:col-span-8 lg:order-2"
         )}>
           {/* PENDING APPROVAL BANNER */}
           {isPendingMember && (
@@ -524,9 +465,8 @@ const CommunityPage: React.FC = () => {
         </div>
 
         {/* --- RIGHT SIDEBAR: COMMUNITY STATS & INFO --- */}
-        {(activeTab === 'feed' || activeTab === 'needs') && (
+        {(activeTab === 'feed') && (
           <aside className="hidden lg:flex lg:col-span-3 lg:order-3 flex-col space-y-4 pt-2 pb-6 lg:h-full lg:overflow-y-auto lg:overflow-x-hidden scrollbar-hidden hover:custom-scrollbar transition-all min-w-0">
-            {activeTab === 'needs' && <ResourcesWidget />}
             
             {/* TODAY'S UPDATES SECTION */}
             <div className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-gray-50 flex flex-col gap-4 group/card hover:shadow-md transition-all shrink-0">

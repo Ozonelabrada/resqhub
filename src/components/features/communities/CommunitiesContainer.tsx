@@ -22,9 +22,12 @@ import {
   RefreshCw,
   AlertCircle,
   Edit3,
-  Users
+  Users,
+  Upload,
+  X
 } from 'lucide-react';
 import { CommunityService, StoreService } from '@/services';
+import { uploadImageToCloudinary } from '@/services/cloudinaryService';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import { toast } from 'react-hot-toast';
@@ -94,12 +97,17 @@ export const CommunitiesContainer: React.FC = () => {
     avatar: '',
     contactInfo: ''
   });
+  const [bannerUploadingId, setBannerUploadingId] = useState<string | number | null>(null);
+  const [profileUploadingId, setProfileUploadingId] = useState<string | number | null>(null);
 
   // Application State
   const [applyingStoreId, setApplyingStoreId] = useState<string | number | null>(null);
   const [selectedCommunityIds, setSelectedCommunityIds] = useState<string[]>([]);
-  const [applicationDataMap, setApplicationDataMap] = useState<Record<string, { businessPermitUrl: string, location: string }>>({});
+  const [applicationDataMap, setApplicationDataMap] = useState<Record<string, { businessPermitUrl: string, location: string, permitFileName?: string }>>({});
   const [isSubmittingBatch, setIsSubmittingBatch] = useState(false);
+
+  // Apply to Community from Communities List State
+
 
   const fetchUserStores = useCallback(async () => {
     if (!user?.id) return;
@@ -136,6 +144,13 @@ export const CommunitiesContainer: React.FC = () => {
       setLoading(false);
     }
   }, [hookCommunities, communities.length]);
+
+  // Fetch user stores when entering store-application view
+  useEffect(() => {
+    if (view === 'store-application') {
+      fetchUserStores();
+    }
+  }, [view, fetchUserStores]);
 
   // Debounce search query
   useEffect(() => {
@@ -218,6 +233,7 @@ export const CommunitiesContainer: React.FC = () => {
         description: newStoreData.description,
         ownerId: String(user.id),
         bannerUrl: newStoreData.bannerImage || 'https://images.unsplash.com/photo-1557683316-973673baf926?w=800',
+        profileUrl: newStoreData.avatar || `https://i.pravatar.cc/150?u=${newStoreData.name}`,
         contactInfo: newStoreData.contactInfo
       };
 
@@ -228,7 +244,7 @@ export const CommunitiesContainer: React.FC = () => {
         name: newStoreData.name,
         description: newStoreData.description,
         bannerImage: payload.bannerUrl,
-        avatar: newStoreData.avatar || `https://i.pravatar.cc/150?u=${newStoreData.name}`,
+        avatar: payload.profileUrl,
         contactInfo: newStoreData.contactInfo,
         communitiesJoined: [],
         itemsCount: 0
@@ -250,18 +266,31 @@ export const CommunitiesContainer: React.FC = () => {
     
     setIsCreating(true);
     try {
-      const payload = {
+      const payload: any = {
         name: newStoreData.name,
         description: newStoreData.description,
-        bannerUrl: newStoreData.bannerImage,
         contactInfo: newStoreData.contactInfo
       };
+
+      // Only include bannerUrl if it's been updated (not empty)
+      if (newStoreData.bannerImage) {
+        payload.bannerUrl = newStoreData.bannerImage;
+      }
+
+      // Only include profileUrl if it's been updated (not empty)
+      if (newStoreData.avatar) {
+        payload.profileUrl = newStoreData.avatar;
+      }
 
       await StoreService.updateStore(editingStoreId, payload);
       
       setMyStores(myStores.map(s => s.id === editingStoreId ? {
         ...s,
-        ...newStoreData
+        name: newStoreData.name,
+        description: newStoreData.description,
+        bannerImage: newStoreData.bannerImage || s.bannerImage,
+        avatar: newStoreData.avatar || s.avatar,
+        contactInfo: newStoreData.contactInfo
       } : s));
       
       setNewStoreData({ name: '', description: '', bannerImage: '', avatar: '', contactInfo: '' });
@@ -287,6 +316,58 @@ export const CommunitiesContainer: React.FC = () => {
       toast.error('Failed to delete store');
     } finally {
       setIsDeletingId(null);
+    }
+  };
+
+  const handleBannerImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select a valid image file');
+      return;
+    }
+
+    setBannerUploadingId('new');
+    
+    try {
+      const cloudinaryUrl = await uploadImageToCloudinary(file);
+      setNewStoreData(prev => ({
+        ...prev,
+        bannerImage: cloudinaryUrl
+      }));
+      toast.success('Banner image uploaded successfully!');
+    } catch (error) {
+      console.error('Banner upload error:', error);
+      toast.error('Failed to upload banner image');
+    } finally {
+      setBannerUploadingId(null);
+    }
+  };
+
+  const handleProfileImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select a valid image file');
+      return;
+    }
+
+    setProfileUploadingId('new');
+    
+    try {
+      const cloudinaryUrl = await uploadImageToCloudinary(file);
+      setNewStoreData(prev => ({
+        ...prev,
+        avatar: cloudinaryUrl
+      }));
+      toast.success('Profile picture uploaded successfully!');
+    } catch (error) {
+      console.error('Profile upload error:', error);
+      toast.error('Failed to upload profile picture');
+    } finally {
+      setProfileUploadingId(null);
     }
   };
 
@@ -390,7 +471,7 @@ export const CommunitiesContainer: React.FC = () => {
         </div>
 
         <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-          <div className="max-w-5xl mx-auto space-y-10">
+          <div className="w-full space-y-10">
             {/* Store Application Info */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                <div className="col-span-1 bg-teal-600 rounded-[2rem] p-8 text-white space-y-4 shadow-xl shadow-teal-900/10">
@@ -475,13 +556,122 @@ export const CommunitiesContainer: React.FC = () => {
                           />
                         </div>
                         <div className="col-span-1 md:col-span-2 space-y-1.5">
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Banner Image URL</label>
-                          <Input 
-                            value={newStoreData.bannerImage}
-                            onChange={e => setNewStoreData({...newStoreData, bannerImage: e.target.value})}
-                            placeholder="https://images.unsplash.com/..." 
-                            className="h-12 rounded-xl border-none bg-white shadow-sm"
-                          />
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Profile Picture</label>
+                          <div className="relative">
+                            <input 
+                              type="file"
+                              accept="image/*"
+                              onChange={handleProfileImageUpload}
+                              disabled={profileUploadingId === 'new'}
+                              className="hidden"
+                              id="profile-upload"
+                            />
+                            {newStoreData.avatar ? (
+                              <div className="relative group">
+                                <div className="flex items-center justify-center h-32 bg-slate-50 rounded-lg border border-slate-100 overflow-hidden">
+                                  <img 
+                                    src={newStoreData.avatar} 
+                                    alt="Profile preview" 
+                                    className="h-full w-auto object-contain"
+                                  />
+                                </div>
+                                <button
+                                  onClick={() => {
+                                    setNewStoreData(prev => ({ ...prev, avatar: '' }));
+                                    const input = document.getElementById('profile-upload') as HTMLInputElement;
+                                    if (input) input.value = '';
+                                  }}
+                                  className="absolute top-2 right-2 bg-rose-500 text-white p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <X size={14} />
+                                </button>
+                                <label
+                                  htmlFor="profile-upload"
+                                  className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                >
+                                  <span className="text-white text-xs font-bold flex items-center gap-1">
+                                    <Upload size={14} /> Change
+                                  </span>
+                                </label>
+                              </div>
+                            ) : (
+                              <label
+                                htmlFor="profile-upload"
+                                className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-slate-200 rounded-lg bg-slate-50/50 cursor-pointer hover:border-teal-400 hover:bg-teal-50/30 transition-all"
+                              >
+                                {profileUploadingId === 'new' ? (
+                                  <div className="flex flex-col items-center gap-2">
+                                    <Spinner size="sm" />
+                                    <span className="text-[10px] font-bold text-slate-500">Uploading...</span>
+                                  </div>
+                                ) : (
+                                  <div className="flex flex-col items-center gap-2">
+                                    <Upload size={24} className="text-slate-300" />
+                                    <span className="text-[10px] font-bold text-slate-600">Click to upload or drag</span>
+                                    <span className="text-[9px] text-slate-400">PNG, JPG, GIF up to 5MB</span>
+                                  </div>
+                                )}
+                              </label>
+                            )}
+                          </div>
+                        </div>
+                        <div className="col-span-1 md:col-span-2 space-y-1.5">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Banner Image</label>
+                          <div className="relative">
+                            <input 
+                              type="file"
+                              accept="image/*"
+                              onChange={handleBannerImageUpload}
+                              disabled={bannerUploadingId === 'new'}
+                              className="hidden"
+                              id="banner-upload"
+                            />
+                            {newStoreData.bannerImage ? (
+                              <div className="relative group">
+                                <img 
+                                  src={newStoreData.bannerImage} 
+                                  alt="Banner preview" 
+                                  className="h-32 w-full object-cover rounded-lg border border-slate-100"
+                                />
+                                <button
+                                  onClick={() => {
+                                    setNewStoreData(prev => ({ ...prev, bannerImage: '' }));
+                                    const input = document.getElementById('banner-upload') as HTMLInputElement;
+                                    if (input) input.value = '';
+                                  }}
+                                  className="absolute top-2 right-2 bg-rose-500 text-white p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <X size={14} />
+                                </button>
+                                <label
+                                  htmlFor="banner-upload"
+                                  className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                >
+                                  <span className="text-white text-xs font-bold flex items-center gap-1">
+                                    <Upload size={14} /> Change
+                                  </span>
+                                </label>
+                              </div>
+                            ) : (
+                              <label
+                                htmlFor="banner-upload"
+                                className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-slate-200 rounded-lg bg-slate-50/50 cursor-pointer hover:border-teal-400 hover:bg-teal-50/30 transition-all"
+                              >
+                                {bannerUploadingId === 'new' ? (
+                                  <div className="flex flex-col items-center gap-2">
+                                    <Spinner size="sm" />
+                                    <span className="text-[10px] font-bold text-slate-500">Uploading...</span>
+                                  </div>
+                                ) : (
+                                  <div className="flex flex-col items-center gap-2">
+                                    <Upload size={24} className="text-slate-300" />
+                                    <span className="text-[10px] font-bold text-slate-600">Click to upload or drag</span>
+                                    <span className="text-[9px] text-slate-400">PNG, JPG, GIF up to 5MB</span>
+                                  </div>
+                                )}
+                              </label>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <Button 
@@ -506,11 +696,22 @@ export const CommunitiesContainer: React.FC = () => {
                   ) : (
                     <div className="grid grid-cols-1 gap-6">
                       {myStores.map(store => (
-                        <Card key={store.id} className="p-6 rounded-[2.5rem] bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all">
-                          <div className="flex items-start gap-6">
-                            <Avatar shape="square" className="w-20 h-20 rounded-3xl border-4 border-slate-50 shadow-lg">
-                              <img src={store.avatar} alt={store.name} />
-                            </Avatar>
+                        <Card key={store.id} className="overflow-hidden rounded-[2.5rem] bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col">
+                          {/* Banner Image */}
+                          <div className="relative h-32 bg-slate-100 overflow-hidden">
+                            <img 
+                              src={store.bannerImage} 
+                              alt={store.name}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                          </div>
+
+                          <div className="p-6 flex flex-col flex-1">
+                            <div className="flex items-start gap-6">
+                              <Avatar shape="square" className="w-20 h-20 rounded-3xl border-4 border-white shadow-lg -mt-14 relative z-10">
+                                <img src={store.avatar} alt={store.name} />
+                              </Avatar>
                             <div className="flex-1">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
@@ -561,15 +762,15 @@ export const CommunitiesContainer: React.FC = () => {
                                     </Badge>
                                   ))}
                                   {joinedCommunities.filter(c => !store.communitiesJoined.includes(String(c.id))).length > 0 && (
-                                    <div className="flex flex-col gap-4 mt-4 w-full p-5 bg-slate-50/50 rounded-[2rem] border border-slate-100">
+                                    <div className="flex flex-col gap-4 mt-4 w-full p-6 bg-gradient-to-br from-teal-50 to-emerald-50 rounded-2xl border-2 border-teal-200 shadow-sm">
                                        <div className="flex items-center justify-between">
                                           <div className="flex items-center gap-2">
-                                             <PlusCircle size={14} className="text-teal-600" />
-                                             <span className="text-[10px] font-black text-slate-800 uppercase tracking-wider">Expand to Communities</span>
+                                             <StoreIcon size={16} className="text-teal-600" />
+                                             <span className="text-[11px] font-black text-teal-900 uppercase tracking-wider">Register in Communities</span>
                                           </div>
                                           {selectedCommunityIds.length > 0 && applyingStoreId === store.id && (
-                                             <Badge className="bg-teal-600 text-white border-none text-[9px] font-black uppercase px-2 py-0.5">
-                                                {selectedCommunityIds.length} Pending
+                                             <Badge className="bg-teal-600 text-white border-none text-[9px] font-black uppercase px-3 py-1 rounded-lg">
+                                                {selectedCommunityIds.length} Selected
                                              </Badge>
                                           )}
                                        </div>
@@ -624,17 +825,51 @@ export const CommunitiesContainer: React.FC = () => {
                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                           <div className="space-y-1.5">
                                                              <label className="text-[9px] font-black text-slate-400 uppercase flex items-center gap-1">
-                                                                Business Permit <span className="text-rose-500">*</span>
+                                                                Upload Permit <span className="text-rose-500">*</span>
                                                              </label>
-                                                             <Input 
-                                                               value={applicationDataMap[cid]?.businessPermitUrl || ''}
-                                                               onChange={e => setApplicationDataMap({
-                                                                 ...applicationDataMap,
-                                                                 [cid]: { ...applicationDataMap[cid], businessPermitUrl: e.target.value }
-                                                               })}
-                                                               placeholder="URL to permit" 
-                                                               className="h-9 text-[11px] rounded-lg border-slate-100 bg-slate-50/50"
-                                                             />
+                                                             <div className="relative">
+                                                               <input 
+                                                                 type="file"
+                                                                 accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                                                                 onChange={e => {
+                                                                   const file = e.target.files?.[0];
+                                                                   if (file) {
+                                                                     const fileUrl = URL.createObjectURL(file);
+                                                                     setApplicationDataMap({
+                                                                       ...applicationDataMap,
+                                                                       [cid]: { ...applicationDataMap[cid], businessPermitUrl: fileUrl, permitFileName: file.name }
+                                                                     });
+                                                                   }
+                                                                 }}
+                                                                 className="hidden"
+                                                                 id={`permit-upload-${cid}`}
+                                                               />
+                                                               {applicationDataMap[cid]?.businessPermitUrl ? (
+                                                                 <div className="h-10 border-2 border-dashed border-teal-300 rounded-lg bg-teal-50 flex items-center justify-between px-3">
+                                                                   <div className="flex items-center gap-2">
+                                                                     <CheckCircle2 size={14} className="text-teal-600" />
+                                                                     <span className="text-[10px] font-bold text-teal-700 truncate">
+                                                                       {(applicationDataMap[cid] as any)?.permitFileName || 'File selected'}
+                                                                     </span>
+                                                                   </div>
+                                                                   <label
+                                                                     htmlFor={`permit-upload-${cid}`}
+                                                                     className="cursor-pointer text-teal-600 hover:text-teal-700 font-bold text-[9px] uppercase"
+                                                                   >
+                                                                     Change
+                                                                   </label>
+                                                                 </div>
+                                                               ) : (
+                                                                 <label
+                                                                   htmlFor={`permit-upload-${cid}`}
+                                                                   className="flex items-center justify-center h-10 border-2 border-dashed border-slate-200 rounded-lg bg-slate-50/50 cursor-pointer hover:border-teal-400 hover:bg-teal-50/30 transition-all"
+                                                                 >
+                                                                   <span className="text-[10px] font-bold text-slate-600 flex items-center gap-1">
+                                                                     <Upload size={12} /> Select File
+                                                                   </span>
+                                                                 </label>
+                                                               )}
+                                                             </div>
                                                           </div>
                                                           <div className="space-y-1.5">
                                                              <label className="text-[9px] font-black text-slate-400 uppercase flex items-center gap-1">
@@ -688,6 +923,7 @@ export const CommunitiesContainer: React.FC = () => {
                                 </div>
                               </div>
                             </div>
+                          </div>
                           </div>
                         </Card>
                       ))}
@@ -940,6 +1176,8 @@ export const CommunitiesContainer: React.FC = () => {
         }}
         community={selectedCommunityForModal}
       />
+
+
     </Card>
   );
 };

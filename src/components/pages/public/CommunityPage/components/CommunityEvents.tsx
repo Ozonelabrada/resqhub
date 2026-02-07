@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, Button, Avatar, ShadcnBadge as Badge } from '@/components/ui';
 import { 
   Calendar as CalendarIcon, 
@@ -19,7 +20,6 @@ import { cn } from '@/lib/utils';
 import { YEARLY_ROADMAP, getRoadmapDatesForMonth, getRoadmapDateRange, AnnualEvent } from '@/constants/roadmapData';
 import { CommunityService } from '@/services/communityService';
 import type { CommunityPost } from '@/types/community';
-import { ReportDetailModal } from '@/components/modals';
 
 export const CommunityEvents: React.FC<{
   isAdmin?: boolean;
@@ -34,6 +34,7 @@ export const CommunityEvents: React.FC<{
   onOpenCalendarModal,
   communityId
 }) => {
+  const navigate = useNavigate();
   // Get current date in YYYY-MM-DD format
   const today = new Date();
   const currentDateString = today.toISOString().split('T')[0];
@@ -48,12 +49,9 @@ export const CommunityEvents: React.FC<{
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [calendarLoading, setCalendarLoading] = useState(false);
-  const [selectedReport, setSelectedReport] = useState<CommunityPost | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
-  const handleViewDetails = (report: CommunityPost) => {
-    setSelectedReport(report);
-    setIsDetailModalOpen(true);
+  const handleViewDetails = (eventId: string) => {
+    navigate(`/community/${communityId}/event/${eventId}`);
   };
 
   // Fetch calendar data from backend
@@ -470,7 +468,7 @@ export const CommunityEvents: React.FC<{
             filteredEvents.map((event) => (
               <Card 
                 key={event.id} 
-                onClick={() => handleViewDetails(event)}
+                onClick={() => handleViewDetails(event.id)}
                 className="group border-none shadow-sm hover:shadow-xl transition-all duration-500 rounded-[2.5rem] overflow-hidden bg-white cursor-pointer"
               >
                 <div className="p-8 space-y-6">
@@ -545,7 +543,7 @@ export const CommunityEvents: React.FC<{
                       </div>
                     </div>
                     <Button 
-                      onClick={() => handleViewDetails(event)}
+                      onClick={() => handleViewDetails(event.id)}
                       variant="ghost" 
                       className="rounded-xl group/btn text-teal-600 font-black text-xs hover:bg-teal-50"
                     >
@@ -581,12 +579,6 @@ export const CommunityEvents: React.FC<{
           )}
         </div>
       </div>
-
-      <ReportDetailModal 
-        isOpen={isDetailModalOpen} 
-        onClose={() => setIsDetailModalOpen(false)} 
-        report={selectedReport} 
-      />
     </div>
   );
 };

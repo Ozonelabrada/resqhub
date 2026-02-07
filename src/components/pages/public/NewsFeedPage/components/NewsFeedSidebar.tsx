@@ -26,7 +26,7 @@ import { MessagesService } from '@/services/messagesService';
 import { useFeatureFlags } from '@/hooks';
 import type { UserData } from '@/types/auth';
 
-export type CommunityTabType = 'feed' | 'needs' | 'chat' | 'members' | 'about' | 'updates' | 'resources' | 'trade';
+export type CommunityTabType = 'feed' | 'needs' | 'chat' | 'members' | 'about' | 'updates' | 'resources' | 'trade' | 'events';
 
 interface NewsFeedSidebarProps {
   isAuthenticated: boolean;
@@ -199,32 +199,18 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
 
             <Button 
               variant="ghost" 
-              onClick={() => communityNav.onTabChange('needs')}
+              onClick={() => communityNav.onTabChange('trade')}
               className={cn(
                 "w-full justify-start py-6 rounded-2xl font-bold transition-all border-none group",
-                communityNav.activeTab === 'needs' ? "text-teal-600 bg-teal-50 shadow-sm" : "text-slate-500 hover:bg-gray-50 hover:text-teal-600"
+                communityNav.activeTab === 'trade' ? "text-teal-600 bg-teal-50 shadow-sm" : "text-slate-500 hover:bg-gray-50 hover:text-teal-600"
               )}
             >
-              <div className={cn("w-5 h-5 mr-3 flex items-center justify-center", communityNav.activeTab === 'needs' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")}>
-                <ShieldAlert className="w-5 h-5" />
-              </div>
-              {t('common.needs')}
+              <ShoppingBag className={cn("w-5 h-5 mr-3", communityNav.activeTab === 'trade' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
+              {t('common.trade_market')}
             </Button>
 
             {((communityNav.isMember && communityNav.memberIsApproved) || communityNav.isAdmin) && (
               <>
-                <Button 
-                  variant="ghost" 
-                  onClick={() => communityNav.onTabChange('trade')}
-                  className={cn(
-                    "w-full justify-start py-6 rounded-2xl font-bold transition-all border-none group",
-                    communityNav.activeTab === 'trade' ? "text-teal-600 bg-teal-50 shadow-sm" : "text-slate-500 hover:bg-gray-50 hover:text-teal-600"
-                  )}
-                >
-                  <ShoppingBag className={cn("w-5 h-5 mr-3", communityNav.activeTab === 'trade' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
-                  {t('common.trade_market')}
-                </Button>
-
                 <Button 
                   variant="ghost" 
                   onClick={() => communityNav.onTabChange('updates')}
@@ -234,7 +220,19 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
                   )}
                 >
                   <Megaphone className={cn("w-5 h-5 mr-3", communityNav.activeTab === 'updates' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
-                  {t('hub.announcements')} & {t('common.events')}
+                  {t('hub.news')} & {t('hub.announcements')}
+                </Button>
+
+                <Button 
+                  variant="ghost" 
+                  onClick={() => communityNav.onTabChange('events')}
+                  className={cn(
+                    "w-full justify-start py-6 rounded-2xl font-bold transition-all border-none group",
+                    communityNav.activeTab === 'events' ? "text-teal-600 bg-teal-50 shadow-sm" : "text-slate-500 hover:bg-gray-50 hover:text-teal-600"
+                  )}
+                >
+                  <Calendar className={cn("w-5 h-5 mr-3", communityNav.activeTab === 'events' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
+                  {t('common.events')}
                 </Button>
 
                 {(communityNav.isAdmin || communityNav.isModerator) && (
