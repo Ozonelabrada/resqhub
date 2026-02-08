@@ -42,7 +42,7 @@ interface ProfilePreviewModalProps {
     address?: string;
     sex?: string;
     age?: number;
-    isSeller?: boolean;
+    roles?: Array<'admin' | 'member' | 'rider' | 'seller' | 'volunteer'>;
     role?: string;
     memberSince?: number;
     reportCount?: number;
