@@ -51,12 +51,10 @@ const NewsFeedPage: React.FC = () => {
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [selectedCommunityForInvite, setSelectedCommunityForInvite] = useState<string>('');
   const [isSafetyExpanded, setIsSafetyExpanded] = useState(false);
-  const [upcomingNews, setUpcomingNews] = useState<any>({ today: [], tomorrow: [] });
-  const [upcomingAnnouncements, setUpcomingAnnouncements] = useState<any>({ today: [], tomorrow: [] });
-  const [upcomingEvents, setUpcomingEvents] = useState<any>({ today: [], tomorrow: [] });
-  const [newsLoading, setNewsLoading] = useState(false);
-  const [announcementsLoading, setAnnouncementsLoading] = useState(false);
-  const [eventsLoading, setEventsLoading] = useState(false);
+  const [happeningToday, setHappeningToday] = useState<any[]>([]);
+  const [happeningTodayLoading, setHappeningTodayLoading] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState<any>(null);
+  const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
 
   // Hooks
   const { 
@@ -99,6 +97,11 @@ const NewsFeedPage: React.FC = () => {
       console.error('Error joining community:', error);
     }
   };
+
+  const handleActivityClick = (activity: any) => {
+    setSelectedActivity(activity);
+    setIsActivityModalOpen(true);
+  };
   
   // New States for Profile previews
   const [selectedUserForPreview, setSelectedUserForPreview] = useState<any>(null);
@@ -120,45 +123,24 @@ const NewsFeedPage: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Fetch Latest News, Announcements, and Events
+  // Fetch unified "What's Happening Today" data (news, announcements, and events combined)
   useEffect(() => {
-    const fetchUpcomingReports = async () => {
+    const fetchHappeningToday = async () => {
       try {
-        // Fetch News
-        setNewsLoading(true);
-        const newsData = await CommunityService.getUpcomingReports('news');
-        setUpcomingNews({
-          today: newsData.today || [],
-          tomorrow: newsData.tomorrow || []
-        });
-        setNewsLoading(false);
-
-        // Fetch Announcements
-        setAnnouncementsLoading(true);
-        const announcementsData = await CommunityService.getUpcomingReports('announcement');
-        setUpcomingAnnouncements({
-          today: announcementsData.today || [],
-          tomorrow: announcementsData.tomorrow || []
-        });
-        setAnnouncementsLoading(false);
-
-        // Fetch Events
-        setEventsLoading(true);
-        const eventsData = await CommunityService.getUpcomingReports('event');
-        setUpcomingEvents({
-          today: eventsData.today || [],
-          tomorrow: eventsData.tomorrow || []
-        });
-        setEventsLoading(false);
+        setHappeningTodayLoading(true);
+        
+        // Fetch combined activities from new unified endpoint
+        const activities = await CommunityService.getTodayActivities();
+        setHappeningToday(activities);
+        
+        setHappeningTodayLoading(false);
       } catch (error) {
-        console.error('Error fetching upcoming reports:', error);
-        setNewsLoading(false);
-        setAnnouncementsLoading(false);
-        setEventsLoading(false);
+        console.error('Error fetching happening today:', error);
+        setHappeningTodayLoading(false);
       }
     };
 
-    fetchUpcomingReports();
+    fetchHappeningToday();
   }, []);
 
   // Refs for Infinite Scroll
@@ -404,12 +386,9 @@ const NewsFeedPage: React.FC = () => {
               setIsSafetyExpanded={setIsSafetyExpanded}
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
-              upcomingNews={upcomingNews}
-              upcomingAnnouncements={upcomingAnnouncements}
-              upcomingEvents={upcomingEvents}
-              newsLoading={newsLoading}
-              announcementsLoading={announcementsLoading}
-              eventsLoading={eventsLoading}
+              happeningToday={happeningToday}
+              happeningTodayLoading={happeningTodayLoading}
+              onActivityClick={handleActivityClick}
             />
           </div>
         )}
@@ -439,6 +418,115 @@ const NewsFeedPage: React.FC = () => {
             : filter.charAt(0).toUpperCase() + filter.slice(1)
         }
       />
+
+      {/* Activity Detail Modal */}
+      {isActivityModalOpen && selectedActivity && (
+        <div className="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white rounded-[2rem] max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-in zoom-in" onClick={(e) => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-white border-b border-gray-100 p-6 flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  {selectedActivity.type === 'event' && <span className="text-lg">🎉</span>}
+                  {selectedActivity.type === 'announcement' && <span className="text-lg">⚠️</span>}
+                  <span className={`text-xs font-black uppercase tracking-tighter px-2 py-1 rounded-full text-white ${
+                    selectedActivity.type === 'event' ? 'bg-emerald-500' : 'bg-yellow-500'
+                  }`}>
+                    {selectedActivity.type === 'event' ? 'Event' : 'Announcement'}
+                  </span>
+                </div>
+                <h2 className="text-xl font-black text-slate-900">{selectedActivity.title}</h2>
+                <p className="text-sm text-slate-500 mt-1">{selectedActivity.communityName || 'General Community'}</p>
+              </div>
+              <button
+                onClick={() => setIsActivityModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 text-2xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-4">
+              {/* Description */}
+              {selectedActivity.description && (
+                <div>
+                  <h3 className="text-sm font-black text-slate-600 uppercase tracking-tight mb-2">Description</h3>
+                  <p className="text-slate-700 leading-relaxed">{selectedActivity.description}</p>
+                </div>
+              )}
+
+              {/* Event-specific details */}
+              {selectedActivity.type === 'event' && (
+                <>
+                  {selectedActivity.startDate && (
+                    <div>
+                      <h3 className="text-sm font-black text-slate-600 uppercase tracking-tight mb-2">Date & Time</h3>
+                      <p className="text-slate-700">
+                        {new Date(selectedActivity.startDate).toLocaleString()}
+                        {selectedActivity.endDate && ` - ${new Date(selectedActivity.endDate).toLocaleTimeString()}`}
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedActivity.location && (
+                    <div>
+                      <h3 className="text-sm font-black text-slate-600 uppercase tracking-tight mb-2">Location</h3>
+                      <p className="text-slate-700">{selectedActivity.location}</p>
+                    </div>
+                  )}
+
+                  {selectedActivity.contactInfo && (
+                    <div>
+                      <h3 className="text-sm font-black text-slate-600 uppercase tracking-tight mb-2">Contact</h3>
+                      <p className="text-slate-700">{selectedActivity.contactInfo}</p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Category */}
+              {selectedActivity.category && (
+                <div>
+                  <h3 className="text-sm font-black text-slate-600 uppercase tracking-tight mb-2">Category</h3>
+                  <p className="text-slate-700">{selectedActivity.category}</p>
+                </div>
+              )}
+
+              {/* Date Created */}
+              {selectedActivity.dateCreated && (
+                <div className="pt-4 border-t border-gray-100">
+                  <p className="text-xs text-slate-400">
+                    Posted on {new Date(selectedActivity.dateCreated).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-slate-50 border-t border-gray-100 p-6 flex gap-3">
+              <Button
+                variant="ghost"
+                className="flex-1"
+                onClick={() => setIsActivityModalOpen(false)}
+              >
+                {t('common.close') || 'Close'}
+              </Button>
+              {selectedActivity.communityId && (
+                <Button
+                  className="flex-1 bg-purple-600 hover:bg-purple-700"
+                  onClick={() => {
+                    setIsActivityModalOpen(false);
+                    navigate(`/community/${selectedActivity.communityId}`);
+                  }}
+                >
+                  View Community
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <ProfilePreviewModal
         isOpen={isProfilePreviewOpen}

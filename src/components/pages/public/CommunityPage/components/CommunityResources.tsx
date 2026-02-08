@@ -1,5 +1,5 @@
-import React from 'react';
-import { Card, Button, Avatar, ShadcnBadge as Badge } from '@/components/ui';
+import React, { useState } from 'react';
+import { Card, Button, Avatar, ShadcnBadge as Badge, Modal } from '@/components/ui';
 import { 
   BookOpen, 
   Phone, 
@@ -11,7 +11,9 @@ import {
   ArrowUpRight,
   LifeBuoy,
   FileSearch,
-  Users
+  Users,
+  Plus,
+  X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -67,7 +69,19 @@ const SAMPLE_RESOURCES: Resource[] = [
   }
 ];
 
-export const CommunityResources: React.FC = () => {
+export const CommunityResources: React.FC<{
+  isAdmin?: boolean;
+  onOpenAddResourceModal?: () => void;
+  communityId?: string;
+}> = ({ isAdmin = false, onOpenAddResourceModal, communityId }) => {
+  const [localIsModalOpen, setLocalIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    category: 'General' as 'Legal' | 'Health' | 'Safety' | 'General',
+    type: 'Link' as 'Document' | 'Contact' | 'Link',
+    value: ''
+  });
   const getCategoryColor = (cat: Resource['category']) => {
     switch (cat) {
       case 'Safety': return 'text-orange-600 bg-orange-50';
@@ -105,6 +119,15 @@ export const CommunityResources: React.FC = () => {
               Essential documents, emergency contacts, and community guidelines all in one place.
             </p>
           </div>
+          {isAdmin && (
+            <Button
+              onClick={() => setLocalIsModalOpen(true)}
+              className="h-14 px-8 bg-teal-600 hover:bg-teal-700 text-white font-black rounded-2xl flex items-center gap-2 shadow-xl shadow-teal-200/50 transition-all"
+            >
+              <Plus className="w-5 h-5" />
+              Add Resource
+            </Button>
+          )}
         </div>
       </div>
 
@@ -161,6 +184,119 @@ export const CommunityResources: React.FC = () => {
         </div>
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-32 -mt-32" />
       </Card>
+
+      {/* Add Resource Modal */}
+      {localIsModalOpen && (
+        <div className="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white rounded-[2rem] max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-in zoom-in" onClick={(e) => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-white border-b border-gray-100 p-6 flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-black text-slate-900">Add Resource</h2>
+                <p className="text-sm text-slate-500 mt-1">Add a new document, contact, or link to the community resource hub</p>
+              </div>
+              <button
+                onClick={() => setLocalIsModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 text-3xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-4">
+              {/* Title */}
+              <div>
+                <label className="block text-sm font-black text-slate-600 uppercase tracking-tight mb-2">Title</label>
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData({...formData, title: e.target.value})}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:outline-none font-medium"
+                  placeholder="e.g., Emergency Hotlines"
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-black text-slate-600 uppercase tracking-tight mb-2">Description</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:outline-none font-medium resize-none"
+                  rows={3}
+                  placeholder="Describe what this resource is about"
+                />
+              </div>
+
+              {/* Category */}
+              <div>
+                <label className="block text-sm font-black text-slate-600 uppercase tracking-tight mb-2">Category</label>
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData({...formData, category: e.target.value as any})}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:outline-none font-medium"
+                >
+                  <option>General</option>
+                  <option>Safety</option>
+                  <option>Health</option>
+                  <option>Legal</option>
+                </select>
+              </div>
+
+              {/* Type */}
+              <div>
+                <label className="block text-sm font-black text-slate-600 uppercase tracking-tight mb-2">Type</label>
+                <select
+                  value={formData.type}
+                  onChange={(e) => setFormData({...formData, type: e.target.value as any})}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:outline-none font-medium"
+                >
+                  <option>Contact</option>
+                  <option>Document</option>
+                  <option>Link</option>
+                </select>
+              </div>
+
+              {/* Value */}
+              <div>
+                <label className="block text-sm font-black text-slate-600 uppercase tracking-tight mb-2">
+                  {formData.type === 'Contact' ? 'Phone Number' : formData.type === 'Document' ? 'Filename' : 'URL'}
+                </label>
+                <input
+                  type="text"
+                  value={formData.value}
+                  onChange={(e) => setFormData({...formData, value: e.target.value})}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:outline-none font-medium"
+                  placeholder={formData.type === 'Contact' ? '911 / 888-0000' : formData.type === 'Document' ? 'document.pdf' : 'https://example.com'}
+                />
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-slate-50 border-t border-gray-100 p-6 flex gap-3">
+              <Button
+                variant="ghost"
+                className="flex-1"
+                onClick={() => setLocalIsModalOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-black"
+                onClick={() => {
+                  // Handle resource submission
+                  console.log('Submitting resource:', formData);
+                  setLocalIsModalOpen(false);
+                  setFormData({ title: '', description: '', category: 'General', type: 'Link', value: '' });
+                }}
+              >
+                Add Resource
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

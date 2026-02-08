@@ -411,6 +411,41 @@ export const CommunityService = {
     }
   },
 
+  async getTodayActivities(): Promise<any[]> {
+    try {
+      const response = await api.get<any>('/communities/my-activities/today');
+      
+      // Extract activities from new unified endpoint
+      const rawData = response.data?.data?.activities || {};
+      
+      // Flatten all activities into single array maintaining type
+      const allActivities = [
+        ...(rawData.announcements || []).map((item: any) => ({
+          ...item,
+          type: 'announcement'
+        })),
+        ...(rawData.news || []).map((item: any) => ({
+          ...item,
+          type: 'news'
+        })),
+        ...(rawData.events || []).map((item: any) => ({
+          ...item,
+          type: 'event'
+        }))
+      ];
+
+      // Sort by dateCreated (newest first)
+      return allActivities.sort((a: any, b: any) => {
+        const dateA = new Date(a.dateCreated).getTime();
+        const dateB = new Date(b.dateCreated).getTime();
+        return dateB - dateA;
+      });
+    } catch (error) {
+      console.error('Error fetching today activities:', error);
+      return [];
+    }
+  },
+
 
 
   async addVolunteersToCommunity(

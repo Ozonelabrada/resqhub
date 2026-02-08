@@ -9,7 +9,6 @@ export { CommunityDetailModal } from './Community/CommunityDetailModal';
 export { default as InviteModal } from './Community/InviteModal';
 export { ProfilePreviewModal } from './ProfilePreviewModal';
 export { ReportProfileModal } from './ReportProfileModal';
-export { default as CreateAnnouncementModal } from './Community/CreateAnnouncementModal';
 export { default as CommunitySettingsModal } from './Community/CommunitySettingsModal';
 export { default as CreateContentModal } from './Community/CreateContentModal';
 export { default as ModerationOverviewModal } from './Community/ModerationOverviewModal';
@@ -22,3 +21,6 @@ export { default as CommunityReportModal } from './CommunityReport/CommunityRepo
 export { default as ReportDetailModal } from './CommunityReport/ReportDetailModal';
 export type { CommunityReportPayload, CommunityReportResponse } from '@/services/communityReportService';
 export { default as AddVolunteerModal } from './AddVolunteerModal';
+export { CreateNewsModal } from './News/CreateNewsModal';
+export { CreateAnnouncementModal } from './Announcement/CreateAnnouncementModal';
+export { CreateEventModal } from './Event/CreateEventModal';

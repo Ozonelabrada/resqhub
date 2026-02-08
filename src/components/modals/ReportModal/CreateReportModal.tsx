@@ -33,11 +33,11 @@ import {
 import { useAuth } from '../../../context/AuthContext';
 import { Modal } from '../../ui/Modal/Modal';
 import { ReportsService, type CreateReportPayload } from '../../../services/reportsService';
-import { CategoryService } from '../../../services/categoryService';
 import { uploadMultipleImagesToCloudinary } from '../../../services/cloudinaryService';
 import { useTranslation } from 'react-i18next';
 import { searchLocations, type LocationSuggestion } from '../../../utils/geolocation';
 import { cn } from '../../../lib/utils';
+import { ResponsiblePostingReminder } from './ResponsiblePostingReminder';
 
 interface CreateReportModalProps {
   isOpen: boolean;
@@ -57,7 +57,6 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
   const { user } = useAuth();
   const { t } = useTranslation();
   const location = useLocation();
-  const [categories, setCategories] = useState<{ label: string, value: number }[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
@@ -79,10 +78,12 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
   const [locationSuggestions, setLocationSuggestions] = useState<LocationSuggestion[]>([]);
   const [isSearchingLocation, setIsSearchingLocation] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [agreeResponsiblePosting, setAgreeResponsiblePosting] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      loadCategories();
+      // Reset agreement state every time modal opens
+      setAgreeResponsiblePosting(false);
       // If an initial type is provided, override the default
       if (initialType) {
         setFormData(prev => ({ ...prev, reportType: initialType }));
@@ -102,28 +103,6 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
 
     return () => clearTimeout(timer);
   }, [formData.location, isSearchingLocation]);
-
-  const loadCategories = async () => {
-    try {
-      const cats = await CategoryService.getCategories();
-      console.log('Categories loaded for modal:', cats);
-      
-      if (cats && cats.length > 0) {
-        const mappedCategories = cats.map(c => ({ 
-          label: `${c.icon || '🏷️'} ${c.name}`, 
-          value: Number(c.id) 
-        }));
-        
-        setCategories(mappedCategories);
-        
-        if (formData.categoryId === 0) {
-          setFormData(prev => ({ ...prev, categoryId: Number(cats[0].id) }));
-        }
-      }
-    } catch (err) {
-      console.error('Failed to load categories', err);
-    }
-  };
 
   const handleInputChange = (field: string, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -180,11 +159,6 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
       return;
     }
 
-    if (!formData.categoryId) {
-      setError(t('report.error_category_required') || 'Please select a category');
-      return;
-    }
-
     setLoading(true);
     setError('');
 
@@ -209,7 +183,7 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
         location: formData.location,
         contactInfo: formData.contactInfo,
         reportType: String(formData.reportType),
-        categoryId: Number(formData.categoryId),
+        categoryId: 0, // Backend will auto-detect category based on description
         imageUrls: imageUrls,
         rewardDetails: formData.rewardDetails || '',
       };
@@ -255,7 +229,7 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
         setFormData({
           title: '',
           description: '',
-          categoryId: categories.length > 0 ? categories[0].value : 0,
+          categoryId: 0,
           location: '',
           contactInfo: '',
           rewardDetails: '',
@@ -282,6 +256,7 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
       className="p-0 border-none rounded-[2.5rem] overflow-y-auto max-h-[90vh]"
     >
         <div className="p-8 md:p-10 space-y-8">
+          {/* Header - Always Visible */}
           <div>
             <h2 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
               <div className="w-12 h-12 bg-teal-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-teal-100 shrink-0">
@@ -302,8 +277,18 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
             />
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Step 1: Responsible Posting Reminder Gate */}
+          {!agreeResponsiblePosting ? (
+            <div className="space-y-6">
+              <ResponsiblePostingReminder 
+                isChecked={agreeResponsiblePosting}
+                onChange={setAgreeResponsiblePosting}
+              />
+            </div>
+          ) : (
+            /* Step 2: Report Form - Only visible after agreement */
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Report Type Selection via Tabs */}
               <div className="space-y-4 col-span-2">
                 <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
@@ -352,20 +337,8 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
                 />
               </div>
 
-              {/* Category */}
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">{t('report.category')}</label>
-                <Select
-                  value={formData.categoryId}
-                  options={categories}
-                  onChange={(val) => handleInputChange('categoryId', Number(val))}
-                  placeholder={t('report.category_placeholder')}
-                  className="rounded-2xl border-slate-100 bg-slate-50"
-                />
-              </div>
-
               {/* Location */}
-              <div className="space-y-2 relative">
+              <div className="space-y-2 relative col-span-2">
                 <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-orange-500" />
                   {t('report.location')}
@@ -489,7 +462,8 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
                 <ShieldCheck className="w-5 h-5 ml-2" />
               </Button>
             </div>
-          </form>
+            </form>
+          )}
         </div>
     </Modal>
   );
