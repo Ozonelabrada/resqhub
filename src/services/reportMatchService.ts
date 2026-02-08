@@ -2,7 +2,7 @@ import api from '../api/client';
 
 export interface ReportMatchStatusRequest {
   id: number;
-  status: 'confirmed' | 'resolved' | string;
+  status: 'confirmed' | 'pending_handover' | 'resolved' | 'dismissed' | 'expired' | string;
   notes: string;
 }
 
@@ -123,6 +123,31 @@ export const ReportMatchService = {
       return { 
         success: false, 
         message: error?.response?.data?.message || 'Failed to fetch match details' 
+      };
+    }
+  },
+
+  /**
+   * Confirm handover for a match in pending_handover status
+   * @param matchId The ID of the match
+   * @param userRole Either 'source' or 'target' indicating which user is confirming
+   */
+  async confirmHandover(matchId: number | string, userRole: 'source' | 'target'): Promise<{ success: boolean; message?: string; data?: any }> {
+    try {
+      const response = await api.patch(`/report-matches/${matchId}/handover-confirm`, {
+        userRole,
+        confirmedAt: new Date().toISOString()
+      });
+      return { 
+        success: true, 
+        data: response.data?.data,
+        message: response.data?.message
+      };
+    } catch (error: any) {
+      console.error('Error confirming handover:', error);
+      return { 
+        success: false, 
+        message: error?.response?.data?.message || 'Failed to confirm handover' 
       };
     }
   }

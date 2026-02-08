@@ -65,12 +65,19 @@ export const MatchManagementModal: React.FC<MatchManagementModalProps> = ({
   const handleConfirmMatch = async () => {
     setLoading(true);
     try {
-      // Per requirement: If recipient confirms, status must be 'resolved'
-      const res = await ReportMatchService.updateMatchStatus(match.id, 'Resolved', 'Confirmed by owner');
+      // Per requirement: Set status to 'pending_handover' to start 48-hour handover window
+      const res = await ReportMatchService.updateMatchStatus(
+        match.id,
+        'pending_handover',
+        'Match verified - awaiting handover confirmation'
+      );
       if (res.success) {
-        (window as any).showToast?.('success', t('match.resolved_title') || 'Match Resolved', t('match.resolved_message') || 'The item has been successfully linked and resolved.');
-        // Show success modal instead of immediately closing
-        setShowSuccess(true);
+        (window as any).showToast?.(
+          'success',
+          t('match.match_verified_title') || 'Match Verified',
+          t('match.match_verified_message') || 'Match is verified. You have 48 hours to confirm the handover.'
+        );
+        // Trigger callback to open handover confirmation modal
         onSuccess?.();
       } else {
         (window as any).showToast?.('error', t('match.error_title') || 'Update Failed', res.message);
