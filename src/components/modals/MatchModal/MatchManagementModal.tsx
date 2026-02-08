@@ -54,6 +54,20 @@ export const MatchManagementModal: React.FC<MatchManagementModalProps> = ({
     conditionVerified: false
   });
   const [isConfirmDismissOpen, setIsConfirmDismissOpen] = useState(false);
+  const [selectedRejectionReason, setSelectedRejectionReason] = useState<string>('');
+  const [rejectionDetails, setRejectionDetails] = useState<string>('');
+  const [isReasonDialogOpen, setIsReasonDialogOpen] = useState(false);
+
+  const REJECTION_REASONS = [
+    { value: 'not_my_item', label: t('match.reason_not_my_item') || "It's not my item" },
+    { value: 'wrong_condition', label: t('match.reason_wrong_condition') || 'Item condition is different' },
+    { value: 'already_found', label: t('match.reason_already_found') || 'I already found my item elsewhere' },
+    { value: 'wrong_location', label: t('match.reason_wrong_location') || 'Wrong location or area' },
+    { value: 'incorrect_details', label: t('match.reason_incorrect_details') || 'Details do not match' },
+    { value: 'item_damaged', label: t('match.reason_item_damaged') || 'Item is damaged/broken' },
+    { value: 'suspicious_behavior', label: t('match.reason_suspicious_behavior') || 'Suspicious behavior' },
+    { value: 'other', label: t('match.reason_other') || 'Other reason' }
+  ];
 
   const isVerificationComplete = Object.values(verificationChecks).every(v => v === true);
 
@@ -111,14 +125,34 @@ export const MatchManagementModal: React.FC<MatchManagementModalProps> = ({
   };
 
   const handleRejectMatch = async () => {
+    if (!selectedRejectionReason) {
+      (window as any).showToast?.('warn', t('match.select_reason') || 'Select Reason', t('match.reason_required') || 'Please select a reason before rejecting the match.');
+      return;
+    }
+
     setLoading(true);
     try {
-      const res = await ReportMatchService.updateMatchStatus(match.id, 'dismissed', 'Rejected by owner');
+      // Use the new rejectMatchWithReason method to capture reason
+      const res = await ReportMatchService.rejectMatchWithReason(
+        match.id,
+        selectedRejectionReason,
+        rejectionDetails
+      );
+
       if (res.success) {
-        (window as any).showToast?.('warning', 'Match Rejected', 'The match request has been dismissed.');
+        (window as any).showToast?.(
+          'info',
+          t('match.match_rejected_title') || 'Match Rejected',
+          t('match.match_rejected_message') || 'The match request has been dismissed. Thank you for your feedback.'
+        );
+        setIsReasonDialogOpen(false);
         setIsConfirmDismissOpen(false);
+        setSelectedRejectionReason('');
+        setRejectionDetails('');
         onSuccess?.();
         onClose();
+      } else {
+        (window as any).showToast?.('error', t('match.error_title') || 'Error', res.message);
       }
     } finally {
       setLoading(false);
@@ -349,7 +383,7 @@ export const MatchManagementModal: React.FC<MatchManagementModalProps> = ({
             <Button 
                variant="outline"
                className="flex-1 h-14 rounded-2xl border-2 border-slate-100 hover:bg-slate-50 text-slate-600 font-black gap-2 transition-all hover:border-slate-200"
-               onClick={() => setIsConfirmDismissOpen(true)}
+               onClick={() => setIsReasonDialogOpen(true)}
                disabled={loading}
             >
               <XCircle size={20} />
@@ -389,45 +423,159 @@ export const MatchManagementModal: React.FC<MatchManagementModalProps> = ({
       />
     )}
 
-    {/* Dismiss Confirmation Dialog */}
+    {/* Rejection Reason Selection Dialog */}
+    <Dialog open={isReasonDialogOpen} onOpenChange={setIsReasonDialogOpen}>
+      <DialogContent className="sm:max-w-[500px] bg-white rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden">
+        <div className="p-8">
+          <DialogHeader className="mb-6">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600">
+                <AlertCircle size={24} />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-black text-slate-900">
+                  {t('match.why_reject') || 'Why are you rejecting this match?'}
+                </DialogTitle>
+                <DialogDescription className="text-slate-500 font-medium">
+                  {t('match.reason_helps_us') || 'Your feedback helps us improve matches'}
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="bg-amber-50 border-2 border-amber-200 rounded-3xl p-6 mb-6">
+            <p className="text-sm font-bold text-amber-900">
+              {t('match.reason_required_msg') || 'Selecting a reason is required to proceed with the rejection.'}
+            </p>
+          </div>
+
+          <div className="space-y-3 mb-6 max-h-64 overflow-y-auto">
+            {REJECTION_REASONS.map((reason) => (
+              <label
+                key={reason.value}
+                className={`flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                  selectedRejectionReason === reason.value
+                    ? 'bg-amber-50 border-amber-300'
+                    : 'bg-white border-slate-100 hover:border-amber-200'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="rejection-reason"
+                  value={reason.value}
+                  checked={selectedRejectionReason === reason.value}
+                  onChange={(e) => setSelectedRejectionReason(e.target.value)}
+                  className="w-5 h-5"
+                />
+                <span className="flex-1 text-sm font-bold text-slate-700">{reason.label}</span>
+              </label>
+            ))}
+          </div>
+
+          {selectedRejectionReason && (
+            <div className="mb-6">
+              <label className="block text-sm font-black text-slate-700 mb-2">
+                {t('match.additional_details') || 'Additional details (optional)'}
+              </label>
+              <textarea
+                value={rejectionDetails}
+                onChange={(e) => setRejectionDetails(e.target.value)}
+                placeholder={t('match.details_placeholder') || 'Please provide any additional information...'}
+                maxLength={500}
+                className="w-full h-24 p-3 border-2 border-slate-200 rounded-2xl font-medium text-slate-700 placeholder-slate-400 focus:border-amber-400 focus:outline-none resize-none"
+              />
+              <p className="text-xs text-slate-500 mt-2">{rejectionDetails.length}/500</p>
+            </div>
+          )}
+
+          <div className="flex gap-4">
+            <Button
+              variant="outline"
+              className="flex-1 h-12 rounded-2xl border-2 border-slate-200 hover:bg-slate-50 text-slate-600 font-black transition-all"
+              onClick={() => {
+                setIsReasonDialogOpen(false);
+                setSelectedRejectionReason('');
+                setRejectionDetails('');
+              }}
+              disabled={loading}
+            >
+              {t('common.cancel') || 'Cancel'}
+            </Button>
+            <Button
+              className="flex-1 h-12 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-black transition-all disabled:opacity-50"
+              onClick={() => setIsConfirmDismissOpen(true)}
+              disabled={loading || !selectedRejectionReason}
+            >
+              {t('common.next') || 'Next'}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+
+    {/* Confirm Rejection Dialog */}
     <Dialog open={isConfirmDismissOpen} onOpenChange={setIsConfirmDismissOpen}>
       <DialogContent className="sm:max-w-[500px] bg-white rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden">
         <div className="p-8">
           <DialogHeader className="mb-6">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center text-red-600">
-                <AlertCircle size={24} />
+                <XCircle size={24} />
               </div>
               <div>
-                <DialogTitle className="text-2xl font-black text-slate-900">Dismiss Match?</DialogTitle>
+                <DialogTitle className="text-2xl font-black text-slate-900">
+                  {t('match.confirm_rejection') || 'Confirm Rejection'}
+                </DialogTitle>
                 <DialogDescription className="text-slate-500 font-medium">
-                  Are you sure this is not your item?
+                  {t('match.rejection_cannot_be_undone') || 'This action cannot be undone'}
                 </DialogDescription>
               </div>
             </div>
           </DialogHeader>
 
-          <div className="bg-red-50 border-2 border-red-200 rounded-3xl p-6 mb-8">
-            <p className="text-sm font-bold text-red-900">
-              This will reject the match and the other user will be notified. This action cannot be undone.
+          <div className="bg-red-50 border-2 border-red-200 rounded-3xl p-6 mb-6">
+            <p className="text-sm font-bold text-red-900 mb-3">
+              {t('match.rejection_message') || 'Are you sure you want to reject this match?'}
+            </p>
+            <p className="text-xs text-red-800">
+              {t('match.rejection_notification') || 'The other user will be notified of your rejection and the reason provided.'}
             </p>
           </div>
 
+          {selectedRejectionReason && (
+            <div className="bg-slate-100 rounded-2xl p-4 mb-6">
+              <p className="text-xs font-black text-slate-600 uppercase tracking-widest mb-2">
+                {t('match.rejection_reason') || 'Reason'}
+              </p>
+              <p className="text-sm font-bold text-slate-800">
+                {REJECTION_REASONS.find(r => r.value === selectedRejectionReason)?.label}
+              </p>
+              {rejectionDetails && (
+                <>
+                  <p className="text-xs font-black text-slate-600 uppercase tracking-widest mt-3 mb-1">
+                    {t('match.additional_details') || 'Details'}
+                  </p>
+                  <p className="text-xs text-slate-700">{rejectionDetails}</p>
+                </>
+              )}
+            </div>
+          )}
+
           <div className="flex gap-4">
-            <Button 
+            <Button
               variant="outline"
               className="flex-1 h-12 rounded-2xl border-2 border-slate-200 hover:bg-slate-50 text-slate-600 font-black transition-all"
               onClick={() => setIsConfirmDismissOpen(false)}
               disabled={loading}
             >
-              Keep Reviewing
+              {t('common.cancel') || 'Cancel'}
             </Button>
-            <Button 
+            <Button
               className="flex-1 h-12 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black transition-all disabled:opacity-50"
               onClick={handleRejectMatch}
               disabled={loading}
             >
-              {loading ? 'Dismissing...' : 'Yes, Dismiss'}
+              {loading ? t('common.processing') || 'Processing...' : t('match.reject_match') || 'Reject Match'}
             </Button>
           </div>
         </div>

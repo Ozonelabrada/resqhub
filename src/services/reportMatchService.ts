@@ -4,6 +4,8 @@ export interface ReportMatchStatusRequest {
   id: number;
   status: 'confirmed' | 'pending_handover' | 'resolved' | 'dismissed' | 'expired' | string;
   notes: string;
+  rejectionReason?: string;
+  reasonDetails?: string;
 }
 
 export interface ReportMatchData {
@@ -49,12 +51,14 @@ export const ReportMatchService = {
    * @param matchId The ID of the match record
    * @param payload The status update payload
    */
-  async updateMatchStatus(matchId: number | string, status: 'confirmed' | 'resolved' | string, notes: string = ''): Promise<{ success: boolean; message?: string }> {
+  async updateMatchStatus(matchId: number | string, status: 'confirmed' | 'resolved' | 'dismissed' | string, notes: string = '', rejectionReason?: string, reasonDetails?: string): Promise<{ success: boolean; message?: string }> {
     try {
       const payload: ReportMatchStatusRequest = {
         id: Number(matchId),
         status,
-        notes
+        notes,
+        rejectionReason,
+        reasonDetails
       };
       
       await api.patch(`/report-matches/${matchId}/status`, payload);
@@ -64,6 +68,36 @@ export const ReportMatchService = {
       return { 
         success: false, 
         message: error?.response?.data?.message || 'Failed to update match status' 
+      };
+    }
+  },
+
+  /**
+   * Rejects a match with a specific reason
+   * Captures rejection reason and tracks for analytics
+   */
+  async rejectMatchWithReason(
+    matchId: number | string,
+    rejectionReason: string,
+    reasonDetails?: string
+  ): Promise<{ success: boolean; message?: string; reasonCaptured?: boolean }> {
+    try {
+      const response = await api.patch(`/report-matches/${matchId}/reject`, {
+        reason: rejectionReason,
+        reasonDetails: reasonDetails || '',
+        rejectedAt: new Date().toISOString()
+      });
+      return {
+        success: true,
+        reasonCaptured: true,
+        message: response.data?.message
+      };
+    } catch (error: any) {
+      console.error('Error rejecting match with reason:', error);
+      return {
+        success: false,
+        message: error?.response?.data?.message || 'Failed to reject match',
+        reasonCaptured: false
       };
     }
   },
@@ -148,6 +182,72 @@ export const ReportMatchService = {
       return { 
         success: false, 
         message: error?.response?.data?.message || 'Failed to confirm handover' 
+      };
+    }
+  },
+
+  /**
+   * Get rejection statistics for a user
+   * Tracks rejection patterns and flags users with suspicious behavior
+   */
+  async getUserRejectionStats(userId: string): Promise<{ success: boolean; data?: any; message?: string }> {
+    try {
+      const response = await api.get(`/report-matches/analytics/user-rejections/${userId}`);
+      return {
+        success: true,
+        data: response.data?.data || response.data
+      };
+    } catch (error: any) {
+      console.error('Error fetching user rejection stats:', error);
+      return {
+        success: false,
+        message: error?.response?.data?.message || 'Failed to fetch rejection stats'
+      };
+    }
+  },
+
+  /**
+   * Get all rejected matches with reasons
+   * Used for admin analytics dashboard
+   */
+  async getRejectionAnalytics(filters?: { userId?: string; reason?: string; startDate?: Date; endDate?: Date }): Promise<{ success: boolean; data?: any; message?: string }> {
+    try {
+      const params = new URLSearchParams();
+      if (filters?.userId) params.append('userId', filters.userId);
+      if (filters?.reason) params.append('reason', filters.reason);
+      if (filters?.startDate) params.append('startDate', filters.startDate.toISOString());
+      if (filters?.endDate) params.append('endDate', filters.endDate.toISOString());
+
+      const response = await api.get(`/report-matches/analytics/rejections?${params.toString()}`);
+      return {
+        success: true,
+        data: response.data?.data || response.data
+      };
+    } catch (error: any) {
+      console.error('Error fetching rejection analytics:', error);
+      return {
+        success: false,
+        message: error?.response?.data?.message || 'Failed to fetch rejection analytics'
+      };
+    }
+  },
+
+  /**
+   * Flag a user for suspicious rejection pattern (3+ rejections)
+   */
+  async flagUserForSuspiciousBehavior(userId: string, reason: string): Promise<{ success: boolean; message?: string }> {
+    try {
+      await api.post(`/report-matches/analytics/flag-user`, {
+        userId,
+        reason,
+        flaggedAt: new Date().toISOString()
+      });
+      return { success: true };
+    } catch (error: any) {
+      console.error('Error flagging user:', error);
+      return {
+        success: false,
+        message: error?.response?.data?.message || 'Failed to flag user'
       };
     }
   }
