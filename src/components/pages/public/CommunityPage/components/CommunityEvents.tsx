@@ -468,7 +468,7 @@ export const CommunityEvents: React.FC<{
             filteredEvents.map((event) => (
               <Card 
                 key={event.id} 
-                onClick={() => handleViewDetails(event.id)}
+                onClick={() => handleViewDetails(String(event.id))}
                 className="group border-none shadow-sm hover:shadow-xl transition-all duration-500 rounded-[2.5rem] overflow-hidden bg-white cursor-pointer"
               >
                 <div className="p-8 space-y-6">
@@ -543,7 +543,7 @@ export const CommunityEvents: React.FC<{
                       </div>
                     </div>
                     <Button 
-                      onClick={() => handleViewDetails(event.id)}
+                      onClick={() => handleViewDetails(String(event.id))}
                       variant="ghost" 
                       className="rounded-xl group/btn text-teal-600 font-black text-xs hover:bg-teal-50"
                     >
