@@ -96,8 +96,4 @@ export interface Report {
   commentsCount: number;
   dateCreated: string;
   lastModifiedDate: string;
-  // Ownership verification - NEVER exposed in public API
-  securityQuestionsCount?: number; // Only count, not content
-  uniqueIdentifiersCount?: number; // Only count, not content
-  hasOwnershipVerification?: boolean;
 }

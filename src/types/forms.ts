@@ -3,18 +3,6 @@
  * Ensures type safety across form submissions and updates
  */
 
-// Security question and ownership verification
-export interface SecurityQuestion {
-  id: string;
-  question: string;
-  answer: string; // Case-insensitive, trimmed
-}
-
-export interface OwnershipVerification {
-  securityQuestions?: SecurityQuestion[];
-  uniqueIdentifiers?: string[]; // e.g., brand, serial number, distinctive marks
-}
-
 export interface ReportFormData {
   categoryId: string;
   title: string;
@@ -25,7 +13,6 @@ export interface ReportFormData {
   rewardDetails: string;
   contactInfo: string;
   images?: File[];
-  ownershipVerification?: OwnershipVerification; // Private security data
 }
 
 export interface ContactFormData {

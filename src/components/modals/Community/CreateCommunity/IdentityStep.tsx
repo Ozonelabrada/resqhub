@@ -57,7 +57,7 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
     return () => clearTimeout(timer);
   }, [formData.location, isSearchingLocation]);
 
-  const isFormValid = formData.name && formData.description && formData.location && formData.contactEmail && formData.contactPhone;
+  const isFormValid = formData.name && formData.description && formData.location;
 
   const getPrivacyLabels = (privacy: string) => {
     switch (privacy) {
@@ -129,40 +129,10 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
 
   const labels = getPrivacyLabels(formData.privacy);
 
-  // Auto-sync organizationType with privacy to prevent conflicts
-  React.useEffect(() => {
-    let autoOrgType: string;
-    
-    switch(formData.privacy) {
-      case 'barangay':
-        autoOrgType = 'barangay';
-        break;
-      case 'school':
-        autoOrgType = 'school';
-        break;
-      case 'lgu':
-        autoOrgType = 'lgu';
-        break;
-      case 'event':
-        autoOrgType = 'event';
-        break;
-      case 'city':
-        autoOrgType = 'city';
-        break;
-      // For 'organization' and 'private', keep user's selection
-      default:
-        return; // Don't auto-update
-    }
-    
-    if (formData.organizationType !== autoOrgType) {
-      setFormData({...formData, organizationType: autoOrgType});
-    }
-  }, [formData.privacy]);
-
   return (
-    <form className="flex flex-col h-full">
-      <div className="flex-1 overflow-hidden flex flex-col px-4 sm:px-8 py-4 sm:py-6">
-        <div className="space-y-6 overflow-y-auto custom-scrollbar pr-2">
+    <form className="flex flex-col h-full max-h-[80vh]">
+      <ScrollArea className="flex-1 px-8 py-6">
+        <div className="space-y-6 pb-24">
           <div className="space-y-2">
             <label className="text-[10px] font-black text-teal-600 uppercase tracking-[0.2em]">{t('community.create.type_privacy')}</label>
             <Select value={formData.privacy} onValueChange={(v: any) => setFormData({...formData, privacy: v})}>
@@ -371,96 +341,6 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
             </div>
           </div>
 
-          {/* Organization Type - Only show when Privacy is 'organization' */}
-          {formData.privacy === 'organization' && (
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Organization Sub-Type</label>
-              <Select 
-                value={formData.organizationType || 'organization'} 
-                onValueChange={(v: any) => setFormData({...formData, organizationType: v})}
-              >
-                <SelectTrigger className="h-14 rounded-2xl border-slate-200 focus:ring-teal-500/20 font-black bg-slate-50/50 text-slate-700">
-                  <SelectValue placeholder="Select organization sub-type" />
-                </SelectTrigger>
-                <SelectContent className="rounded-2xl border-slate-100 shadow-2xl p-2 bg-white">
-                  <SelectItem value="hoa" className="py-3 rounded-xl focus:bg-teal-50 focus:text-teal-700 font-bold transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center text-teal-600">
-                        <Building2 size={16} />
-                      </div>
-                      <span>HOA / Subdivision</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="school" className="py-3 rounded-xl focus:bg-teal-50 focus:text-teal-700 font-bold transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center text-teal-600">
-                        <GraduationCap size={16} />
-                      </div>
-                      <span>School / Educational</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="organization" className="py-3 rounded-xl focus:bg-teal-50 focus:text-teal-700 font-bold transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center text-teal-600">
-                        <Users size={16} />
-                      </div>
-                      <span>NGO / Non-Profit Organization</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="business" className="py-3 rounded-xl focus:bg-teal-50 focus:text-teal-700 font-bold transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center text-teal-600">
-                        <Building2 size={16} />
-                      </div>
-                      <span>Business Association</span>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-[10px] text-slate-500 font-bold">Further specify the nature of your organization</p>
-            </div>
-          )}
-
-          {/* Quick Reference for Non-Organization Types */}
-          {formData.privacy !== 'organization' && (
-            <div className="p-3 sm:p-4 bg-teal-50/50 border border-teal-200 rounded-xl">
-              <p className="text-[10px] font-bold text-teal-700 uppercase tracking-[0.1em]">Community Type</p>
-              <p className="text-sm font-black text-slate-800 mt-1 capitalize">{formData.privacy}</p>
-              <p className="text-[9px] text-slate-600 mt-1 font-medium">
-                {formData.privacy === 'barangay' && 'Local barangay community organization'}
-                {formData.privacy === 'city' && 'City-wide community initiative'}
-                {formData.privacy === 'lgu' && 'Local Government Unit community'}
-                {formData.privacy === 'school' && 'School or educational institution'}
-                {formData.privacy === 'event' && 'Event-based community'}
-                {formData.privacy === 'private' && 'Private community group'}
-              </p>
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Contact Email <span className="text-red-500">*</span></label>
-            <Input 
-              type="email"
-              required
-              placeholder="admin@community.ph"
-              className="h-12 rounded-xl border-slate-200 focus:ring-teal-500/20 font-bold"
-              value={formData.contactEmail || ''}
-              onChange={(e) => setFormData({...formData, contactEmail: e.target.value})}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Contact Phone <span className="text-red-500">*</span></label>
-            <Input 
-              type="tel"
-              required
-              placeholder="+63 (9XX) XXX-XXXX"
-              className="h-12 rounded-xl border-slate-200 focus:ring-teal-500/20 font-bold"
-              value={formData.contactPhone || ''}
-              onChange={(e) => setFormData({...formData, contactPhone: e.target.value})}
-            />
-          </div>
-
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{t('community.create.review.capacity')}</label>
@@ -506,9 +386,9 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
             </p>
           </div>
         </div>
-      </div>
+      </ScrollArea>
 
-      <DialogFooter className="p-4 sm:p-6 border-t border-slate-50 flex items-center justify-end gap-3 bg-white shrink-0">
+      <DialogFooter className="p-6 border-t border-slate-50 flex items-center justify-end gap-3 bg-white relative z-10 sticky bottom-0 mb-4">
         <Button 
             type="button" 
             disabled={!isFormValid}

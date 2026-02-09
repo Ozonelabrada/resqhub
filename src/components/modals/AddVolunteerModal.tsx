@@ -18,7 +18,6 @@ import {
   X,
   Loader2
 } from 'lucide-react';
-import { isMemberSeller } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { CommunityService } from '@/services/communityService';
 import type { CommunityMember } from '@/types/community';
@@ -197,7 +196,7 @@ export const AddVolunteerModal: React.FC<AddVolunteerModalProps> = ({
                         <h4 className="font-black text-slate-900 uppercase tracking-tight text-sm truncate">
                           {member.name}
                         </h4>
-                        {isMemberSeller(member) && (
+                        {member.isSeller && (
                           <Badge className="bg-teal-100 text-teal-700 border-none font-black text-[8px] uppercase tracking-widest px-1.5 py-0 flex-shrink-0">
                             Seller
                           </Badge>

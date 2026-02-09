@@ -6,7 +6,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from "../dialog";
-import { VisuallyHidden } from "../VisuallyHidden";
 import { cn } from "@/lib/utils";
 
 export interface ModalProps {
@@ -128,17 +127,15 @@ export const Modal: React.FC<ModalProps> = ({
           </div>
         )}
 
-        {/* Dialog Title - Always required for accessibility, hidden if no title */}
-        {title ? (
+        {/* Custom Header if title or showCloseButton exists */}
+        {(title || (showCloseButton && !handleClose)) && (
           <div className="flex items-center justify-between p-6 border-b border-slate-100">
-            <DialogTitle className="text-xl font-bold text-slate-900 pr-4">
-              {title}
-            </DialogTitle>
+            {title && (
+              <DialogTitle className="text-xl font-bold text-slate-900 pr-4">
+                {title}
+              </DialogTitle>
+            )}
           </div>
-        ) : (
-          <VisuallyHidden>
-            <DialogTitle>Dialog</DialogTitle>
-          </VisuallyHidden>
         )}
 
         <div className="p-6">

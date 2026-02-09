@@ -83,9 +83,9 @@ export interface CommunityMember {
   name: string;
   username: string;
   role: 'admin' | 'moderator' | 'member';
-  roles?: Array<'admin' | 'member' | 'rider' | 'seller' | 'volunteer'>;
   joinedAt: string;
   profilePicture?: string;
+  isSeller?: boolean;
   memberIsApproved?: boolean;
 }
 
