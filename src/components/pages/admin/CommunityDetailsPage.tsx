@@ -32,6 +32,7 @@ import {
   TabContent
 } from '../../ui';
 import {
+  CreateCommunityModal,
   EditCommunityModal,
   InviteModal,
   CreateReportModal,

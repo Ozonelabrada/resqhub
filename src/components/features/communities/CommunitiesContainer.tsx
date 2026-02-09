@@ -32,6 +32,7 @@ import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import { toast } from 'react-hot-toast';
 import type { Community } from '@/types/community';
+import { CreateCommunityModal } from '../../modals';
 
 interface UserStore {
   id: string | number;
@@ -74,6 +75,7 @@ export const CommunitiesContainer: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [joiningId, setJoiningId] = useState<string | number | null>(null);
   const [selectedCommunityForModal, setSelectedCommunityForModal] = useState<Community | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -977,7 +979,7 @@ export const CommunitiesContainer: React.FC = () => {
           </div>
 
           <Button 
-            onClick={() => navigate('/communities/create')}
+            onClick={() => setIsCreateModalOpen(true)}
             size="sm"
             className="bg-teal-600 hover:bg-teal-700 text-white font-bold h-10 px-4 rounded-xl shadow-lg shadow-teal-100 transition-all flex items-center gap-2"
           >
@@ -1016,7 +1018,7 @@ export const CommunitiesContainer: React.FC = () => {
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-teal-500 to-emerald-600" />
                   )}
-                  <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: "url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22><rect fill=%22%23000%22 width=%2220%22 height=%2220%22/><path fill=%22%23fff%22 d=%22M0 0h10v10H0zm10 10h10v10H10z%22/></svg>')" }}></div>
+                  <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] pointer-events-none"></div>
                   
                   {isAuthenticated && isCommunityMember(community) && isMemberApproved(community) && (
                     <Badge className="absolute top-3 left-3 bg-emerald-500 text-white font-black uppercase text-[8px] tracking-widest px-2 py-0.5 border-none shadow-sm">
@@ -1156,7 +1158,15 @@ export const CommunitiesContainer: React.FC = () => {
         )}
       </div>
 
-
+      <CreateCommunityModal 
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={async () => {
+          setIsCreateModalOpen(false);
+          await refresh();
+          // The useEffect will update local communities when hookCommunities changes
+        }}
+      />
 
       <CommunityDetailModal
         isOpen={isDetailModalOpen}

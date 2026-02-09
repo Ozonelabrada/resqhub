@@ -16,8 +16,9 @@ import {
   Spinner
 } from '../../../ui';
 import { 
+  CreateCommunityModal, 
+  InviteModal, 
   CreateReportModal,
-  InviteModal,
   ProfilePreviewModal
 } from '../../../modals';
 import { ReportDetailDrawer } from '@/components/features/reports/ReportDetail';
@@ -45,6 +46,7 @@ const NewsFeedPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'recent' | 'popular' | 'distance'>('recent');
+  const [isCommunityModalOpen, setIsCommunityModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [selectedCommunityForInvite, setSelectedCommunityForInvite] = useState<string>('');
@@ -378,7 +380,7 @@ const NewsFeedPage: React.FC = () => {
                 setSelectedCommunityForInvite(communityName);
                 setIsInviteModalOpen(true);
               }}
-              onOpenCreateCommunity={() => navigate('/communities/create')}
+              onOpenCreateCommunity={() => setIsCommunityModalOpen(true)}
               onJoinCommunity={handleJoinCommunity}
               isSafetyExpanded={isSafetyExpanded}
               setIsSafetyExpanded={setIsSafetyExpanded}
@@ -395,6 +397,11 @@ const NewsFeedPage: React.FC = () => {
       {/* --- FOOTER CTA - REMOVED FOR MOBILE OPTIMIZATION --- */}
 
       {/* MODALS */}
+      <CreateCommunityModal 
+        isOpen={isCommunityModalOpen} 
+        onClose={() => setIsCommunityModalOpen(false)} 
+      />
+      
       <InviteModal
         isOpen={isInviteModalOpen}
         onClose={() => setIsInviteModalOpen(false)}

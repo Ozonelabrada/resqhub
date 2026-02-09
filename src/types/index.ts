@@ -7,7 +7,6 @@ export * from './items'; // Contains Report interface
 export * from './trending';
 export * from './category';
 export * from './community';
-export * from './match.types';
 // Explicitly import to avoid conflicts with personalHub
 export type {
   AdminOverview,

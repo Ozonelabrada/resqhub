@@ -118,8 +118,7 @@ export const CommunityMembers: React.FC<CommunityMembersProps> = ({
                          member.username.toLowerCase().includes(searchQuery.toLowerCase());
     
     if (roleFilter === 'seller') {
-      const memberRoles = (member.roles || [member.role]) as any[];
-      return matchesSearch && memberRoles.includes('seller');
+      return matchesSearch && member.isSeller;
     }
     
     const matchesRole = roleFilter === 'all' || member.role === roleFilter;
@@ -234,10 +233,7 @@ export const CommunityMembers: React.FC<CommunityMembersProps> = ({
     }
   };
 
-  const memberSellers = members.filter(m => {
-    const memberRoles = (m.roles || [m.role]) as any[];
-    return memberRoles.includes('seller');
-  });
+  const memberSellers = members.filter(m => m.isSeller);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">

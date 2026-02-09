@@ -109,9 +109,9 @@ export const CommunityService = {
           name: m.userFullName || m.userName,
           username: m.userName,
           role: m.role,
-          roles: Array.isArray(m.roles) ? m.roles : [m.role],
           joinedAt: m.joinedDate,
           profilePicture: m.profilePictureUrl,
+          isSeller: m.isSeller,
           memberIsApproved: m.memberIsApproved
         }));
       }
@@ -456,7 +456,7 @@ export const CommunityService = {
       await api.post('/community-members/volunteers', {
         communityId: Number(communityId),
         userIds,
-        roles: ['volunteer']
+        isVolunteer: true
       });
       return true;
     } catch (error) {
