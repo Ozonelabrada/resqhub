@@ -5,9 +5,29 @@ export interface BackendFeature {
   name: string;
   code: string;
   description: string;
+  type?: string;
   isActive: boolean;
+  monthlyPrice?: number | null;
+  oneTimePrice?: number | null;
   dateCreated: string;
   lastModifiedDate: string;
+}
+
+export interface BackendPlan {
+  id: string;
+  code: string;
+  name: string;
+  monthlyPrice: number;
+  annualPrice: number;
+  description: string;
+  features: string[];
+  recommended?: boolean;
+  isActive: boolean;
+  startDate?: string;
+  endDate?: string;
+  notes?: string;
+  dateCreated?: string;
+  lastModifiedDate?: string;
 }
 
 export interface FeatureResponse {
@@ -19,6 +39,20 @@ export interface FeatureResponse {
     totalCount: number;
     totalPages: number;
     currentPage: number;
+    pageSize: number;
+  };
+  errors: string[] | null;
+}
+
+export interface PlansResponse {
+  message: string;
+  succeeded: boolean;
+  statusCode: number;
+  data: {
+    plans: BackendPlan[];
+    totalCount: number;
+    totalPages: number;
+    page: number;
     pageSize: number;
   };
   errors: string[] | null;
@@ -43,9 +77,12 @@ export interface Feature {
   key: string;
   code: string;
   description: string;
+  type?: string;
   category?: string;
   enabled: boolean;
   priced?: boolean;
+  monthlyPrice?: number | null;
+  oneTimePrice?: number | null;
   prices?: FeaturePrice[];
   currency?: string;
   createdAt: Date;
@@ -57,7 +94,7 @@ export interface Feature {
 export const appConfigService = {
   async getFeatures(): Promise<Feature[]> {
     try {
-      const response = await api.get<FeatureResponse>('/Features?pageSize=50&page=1');
+      const response = await api.get<FeatureResponse>('/Features?type=feature&pageSize=50&page=1');
       if (response.data.succeeded && response.data.data.features) {
         return response.data.data.features.map((bf: BackendFeature) => ({
           id: bf.id,
@@ -65,9 +102,12 @@ export const appConfigService = {
           key: bf.code,
           code: bf.code,
           description: bf.description,
+          type: bf.type || 'feature',
           category: 'General',
           enabled: bf.isActive,
-          priced: false,
+          priced: bf.monthlyPrice !== null || bf.oneTimePrice !== null,
+          monthlyPrice: bf.monthlyPrice,
+          oneTimePrice: bf.oneTimePrice,
           prices: [],
           currency: 'PHP',
           createdAt: new Date(bf.dateCreated),
@@ -82,269 +122,122 @@ export const appConfigService = {
     }
   },
 
-  // Mock data fallback - replace with API call
-  async getFeaturesLegacy(): Promise<Feature[]> {
-    return [
-      {
-        id: '1',
-        name: 'Live Chat',
-        key: 'hasLiveChat',
-        code: 'hasLiveChat',
-        description: 'Real-time messaging for community members',
-        category: 'Social',
-        enabled: true,
-        priced: true,
-        prices: [
-          { communityTypeId: 'barangay', price: 0, enabled: true },
-          { communityTypeId: 'city', price: 250, enabled: true },
-          { communityTypeId: 'school', price: 250, enabled: true },
-          { communityTypeId: 'organization', price: 250, enabled: true },
-          { communityTypeId: 'event', price: 250, enabled: true },
-        ],
-        currency: 'PHP',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        lastModifiedBy: 'Admin User',
-      },
-      {
-        id: '2',
-        name: 'Feed Updates',
-        key: 'hasFeedUpdates',
-        code: 'hasFeedUpdates',
-        description: 'News feed with posts, announcements, and discussions',
-        category: 'Social',
-        enabled: true,
-        priced: true,
-        prices: [
-          { communityTypeId: 'barangay', price: 0, enabled: true },
-          { communityTypeId: 'city', price: 150, enabled: true },
-          { communityTypeId: 'school', price: 150, enabled: true },
-          { communityTypeId: 'organization', price: 150, enabled: true },
-          { communityTypeId: 'event', price: 150, enabled: true },
-        ],
-        currency: 'PHP',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        lastModifiedBy: 'Admin User',
-      },
-      // Add all features from the list
-      {
-        id: '3',
-        name: 'Events',
-        key: 'hasEvents',
-        code: 'hasEvents',
-        description: 'Event management and scheduling',
-        category: 'Social',
-        enabled: true,
-        priced: true,
-        prices: [
-          { communityTypeId: 'barangay', price: 0, enabled: true },
-          { communityTypeId: 'city', price: 100, enabled: true },
-          { communityTypeId: 'school', price: 100, enabled: true },
-          { communityTypeId: 'organization', price: 100, enabled: true },
-          { communityTypeId: 'event', price: 100, enabled: true },
-        ],
-        currency: 'PHP',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        lastModifiedBy: 'Admin User',
-      },
-      {
-        id: '4',
-        name: 'Needs Board',
-        key: 'hasNeedsBoard',
-        code: 'hasNeedsBoard',
-        description: 'Community needs and assistance board',
-        category: 'Economy',
-        enabled: true,
-        priced: true,
-        prices: [
-          { communityTypeId: 'barangay', price: 0, enabled: true },
-          { communityTypeId: 'city', price: 200, enabled: true },
-          { communityTypeId: 'school', price: 200, enabled: true },
-          { communityTypeId: 'organization', price: 200, enabled: true },
-          { communityTypeId: 'event', price: 200, enabled: true },
-        ],
-        currency: 'PHP',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        lastModifiedBy: 'Admin User',
-      },
-      {
-        id: '5',
-        name: 'Trade Market',
-        key: 'hasTradeMarket',
-        code: 'hasTradeMarket',
-        description: 'Local trade and marketplace',
-        category: 'Economy',
-        enabled: true,
-        priced: true,
-        prices: [
-          { communityTypeId: 'barangay', price: 0, enabled: true },
-          { communityTypeId: 'city', price: 300, enabled: true },
-          { communityTypeId: 'school', price: 300, enabled: true },
-          { communityTypeId: 'organization', price: 300, enabled: true },
-          { communityTypeId: 'event', price: 300, enabled: true },
-        ],
-        currency: 'PHP',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        lastModifiedBy: 'Admin User',
-      },
-      {
-        id: '6',
-        name: 'Incident Reporting',
-        key: 'hasIncidentReporting',
-        code: 'hasIncidentReporting',
-        description: 'Emergency incident reporting system',
-        category: 'Safety',
-        enabled: true,
-        priced: true,
-        prices: [
-          { communityTypeId: 'barangay', price: 0, enabled: true },
-          { communityTypeId: 'city', price: 500, enabled: true },
-          { communityTypeId: 'school', price: 500, enabled: true },
-          { communityTypeId: 'organization', price: 500, enabled: true },
-          { communityTypeId: 'event', price: 500, enabled: true },
-        ],
-        currency: 'PHP',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        lastModifiedBy: 'Admin User',
-      },
-      {
-        id: '7',
-        name: 'Emergency Map',
-        key: 'hasEmergencyMap',
-        code: 'hasEmergencyMap',
-        description: 'Interactive emergency mapping',
-        category: 'Safety',
-        enabled: true,
-        priced: false,
-        prices: [],
-        currency: 'PHP',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        lastModifiedBy: 'Admin User',
-      },
-      {
-        id: '8',
-        name: 'Broadcast Alerts',
-        key: 'hasBroadcastAlerts',
-        code: 'hasBroadcastAlerts',
-        description: 'Emergency broadcast alert system',
-        category: 'Safety',
-        enabled: false,
-        priced: true,
-        prices: [
-          { communityTypeId: 'barangay', price: 0, enabled: true },
-          { communityTypeId: 'city', price: 1000, enabled: true },
-          { communityTypeId: 'school', price: 1000, enabled: true },
-          { communityTypeId: 'organization', price: 1000, enabled: true },
-          { communityTypeId: 'event', price: 1000, enabled: true },
-        ],
-        currency: 'PHP',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        lastModifiedBy: 'Admin User',
-      },
-      {
-        id: '9',
-        name: 'Member Directory',
-        key: 'hasMemberDirectory',
-        code: 'hasMemberDirectory',
-        description: 'Community member directory',
-        category: 'Members Resources',
-        enabled: true,
-        priced: true,
-        prices: [
-          { communityTypeId: 'barangay', price: 0, enabled: true },
-          { communityTypeId: 'city', price: 150, enabled: true },
-          { communityTypeId: 'school', price: 150, enabled: true },
-          { communityTypeId: 'organization', price: 150, enabled: true },
-          { communityTypeId: 'event', price: 150, enabled: true },
-        ],
-        currency: 'PHP',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        lastModifiedBy: 'Admin User',
-      },
-      {
-        id: '10',
-        name: 'Skill Matching',
-        key: 'hasSkillMatching',
-        code: 'hasSkillMatching',
-        description: 'Skill-based member matching',
-        category: 'Members Resources',
-        enabled: true,
-        priced: false,
-        prices: [],
-        currency: 'PHP',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        lastModifiedBy: 'Admin User',
-      },
-      {
-        id: '11',
-        name: 'Equipment Sharing',
-        key: 'hasEquipmentSharing',
-        code: 'hasEquipmentSharing',
-        description: 'Equipment sharing platform',
-        category: 'Members Resources',
-        enabled: true,
-        priced: false,
-        prices: [],
-        currency: 'PHP',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        lastModifiedBy: 'Admin User',
-      },
-      {
-        id: '12',
-        name: 'News Posts',
-        key: 'hasNewsPosts',
-        code: 'hasNewsPosts',
-        description: 'News posting capability',
-        category: 'Social',
-        enabled: true,
-        priced: false,
-        prices: [],
-        currency: 'PHP',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        lastModifiedBy: 'Admin User',
-      },
-      {
-        id: '13',
-        name: 'Announcements',
-        key: 'hasAnnouncements',
-        code: 'hasAnnouncements',
-        description: 'Community announcements',
-        category: 'Social',
-        enabled: true,
-        priced: false,
-        prices: [],
-        currency: 'PHP',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        lastModifiedBy: 'Admin User',
-      },
-      {
-        id: '14',
-        name: 'Discussions',
-        key: 'hasDiscussionPosts',
-        code: 'hasDiscussionPosts',
-        description: 'Discussion forums',
-        category: 'Social',
-        enabled: true,
-        priced: false,
-        prices: [],
-        currency: 'PHP',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        lastModifiedBy: 'Admin User',
-      },
-    ];
+  async getAddOns(): Promise<Feature[]> {
+    try {
+      const response = await api.get<FeatureResponse>('/Features?type=addOns&pageSize=50&page=1');
+      if (response.data.succeeded && response.data.data.features) {
+        return response.data.data.features.map((bf: BackendFeature) => ({
+          id: bf.id,
+          name: bf.name,
+          key: bf.code,
+          code: bf.code,
+          description: bf.description,
+          type: bf.type || 'addon',
+          category: 'Add-on',
+          enabled: bf.isActive,
+          priced: bf.monthlyPrice !== null || bf.oneTimePrice !== null,
+          monthlyPrice: bf.monthlyPrice,
+          oneTimePrice: bf.oneTimePrice,
+          prices: [],
+          currency: 'PHP',
+          createdAt: new Date(bf.dateCreated),
+          updatedAt: new Date(bf.lastModifiedDate === '0001-01-01T00:00:00' ? bf.dateCreated : bf.lastModifiedDate),
+          lastModifiedBy: 'System',
+        }));
+      }
+      return [];
+    } catch (error) {
+      console.error('Failed to fetch add-ons:', error);
+      return [];
+    }
+  },
+
+  async getPlans(
+    isActive = true,
+    page = 1,
+    pageSize = 10
+  ): Promise<BackendPlan[]> {
+    try {
+      const response = await api.get<PlansResponse>(
+        `/plans?isActive=${isActive}&page=${page}&pageSize=${pageSize}`
+      );
+      if (response.data.succeeded && response.data.data.plans) {
+        return response.data.data.plans;
+      }
+      return [];
+    } catch (error) {
+      console.error('Failed to fetch plans:', error);
+      return [];
+    }
+  },
+
+  async createPlan(planData: {
+    name: string;
+    code: string;
+    description: string;
+    monthlyPrice: number;
+    annualPrice: number;
+    notes?: string;
+    features: string[];
+  }): Promise<any> {
+    try {
+      const response = await api.post('/Plans', planData);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to create plan:', error);
+      throw error;
+    }
+  },
+
+  async updatePlan(
+    planId: string,
+    planData: {
+      name: string;
+      code: string;
+      description: string;
+      monthlyPrice: number;
+      annualPrice: number;
+      notes?: string;
+      features: string[];
+    }
+  ): Promise<any> {
+    try {
+      const response = await api.put(`/Plans/${planId}`, planData);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to update plan:', error);
+      throw error;
+    }
+  },
+
+  async deletePlan(planId: string): Promise<any> {
+    try {
+      const response = await api.delete(`/Plans/${planId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to delete plan:', error);
+      throw error;
+    }
+  },
+
+  async seedPlans(): Promise<any> {
+    try {
+      const response = await api.post('/plans/seed', {});
+      return response.data;
+    } catch (error) {
+      console.error('Failed to seed plans:', error);
+      throw error;
+    }
+  },
+
+  async seedFeatures(): Promise<any> {
+    try {
+      const response = await api.post('/Features/seed', {});
+      return response.data;
+    } catch (error) {
+      console.error('Failed to seed features:', error);
+      throw error;
+    }
   },
 
   async getCommunityTypes(): Promise<CommunityType[]> {

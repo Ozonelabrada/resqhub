@@ -1,276 +1,212 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
-import { 
-  ScrollArea, 
-  Button 
-} from '../../../ui';
-import { 
-  Lock, 
-  AlertCircle, 
-  Users,
-  ShieldAlert,
-  GraduationCap,
-  Calendar,
-  Building2,
-  MapPin,
-  Landmark
-} from 'lucide-react';
-import { formatCurrencyPHP } from '../../../../utils/formatter';
-import type { StepProps, CommunityFormData } from './types';
-import type { SubscriptionStatus } from '../../../../services/subscriptionService';
+import { Button } from '../../../ui';
+import { AlertCircle, CheckCircle2, Calendar } from 'lucide-react';
+import { type CommunityFormData, SUBSCRIPTION_PLANS } from './types';
+import { type SubscriptionStatus } from '../../../../services/subscriptionService';
 
-interface ReviewStepProps extends StepProps {
-  loading: boolean;
-  onFinalSubmit: () => void;
+interface ReviewStepProps {
+  formData: CommunityFormData;
+  setFormData: (data: CommunityFormData) => void;
+  onNext: () => void;
+  onBack?: () => void;
+  onFinalSubmit: () => Promise<void>;
+  subStatus?: SubscriptionStatus;
+  loading?: boolean;
 }
 
-export const ReviewStep: React.FC<ReviewStepProps> = ({ 
-  formData, 
-  onBack, 
-  subStatus, 
-  loading, 
-  onFinalSubmit 
+export const ReviewStep: React.FC<ReviewStepProps> = ({
+  formData,
+  setFormData,
+  onBack,
+  onFinalSubmit,
+  loading = false,
 }) => {
-  const { t } = useTranslation();
-  const calculateTotal = (data: CommunityFormData, status?: SubscriptionStatus) => {
-    // If it's a barangay, it's sponsored (0 PHP)
-    if (data.privacy === 'barangay') return 0;
+  const planInfo = SUBSCRIPTION_PLANS[formData.selectedPlan];
+  const selectedAddOns = formData.addOns.filter((addon) => addon.isSelected);
+  
+  const planPrice = formData.billingCycle === 'monthly'
+    ? planInfo.monthlyPrice
+    : planInfo.annualPrice / 12; // Monthly breakdown
 
-    let total = 0;
+  const addOnsPrice = selectedAddOns.reduce((sum, addon) => sum + addon.monthlyPrice, 0);
+  const totalMonthlyPrice = planPrice + addOnsPrice;
+  const totalAnnualPrice = totalMonthlyPrice * 12;
 
-    // Base Price by Privacy/Type
-    const basePrices: Record<string, number> = {
-      private: 499,
-      event: 299,
-      school: 999,
-      organization: 749,
-      lgu: 2499,
-      city: 1999
-    };
-    
-    total += basePrices[data.privacy] || 499;
-
-    // Capacity Pricing
-    const capacityPrices: Record<number, number> = {
-      100: 0,
-      500: 500,
-      1000: 1000,
-      5000: 2500,
-      10000: 5000
-    };
-    total += capacityPrices[data.maxMembers] || 0;
-
-    // Engagement Features
-    if (data.hasLiveChat) total += 250;
-    if (data.hasEvents) total += 100;
-    if (data.hasFeedUpdates) {
-      total += 150;
-      // Detailed feed options are usually bundled but could have small increments
-      if (data.hasNewsPosts) total += 50;
-      if (data.hasAnnouncements) total += 50;
-    }
-
-    // Safety & Response (Higher tier because of server resources)
-    if (data.hasIncidentReporting) {
-      total += 500;
-      if (data.hasEmergencyMap) total += 300;
-      if (data.hasBroadcastAlerts) total += 1000; // SMS/Push costs
-    }
-
-    // Social Economy
-    if (data.hasNeedsBoard) total += 200;
-    if (data.hasTradeMarket) total += 300;
-
-    // Resource Management
-    if (data.hasMemberDirectory) {
-      total += 150;
-      if (data.hasSkillMatching) total += 150;
-      if (data.hasEquipmentSharing) total += 250;
-    }
-
-    // Premium Discount
-    if (status?.isPremium) {
-      total = Math.max(0, total - 750);
-    }
-
-    return total;
-  };
-
-  const totalValue = calculateTotal(formData, subStatus);
+  const annualBillingPrice = formData.billingCycle === 'annual'
+    ? planInfo.annualPrice + selectedAddOns.reduce((sum, addon) => {
+        return sum + (addon.oneTimePrice || addon.monthlyPrice * 12);
+      }, 0)
+    : null;
 
   return (
-    <div className="flex flex-col h-full max-h-[80vh]">
-      <ScrollArea className="flex-1 px-8 py-6">
-        <div className="space-y-8 pb-4 max-w-2xl">
-          <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100">
-             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">{t('community.create.review.overview')}</h4>
-             <div className="space-y-4">
-                <div>
-                   <p className="text-xs font-bold text-slate-400 mb-1">{t('community.name')}</p>
-                   <p className="font-black text-slate-800">{formData.name}</p>
-                </div>
-                <div className="flex items-center justify-between">
-                   <div>
-                      <p className="text-xs font-bold text-slate-400 mb-1">{t('community.privacy')}</p>
-                      <div className="flex items-center gap-2 text-slate-700 font-bold">
-                          {formData.privacy === 'barangay' && <ShieldAlert size={14} className="text-teal-600" />}
-                          {formData.privacy === 'city' && <MapPin size={14} className="text-teal-600" />}
-                          {formData.privacy === 'lgu' && <Landmark size={14} className="text-teal-600" />}
-                          {formData.privacy === 'school' && <GraduationCap size={14} className="text-teal-600" />}
-                          {formData.privacy === 'organization' && <Building2 size={14} className="text-teal-600" />}
-                          {formData.privacy === 'event' && <Calendar size={14} className="text-teal-600" />}
-                          {formData.privacy === 'private' && <Lock size={14} className="text-teal-600" />}
-                          <span>
-                            {formData.privacy === 'lgu' ? t('community.create.types.lgu') : 
-                            formData.privacy === 'school' ? t('community.create.types.school') :
-                            formData.privacy === 'event' ? t('community.create.types.event') :
-                            t(`community.create.types.${formData.privacy}`)}
-                          </span>
-                      </div>
-                   </div>
-                   <div className="text-right">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase">{t('community.create.review.base_price')}</p>
-                      <p className="font-black text-slate-900 text-sm">
-                        {formData.privacy === 'barangay' ? t('community.create.review.free') : formatCurrencyPHP(
-                          formData.privacy === 'lgu' ? 2499 : 
-                          formData.privacy === 'city' ? 1999 : 
-                          formData.privacy === 'school' ? 999 : 
-                          formData.privacy === 'organization' ? 749 : 499
-                        )}
-                      </p>
-                   </div>
-                </div>
+    <div className="flex flex-col h-full">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
+        {/* Community Name */}
+        <div className="bg-teal-50 border-2 border-teal-200 p-3 sm:p-4 rounded-2xl">
+          <p className="text-[10px] text-slate-500 font-bold uppercase">Community Name</p>
+          <p className="text-xl sm:text-2xl font-black text-slate-800 mt-1 line-clamp-2">{formData.name || 'Your Community'}</p>
+        </div>
 
-                <div className="flex items-center justify-between border-t border-slate-100 pt-4">
-                   <div>
-                      <p className="text-xs font-bold text-slate-400 mb-1">{t('community.create.review.capacity')}</p>
-                      <div className="flex items-center gap-2 text-slate-700 font-bold">
-                        <Users size={14} className="text-teal-600" />
-                        <span>{formData.maxMembers >= 10000 ? t('community.create.review.unlimited') : t('community.create.review.members_count', { count: formData.maxMembers })}</span>
-                      </div>
-                   </div>
-                   <div className="text-right">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase">{t('community.create.review.quota_fee')}</p>
-                      <p className="font-black text-slate-900 text-sm">
-                        {formData.privacy === 'barangay' ? t('community.create.review.free') : (
-                          formData.maxMembers === 100 ? t('community.create.review.included') : formatCurrencyPHP(
-                            formData.maxMembers === 500 ? 500 : 
-                            formData.maxMembers === 1000 ? 1000 : 
-                            formData.maxMembers === 5000 ? 2500 : 5000
-                          )
-                        )}
-                      </p>
-                   </div>
-                </div>
-
-                <div>
-                   <p className="text-xs font-bold text-slate-400 mb-2">{t('community.create.review.enabled_features')}</p>
-                   <div className="flex flex-wrap gap-2">
-                      {formData.hasLiveChat && <FeatureBadge label={t('community.create.features.live_chat_title')} color="teal" />}
-                      {formData.hasEvents && <FeatureBadge label={t('community.create.features.events_title')} color="amber" />}
-                      {formData.hasFeedUpdates && <FeatureBadge label={t('community.create.features.feed_title')} color="blue" />}
-                      {formData.hasNewsPosts && <FeatureBadge label={t('community.create.features.news_posts')} color="blue" />}
-                      {formData.hasAnnouncements && <FeatureBadge label={t('community.create.features.announcements')} color="blue" />}
-                      {formData.hasDiscussionPosts && <FeatureBadge label={t('community.create.features.discussions')} color="blue" />}
-                      {formData.hasNeedsBoard && <FeatureBadge label={t('community.create.features.needs_title')} color="indigo" />}
-                      {formData.hasTradeMarket && <FeatureBadge label={t('community.create.features.trade_title')} color="emerald" />}
-                      {formData.hasIncidentReporting && <FeatureBadge label={t('community.create.features.incidents_title')} color="red" />}
-                      {formData.hasEmergencyMap && <FeatureBadge label={t('community.create.features.emergency_map')} color="red" />}
-                      {formData.hasBroadcastAlerts && <FeatureBadge label={t('community.create.features.broadcast_title')} color="orange" />}
-                      {formData.hasMemberDirectory && <FeatureBadge label={t('community.create.features.member_directory_title')} color="purple" />}
-                      {formData.hasSkillMatching && <FeatureBadge label={t('community.create.features.skill_matching')} color="purple" />}
-                      {formData.hasEquipmentSharing && <FeatureBadge label={t('community.create.features.equipment_sharing')} color="purple" />}
-                   </div>
-                </div>
-             </div>
-          </div>
-
-          <div className="bg-slate-900 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
-             <div className="absolute top-0 right-0 p-8 opacity-10">
-                <Users size={80} />
-             </div>
-             <div className="relative z-10">
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">{t('community.create.review.est_monthly')}</h4>
-                <div className="flex items-baseline gap-2 mb-1">
-                   <span className="text-4xl font-black">{totalValue === 0 ? t('community.create.review.free') : formatCurrencyPHP(totalValue)}</span>
-                   {totalValue > 0 && <span className="text-slate-400 font-bold text-sm">{t('community.create.review.per_month')}</span>}
-                </div>
-                <p className="text-[10px] text-slate-400 font-medium">{t('community.create.review.maintenance_desc')}</p>
-                
-                <div className="mt-6 space-y-3">
-                   <div className="flex items-center justify-between text-[11px] font-bold border-t border-white/10 pt-3">
-                      <span className="text-slate-400 font-medium tracking-wide uppercase">{t('community.create.review.setup_deployment')}</span>
-                      <span className="text-teal-400 tracking-widest uppercase">{t('community.create.review.waived')}</span>
-                   </div>
-                   {subStatus?.isPremium && (
-                      <div className="flex items-center justify-between text-[11px] font-bold bg-white/5 p-2 rounded-lg border border-white/10">
-                        <span className="text-emerald-400 font-medium">{t('community.create.review.premium_perk')}</span>
-                        <span className="text-emerald-400">- {formatCurrencyPHP(750)} / mo</span>
-                      </div>
-                   )}
-                </div>
-             </div>
-          </div>
-
-          {totalValue === 0 ? (
-            <div className="p-5 rounded-3xl bg-teal-50 border border-teal-100 flex gap-4">
-              <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
-                 <ShieldAlert className="text-teal-600" size={20} />
+        {/* Plan Summary */}
+        <div>
+          <h3 className="text-base sm:text-lg font-black text-slate-800 mb-3 sm:mb-4">Selected Plan</h3>
+          <div className="border-2 border-slate-200 rounded-2xl p-4 sm:p-6 space-y-3 sm:space-y-4">
+            <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-slate-200">
+              <div>
+                <p className="text-xs sm:text-sm font-bold text-slate-600">Plan Name</p>
+                <p className="text-lg sm:text-xl font-black text-slate-800 mt-1">{planInfo.name}</p>
               </div>
-              <div className="text-sm">
-                 <p className="font-black text-teal-900">{t('community.create.review.support_program')}</p>
-                 <p className="text-teal-700 font-medium leading-relaxed">
-                    {t('community.create.review.sponsored_desc')}
-                 </p>
+              {formData.selectedPlan === 'pro' && (
+                <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-teal-100 text-teal-700 text-[10px] sm:text-xs font-black rounded-full whitespace-nowrap">
+                  RECOMMENDED
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div>
+                <p className="text-xs sm:text-sm font-bold text-slate-600">Billing Cycle</p>
+                <p className="text-base sm:text-lg font-black text-slate-800 mt-1 capitalize">
+                  {formData.billingCycle === 'monthly' ? 'Monthly' : 'Annual'} Billing
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs sm:text-sm font-bold text-slate-600">Plan Cost</p>
+                <p className="text-xl sm:text-2xl font-black text-teal-700 mt-1">
+                  {formData.billingCycle === 'monthly'
+                    ? `₱${planInfo.monthlyPrice.toLocaleString()}/month`
+                    : `₱${planInfo.annualPrice.toLocaleString()}/year`}
+                </p>
               </div>
             </div>
-          ) : !subStatus?.isPremium && (
-            <div className="p-5 rounded-3xl bg-amber-50 border border-amber-100 flex gap-4">
-              <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
-                 <AlertCircle className="text-amber-600" size={20} />
+          </div>
+        </div>
+
+        {/* Add-Ons Summary */}
+        {selectedAddOns.length > 0 && (
+          <div>
+            <h3 className="text-base sm:text-lg font-black text-slate-800 mb-3 sm:mb-4">Selected Add-Ons</h3>
+            <div className="space-y-2 sm:space-y-3">
+              {selectedAddOns.map((addon) => (
+                <div
+                  key={addon.code}
+                  className="border-2 border-slate-200 rounded-xl p-3 sm:p-4 flex items-start sm:items-center justify-between gap-2 sm:gap-3 bg-slate-50"
+                >
+                  <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+                    <CheckCircle2 size={18} className="text-teal-600 flex-shrink-0 mt-0.5 sm:mt-0" />
+                    <div className="min-w-0">
+                      <p className="font-bold text-xs sm:text-sm text-slate-800">{addon.name}</p>
+                      <p className="text-[11px] sm:text-xs text-slate-600 line-clamp-1">{addon.description}</p>
+                    </div>
+                  </div>
+                  <p className="font-black text-teal-700 text-sm sm:text-base flex-shrink-0 whitespace-nowrap ml-2">
+                    ₱{addon.monthlyPrice.toLocaleString()}
+                    <span className="text-[9px] sm:text-xs text-slate-500 font-normal">/month</span>
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Pricing Breakdown */}
+        <div className="bg-slate-50 border-2 border-slate-200 p-4 sm:p-6 rounded-2xl space-y-3 sm:space-y-4">
+          <h3 className="font-black text-sm sm:text-base text-slate-800 mb-3 sm:mb-4">Total Cost Summary</h3>
+
+          <div className="space-y-2 sm:space-y-3 pb-3 sm:pb-4 border-b-2 border-slate-200">
+            <div className="flex items-center justify-between text-xs sm:text-sm">
+              <span className="font-bold text-slate-700">{planInfo.name}</span>
+              <span className="font-black text-slate-800">
+                {formData.billingCycle === 'monthly'
+                  ? `₱${planInfo.monthlyPrice.toLocaleString()}`
+                  : `₱${planInfo.annualPrice.toLocaleString()}`}
+              </span>
+            </div>
+
+            {selectedAddOns.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between text-xs sm:text-sm mb-2">
+                  <span className="font-bold text-slate-700">Add-Ons ({selectedAddOns.length})</span>
+                  <span className="font-black text-slate-800">
+                    {formData.billingCycle === 'monthly'
+                      ? `₱${addOnsPrice.toLocaleString()}`
+                      : `₱${(addOnsPrice * 12).toLocaleString()}`}
+                  </span>
+                </div>
+                <div className="text-[10px] sm:text-xs text-slate-500 ml-3 sm:ml-4 space-y-1">
+                  {selectedAddOns.map((addon) => (
+                    <div key={addon.code} className="flex justify-between">
+                      <span>{addon.name}</span>
+                      <span>
+                        {formData.billingCycle === 'monthly'
+                          ? `₱${addon.monthlyPrice.toLocaleString()}`
+                          : `₱${(addon.monthlyPrice * 12).toLocaleString()}`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="text-sm">
-                 <p className="font-black text-amber-900">{t('community.create.review.verification_required')}</p>
-                 <p className="text-amber-700 font-medium leading-relaxed">
-                    {t('community.create.review.manual_approval_desc')}
-                 </p>
-              </div>
+            )}
+          </div>
+
+          {/* Total */}
+          <div className="flex items-center justify-between">
+            <span className="font-black text-sm sm:text-base text-slate-800">
+              {formData.billingCycle === 'monthly' ? 'Monthly Total' : 'Annual Total'}
+            </span>
+            <span className="font-black text-xl sm:text-3xl text-teal-700">
+              ₱{(formData.billingCycle === 'monthly' ? totalMonthlyPrice : annualBillingPrice || 0).toLocaleString('en-PH', { maximumFractionDigits: 0 })}
+            </span>
+          </div>
+
+          {/* Monthly Equivalent for Annual */}
+          {formData.billingCycle === 'annual' && (
+            <div className="text-right text-xs sm:text-sm text-slate-600 pt-2">
+              ≈ ₱{totalMonthlyPrice.toLocaleString('en-PH', { maximumFractionDigits: 0 })}/month
             </div>
           )}
         </div>
-      </ScrollArea>
 
-      <div className="p-6 border-t border-slate-50 flex items-center justify-between gap-4 bg-white relative z-10 sticky bottom-0 mb-4">
-         <Button variant="ghost" onClick={onBack} className="font-bold text-slate-500">
-            {t('common.back')}
-         </Button>
-         <Button 
-            onClick={onFinalSubmit} 
-            disabled={loading}
-            className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-black h-12 rounded-xl shadow-lg shadow-teal-100"
-         >
-            {loading ? t('common.loading') : subStatus?.isPremium ? t('community.create.title') : t('community.create.review.submit_review')}
-         </Button>
+        {/* Info Box */}
+        <div className="bg-blue-50 border-2 border-blue-200 p-3 sm:p-4 rounded-2xl flex gap-2 sm:gap-3">
+          <AlertCircle size={18} className="text-blue-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 text-xs sm:text-sm">
+            <p className="font-bold text-blue-900">Next Steps</p>
+            <p className="text-blue-800 mt-0.5 sm:mt-1 leading-relaxed">
+              After reviewing your selections, you'll proceed to payment. Your subscription will be activated immediately upon successful payment.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="px-4 sm:px-8 py-3 sm:py-4 bg-slate-50 border-t border-slate-200 flex gap-2 sm:gap-3 justify-end shrink-0">
+        <Button
+          onClick={onBack}
+          variant="outline"
+          disabled={loading}
+          className="px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-bold sm:font-black text-xs sm:text-sm text-slate-700 border-slate-300 hover:bg-slate-100 transition-all disabled:opacity-50"
+        >
+          Back
+        </Button>
+        <Button
+          onClick={onFinalSubmit}
+          disabled={loading || !formData.name}
+          className="px-6 sm:px-8 py-2 sm:py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-bold sm:font-black text-xs sm:text-sm transition-all shadow-lg shadow-teal-600/20 disabled:opacity-50 flex items-center gap-2"
+        >
+          {loading ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Processing...
+            </>
+          ) : (
+            <>
+              <Calendar size={18} />
+              Proceed to Payment
+            </>
+          )}
+        </Button>
       </div>
     </div>
-  );
-};
-
-const FeatureBadge: React.FC<{ label: string; color: string }> = ({ label, color }) => {
-  const colorClasses: Record<string, string> = {
-    teal: "bg-teal-50 text-teal-700 border-teal-100",
-    amber: "bg-amber-50 text-amber-700 border-amber-100",
-    blue: "bg-blue-50 text-blue-700 border-blue-100",
-    indigo: "bg-indigo-50 text-indigo-700 border-indigo-100",
-    emerald: "bg-emerald-50 text-emerald-700 border-emerald-100",
-    red: "bg-red-50 text-red-700 border-red-100",
-    orange: "bg-orange-50 text-orange-700 border-orange-100",
-    purple: "bg-purple-50 text-purple-700 border-purple-100",
-  };
-
-  return (
-    <span className={`px-3 py-1 text-[10px] font-black uppercase rounded-full border ${colorClasses[color]}`}>
-      {label}
-    </span>
   );
 };

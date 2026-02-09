@@ -18,7 +18,8 @@ import {
   ShieldAlert,
   Handshake,
   Clock,
-  Search
+  Search,
+  Zap
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
@@ -40,11 +41,13 @@ import EditReportModal from '@/components/modals/ReportModal/EditReportModal';
 import { MatchModal } from '@/components/modals/MatchModal/MatchModal';
 import { MatchManagementModal } from '@/components/modals/MatchModal/MatchManagementModal';
 import { MatchSuccessModal } from '@/components/modals/MatchModal/MatchSuccessModal';
+import { HandoverConfirmationModal } from '@/components/modals/MatchModal/HandoverConfirmationModal';
 import { ImageViewerModal } from '@/components/modals/ImageViewerModal';
 import { formatCurrencyPHP } from '@/utils/formatter';
 import { showToast, getWindowExt } from '@/types/window';
 import { safeStopPropagation, extractSyntheticEvent } from '@/types/events';
 import type { MenuCommandEvent } from '@/types/events';
+import { useMatchExpiration } from '@/hooks/useMatchExpiration';
 
 interface NewsFeedCardProps {
   item: NewsFeedItem;
@@ -83,11 +86,24 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
   const [isPendingModalOpen, setIsPendingModalOpen] = useState(false);
   const [isResolvedModalOpen, setIsResolvedModalOpen] = useState(false);
   const [isNoMatchesModalOpen, setIsNoMatchesModalOpen] = useState(false);
+  const [isHandoverConfirmOpen, setIsHandoverConfirmOpen] = useState(false);
   const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState('');
 
   // Ensure boolean result to avoid union types like '' | 0 leaking through
   const isOwner = !!user?.id && String(item.user?.id) === String(user.id);
+
+  // Hook to track match expiration countdown
+  const { formatTimeRemaining, hoursRemaining, isCountdownVisible, getCountdownColor, getCountdownBgColor } = useMatchExpiration(
+    matchToVerify?.createdAt,
+    () => {
+      // Called when match expires
+      setExistingMatchId(null);
+      setMatchStatus(null);
+      setIsMatchModalOpen(false);
+      showToast('warn', t('match.handover_expired_title') || 'Handover Window Expired', t('match.handover_expired_message') || 'The 48-hour handover window has expired.');
+    }
+  );
 
   const handleImageClick = (imageUrl: string) => {
     setSelectedImageUrl(imageUrl);
@@ -589,6 +605,12 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
               <Badge className={cn("border shadow-md px-4 py-1.5 font-black uppercase text-[10px] tracking-widest rounded-full", status.color)}>
                 {status.label}
               </Badge>
+              {matchStatus === 'confirmed' && (
+                <Badge className="border shadow-md px-4 py-1.5 font-black uppercase text-[10px] tracking-widest rounded-full bg-blue-50 text-blue-600 border-blue-100 animate-pulse flex items-center gap-1">
+                  <Zap size={10} />
+                  Awaiting Handover
+                </Badge>
+              )}
               {item.matchId && (
                 <Badge className="border shadow-md px-4 py-1.5 font-black uppercase text-[10px] tracking-widest rounded-full bg-emerald-50 text-emerald-600 border-emerald-100">
                   Possible Match
@@ -750,17 +772,39 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
                {isOwner && (
                  <button 
                   onClick={handleOpenMatchButton}
-                  disabled={item.status === 'reunited'}
+                  disabled={item.status === 'reunited' || matchStatus === 'confirmed'}
                   className={cn(
                     "flex items-center gap-0.5 px-1.5 sm:px-2 md:px-4 py-0.5 sm:py-1 md:py-2 rounded-md sm:rounded-lg md:rounded-2xl font-black text-[8px] sm:text-[9px] md:text-xs transition-all whitespace-nowrap",
-                    item.status === 'reunited'
+                    item.status === 'reunited' || matchStatus === 'confirmed'
                       ? "text-slate-200 cursor-not-allowed bg-slate-50" 
                       : "text-slate-400 hover:bg-orange-50 hover:text-orange-600"
                   )}
-                  title={item.status === 'reunited' ? "Report already resolved" : "Find a match for this item"}
+                  title={item.status === 'reunited' ? "Report already resolved" : matchStatus === 'confirmed' ? "Handover confirmation in progress" : "Find a match for this item"}
                  >
                    <Handshake className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 flex-shrink-0" />
                    <span className="min-w-max">Match</span>
+                 </button>
+               )}
+               
+               {/* Confirm Handover Button - Shows when match is confirmed */}
+               {isOwner && matchStatus === 'confirmed' && (
+                 <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsHandoverConfirmOpen(true);
+                  }}
+                  className={cn(
+                    "flex items-center gap-0.5 px-1.5 sm:px-2 md:px-4 py-0.5 sm:py-1 md:py-2 rounded-md sm:rounded-lg md:rounded-2xl font-black text-[8px] sm:text-[9px] md:text-xs transition-all whitespace-nowrap animate-pulse",
+                    isCountdownVisible && hoursRemaining <= 6
+                      ? "bg-red-50 text-red-600"
+                      : isCountdownVisible && hoursRemaining <= 12
+                      ? "bg-amber-50 text-amber-600"
+                      : "bg-teal-50 text-teal-600"
+                  )}
+                  title="Confirm item handover"
+                 >
+                   <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 flex-shrink-0" />
+                   <span className="min-w-max">Handover</span>
                  </button>
                )}
                <button 
@@ -816,14 +860,39 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
         }}
         match={matchToVerify}
         onSuccess={() => {
-          // Refresh match status for User 2 (report owner)
+          // After MatchManagementModal confirms, open HandoverConfirmationModal
           if (matchToVerify?.id) {
             setExistingMatchId(matchToVerify.id);
-            setMatchStatus('resolved');
+            setMatchStatus('confirmed');
+            // Close this modal to let handover modal take over
+            setIsMatchModalOpen(false);
+            // Open handover confirmation modal
+            setIsHandoverConfirmOpen(true);
           }
           if (onReportUpdate) {
             onReportUpdate();
           }
+        }}
+      />
+
+      <HandoverConfirmationModal
+        isOpen={isHandoverConfirmOpen}
+        onClose={() => {
+          setIsHandoverConfirmOpen(false);
+        }}
+        match={matchToVerify}
+        isSourceUser={isOwner}
+        onSuccess={() => {
+          // After handover is resolved, refresh and show success
+          setIsHandoverConfirmOpen(false);
+          if (onReportUpdate) {
+            onReportUpdate();
+          }
+          showToast(
+            'success',
+            t('match.success_title') || 'Item Reunited!',
+            t('match.success_subtitle') || 'Item has been successfully returned'
+          );
         }}
       />
 
@@ -872,60 +941,6 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
           onResolve={handleResolveExistingMatch}
           resolveLoading={isLoadingMatch}
         />
-      )}
-
-      {/* Pending Match Modal - User 2 sees this when match is under review */}
-      {isPendingModalOpen && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center" onClick={() => setIsPendingModalOpen(false)}>
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl animate-in fade-in zoom-in-95">
-            <div className="text-center space-y-4">
-              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto">
-                <Clock className="w-8 h-8 text-amber-600" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-black text-slate-900">
-                  {t('match.pending_title') || 'Match Under Review'}
-                </h3>
-                <p className="text-slate-600 font-medium mt-2">
-                  {t('match.pending_message') || 'This matched report is currently under review. Please wait for the response.'}
-                </p>
-              </div>
-              <button
-                onClick={() => setIsPendingModalOpen(false)}
-                className="w-full bg-amber-600 hover:bg-amber-700 text-white font-black py-3 rounded-2xl transition-colors"
-              >
-                {t('common.close') || 'Close'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Resolved Match Modal - User 2 sees this when match is already resolved */}
-      {isResolvedModalOpen && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center" onClick={() => setIsResolvedModalOpen(false)}>
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl animate-in fade-in zoom-in-95">
-            <div className="text-center space-y-4">
-              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle className="w-8 h-8 text-emerald-600" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-black text-slate-900">
-                  {t('match.resolved_status_title') || 'Match Completed'}
-                </h3>
-                <p className="text-slate-600 font-medium mt-2">
-                  {t('match.resolved_status_message') || 'The match is already resolved. No further actions are allowed.'}
-                </p>
-              </div>
-              <button
-                onClick={() => setIsResolvedModalOpen(false)}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 rounded-2xl transition-colors"
-              >
-                {t('common.close') || 'Close'}
-              </button>
-            </div>
-          </div>
-        </div>
       )}
 
       {/* No Matches Found Modal - User 2 sees this when no candidate matches exist */}

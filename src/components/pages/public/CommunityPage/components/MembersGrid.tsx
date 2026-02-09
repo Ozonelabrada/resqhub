@@ -12,7 +12,7 @@ import {
   ShoppingBag,
   MoreVertical
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, isMemberSeller } from '@/lib/utils';
 import type { CommunityMember } from '@/types/community';
 
 interface MembersGridProps {
@@ -41,9 +41,10 @@ const MembersGrid: React.FC<MembersGridProps> = ({
   const filteredMembers = members.filter(member => {
     const matchesSearch = member.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          member.username.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesRole = roleFilter === 'all' || roleFilter === 'seller' 
-      ? (roleFilter === 'seller' ? member.isSeller : true)
-      : member.role === roleFilter;
+    const memberRoles = member.roles || [member.role];
+    const matchesRole = roleFilter === 'all' 
+      ? true
+      : memberRoles.includes(roleFilter as any);
     return matchesSearch && matchesRole;
   });
 
@@ -103,7 +104,7 @@ const MembersGrid: React.FC<MembersGridProps> = ({
               <div className="px-6 pt-6 pb-4 border-b border-slate-100">
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex items-center gap-2">
-                    {member.isSeller && (
+                    {isMemberSeller(member) && (
                       <Badge className="bg-teal-100 text-teal-700 border-none font-black text-[9px] uppercase tracking-widest px-2 py-0.5 shadow-sm flex items-center gap-1">
                         <ShoppingBag size={10} />
                         Seller

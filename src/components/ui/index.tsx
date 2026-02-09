@@ -5,6 +5,7 @@ export { buttonVariants } from "./button";
 export { Input as ShadcnInput } from "./input";
 export { Card as ShadcnCard, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "./card";
 export { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "./dialog";
+export { VisuallyHidden } from "./VisuallyHidden";
 export {
   Sheet,
   SheetPortal,

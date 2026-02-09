@@ -104,11 +104,11 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Quick Stats */}
-      {statistics && (
+      {statistics?.kpis && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <AdminStatCard
             title="Avg Response Time"
-            value={`${statistics.kpis.avgResponseTimeMinutes}m`}
+            value={`${statistics.kpis.avgResponseTimeMinutes ?? 0}m`}
             icon={<Clock className="text-blue-600" size={24} />}
             className="bg-blue-50 border-blue-100"
             changeLabel="System average"
@@ -117,7 +117,7 @@ const AdminDashboard: React.FC = () => {
           
           <AdminStatCard
             title="Resolution Rate"
-            value={`${statistics.kpis.resolutionRatePercentage}%`}
+            value={`${statistics.kpis.resolutionRatePercentage ?? 0}%`}
             icon={<CheckCircle className="text-green-600" size={24} />}
             className="bg-green-50 border-green-100"
             changeLabel="Incidents resolved"
@@ -126,7 +126,7 @@ const AdminDashboard: React.FC = () => {
           
           <AdminStatCard
             title="Latest User Growth"
-            value={statistics.trends.userGrowth.slice(-1)[0]?.count || 0}
+            value={statistics.trends?.userGrowth?.slice(-1)[0]?.count ?? 0}
             icon={<Users className="text-purple-600" size={24} />}
             className="bg-purple-50 border-purple-100"
             changeLabel="New registrations"
@@ -135,17 +135,17 @@ const AdminDashboard: React.FC = () => {
           
           <AdminStatCard
             title="Incident Volume"
-            value={statistics.trends.incidentVolume.reduce((acc, curr) => acc + curr.count, 0)}
+            value={statistics.trends?.incidentVolume?.reduce((acc, curr) => acc + curr.count, 0) ?? 0}
             icon={<AlertTriangle className="text-amber-600" size={24} />}
             className="bg-amber-50 border-amber-100"
-            changeLabel={`Last ${statistics.timeRange}`}
+            changeLabel={`Last ${statistics.timeRange ?? 'period'}`}
             changeType="neutral"
           />
         </div>
       )}
 
       {/* Analytics Distributions */}
-      {statistics && (
+      {statistics?.distributions && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* alert categories */}
           <Card className="p-6">
@@ -154,7 +154,7 @@ const AdminDashboard: React.FC = () => {
               <h3 className="text-lg font-black text-slate-900">Alert Categories</h3>
             </div>
             <div className="space-y-4">
-              {Object.entries(statistics.distributions.alertCategories).map(([key, value]) => (
+              {Object.entries(statistics.distributions.alertCategories || {}).map(([key, value]) => (
                 <div key={key} className="space-y-2">
                   <div className="flex justify-between text-sm font-bold">
                     <span className="capitalize text-slate-600">{key}</span>
@@ -178,7 +178,7 @@ const AdminDashboard: React.FC = () => {
               <h3 className="text-lg font-black text-slate-900">Community Status</h3>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              {Object.entries(statistics.distributions.communityStatus).map(([status, count]) => (
+              {Object.entries(statistics.distributions.communityStatus || {}).map(([status, count]) => (
                 <div key={status} className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                   <p className="text-[10px] font-black uppercase text-slate-400 mb-1">{status}</p>
                   <p className="text-2xl font-black text-slate-800">{count}</p>

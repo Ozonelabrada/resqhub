@@ -51,7 +51,8 @@ export class AdminService {
 
     try {
       const response = await api.get(`${ENDPOINTS.ADMIN.STATISTICS}?timeRange=${timeRange}`);
-      return response.data.data || response.data;
+      const data = response.data.data || response.data;
+      return this.normalizeStatistics(data, timeRange);
     } catch (error) {
       console.error('Error fetching admin statistics:', error);
       return this.getMockStatistics(timeRange);
@@ -550,6 +551,25 @@ export class AdminService {
   // Helper Methods for Mocking
   private static async simulateDelay(ms: number = 300): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  private static normalizeStatistics(data: any, timeRange: string): AdminStatistics {
+    const mock = this.getMockStatistics(timeRange);
+    return {
+      timeRange: data?.timeRange ?? timeRange,
+      trends: {
+        userGrowth: Array.isArray(data?.trends?.userGrowth) ? data.trends.userGrowth : mock.trends.userGrowth,
+        incidentVolume: Array.isArray(data?.trends?.incidentVolume) ? data.trends.incidentVolume : mock.trends.incidentVolume
+      },
+      distributions: {
+        alertCategories: typeof data?.distributions?.alertCategories === 'object' ? data.distributions.alertCategories : mock.distributions.alertCategories,
+        communityStatus: typeof data?.distributions?.communityStatus === 'object' ? data.distributions.communityStatus : mock.distributions.communityStatus
+      },
+      kpis: {
+        avgResponseTimeMinutes: typeof data?.kpis?.avgResponseTimeMinutes === 'number' ? data.kpis.avgResponseTimeMinutes : mock.kpis.avgResponseTimeMinutes,
+        resolutionRatePercentage: typeof data?.kpis?.resolutionRatePercentage === 'number' ? data.kpis.resolutionRatePercentage : mock.kpis.resolutionRatePercentage
+      }
+    };
   }
 
   private static getMockOverview(): AdminOverview {

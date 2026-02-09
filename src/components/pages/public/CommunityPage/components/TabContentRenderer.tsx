@@ -40,7 +40,7 @@ interface TabContentRendererProps {
   onEventModalClose: () => void;
   onNewsSuccess: (data: NewsFormData) => void;
   onAnnouncementSuccess: (data: AnnouncementFormData) => void;
-  onEventSuccess: (data: EventFormData) => void;
+  onEventSuccess: (data: EventFormData | EventFormData[]) => void;
   onRefresh: () => Promise<void>;
   onNewsModalOpen: () => void;
   onAnnouncementModalOpen: () => void;
