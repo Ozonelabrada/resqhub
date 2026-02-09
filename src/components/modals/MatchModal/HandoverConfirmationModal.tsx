@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -25,7 +25,7 @@ import { useMatchExpiration } from '../../../hooks/useMatchExpiration';
 interface HandoverConfirmationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  match: {
+  match?: {
     id: number;
     sourceReport: any;
     targetReport: any;
@@ -34,7 +34,7 @@ interface HandoverConfirmationModalProps {
     createdAt?: string;
     sourceUserHandoverConfirmed?: boolean;
     targetUserHandoverConfirmed?: boolean;
-  };
+  } | null;
   isSourceUser: boolean; // true if current user is the one who initiated the match
   onSuccess?: () => void;
 }
@@ -50,15 +50,40 @@ export const HandoverConfirmationModal: React.FC<HandoverConfirmationModalProps>
   const [loading, setLoading] = useState(false);
   const [isConfirmExpanded, setIsConfirmExpanded] = useState(false);
 
-  const { formatTimeRemaining, getCountdownColor, getCountdownBgColor, isExpired, expirationData } = useMatchExpiration(
-    match.createdAt,
-    () => {
-      // Auto-expire match after 48 hours
-      if (match.id && match.status === 'pending_handover') {
-        handleExpireMatch();
-      }
+  // Define handlers before hooks (required for useCallback dependencies)
+  const handleExpireMatch = useCallback(async () => {
+    if (!match || !match.id) return;
+    try {
+      await ReportMatchService.updateMatchStatus(match.id, 'expired', 'Match expired after 48-hour handover window');
+      (window as any).showToast?.(
+        'warning',
+        t('match.handover_expired_title') || 'Handover Window Expired',
+        t('match.handover_expired_message') || 'The 48-hour handover window has expired. Match cancelled.'
+      );
+      onClose();
+    } catch (error) {
+      console.error('Expire match error:', error);
     }
+  }, [match, t, onClose]);
+
+  // Hooks must be called before any conditional returns
+  const { formatTimeRemaining, getCountdownColor, getCountdownBgColor, isExpired, expirationData } = useMatchExpiration(
+    match?.createdAt || new Date().toISOString(),
+    match ? handleExpireMatch : undefined
   );
+
+  // Guard: Return early if match is not available (after all hooks)
+  if (!match || !match.id) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-[600px] bg-white rounded-[2.5rem] border-none shadow-2xl">
+          <div className="flex items-center justify-center py-10">
+            <p className="text-slate-500 font-medium">Loading match information...</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   const otherReport = isSourceUser ? match.targetReport : match.sourceReport;
   const otherUser = isSourceUser ? match.targetReport?.user : match.sourceReport?.user;
@@ -103,20 +128,6 @@ export const HandoverConfirmationModal: React.FC<HandoverConfirmationModalProps>
       );
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleExpireMatch = async () => {
-    try {
-      await ReportMatchService.updateMatchStatus(match.id, 'expired', 'Match expired after 48-hour handover window');
-      (window as any).showToast?.(
-        'warning',
-        t('match.handover_expired_title') || 'Handover Window Expired',
-        t('match.handover_expired_message') || 'The 48-hour handover window has expired. Match cancelled.'
-      );
-      onClose();
-    } catch (error) {
-      console.error('Expire match error:', error);
     }
   };
 

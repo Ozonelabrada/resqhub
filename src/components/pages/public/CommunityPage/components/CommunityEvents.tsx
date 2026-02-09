@@ -193,18 +193,11 @@ export const CommunityEvents: React.FC<{
           {isAdmin && (
             <div className="flex gap-3">
               <Button 
-                onClick={onOpenCalendarModal}
+                onClick={onOpenEventModal}
                 className="h-14 px-8 bg-teal-600 hover:bg-teal-700 text-white font-black rounded-2xl shadow-xl shadow-teal-100 flex items-center gap-2"
               >
                 <Plus size={20} className="stroke-[3px]" />
-                CALENDAR
-              </Button>
-              <Button 
-                onClick={onOpenEventModal}
-                className="h-14 px-8 bg-slate-600 hover:bg-slate-700 text-white font-black rounded-2xl shadow-xl shadow-slate-100 flex items-center gap-2"
-              >
-                <Plus size={20} className="stroke-[3px]" />
-                PROPOSE EVENT
+                CREATE EVENT
               </Button>
             </div>
           )}

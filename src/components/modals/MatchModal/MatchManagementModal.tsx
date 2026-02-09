@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
   DialogContent, 
@@ -18,7 +18,9 @@ import {
   Calendar,
   Layers,
   ArrowRight,
-  AlertCircle
+  AlertCircle,
+  Lock,
+  HelpCircle
 } from 'lucide-react';
 import { ReportMatchService } from '../../../services/reportMatchService';
 import { useTranslation } from 'react-i18next';
@@ -28,13 +30,13 @@ import { ImageViewerModal } from '../ImageViewerModal';
 interface MatchManagementModalProps {
   isOpen: boolean;
   onClose: () => void;
-  match: {
+  match?: {
     id: number;
     sourceReport: any;
     targetReport: any;
     actedByUser: any;
     status: string;
-  };
+  } | null;
   onSuccess?: () => void;
 }
 export const MatchManagementModal: React.FC<MatchManagementModalProps> = ({ 
@@ -53,10 +55,27 @@ export const MatchManagementModal: React.FC<MatchManagementModalProps> = ({
     handoverMethodAgreed: false,
     conditionVerified: false
   });
-  const [isConfirmDismissOpen, setIsConfirmDismissOpen] = useState(false);
   const [selectedRejectionReason, setSelectedRejectionReason] = useState<string>('');
   const [rejectionDetails, setRejectionDetails] = useState<string>('');
   const [isReasonDialogOpen, setIsReasonDialogOpen] = useState(false);
+  
+  // Ownership verification states
+  const [isVerificationRequired, setIsVerificationRequired] = useState(false);
+  const [currentSecurityQuestion, setCurrentSecurityQuestion] = useState<{ questionId: string; questionText: string; attemptNumber: number } | null>(null);
+  const [securityAnswer, setSecurityAnswer] = useState('');
+  const [verificationAttempts, setVerificationAttempts] = useState(0);
+  const [verificationFailed, setVerificationFailed] = useState(false);
+  const [isVerifyingOwnership, setIsVerifyingOwnership] = useState(false);
+  const [isOwnershipVerified, setIsOwnershipVerified] = useState(false);
+
+  // Load security question on mount if verification is needed
+  useEffect(() => {
+    if (!match || !isOpen) return;
+    if (match.id && match.targetReport?.hasOwnershipVerification) {
+      loadSecurityQuestion();
+      setIsVerificationRequired(true);
+    }
+  }, [isOpen, match?.id]);
 
   const REJECTION_REASONS = [
     { value: 'not_my_item', label: t('match.reason_not_my_item') || "It's not my item" },
@@ -77,12 +96,13 @@ export const MatchManagementModal: React.FC<MatchManagementModalProps> = ({
   };
 
   const handleConfirmMatch = async () => {
+    if (!match || !match.id) return;
     setLoading(true);
     try {
-      // Per requirement: Set status to 'pending_handover' to start 48-hour handover window
+      // Per requirement: Set status to 'confirmed' to start 48-hour handover window
       const res = await ReportMatchService.updateMatchStatus(
         match.id,
-        'pending_handover',
+        'confirmed',
         'Match verified - awaiting handover confirmation'
       );
       if (res.success) {
@@ -109,6 +129,7 @@ export const MatchManagementModal: React.FC<MatchManagementModalProps> = ({
   };
 
   const handleShare = () => {
+    if (!match || !match.sourceReport) return;
     const itemTitle = match.sourceReport?.title || 'Item';
     const message = t('match.share_message') || `Great news! I just reunited with my ${itemTitle} thanks to the ResQHub community!`;
     if (navigator.share) {
@@ -125,6 +146,10 @@ export const MatchManagementModal: React.FC<MatchManagementModalProps> = ({
   };
 
   const handleRejectMatch = async () => {
+    if (!match || !match.id) {
+      (window as any).showToast?.('error', t('match.error_title') || 'Error', t('match.error_title') || 'Error occurred');
+      return;
+    }
     if (!selectedRejectionReason) {
       (window as any).showToast?.('warn', t('match.select_reason') || 'Select Reason', t('match.reason_required') || 'Please select a reason before rejecting the match.');
       return;
@@ -146,7 +171,6 @@ export const MatchManagementModal: React.FC<MatchManagementModalProps> = ({
           t('match.match_rejected_message') || 'The match request has been dismissed. Thank you for your feedback.'
         );
         setIsReasonDialogOpen(false);
-        setIsConfirmDismissOpen(false);
         setSelectedRejectionReason('');
         setRejectionDetails('');
         onSuccess?.();
@@ -158,6 +182,102 @@ export const MatchManagementModal: React.FC<MatchManagementModalProps> = ({
       setLoading(false);
     }
   };
+
+  const loadSecurityQuestion = async () => {
+    if (!match || !match.id) return;
+    try {
+      setIsVerifyingOwnership(true);
+      const res = await ReportMatchService.getNextSecurityQuestion(match.id);
+      
+      if (res.success && res.data) {
+        setCurrentSecurityQuestion({
+          questionId: res.data.questionId,
+          questionText: res.data.questionText,
+          attemptNumber: res.data.attemptNumber
+        });
+        setSecurityAnswer('');
+        setVerificationFailed(false);
+      } else {
+        (window as any).showToast?.(
+          'error',
+          t('match.error_title') || 'Error',
+          res.message || t('match.security_question_load_error') || 'Failed to load security question'
+        );
+      }
+    } catch (error) {
+      (window as any).showToast?.(
+        'error',
+        t('match.error_title') || 'Error',
+        t('match.security_question_load_error') || 'Failed to load security question'
+      );
+    } finally {
+      setIsVerifyingOwnership(false);
+    }
+  };
+
+  const verifyOwnershipAnswer = async () => {
+    if (!match || !match.id || !securityAnswer.trim()) {
+      (window as any).showToast?.('warn', t('match.answer_required') || 'Answer Required', t('match.please_enter_answer') || 'Please enter an answer');
+      return;
+    }
+
+    try {
+      setIsVerifyingOwnership(true);
+      const res = await ReportMatchService.verifyOwnership(match.id, securityAnswer.trim());
+      
+      if (res.success && res.isCorrect !== undefined) {
+        if (res.isCorrect) {
+          // Answer is correct - proceed to handover verification
+          (window as any).showToast?.(
+            'success',
+            t('match.verified') || 'Verified',
+            t('match.ownership_verified') || 'Your ownership has been verified!'
+          );
+          setSecurityAnswer('');
+          setCurrentSecurityQuestion(null);
+          setVerificationFailed(false);
+          setIsOwnershipVerified(true);
+          // Signal that ownership verification is complete
+          // The handover confirmation section will now be active
+        } else {
+          // Answer is incorrect
+          const attemptsRemaining = res.attemptsRemaining || 0;
+          setVerificationAttempts(prev => prev + 1);
+          setVerificationFailed(true);
+          
+          if (attemptsRemaining > 0) {
+            (window as any).showToast?.(
+              'error',
+              t('match.incorrect_answer') || 'Incorrect Answer',
+              t('match.attempts_remaining', { count: attemptsRemaining }) || `Attempts remaining: ${attemptsRemaining}`
+            );
+            // Load next question
+            await loadSecurityQuestion();
+          } else {
+            // No attempts remaining - auto-dismiss the match
+            (window as any).showToast?.(
+              'error',
+              t('match.verification_failed') || 'Verification Failed',
+              t('match.match_dismissed') || 'The match has been dismissed due to failed verification attempts.'
+            );
+            // Dismiss the match
+            const dismissRes = await ReportMatchService.dismissMatchDueToVerificationFailure(match.id);
+            if (dismissRes.success) {
+              onSuccess?.();
+              onClose();
+            }
+          }
+        }
+      } else {
+        (window as any).showToast?.('error', t('match.error_title') || 'Error', res.message || t('match.verification_error') || 'Verification failed');
+      }
+    } catch (error) {
+      (window as any).showToast?.('error', t('match.error_title') || 'Error', t('match.verification_error') || 'Verification failed');
+    } finally {
+      setIsVerifyingOwnership(false);
+    }
+  };
+
   return (
     <>
       <Dialog open={isOpen && !!match && !isImageViewerOpen} onOpenChange={(open) => !open && !isImageViewerOpen && onClose()}>
@@ -308,7 +428,85 @@ export const MatchManagementModal: React.FC<MatchManagementModalProps> = ({
             </div>
           </div>
 
+          {/* Ownership Verification Section */}
+          {isVerificationRequired && !currentSecurityQuestion && match.targetReport?.securityQuestionsCount && verificationAttempts < 3 ? (
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-3xl p-6 mb-8">
+              <div className="flex items-center justify-center py-8">
+                <div className="text-center">
+                  <p className="text-sm font-medium text-blue-700">{t('match.loading_security_question') || 'Loading security question...'}</p>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {isVerificationRequired && currentSecurityQuestion ? (
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-3xl p-6 mb-8">
+              <div className="flex items-start gap-3 mb-5">
+                <Lock size={20} className="text-blue-600 mt-0.5 shrink-0" />
+                <div>
+                  <h4 className="font-black text-blue-900 text-sm uppercase tracking-wide">
+                    {t('match.ownership_verification') || 'Verify Ownership'}
+                  </h4>
+                  <p className="text-xs text-blue-800 font-medium mt-1">
+                    {t('match.ownership_verification_description') || 'Answer the security question to verify you are the item owner'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl p-4 mb-4 border border-blue-100">
+                <p className="text-sm font-semibold text-slate-900 mb-4">{currentSecurityQuestion.questionText}</p>
+                <input
+                  type="password"
+                  placeholder={t('match.enter_answer') || 'Enter your answer...'}
+                  value={securityAnswer}
+                  onChange={(e) => setSecurityAnswer(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:border-blue-400 focus:outline-none text-sm font-medium text-slate-900 placeholder-slate-400"
+                  disabled={isVerifyingOwnership}
+                />
+              </div>
+
+              {verificationFailed && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-2xl">
+                  <p className="text-xs font-medium text-red-700">
+                    {t('match.incorrect_answer') || 'Incorrect answer. Please try again.'}
+                  </p>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Badge 
+                    variant="outline" 
+                    className={`text-xs font-bold ${
+                      verificationAttempts >= 2 
+                        ? 'bg-red-50 text-red-700 border-red-200' 
+                        : 'bg-amber-50 text-amber-700 border-amber-200'
+                    }`}
+                  >
+                    {t('match.attempt_counter', { current: verificationAttempts + 1, total: 3 }) || `Attempt ${verificationAttempts + 1}/3`}
+                  </Badge>
+                  <HelpCircle size={14} className="text-slate-400" />
+                </div>
+                <Button
+                  onClick={verifyOwnershipAnswer}
+                  disabled={!securityAnswer.trim() || isVerifyingOwnership}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl px-6 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isVerifyingOwnership ? (
+                    <>Verifying...</>
+                  ) : (
+                    <>
+                      <Lock size={14} />
+                      {t('match.verify_answer') || 'Verify Answer'}
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          ) : null}
+
           {/* Handover Verification Section */}
+          {!isVerificationRequired || isOwnershipVerified ? (
           <div className="bg-amber-50 border-2 border-amber-200 rounded-3xl p-6 mb-8">
             <div className="flex items-start gap-3 mb-5">
               <AlertCircle size={20} className="text-amber-600 mt-0.5 shrink-0" />
@@ -378,6 +576,7 @@ export const MatchManagementModal: React.FC<MatchManagementModalProps> = ({
               </label>
             </div>
           </div>
+          ) : null}
 
           <div className="flex gap-4">
             <Button 
@@ -392,7 +591,7 @@ export const MatchManagementModal: React.FC<MatchManagementModalProps> = ({
             <Button 
                className="flex-1 h-14 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-black hover:shadow-lg hover:shadow-teal-200 gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                onClick={handleConfirmMatch}
-               disabled={loading || !isVerificationComplete}
+               disabled={loading || !isVerificationComplete || (isVerificationRequired && !isOwnershipVerified)}
             >
               <CheckCircle2 size={20} />
               {t('match.confirm_match') || 'Confirm Match'}
@@ -485,6 +684,16 @@ export const MatchManagementModal: React.FC<MatchManagementModalProps> = ({
                 className="w-full h-24 p-3 border-2 border-slate-200 rounded-2xl font-medium text-slate-700 placeholder-slate-400 focus:border-amber-400 focus:outline-none resize-none"
               />
               <p className="text-xs text-slate-500 mt-2">{rejectionDetails.length}/500</p>
+
+              {/* Confirmation Warning */}
+              <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-4 mt-6 mb-6">
+                <p className="text-xs font-black text-red-900 uppercase tracking-widest mb-1">
+                  {t('match.warning') || 'Warning'}
+                </p>
+                <p className="text-sm font-bold text-red-800">
+                  {t('match.rejection_creates_record') || 'Rejecting this match will create a permanent record and notify the other user.'}
+                </p>
+              </div>
             </div>
           )}
 
@@ -502,78 +711,9 @@ export const MatchManagementModal: React.FC<MatchManagementModalProps> = ({
               {t('common.cancel') || 'Cancel'}
             </Button>
             <Button
-              className="flex-1 h-12 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-black transition-all disabled:opacity-50"
-              onClick={() => setIsConfirmDismissOpen(true)}
-              disabled={loading || !selectedRejectionReason}
-            >
-              {t('common.next') || 'Next'}
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-
-    {/* Confirm Rejection Dialog */}
-    <Dialog open={isConfirmDismissOpen} onOpenChange={setIsConfirmDismissOpen}>
-      <DialogContent className="sm:max-w-[500px] bg-white rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden">
-        <div className="p-8">
-          <DialogHeader className="mb-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center text-red-600">
-                <XCircle size={24} />
-              </div>
-              <div>
-                <DialogTitle className="text-2xl font-black text-slate-900">
-                  {t('match.confirm_rejection') || 'Confirm Rejection'}
-                </DialogTitle>
-                <DialogDescription className="text-slate-500 font-medium">
-                  {t('match.rejection_cannot_be_undone') || 'This action cannot be undone'}
-                </DialogDescription>
-              </div>
-            </div>
-          </DialogHeader>
-
-          <div className="bg-red-50 border-2 border-red-200 rounded-3xl p-6 mb-6">
-            <p className="text-sm font-bold text-red-900 mb-3">
-              {t('match.rejection_message') || 'Are you sure you want to reject this match?'}
-            </p>
-            <p className="text-xs text-red-800">
-              {t('match.rejection_notification') || 'The other user will be notified of your rejection and the reason provided.'}
-            </p>
-          </div>
-
-          {selectedRejectionReason && (
-            <div className="bg-slate-100 rounded-2xl p-4 mb-6">
-              <p className="text-xs font-black text-slate-600 uppercase tracking-widest mb-2">
-                {t('match.rejection_reason') || 'Reason'}
-              </p>
-              <p className="text-sm font-bold text-slate-800">
-                {REJECTION_REASONS.find(r => r.value === selectedRejectionReason)?.label}
-              </p>
-              {rejectionDetails && (
-                <>
-                  <p className="text-xs font-black text-slate-600 uppercase tracking-widest mt-3 mb-1">
-                    {t('match.additional_details') || 'Details'}
-                  </p>
-                  <p className="text-xs text-slate-700">{rejectionDetails}</p>
-                </>
-              )}
-            </div>
-          )}
-
-          <div className="flex gap-4">
-            <Button
-              variant="outline"
-              className="flex-1 h-12 rounded-2xl border-2 border-slate-200 hover:bg-slate-50 text-slate-600 font-black transition-all"
-              onClick={() => setIsConfirmDismissOpen(false)}
-              disabled={loading}
-            >
-              {t('common.cancel') || 'Cancel'}
-            </Button>
-            <Button
               className="flex-1 h-12 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black transition-all disabled:opacity-50"
               onClick={handleRejectMatch}
-              disabled={loading}
+              disabled={loading || !selectedRejectionReason}
             >
               {loading ? t('common.processing') || 'Processing...' : t('match.reject_match') || 'Reject Match'}
             </Button>

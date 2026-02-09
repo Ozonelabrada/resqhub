@@ -2,7 +2,7 @@ import api from '../api/client';
 
 export interface ReportMatchStatusRequest {
   id: number;
-  status: 'confirmed' | 'pending_handover' | 'resolved' | 'dismissed' | 'expired' | string;
+  status: 'suggested' | 'confirmed' | 'resolved' | 'dismissed' | 'expired' | string;
   notes: string;
   rejectionReason?: string;
   reasonDetails?: string;
@@ -82,10 +82,12 @@ export const ReportMatchService = {
     reasonDetails?: string
   ): Promise<{ success: boolean; message?: string; reasonCaptured?: boolean }> {
     try {
-      const response = await api.patch(`/report-matches/${matchId}/reject`, {
-        reason: rejectionReason,
-        reasonDetails: reasonDetails || '',
-        rejectedAt: new Date().toISOString()
+      // Combine reason and details into notes field
+      const notes = reasonDetails ? `${rejectionReason}: ${reasonDetails}` : rejectionReason;
+      
+      const response = await api.patch(`/report-matches/${matchId}/status`, {
+        status: 'dismissed',
+        notes: notes
       });
       return {
         success: true,
@@ -162,7 +164,7 @@ export const ReportMatchService = {
   },
 
   /**
-   * Confirm handover for a match in pending_handover status
+   * Confirm handover for a match in confirmed status
    * @param matchId The ID of the match
    * @param userRole Either 'source' or 'target' indicating which user is confirming
    */
@@ -248,6 +250,78 @@ export const ReportMatchService = {
       return {
         success: false,
         message: error?.response?.data?.message || 'Failed to flag user'
+      };
+    }
+  },
+
+  /**
+   * Verify ownership by answering a security question
+   * @param matchId The ID of the match
+   * @param answer The user's answer to the security question
+   */
+  async verifyOwnership(matchId: number | string, answer: string): Promise<{ success: boolean; isCorrect?: boolean; attemptsRemaining?: number; message?: string }> {
+    try {
+      const response = await api.post(`/report-matches/${matchId}/verify-ownership`, {
+        answer: answer.trim().toLowerCase(),
+        attemptedAt: new Date().toISOString()
+      });
+
+      return {
+        success: true,
+        isCorrect: response.data?.data?.isCorrect,
+        attemptsRemaining: response.data?.data?.attemptsRemaining,
+        message: response.data?.message
+      };
+    } catch (error: any) {
+      console.error('Error verifying ownership:', error);
+      return {
+        success: false,
+        isCorrect: false,
+        attemptsRemaining: error?.response?.data?.attemptsRemaining,
+        message: error?.response?.data?.message || 'Verification failed'
+      };
+    }
+  },
+
+  /**
+   * Get next security question for a match
+   * Returns only the question, never the answer
+   */
+  async getNextSecurityQuestion(matchId: number | string): Promise<{ success: boolean; data?: { questionId: string; questionText: string; attemptNumber: number }; message?: string }> {
+    try {
+      const response = await api.get(`/report-matches/${matchId}/security-question`);
+      return {
+        success: true,
+        data: response.data?.data,
+        message: response.data?.message
+      };
+    } catch (error: any) {
+      console.error('Error getting security question:', error);
+      return {
+        success: false,
+        message: error?.response?.data?.message || 'Failed to get security question'
+      };
+    }
+  },
+
+  /**
+   * Dismiss match due to failed ownership verification (3 attempts)
+   */
+  async dismissMatchDueToVerificationFailure(matchId: number | string): Promise<{ success: boolean; message?: string }> {
+    try {
+      const response = await api.patch(`/report-matches/${matchId}/status`, {
+        status: 'dismissed',
+        notes: 'Ownership verification failed - max attempts exceeded'
+      });
+      return {
+        success: true,
+        message: 'Match dismissed due to failed ownership verification'
+      };
+    } catch (error: any) {
+      console.error('Error dismissing match:', error);
+      return {
+        success: false,
+        message: error?.response?.data?.message || 'Failed to dismiss match'
       };
     }
   }

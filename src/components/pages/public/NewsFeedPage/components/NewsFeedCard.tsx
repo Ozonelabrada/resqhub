@@ -81,7 +81,7 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
   const [matchToVerify, setMatchToVerify] = useState<any>(null);
   const [selectedMatchForVerification, setSelectedMatchForVerification] = useState<PossibleMatch | null>(null);
   // Match status tracking for User 2 (Found report owner)
-  const [matchStatus, setMatchStatus] = useState<'pending' | 'confirmed' | 'pending_handover' | 'resolved' | 'dismissed' | null>(null);
+  const [matchStatus, setMatchStatus] = useState<'pending' | 'confirmed' | 'resolved' | 'dismissed' | null>(null);
   const [existingMatchId, setExistingMatchId] = useState<number | null>(null);
   const [isPendingModalOpen, setIsPendingModalOpen] = useState(false);
   const [isResolvedModalOpen, setIsResolvedModalOpen] = useState(false);
@@ -605,7 +605,7 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
               <Badge className={cn("border shadow-md px-4 py-1.5 font-black uppercase text-[10px] tracking-widest rounded-full", status.color)}>
                 {status.label}
               </Badge>
-              {matchStatus === 'pending_handover' && (
+              {matchStatus === 'confirmed' && (
                 <Badge className="border shadow-md px-4 py-1.5 font-black uppercase text-[10px] tracking-widest rounded-full bg-blue-50 text-blue-600 border-blue-100 animate-pulse flex items-center gap-1">
                   <Zap size={10} />
                   Awaiting Handover
@@ -772,22 +772,22 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
                {isOwner && (
                  <button 
                   onClick={handleOpenMatchButton}
-                  disabled={item.status === 'reunited' || matchStatus === 'pending_handover'}
+                  disabled={item.status === 'reunited' || matchStatus === 'confirmed'}
                   className={cn(
                     "flex items-center gap-0.5 px-1.5 sm:px-2 md:px-4 py-0.5 sm:py-1 md:py-2 rounded-md sm:rounded-lg md:rounded-2xl font-black text-[8px] sm:text-[9px] md:text-xs transition-all whitespace-nowrap",
-                    item.status === 'reunited' || matchStatus === 'pending_handover'
+                    item.status === 'reunited' || matchStatus === 'confirmed'
                       ? "text-slate-200 cursor-not-allowed bg-slate-50" 
                       : "text-slate-400 hover:bg-orange-50 hover:text-orange-600"
                   )}
-                  title={item.status === 'reunited' ? "Report already resolved" : matchStatus === 'pending_handover' ? "Handover confirmation in progress" : "Find a match for this item"}
+                  title={item.status === 'reunited' ? "Report already resolved" : matchStatus === 'confirmed' ? "Handover confirmation in progress" : "Find a match for this item"}
                  >
                    <Handshake className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 flex-shrink-0" />
                    <span className="min-w-max">Match</span>
                  </button>
                )}
                
-               {/* Confirm Handover Button - Shows when match is pending_handover */}
-               {isOwner && matchStatus === 'pending_handover' && (
+               {/* Confirm Handover Button - Shows when match is confirmed */}
+               {isOwner && matchStatus === 'confirmed' && (
                  <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -863,7 +863,7 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
           // After MatchManagementModal confirms, open HandoverConfirmationModal
           if (matchToVerify?.id) {
             setExistingMatchId(matchToVerify.id);
-            setMatchStatus('pending_handover');
+            setMatchStatus('confirmed');
             // Close this modal to let handover modal take over
             setIsMatchModalOpen(false);
             // Open handover confirmation modal

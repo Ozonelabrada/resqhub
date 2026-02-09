@@ -1,10 +1,10 @@
-// Match status types
+// Match status types - must align with backend allowed values
 export type MatchStatus = 
-  | 'confirmed'           // Initial match created
-  | 'pending_handover'    // Match verified, waiting for handover confirmation
-  | 'resolved'            // Both parties confirmed handover
-  | 'dismissed'           // Match rejected by one party
-  | 'expired';            // 48-hour window expired without confirmation
+  | 'suggested'           // Initial match proposal
+  | 'confirmed'           // Match confirmed by user - starts 48-hour handover window
+  | 'dismissed'           // Match rejected by user
+  | 'expired'             // 48-hour handover window expired
+  | 'resolved';           // Match completed and resolved
 
 export interface ReportMatch {
   id: number;
@@ -20,11 +20,21 @@ export interface ReportMatch {
   expiresAt?: string | null;
   sourceUserHandoverConfirmed?: boolean;
   targetUserHandoverConfirmed?: boolean;
+  // Ownership verification tracking
+  ownershipVerificationAttempts?: Array<{
+    attemptNumber: number;
+    questionId: string;
+    answeredAt: string;
+    isCorrect: boolean;
+  }>;
+  verificationFailedCount?: number; // 0-3
+  verificationDismissedAt?: string | null;
+  isOwnershipVerified?: boolean;
 }
 
 export interface HandoverConfirmationPayload {
   matchId: number;
-  status: 'pending_handover' | 'resolved' | 'expired';
+  status: 'confirmed' | 'resolved' | 'expired';
   handoverConfirmedBy?: 'source' | 'target';
   timestamp?: string;
 }
