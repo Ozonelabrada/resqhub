@@ -9,8 +9,9 @@ import {
 } from '../../ui';
 import { CommunityService } from '../../../services/communityService';
 import { SubscriptionService, type SubscriptionStatus } from '../../../services/subscriptionService';
+import { PlanSelectionStep } from './CreateCommunity/PlanSelectionStep';
 import { IdentityStep } from './CreateCommunity/IdentityStep';
-import { FeaturesStep } from './CreateCommunity/FeaturesStep';
+import { AddOnsStep } from './CreateCommunity/AddOnsStep';
 import { ReviewStep } from './CreateCommunity/ReviewStep';
 import { SuccessStep } from './CreateCommunity/SuccessStep';
 import { type CommunityFormData, type Step, INITIAL_FORM_DATA } from './CreateCommunity/types';
@@ -23,14 +24,14 @@ interface CreateCommunityModalProps {
 
 const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const { t } = useTranslation();
-  const [step, setStep] = useState<Step>('details');
+  const [step, setStep] = useState<Step>('plans');
   const [loading, setLoading] = useState(false);
   const [subStatus, setSubStatus] = useState<SubscriptionStatus>({ isActive: false, isPremium: false });
   const [formData, setFormData] = useState<CommunityFormData>(INITIAL_FORM_DATA);
 
   useEffect(() => {
     if (isOpen) {
-      setStep('details');
+      setStep('plans');
       setFormData(INITIAL_FORM_DATA);
     }
   }, [isOpen]);
@@ -38,15 +39,52 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ isOpen, onC
   const handleFinalSubmit = async () => {
     setLoading(true);
     try {
+      // Map plan selection to planId
+      const planIdMap: Record<string, number> = {
+        'basic': 1,
+        'pro': 2,
+        'enterprise': 3,
+      };
+
+      // Get selected add-ons codes
+      const selectedAddOns = formData.addOns
+        .filter(addon => addon.isSelected)
+        .map(addon => addon.code);
+
+      // Calculate total amount
+      const planPrices: Record<string, { monthly: number; annual: number }> = {
+        'basic': { monthly: 999, annual: 10000 },
+        'pro': { monthly: 2499, annual: 25000 },
+        'enterprise': { monthly: 7500, annual: 75000 },
+      };
+
+      const planPrice = planPrices[formData.selectedPlan];
+      const addOnsPrice = formData.addOns
+        .filter(addon => addon.isSelected)
+        .reduce((sum, addon) => sum + addon.monthlyPrice, 0);
+
+      let totalAmount = 0;
+      if (formData.billingCycle === 'annual') {
+        totalAmount = planPrice.annual + selectedAddOns.reduce((sum, code) => {
+          const addon = formData.addOns.find(a => a.code === code);
+          return sum + (addon?.oneTimePrice || addon?.monthlyPrice! * 12 || 0);
+        }, 0);
+      } else {
+        totalAmount = planPrice.monthly + addOnsPrice;
+      }
+
       // Format the payload according to API requirements
       const payload = {
         name: formData.name,
         description: formData.description,
         imageUrl: formData.imageUrl,
-        maxMembers: formData.maxMembers,
         privacy: formData.privacy,
         location: formData.location,
-        features: formData.features.filter(f => f.isActive),
+        maxMembers: formData.maxMembers,
+        planId: planIdMap[formData.selectedPlan],
+        addOns: selectedAddOns,
+        paymentType: formData.billingCycle,
+        totalAmount: Math.round(totalAmount),
       };
 
       const result = await CommunityService.submitForReview(payload);
@@ -65,23 +103,25 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ isOpen, onC
     const props = { formData, setFormData, onNext: () => {}, onBack: () => {}, t };
 
     switch (step) {
+      case 'plans':
+        return <PlanSelectionStep {...props} onNext={() => setStep('details')} onClose={onClose} />;
       case 'details':
-        return <IdentityStep {...props} onNext={() => setStep('features')} onClose={onClose} />;
-      case 'features':
-        return <FeaturesStep {...props} onNext={() => setStep('review')} onBack={() => setStep('details')} subStatus={subStatus} />;
+        return <IdentityStep {...props} onNext={() => setStep('addons')} onBack={() => setStep('plans')} />;
+      case 'addons':
+        return <AddOnsStep {...props} onNext={() => setStep('review')} onBack={() => setStep('details')} />;
       case 'review':
         return (
           <ReviewStep 
             {...props} 
             onNext={() => {}} 
             onFinalSubmit={handleFinalSubmit} 
-            onBack={() => setStep('features')} 
+            onBack={() => setStep('addons')} 
             subStatus={subStatus} 
             loading={loading} 
           />
         );
       case 'success':
-        return <SuccessStep communityName={formData.name} onClose={onClose} />;
+        return <SuccessStep communityName={formData.name} formData={formData} onClose={onClose} />;
       default:
         return null;
     }
@@ -89,36 +129,38 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ isOpen, onC
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white max-h-[90vh]">
+      <DialogContent className="w-[95vw] sm:w-full sm:max-w-[600px] p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] sm:rounded-[2.5rem] bg-white max-h-[90vh] flex flex-col">
         {step !== 'success' && (
-          <DialogHeader className="px-8 pt-8 pb-4 text-left bg-white relative z-10 border-b border-slate-50">
-            <div className="flex items-center justify-between mb-2">
-              <DialogTitle className="text-2xl font-black text-slate-800 tracking-tight">
-                {t('community.createTitle')}
+          <DialogHeader className="px-4 sm:px-8 py-4 sm:py-8 pb-3 sm:pb-4 text-left bg-white relative z-10 border-b border-slate-50 shrink-0">
+            <div className="flex items-center justify-between gap-4 mb-2">
+              <DialogTitle className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight line-clamp-2">
+                Create Community
               </DialogTitle>
-              <div className="flex gap-1">
-                {[1, 2, 3].map((i) => (
+              <div className="flex gap-1 shrink-0">
+                {[1, 2, 3, 4].map((i) => (
                   <div 
                     key={i} 
-                    className={`h-1.5 w-6 rounded-full transition-all duration-500 ${
-                      (step === 'details' && i === 1) || 
-                      (step === 'features' && i <= 2) || 
-                      (step === 'review' && i <= 3) 
-                        ? 'bg-teal-500 w-10' : 'bg-slate-100'
+                    className={`h-1.5 w-4 sm:w-6 rounded-full transition-all duration-500 ${
+                      (step === 'plans' && i === 1) || 
+                      (step === 'details' && i <= 2) || 
+                      (step === 'addons' && i <= 3) ||
+                      (step === 'review' && i <= 4) 
+                        ? 'bg-teal-500 sm:w-10 w-8' : 'bg-slate-100'
                     }`}
                   />
                 ))}
               </div>
             </div>
-            <DialogDescription className="text-slate-500 font-bold text-xs uppercase tracking-wider">
-               {step === 'details' && t('community.create.step_identity')}
-               {step === 'features' && t('community.create.step_features')}
-               {step === 'review' && t('community.create.step_review')}
+            <DialogDescription className="text-slate-500 font-bold text-[10px] sm:text-xs uppercase tracking-wider line-clamp-1">
+               {step === 'plans' && 'Select Your Subscription Plan'}
+               {step === 'details' && 'Organization Details'}
+               {step === 'addons' && 'Choose Add-on Modules'}
+               {step === 'review' && 'Review Your Selection'}
             </DialogDescription>
           </DialogHeader>
         )}
         
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden flex flex-col">
           {renderStep()}
         </div>
       </DialogContent>

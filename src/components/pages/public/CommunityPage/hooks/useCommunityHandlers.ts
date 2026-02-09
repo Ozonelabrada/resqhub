@@ -13,7 +13,7 @@ export const useCommunityHandlers = (refresh: () => void) => {
     refresh();
   };
 
-  const handleEventSuccess = (data: EventFormData) => {
+  const handleEventSuccess = (data: EventFormData | EventFormData[]) => {
     console.log('Event created:', data);
     refresh();
   };

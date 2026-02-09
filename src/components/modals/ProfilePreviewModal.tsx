@@ -135,7 +135,7 @@ export const ProfilePreviewModal: React.FC<ProfilePreviewModalProps> = ({
           <>
         {/* Decorative Header Background */}
         <div className="relative h-40 bg-gradient-to-br from-teal-500 via-emerald-500 to-teal-600">
-          <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] pointer-events-none"></div>
+          <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: "url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22><rect fill=%22%23000%22 width=%2220%22 height=%2220%22/><path fill=%22%23fff%22 d=%22M0 0h10v10H0zm10 10h10v10H10z%22/></svg>')" }}></div>
         </div>
         
         <div className="px-8 pb-10 -mt-20 relative">

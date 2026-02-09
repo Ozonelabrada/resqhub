@@ -33,6 +33,7 @@ const ActivityPage = lazy(() => import('./components/pages/public/ActivityPage/A
 const PrivacyPolicyPage = lazy(() => import('./pages/privacy-policy'));
 const TermsOfServicePage = lazy(() => import('./pages/terms-of-service'));
 const ContactUsPage = lazy(() => import('./pages/contact-us'));
+const CreateCommunityPage = lazy(() => import('./pages/create-community'));
 
 // Shared Pages
 import NotFoundPage from './components/shared/NotFoundPage/NotFoundPage';
@@ -74,6 +75,7 @@ const AppRouter = () => {
           
           {/* Communities */}
           <Route path="communities" element={<CommunitiesPage />} />
+          <Route path="communities/create" element={<AuthGuard requireAuth={true}><CreateCommunityPage /></AuthGuard>} />
           <Route path="community/:id" element={<CommunityPage />} />
           <Route path="community/:id/event/:eventId" element={<EventDetailPage />} />
           

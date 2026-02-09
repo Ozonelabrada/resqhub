@@ -41,7 +41,7 @@ export const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-teal-500 to-emerald-600" />
           )}
-          <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]" />
+          <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22><rect fill=%22%23000%22 width=%2220%22 height=%2220%22/><path fill=%22%23fff%22 d=%22M0 0h10v10H0zm10 10h10v10H10z%22/></svg>')" }} />
 
           {/* Status Badge */}
           <div className="absolute top-4 left-4 flex gap-2">

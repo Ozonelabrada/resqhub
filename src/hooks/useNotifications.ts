@@ -1,12 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
 import { MessagesService } from '../services/messagesService';
+import { useAuth } from '../context/AuthContext';
 
 export const useNotifications = () => {
+  const { isAuthenticated } = useAuth();
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchUnreadCount = useCallback(async () => {
+    // Only fetch if user is authenticated
+    if (!isAuthenticated) {
+      setUnreadCount(0);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
@@ -18,7 +26,7 @@ export const useNotifications = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   // Fetch unread count on mount
   useEffect(() => {
