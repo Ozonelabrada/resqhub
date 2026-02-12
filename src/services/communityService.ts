@@ -153,7 +153,7 @@ export const CommunityService = {
     }
   },
 
-  async updateStatus(id: string, status: 'approved' | 'rejected', reason?: string): Promise<boolean> {
+  async updateStatus(id: string, status: 'approved' | 'denied', reason?: string): Promise<boolean> {
     try {
       await api.patch(`/admin/communities/${id}/status`, { status, reason });
       return true;

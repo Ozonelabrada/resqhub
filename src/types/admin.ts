@@ -12,7 +12,7 @@ export interface AdminOverview {
 
 export interface AdminActivity {
   id: string;
-  type: 'community_created' | 'community_approved' | 'community_rejected' | 'report_created' | 'user_registered';
+  type: 'community_created' | 'community_approved' | 'community_denied' | 'report_created' | 'user_registered';
   description: string;
   timestamp: string;
   actor: {
@@ -25,7 +25,7 @@ export interface AdminActivity {
 export interface CommunitySummary {
   id: number;
   name: string;
-  status: string; // 'active' | 'pending' | 'rejected' | 'disabled' | etc.
+  status: string; // 'active' | 'pending' | 'denied' | 'disabled' | etc.
   subscriptionTier: string | null;
   createdAt: string;
   membersCount: number;
@@ -58,7 +58,7 @@ export interface CommunityDetail extends CommunitySummary {
     name: string;
     description: string;
     imageUrl?: string | null;
-    status: string; // 'active' | 'pending' | 'rejected' | 'disabled' | etc.
+    status: string; // 'active' | 'pending' | 'denied' | 'disabled' | etc.
     memberCount: number;
     dateCreated: string;
     privacy: string;
@@ -81,7 +81,7 @@ export interface CommunityDetail extends CommunitySummary {
 
 export interface CommunityListParams {
   query?: string;
-  status?: 'all' | 'pending' | 'active' | 'approved' | 'disabled' | 'rejected';
+  status?: 'all' | 'pending' | 'active' | 'approved' | 'disabled' | 'denied';
   subscriptionTier?: string;
   page?: number;
   pageSize?: number;

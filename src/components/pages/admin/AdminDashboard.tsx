@@ -329,13 +329,13 @@ const AdminDashboard: React.FC = () => {
                     "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
                     activity.type === 'community_created' && "bg-blue-100 text-blue-600",
                     activity.type === 'community_approved' && "bg-green-100 text-green-600",
-                    activity.type === 'community_rejected' && "bg-red-100 text-red-600",
+                    activity.type === 'community_denied' && "bg-red-100 text-red-600",
                     activity.type === 'report_created' && "bg-orange-100 text-orange-600",
                     activity.type === 'user_registered' && "bg-purple-100 text-purple-600"
                   )}>
                     {activity.type === 'community_created' && <Plus size={16} />}
                     {activity.type === 'community_approved' && <CheckCircle size={16} />}
-                    {activity.type === 'community_rejected' && <AlertCircle size={16} />}
+                    {activity.type === 'community_denied' && <AlertCircle size={16} />}
                     {activity.type === 'report_created' && <FileText size={16} />}
                     {activity.type === 'user_registered' && <Users size={16} />}
                   </div>

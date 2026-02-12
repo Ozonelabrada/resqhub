@@ -5,7 +5,7 @@ export const ENDPOINTS = {
     COMMUNITIES: '/admin/communities',
     COMMUNITIES_PENDING: '/admin/communities',
     COMMUNITIES_APPROVE: (id: string) => `/admin/communities/${id}/approve`,
-    COMMUNITIES_REJECT: (id: string) => `/admin/communities/${id}/reject`,
+    COMMUNITIES_REJECT: (id: string) => `/admin/communities/${id}/deny`,
     COMMUNITIES_SUSPEND: (id: string) => `/admin/communities/${id}/suspend`,
     COMMUNITIES_TERMINATE: (id: string) => `/admin/communities/${id}/terminate`,
     COMMUNITIES_REACTIVATE: (id: string) => `/admin/communities/${id}/reactivate`,

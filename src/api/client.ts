@@ -57,6 +57,11 @@ api.interceptors.response.use(
       if (toast) {
         toast('error', 'Access Denied', 'You do not have permission to perform this action.');
       }
+    } else if (error.response?.status === 404) {
+      // Not found - silently ignore for GET requests, show error for others
+      console.warn('Resource not found (404):', error.config?.url);
+      // Don't show error notification for 404s on GET requests (normal to have no data)
+      // If you need to show error for specific POST/PUT 404s, add logic here
     } else if (error.response) {
       // Other API errors
       const toast = getWindowExt()?.showToast;

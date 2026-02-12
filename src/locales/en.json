@@ -753,7 +753,7 @@
     "pending": "Pending",
     "reviewing": "Reviewing",
     "resolved": "Resolved",
-    "rejected": "Rejected",
+    "denied": "Denied",
     "closed": "Closed (Removed)",
     "member_approved": "Member approved",
     "request_rejected": "Request rejected",

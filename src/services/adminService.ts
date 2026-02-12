@@ -86,11 +86,13 @@ export class AdminService {
       const queryParams = new URLSearchParams();
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== '') {
-          queryParams.append(key, String(value));
+          // Normalize status to lowercase for API consistency
+          const paramValue = key === 'status' && value ? value.toString().toLowerCase().trim() : value;
+          queryParams.append(key, String(paramValue));
         }
       });
 
-      const endpoint = params.status === 'pending' ? ENDPOINTS.ADMIN.COMMUNITIES_PENDING : ENDPOINTS.ADMIN.COMMUNITIES;
+      const endpoint = params.status?.toString().toLowerCase().trim() === 'pending' ? ENDPOINTS.ADMIN.COMMUNITIES_PENDING : ENDPOINTS.ADMIN.COMMUNITIES;
       const response = await api.get(`${endpoint}?${queryParams.toString()}`);
       return response.data;
     } catch (error) {
@@ -196,11 +198,11 @@ export class AdminService {
     if (USE_MOCK_DATA) {
       return {
         succeeded: true,
-        message: 'Community rejected successfully (Mock)',
+        message: 'Community denied successfully (Mock)',
         statusCode: 200,
         data: {
           success: true,
-          message: 'Community has been rejected',
+          message: 'Community has been denied',
           updatedItem: this.getMockCommunities().find(c => String(c.id) === String(id)) || undefined
         }
       };
@@ -210,14 +212,14 @@ export class AdminService {
       const response = await api.patch(ENDPOINTS.ADMIN.COMMUNITIES_REJECT(String(id)), action);
       return response.data;
     } catch (error) {
-      console.error('Error rejecting community:', error);
+      console.error('Error denying community:', error);
       return {
         succeeded: true,
-        message: 'Community rejected successfully (Mock Fallback)',
+        message: 'Community denied successfully (Mock Fallback)',
         statusCode: 200,
         data: {
           success: true,
-          message: 'Community has been rejected',
+          message: 'Community has been denied',
           updatedItem: this.getMockCommunities().find(c => String(c.id) === String(id)) || undefined
         }
       };

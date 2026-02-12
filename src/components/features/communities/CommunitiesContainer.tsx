@@ -1032,9 +1032,9 @@ export const CommunitiesContainer: React.FC = () => {
                     </Badge>
                   )}
 
-                  {/* Show status badge if community is pending, suspended, rejected, or disabled */}
+                  {/* Show status badge if community is pending, suspended, denied, or disabled */}
                   {isAuthenticated && 
-                    ['pending', 'suspended', 'rejected', 'disabled'].includes(community.status?.toLowerCase() || '') && (
+                    ['pending', 'suspended', 'denied', 'disabled'].includes(community.status?.toLowerCase() || '') && (
                     <Badge className={cn(
                       "absolute top-3 left-3 font-black uppercase text-[8px] tracking-widest px-2 py-0.5 border-none shadow-sm",
                       community.status?.toLowerCase() === 'pending' ? "bg-amber-500 text-white" :

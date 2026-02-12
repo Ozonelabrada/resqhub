@@ -141,7 +141,7 @@ export class UserService {
     switch (status) {
       case 0: return 'pending';
       case 1: return 'verified';
-      case 2: return 'rejected';
+      case 2: return 'denied';
       default: return 'pending';
     }
   }

@@ -82,6 +82,28 @@ export interface LostFoundItem {
   type?: 'lost' | 'found' | 'news' | 'discussion' | 'announcement';
 }
 
+export interface UserReportStatistics {
+  totalReport: number;
+  lostCount: number;
+  foundCount: number;
+  activeCount: number;
+}
+
+export interface UserReportsResponse {
+  reports: {
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+    pageNumber: number;
+    succeeded: boolean;
+    data: LostFoundItem[];
+    errorMessage: string;
+    loadMore: boolean;
+    baseEntity: any;
+  };
+  statistics: UserReportStatistics;
+}
+
 export const ReportsService = {
   async getReportById(id: string | number): Promise<LostFoundItem | null> {
     try {
@@ -265,6 +287,22 @@ export const ReportsService = {
         success: false, 
         message: error?.message || 'Failed to save images' 
       };
+    }
+  },
+
+  async getUserReportsWithStatistics(userId: string, pageSize: number = 10, page: number = 1): Promise<UserReportsResponse | null> {
+    try {
+      const response = await api.get<UserReportsResponse>('/reports/all', {
+        params: {
+          userId,
+          pageSize,
+          page
+        }
+      });
+      return response.data || null;
+    } catch (error) {
+      console.error('Error fetching user reports with statistics:', error);
+      return null;
     }
   }
 };

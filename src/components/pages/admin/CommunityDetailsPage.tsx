@@ -111,6 +111,9 @@ const CommunityDetailsPage: React.FC = () => {
     }
   };
 
+  // Helper function to normalize status for case-insensitive comparison
+  const normalizeStatus = (status: string): string => status?.toLowerCase().trim() || '';
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -165,9 +168,9 @@ const CommunityDetailsPage: React.FC = () => {
       });
       
       if (response.succeeded && community) {
-        setCommunity({ ...community, status: 'rejected' });
+        setCommunity({ ...community, status: 'denied' });
         setShowRejectModal(false);
-        (window as any).showToast?.('success', 'Rejected', 'Community request has been rejected.');
+        (window as any).showToast?.('success', 'Denied', 'Community request has been denied.');
       }
     } catch (error) {
       console.error('Error rejecting community:', error);
@@ -246,15 +249,16 @@ const CommunityDetailsPage: React.FC = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
+    const normalizedStatus = status?.toLowerCase().trim() || '';
+    switch (normalizedStatus) {
       case 'active':
         return <Badge className="bg-green-100 text-green-800">Active</Badge>;
       case 'pending':
         return <Badge className="bg-orange-100 text-orange-800">Pending</Badge>;
       case 'disabled':
         return <Badge className="bg-red-100 text-red-800">Disabled</Badge>;
-      case 'rejected':
-        return <Badge className="bg-gray-100 text-gray-800">Rejected</Badge>;
+      case 'denied':
+        return <Badge className="bg-gray-100 text-gray-800">Denied</Badge>;
       case 'suspended':
         return <Badge className="bg-yellow-100 text-yellow-800">Suspended</Badge>;
       case 'terminated':
@@ -322,7 +326,7 @@ const CommunityDetailsPage: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Pending Banner */}
-      {community.status === 'pending' && (
+      {normalizeStatus(community.status) === 'pending' && (
         <div className="bg-white border-2 border-amber-200 p-6 rounded-[2.5rem] flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-amber-50">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600">
@@ -584,7 +588,7 @@ const CommunityDetailsPage: React.FC = () => {
                     </div>
                     <Badge className={cn(
                       "px-3 py-1 rounded-full font-bold text-[10px] uppercase border-none",
-                      child.status === 'active' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                      normalizeStatus(child.status) === 'active' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
                     )}>
                       {child.status || 'inactive'}
                     </Badge>
@@ -662,8 +666,8 @@ const CommunityDetailsPage: React.FC = () => {
                     </p>
                   </div>
                   <Badge className={cn(
-                    subscription.status === 'active' ? 'bg-green-100 text-green-800' :
-                    subscription.status === 'expired' ? 'bg-red-100 text-red-800' :
+                    normalizeStatus(subscription.status) === 'active' ? 'bg-green-100 text-green-800' :
+                    normalizeStatus(subscription.status) === 'expired' ? 'bg-red-100 text-red-800' :
                     'bg-orange-100 text-orange-800'
                   )}>
                     {subscription.status}
@@ -693,9 +697,9 @@ const CommunityDetailsPage: React.FC = () => {
                   </div>
                   <div className="text-right">
                     <Badge className={cn(
-                      payment.status === 'completed' ? 'bg-green-100 text-green-800' :
-                      payment.status === 'pending' ? 'bg-orange-100 text-orange-800' :
-                      payment.status === 'failed' ? 'bg-red-100 text-red-800' :
+                      normalizeStatus(payment.status) === 'completed' ? 'bg-green-100 text-green-800' :
+                      normalizeStatus(payment.status) === 'pending' ? 'bg-orange-100 text-orange-800' :
+                      normalizeStatus(payment.status) === 'failed' ? 'bg-red-100 text-red-800' :
                       'bg-blue-100 text-blue-800'
                     )}>
                       {payment.status}

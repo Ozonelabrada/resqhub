@@ -13,7 +13,7 @@ export interface Community {
   foundedDate?: string;
   dateCreated?: string;
   createdBy?: string;
-  status?: string; // 'active' | 'pending' | 'rejected' | 'disabled' | etc.
+  status?: string; // 'active' | 'pending' | 'denied' | 'disabled' | etc.
   maxMembers?: number | null;
   isMember?: boolean | string; // Can be boolean or string ('true'/'false') from API
   memberIsApproved?: boolean;
@@ -98,7 +98,7 @@ export interface JoinRequest {
   profilePictureUrl?: string;
   communityId: number;
   dateCreated: string;
-  status: 'Pending' | 'Approved' | 'Rejected';
+  status: 'Pending' | 'Approved' | 'Denied';
   // Admin review fields
   userAddress?: string;
   userPhone?: string;

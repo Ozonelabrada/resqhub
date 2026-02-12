@@ -24,7 +24,7 @@ export const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({
   if (!community) return null;
 
   const isPending = community.status === 'pending' || community.status === 'Pending';
-  const isRejected = community.status === 'rejected' || community.status === 'Rejected';
+  const isDenied = community.status === 'denied' || community.status === 'Denied';
   const isDisabled = community.status === 'disabled' || community.status === 'Disabled';
 
   return (
@@ -50,7 +50,7 @@ export const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({
                 'font-black uppercase text-[10px] tracking-widest px-3 py-1 border-none shadow-md',
                 isPending
                   ? 'bg-amber-500 text-white'
-                  : isRejected
+                  : isDenied
                     ? 'bg-red-500 text-white'
                     : isDisabled
                       ? 'bg-slate-500 text-white'
@@ -169,11 +169,11 @@ export const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({
             </div>
           )}
 
-          {/* Status Message for Rejected */}
-          {isRejected && (
+          {/* Status Message for Denied */}
+          {isDenied && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
               <p className="text-sm text-red-900">
-                <span className="font-semibold">Note:</span> This community was rejected.
+                <span className="font-semibold">Note:</span> This community was denied.
                 Please review and resubmit if you'd like to try again.
               </p>
             </div>
