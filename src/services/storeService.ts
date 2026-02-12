@@ -121,6 +121,19 @@ export const StoreService = {
   },
 
   /**
+   * Gets stores for a specific community
+   */
+  async getCommunityStores(communityId: string | number, status: string = 'Approved', page: number = 1, pageSize: number = 10) {
+    try {
+      const response = await api.get(`/communities/${communityId}/stores?status=${status}&page=${page}&pageSize=${pageSize}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching community stores:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Applies a store to a specific community
    */
   async applyStoreToCommunity(communityId: string | number, payload: ApplyStoreToCommunityRequest) {
