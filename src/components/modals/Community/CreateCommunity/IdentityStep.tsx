@@ -393,9 +393,9 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
             type="button" 
             disabled={!isFormValid}
             onClick={onNext} 
-            className="bg-teal-600 hover:bg-teal-700 text-white font-black px-8 h-12 rounded-xl shadow-lg shadow-teal-100"
+            className="bg-teal-600 hover:bg-teal-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-black px-8 h-12 rounded-xl shadow-lg shadow-teal-100 flex items-center gap-2"
         >
-          {t('common.continue')} <ArrowRight size={18} className="ml-2" />
+          {t('common.continue')} <ArrowRight size={18} />
         </Button>
       </DialogFooter>
     </form>

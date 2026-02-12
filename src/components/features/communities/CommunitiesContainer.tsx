@@ -32,7 +32,6 @@ import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import { toast } from 'react-hot-toast';
 import type { Community } from '@/types/community';
-import { CreateCommunityModal } from '../../modals';
 
 interface UserStore {
   id: string | number;
@@ -979,7 +978,7 @@ export const CommunitiesContainer: React.FC = () => {
           </div>
 
           <Button 
-            onClick={() => setIsCreateModalOpen(true)}
+            onClick={() => navigate('/communities/create')}
             size="sm"
             className="bg-teal-600 hover:bg-teal-700 text-white font-bold h-10 px-4 rounded-xl shadow-lg shadow-teal-100 transition-all flex items-center gap-2"
           >
@@ -1157,16 +1156,6 @@ export const CommunitiesContainer: React.FC = () => {
           </div>
         )}
       </div>
-
-      <CreateCommunityModal 
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSuccess={async () => {
-          setIsCreateModalOpen(false);
-          await refresh();
-          // The useEffect will update local communities when hookCommunities changes
-        }}
-      />
 
       <CommunityDetailModal
         isOpen={isDetailModalOpen}

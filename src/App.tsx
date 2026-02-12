@@ -15,6 +15,7 @@ const HubHomePage = lazy(() => import('./components/pages/public/HubHomePage/Hub
 const NewsFeedPage = lazy(() => import('./components/pages/public/NewsFeedPage/NewsFeedPage'));
 const CommunityAboutPage = lazy(() => import('./components/pages/public/CommunityAboutPage/CommunityAboutPage'));
 const CommunitiesPage = lazy(() => import('./components/pages/public/CommunitiesPage/CommunitiesPage'));
+const CreateCommunityPage = lazy(() => import('./components/pages/public/CreateCommunityPage/CreateCommunityPage'));
 const CommunityPage = lazy(() => import('./components/pages/public/CommunityPage/CommunityPage'));
 const EventDetailPage = lazy(() => import('./components/pages/public/EventDetailPage/EventDetailPage'));
 const MessagesPage = lazy(() => import('./components/pages/public/MessagesPage/MessagesPage'));
@@ -74,6 +75,7 @@ const AppRouter = () => {
           
           {/* Communities */}
           <Route path="communities" element={<CommunitiesPage />} />
+          <Route path="communities/create" element={<AuthGuard requireAuth={true}><CreateCommunityPage /></AuthGuard>} />
           <Route path="community/:id" element={<CommunityPage />} />
           <Route path="community/:id/event/:eventId" element={<EventDetailPage />} />
           

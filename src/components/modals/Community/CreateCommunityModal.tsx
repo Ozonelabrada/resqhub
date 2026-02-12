@@ -8,9 +8,8 @@ import {
   DialogDescription,
 } from '../../ui';
 import { CommunityService } from '../../../services/communityService';
-import { SubscriptionService, type SubscriptionStatus } from '../../../services/subscriptionService';
 import { IdentityStep } from './CreateCommunity/IdentityStep';
-import { FeaturesStep } from './CreateCommunity/FeaturesStep';
+import { SubscriptionTierStep } from './CreateCommunity/SubscriptionTierStep';
 import { ReviewStep } from './CreateCommunity/ReviewStep';
 import { SuccessStep } from './CreateCommunity/SuccessStep';
 import { type CommunityFormData, type Step, INITIAL_FORM_DATA } from './CreateCommunity/types';
@@ -25,7 +24,6 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ isOpen, onC
   const { t } = useTranslation();
   const [step, setStep] = useState<Step>('details');
   const [loading, setLoading] = useState(false);
-  const [subStatus, setSubStatus] = useState<SubscriptionStatus>({ isActive: false, isPremium: false });
   const [formData, setFormData] = useState<CommunityFormData>(INITIAL_FORM_DATA);
 
   useEffect(() => {
@@ -46,7 +44,22 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ isOpen, onC
         maxMembers: formData.maxMembers,
         privacy: formData.privacy,
         location: formData.location,
-        features: formData.features.filter(f => f.isActive),
+        tier: formData.selectedTier,
+        // Include feature flags for backend compatibility
+        hasLiveChat: formData.hasLiveChat,
+        hasFeedUpdates: formData.hasFeedUpdates,
+        hasNewsPosts: formData.hasNewsPosts,
+        hasAnnouncements: formData.hasAnnouncements,
+        hasDiscussionPosts: formData.hasDiscussionPosts,
+        hasIncidentReporting: formData.hasIncidentReporting,
+        hasEmergencyMap: formData.hasEmergencyMap,
+        hasBroadcastAlerts: formData.hasBroadcastAlerts,
+        hasMemberDirectory: formData.hasMemberDirectory,
+        hasSkillMatching: formData.hasSkillMatching,
+        hasEquipmentSharing: formData.hasEquipmentSharing,
+        hasNeedsBoard: formData.hasNeedsBoard,
+        hasTradeMarket: formData.hasTradeMarket,
+        hasEvents: formData.hasEvents,
       };
 
       const result = await CommunityService.submitForReview(payload);
@@ -66,17 +79,16 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ isOpen, onC
 
     switch (step) {
       case 'details':
-        return <IdentityStep {...props} onNext={() => setStep('features')} onClose={onClose} />;
-      case 'features':
-        return <FeaturesStep {...props} onNext={() => setStep('review')} onBack={() => setStep('details')} subStatus={subStatus} />;
+        return <IdentityStep {...props} onNext={() => setStep('tier')} onClose={onClose} />;
+      case 'tier':
+        return <SubscriptionTierStep {...props} onNext={() => setStep('review')} onBack={() => setStep('details')} submitLoading={loading} />;
       case 'review':
         return (
           <ReviewStep 
             {...props} 
             onNext={() => {}} 
             onFinalSubmit={handleFinalSubmit} 
-            onBack={() => setStep('features')} 
-            subStatus={subStatus} 
+            onBack={() => setStep('tier')} 
             loading={loading} 
           />
         );
@@ -102,7 +114,7 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ isOpen, onC
                     key={i} 
                     className={`h-1.5 w-6 rounded-full transition-all duration-500 ${
                       (step === 'details' && i === 1) || 
-                      (step === 'features' && i <= 2) || 
+                      (step === 'tier' && i <= 2) || 
                       (step === 'review' && i <= 3) 
                         ? 'bg-teal-500 w-10' : 'bg-slate-100'
                     }`}
@@ -112,7 +124,7 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ isOpen, onC
             </div>
             <DialogDescription className="text-slate-500 font-bold text-xs uppercase tracking-wider">
                {step === 'details' && t('community.create.step_identity')}
-               {step === 'features' && t('community.create.step_features')}
+               {step === 'tier' && t('community.create.step_tier', 'Choose Your Plan')}
                {step === 'review' && t('community.create.step_review')}
             </DialogDescription>
           </DialogHeader>
@@ -127,3 +139,4 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ isOpen, onC
 };
 
 export default CreateCommunityModal;
+

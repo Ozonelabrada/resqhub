@@ -1,11 +1,26 @@
 import api from '../api/client';
 
 export interface SubscriptionPlan {
-  id: string;
+  id: number;
   name: string;
-  price: number;
-  interval: 'month' | 'year';
-  features: string[];
+  code: string;
+  description: string;
+  monthlyPrice: number;
+  annualPrice: number;
+  isActive: boolean;
+  features: any[];
+  status: string;
+  subscribersCount: number;
+  dateCreated: string;
+  lastModifiedDate: string;
+}
+
+export interface SubscriptionPlansResponse {
+  plans: SubscriptionPlan[];
+  totalCount: number;
+  pageSize: number;
+  page: number;
+  totalPages: number;
 }
 
 export interface SubscriptionStatus {
@@ -15,26 +30,50 @@ export interface SubscriptionStatus {
   isPremium: boolean;
 }
 
+export interface UserSubscription {
+  id: number;
+  userId: string;
+  communityId: number;
+  planId: number;
+  status: 'Pending' | 'Approved' | 'Rejected' | 'Expired' | 'Cancelled';
+  startDate: string;
+  endDate: string;
+  stripeSubscriptionId: string | null;
+  dateCreated: string;
+  lastModifiedDate: string;
+  planName: string;
+  planCode: string;
+  monthlyPrice: number;
+  annualPrice: number;
+  communityName: string | null;
+  features: string[];
+  addOns: any[];
+}
+
+export interface UserSubscriptionsResponse {
+  message: string;
+  succeeded: boolean;
+  statusCode: number;
+  data: UserSubscription[];
+  errors: any;
+  baseEntity: any;
+}
+
 export const SubscriptionService = {
-  async getPlans(): Promise<SubscriptionPlan[]> {
+  async getPlans(isActive: boolean = true, page: number = 1, pageSize: number = 10): Promise<SubscriptionPlan[]> {
     try {
-      // Mocked for now, but following the pattern
-      return [
-        {
-          id: 'free',
-          name: 'Free',
-          price: 0,
-          interval: 'month',
-          features: ['Join communities', 'Create basic posts', 'Standard approval time']
-        },
-        {
-          id: 'premium',
-          name: 'Premium',
-          price: 29,
-          interval: 'month',
-          features: ['Instant community approval', 'Unlimited communities', 'Priority support', 'Verified badge']
-        }
-      ];
+      const response = await api.get<{ data: SubscriptionPlansResponse }>(
+        `/plans?isActive=${isActive}&page=${page}&pageSize=${pageSize}`
+      );
+      
+      console.log('Full API response:', response);
+      console.log('response.data:', response.data);
+      console.log('response.data.data:', response.data?.data);
+      console.log('response.data.data.plans:', response.data?.data?.plans);
+      
+      const plans = response.data?.data?.plans || [];
+      console.log(`Retrieved ${plans.length} plans from API`);
+      return plans;
     } catch (error) {
       console.error('Error fetching subscription plans:', error);
       return [];
@@ -48,6 +87,16 @@ export const SubscriptionService = {
     } catch (error) {
       console.error('Error fetching subscription status:', error);
       return { isActive: false, isPremium: false };
+    }
+  },
+
+  async getUserSubscriptions(userId: string): Promise<UserSubscription[]> {
+    try {
+      const response = await api.get<UserSubscriptionsResponse>(`/subscriptions/user/${userId}`);
+      return response.data?.data || [];
+    } catch (error) {
+      console.error('Error fetching user subscriptions:', error);
+      return [];
     }
   },
 
