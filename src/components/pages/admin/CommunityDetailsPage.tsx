@@ -570,9 +570,104 @@ const CommunityDetailsPage: React.FC = () => {
               </div>
             )}
           </Card>
-        </TabContent>
 
-        {/* Hierarchy Tab */}
+          {/* Match Compatibility Score */}
+          <Card className="p-6 bg-gradient-to-br from-teal-50 to-blue-50 border border-teal-100">
+            <div className="flex items-start justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-black text-slate-900 mb-1">Match Compatibility</h3>
+                <p className="text-sm text-slate-600">Community alignment with similar communities</p>
+              </div>
+              <div className="text-right">
+                <p className="text-4xl font-black text-teal-600">--</p>
+                <p className="text-xs text-slate-500 font-bold uppercase">compatibility score</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 bg-white rounded-xl border border-teal-100">
+                <p className="text-[10px] font-black text-teal-600 uppercase mb-2">Category Match</p>
+                <p className="text-2xl font-black text-slate-800">--</p>
+              </div>
+              <div className="p-4 bg-white rounded-xl border border-teal-100">
+                <p className="text-[10px] font-black text-blue-600 uppercase mb-2">Location Match</p>
+                <p className="text-2xl font-black text-slate-800">--</p>
+              </div>
+              <div className="p-4 bg-white rounded-xl border border-teal-100">
+                <p className="text-[10px] font-black text-purple-600 uppercase mb-2">Size Match</p>
+                <p className="text-2xl font-black text-slate-800">--</p>
+              </div>
+            </div>
+          </Card>
+
+          {/* Matched Communities */}
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-black text-slate-900">Matched Communities</h3>
+                <p className="text-sm text-slate-600 mt-1">Similar communities based on match criteria</p>
+              </div>
+              <Badge className="bg-slate-100 text-slate-700 font-bold">0</Badge>
+            </div>
+            <div className="space-y-3">
+              <div className="text-center py-12">
+                <Shield size={32} className="mx-auto text-slate-300 mb-3" />
+                <p className="text-slate-500 font-medium">No matched communities available</p>
+                <p className="text-xs text-slate-400 mt-1">Match data will appear here once backend provides recommendations</p>
+              </div>
+            </div>
+          </Card>
+
+          {/* Match Insights */}
+          <Card className="p-6">
+            <h3 className="text-lg font-black text-slate-900 mb-6">Match Insights</h3>
+            <div className="space-y-4">
+              <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl border border-blue-200">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
+                    1
+                  </div>
+                  <div>
+                    <p className="font-black text-blue-900 mb-1">Category Alignment</p>
+                    <p className="text-sm text-blue-800">Communities are matched based on shared categories and interests</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-xl border border-green-200">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
+                    2
+                  </div>
+                  <div>
+                    <p className="font-black text-green-900 mb-1">Geographic Proximity</p>
+                    <p className="text-sm text-green-800">Communities in similar locations or regions are matched together</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl border border-purple-200">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
+                    3
+                  </div>
+                  <div>
+                    <p className="font-black text-purple-900 mb-1">Community Size</p>
+                    <p className="text-sm text-purple-800">Similar member counts increase matching likelihood</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-4 bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl border border-orange-200">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
+                    4
+                  </div>
+                  <div>
+                    <p className="font-black text-orange-900 mb-1">Activity Level</p>
+                    <p className="text-sm text-orange-800">Communities with similar engagement patterns are recommended</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </TabContent>
         <TabContent value="hierarchy" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {community.childCommunities && community.childCommunities.length > 0 ? (

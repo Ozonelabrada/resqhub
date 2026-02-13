@@ -4,22 +4,17 @@ import { CommunityMembers } from './CommunityMembers';
 import { CommunityAbout } from './CommunityAbout';
 import { CommunityTrade } from './CommunityTrade';
 import { CommunityEvents } from './CommunityEvents';
-import { CommunityAnnouncements } from './CommunityAnnouncements';
 import { CommunityNews } from './CommunityNews';
 import { CommunityResources } from './CommunityResources';
 import { CreateNewsModal } from '@/components/modals/News/CreateNewsModal';
-import { CreateAnnouncementModal } from '@/components/modals/Announcement/CreateAnnouncementModal';
 import { CreateEventModal } from '@/components/modals/Event/CreateEventModal';
 import type { CommunityTabType } from '@/components/pages/public/NewsFeedPage/components/NewsFeedSidebar';
 import type { NewsFormData } from '@/components/modals/News/CreateNewsModal';
-import type { AnnouncementFormData } from '@/components/modals/Announcement/CreateAnnouncementModal';
 import type { EventFormData } from '@/components/modals/Event/CreateEventModal';
 import RestrictedContent from './RestrictedContent';
 
 interface TabContentRendererProps {
   activeTab: CommunityTabType;
-  activeUpdatesSubTab: 'news' | 'announcements';
-  onUpdatesSubTabChange: (tab: 'news' | 'announcements') => void;
   isFullMember: boolean;
   isPendingMember: boolean;
   isPrivileged: boolean;
@@ -33,17 +28,13 @@ interface TabContentRendererProps {
   isMember: boolean;
   onJoinClick: () => void;
   isNewsModalOpen: boolean;
-  isAnnouncementModalOpen: boolean;
   isEventModalOpen: boolean;
   onNewsModalClose: () => void;
-  onAnnouncementModalClose: () => void;
   onEventModalClose: () => void;
   onNewsSuccess: (data: NewsFormData) => void;
-  onAnnouncementSuccess: (data: AnnouncementFormData) => void;
   onEventSuccess: (data: EventFormData) => void;
   onRefresh: () => Promise<void>;
   onNewsModalOpen: () => void;
-  onAnnouncementModalOpen: () => void;
   onEventModalOpen: () => void;
   onApprove: (requestId: number, userId: string) => Promise<boolean>;
   onReject: (requestId: number, userId: string) => Promise<boolean>;
@@ -51,8 +42,6 @@ interface TabContentRendererProps {
 
 const TabContentRenderer: React.FC<TabContentRendererProps> = ({
   activeTab,
-  activeUpdatesSubTab,
-  onUpdatesSubTabChange,
   isFullMember,
   isPendingMember,
   isPrivileged,
@@ -66,17 +55,13 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
   isMember,
   onJoinClick,
   isNewsModalOpen,
-  isAnnouncementModalOpen,
   isEventModalOpen,
   onNewsModalClose,
-  onAnnouncementModalClose,
   onEventModalClose,
   onNewsSuccess,
-  onAnnouncementSuccess,
   onEventSuccess,
   onRefresh,
   onNewsModalOpen,
-  onAnnouncementModalOpen,
   onEventModalOpen,
   onApprove,
   onReject,
@@ -101,45 +86,11 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
     case 'updates':
       return isFullMember || isAdmin ? (
         <>
-          <div className="flex gap-2 mb-6 border-b border-slate-200">
-            <button
-              onClick={() => onUpdatesSubTabChange('news')}
-              className={`px-6 py-3 font-bold text-sm transition-all border-b-2 -mb-[2px] ${
-                activeUpdatesSubTab === 'news'
-                  ? 'text-teal-600 border-teal-600'
-                  : 'text-slate-500 border-transparent hover:text-teal-600'
-              }`}
-            >
-              News
-            </button>
-            <button
-              onClick={() => onUpdatesSubTabChange('announcements')}
-              className={`px-6 py-3 font-bold text-sm transition-all border-b-2 -mb-[2px] ${
-                activeUpdatesSubTab === 'announcements'
-                  ? 'text-teal-600 border-teal-600'
-                  : 'text-slate-500 border-transparent hover:text-teal-600'
-              }`}
-            >
-              Announcements
-            </button>
-          </div>
-
-          <div className="space-y-6">
-            {activeUpdatesSubTab === 'news' && (
-              <CommunityNews
-                isAdmin={isPrivileged}
-                onOpenNewsModal={onNewsModalOpen}
-                communityId={community?.id}
-              />
-            )}
-            {activeUpdatesSubTab === 'announcements' && (
-              <CommunityAnnouncements
-                isAdmin={isPrivileged}
-                onOpenAnnouncementModal={onAnnouncementModalOpen}
-                communityId={community?.id}
-              />
-            )}
-          </div>
+          <CommunityNews
+            isAdmin={isPrivileged}
+            onOpenNewsModal={onNewsModalOpen}
+            communityId={community?.id}
+          />
 
           <CreateNewsModal
             isOpen={isNewsModalOpen}
@@ -147,18 +98,11 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
             onSubmit={onNewsSuccess}
             communityId={String(community?.id)}
           />
-
-          <CreateAnnouncementModal
-            isOpen={isAnnouncementModalOpen}
-            onClose={onAnnouncementModalClose}
-            onSubmit={onAnnouncementSuccess}
-            communityId={String(community?.id)}
-          />
         </>
       ) : (
         <RestrictedContent
-          title="Announcements Locked"
-          description="Join the community to view announcements."
+          title="News Locked"
+          description="Join the community to view news."
           onJoinClick={handleRestrictedJoin}
         />
       );

@@ -44,7 +44,7 @@ const CommunityPage: React.FC = () => {
 
   const communityState = useCommunityState();
   const communityAccess = useCommunityAccess(community);
-  const handlers = useCommunityHandlers(refresh);
+  const handlers = useCommunityHandlers(refresh, community?.id);
 
   const handleOpenReportModal = () => {
     if (!isAuthenticated) {
@@ -145,8 +145,6 @@ const CommunityPage: React.FC = () => {
             <div className="space-y-6">
               <TabContentRenderer
                 activeTab={activeTab}
-                activeUpdatesSubTab={communityState.activeUpdatesSubTab}
-                onUpdatesSubTabChange={communityState.setActiveUpdatesSubTab}
                 isFullMember={communityAccess.isFullMember}
                 isPendingMember={communityAccess.isPendingMember}
                 isPrivileged={communityAccess.isPrivileged}
@@ -160,18 +158,12 @@ const CommunityPage: React.FC = () => {
                 isMember={communityAccess.isMember}
                 onJoinClick={handleJoin}
                 isNewsModalOpen={communityState.isNewsModalOpen}
-                isAnnouncementModalOpen={communityState.isAnnouncementModalOpen}
                 isEventModalOpen={communityState.isEventModalOpen}
                 onNewsModalClose={() => communityState.setIsNewsModalOpen(false)}
-                onAnnouncementModalClose={() => communityState.setIsAnnouncementModalOpen(false)}
                 onEventModalClose={() => communityState.setIsEventModalOpen(false)}
                 onNewsSuccess={(data) => {
                   communityState.setIsNewsModalOpen(false);
                   handlers.handleNewsSuccess(data);
-                }}
-                onAnnouncementSuccess={(data) => {
-                  communityState.setIsAnnouncementModalOpen(false);
-                  handlers.handleAnnouncementSuccess(data);
                 }}
                 onEventSuccess={(data) => {
                   communityState.setIsEventModalOpen(false);
@@ -179,7 +171,6 @@ const CommunityPage: React.FC = () => {
                 }}
                 onRefresh={refresh}
                 onNewsModalOpen={() => communityState.setIsNewsModalOpen(true)}
-                onAnnouncementModalOpen={() => communityState.setIsAnnouncementModalOpen(true)}
                 onEventModalOpen={() => communityState.setIsEventModalOpen(true)}
                 onApprove={approveRequest}
                 onReject={rejectRequest}

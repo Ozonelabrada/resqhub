@@ -523,6 +523,79 @@ export const CommunityService = {
 
 
 
+  async createCommunityEvents(payload: {
+    communityId: string | number;
+    events: Array<{
+      title: string;
+      description: string;
+      startDate: string;
+      endDate: string;
+      location: string;
+      contactInfo: string;
+      category: string;
+      imageUrl?: string;
+      maxAttendees?: number;
+      publishDate: string;
+      privacy: 'public' | 'internal';
+    }>;
+    sendNotifications?: boolean;
+    notificationMessage?: string;
+  }): Promise<{ success: boolean; data?: any; message?: string }> {
+    try {
+      console.log('Creating community events with payload:', payload);
+      
+      const response = await api.post('/community-events', payload);
+      console.log('Community events created successfully:', response.data);
+      
+      return {
+        success: true,
+        data: response.data?.data || response.data
+      };
+    } catch (error: any) {
+      console.error('Error creating community events:', error);
+      return {
+        success: false,
+        message: error?.response?.data?.message || error?.message || 'Failed to create events'
+      };
+    }
+  },
+
+  async createCommunityNews(payload: {
+    communityId: string | number;
+    newsArticles: Array<{
+      title: string;
+      content: string;
+      summary: string;
+      category: string;
+      author: string;
+      imageUrl?: string;
+      publishDate: string;
+      isFeatured: boolean;
+      privacy: 'public' | 'internal';
+      sourceUrl?: string;
+    }>;
+    sendNotifications?: boolean;
+    notificationMessage?: string;
+  }): Promise<{ success: boolean; data?: any; message?: string }> {
+    try {
+      console.log('Creating community news with payload:', payload);
+      
+      const response = await api.post('/community-news', payload);
+      console.log('Community news created successfully:', response.data);
+      
+      return {
+        success: true,
+        data: response.data?.data || response.data
+      };
+    } catch (error: any) {
+      console.error('Error creating community news:', error);
+      return {
+        success: false,
+        message: error?.response?.data?.message || error?.message || 'Failed to create news'
+      };
+    }
+  },
+
   async addVolunteersToCommunity(
     communityId: string | number,
     userIds: string[]

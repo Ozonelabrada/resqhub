@@ -25,13 +25,11 @@ export const CommunityEvents: React.FC<{
   isAdmin?: boolean;
   isEventModalOpen?: boolean;
   onOpenEventModal?: () => void;
-  onOpenCalendarModal?: () => void;
   communityId?: string | number;
 }> = ({ 
   isAdmin,
   isEventModalOpen,
   onOpenEventModal,
-  onOpenCalendarModal,
   communityId
 }) => {
   const navigate = useNavigate();
@@ -142,24 +140,30 @@ export const CommunityEvents: React.FC<{
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
   };
 
+  // Helper function to check if a date falls within an event's date range
+  const isDateInEventRange = (eventStartDate: string | undefined, eventEndDate: string | undefined, checkDate: string): boolean => {
+    const start = new Date(eventStartDate || new Date()).toISOString().split('T')[0];
+    const end = eventEndDate ? new Date(eventEndDate).toISOString().split('T')[0] : start;
+    
+    return checkDate >= start && checkDate <= end;
+  };
+
   const getDayData = (day: number) => {
     const year = currentMonth.getFullYear();
     const month = (currentMonth.getMonth() + 1).toString().padStart(2, '0');
     const dayStr = day.toString().padStart(2, '0');
     const dateStr = `${year}-${month}-${dayStr}`;
     
-    // Count events that fall on this date
+    // Count events that fall on this date (checking if date is within event's date range)
     const count = events.filter(e => {
-      const eventDate = new Date(e.dateCreated).toISOString().split('T')[0];
-      return eventDate === dateStr;
+      return isDateInEventRange(e.startDate, e.endDate, dateStr);
     }).length;
     
     return { dateStr, count };
   };
 
   const filteredEvents = events.filter(e => {
-    const eventDate = new Date(e.dateCreated).toISOString().split('T')[0];
-    const matchesDate = eventDate === selectedDate;
+    const matchesDate = isDateInEventRange(e.startDate, e.endDate, selectedDate);
     const matchesCategory = filter === 'All' || e.categoryName === filter;
     return matchesDate && matchesCategory;
   });
@@ -192,13 +196,6 @@ export const CommunityEvents: React.FC<{
 
           {isAdmin && (
             <div className="flex gap-3">
-              <Button 
-                onClick={onOpenCalendarModal}
-                className="h-14 px-8 bg-teal-600 hover:bg-teal-700 text-white font-black rounded-2xl shadow-xl shadow-teal-100 flex items-center gap-2"
-              >
-                <Plus size={20} className="stroke-[3px]" />
-                CALENDAR
-              </Button>
               <Button 
                 onClick={onOpenEventModal}
                 className="h-14 px-8 bg-slate-600 hover:bg-slate-700 text-white font-black rounded-2xl shadow-xl shadow-slate-100 flex items-center gap-2"
@@ -233,7 +230,7 @@ export const CommunityEvents: React.FC<{
             const itemTitle = item.title || 'Untitled Event';
             const itemCategory = item.category || item.type || 'Event';
             const dateRange = item.dateRange || (item.fromDate && item.toDate 
-              ? `${new Date(item.fromDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(item.toDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+              ? `${new Date(item.fromDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} - ${new Date(item.toDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
               : 'TBD');
             
             return (
@@ -465,95 +462,149 @@ export const CommunityEvents: React.FC<{
               <p className="text-slate-600 font-semibold">{error}</p>
             </div>
           ) : filteredEvents.length > 0 ? (
-            filteredEvents.map((event) => (
-              <Card 
-                key={event.id} 
-                onClick={() => handleViewDetails(String(event.id))}
-                className="group border-none shadow-sm hover:shadow-xl transition-all duration-500 rounded-[2.5rem] overflow-hidden bg-white cursor-pointer"
-              >
-                <div className="p-8 space-y-6">
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-2">
-                      <Badge className={cn(
-                        "px-4 py-1.5 rounded-xl uppercase text-[10px] font-black tracking-tighter border-none bg-teal-50 text-teal-600"
-                      )}>
-                        {event.categoryName || 'Event'}
-                      </Badge>
-                      {event.privacy === 'internal' && (
-                        <Badge className="bg-rose-500/10 text-rose-500 border-none px-2 py-1 rounded-lg flex items-center gap-1 font-black text-[9px] uppercase tracking-wider">
-                          <Eye size={10} strokeWidth={3} />
-                          Internal
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <h3 className="text-xl font-black text-slate-800 leading-tight group-hover:text-teal-600 transition-colors">
-                      {event.title}
-                    </h3>
-                    <p className="text-slate-500 text-sm font-medium line-clamp-2">
-                      {event.description}
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-50">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
-                        <MapPin size={18} />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-black text-slate-300 uppercase leading-none mb-1">Where</span>
-                        <span className="text-xs font-bold text-slate-600 truncate">{event.location || 'TBD'}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
-                        <Clock size={18} />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-black text-slate-300 uppercase leading-none mb-1">Date</span>
-                        <span className="text-xs font-bold text-slate-600 truncate">
-                          {new Date(event.dateCreated).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {event.contactInfo && (
-                    <div className="flex items-center gap-3 pt-4 border-t border-slate-50">
-                      <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
-                        <Phone size={18} />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-black text-slate-300 uppercase leading-none mb-1">Contact</span>
-                        <span className="text-xs font-bold text-slate-600">{event.contactInfo}</span>
-                      </div>
+            filteredEvents.map((event) => {
+              const startDate = new Date(event.startDate || event.dateCreated);
+              const endDate = event.endDate ? new Date(event.endDate) : null;
+              const isSameDay = endDate && startDate.toDateString() === endDate.toDateString();
+              const hasImage = event.reportUrl && event.reportUrl.trim() !== '';
+              
+              const formatTime = (date: Date) => {
+                return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+              };
+              
+              const formatDateRange = () => {
+                const startStr = startDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                const startTime = formatTime(startDate);
+                
+                if (!endDate) {
+                  return `${startStr} at ${startTime}`;
+                }
+                
+                if (isSameDay) {
+                  const endTime = formatTime(endDate);
+                  return `${startStr} · ${startTime} - ${endTime}`;
+                }
+                
+                const endStr = endDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                return `${startStr} - ${endStr}`;
+              };
+              
+              return (
+                <Card 
+                  key={event.id} 
+                  onClick={() => handleViewDetails(String(event.id))}
+                  className="group border-none shadow-sm hover:shadow-xl transition-all duration-500 rounded-[2.5rem] overflow-hidden bg-white cursor-pointer"
+                >
+                  {/* Featured Image Section */}
+                  {hasImage && (
+                    <div className="relative h-48 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden group-hover:opacity-90 transition-opacity">
+                      <img 
+                        src={event.reportUrl} 
+                        alt={event.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between pt-6 border-t border-slate-50">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 text-[10px] font-black">
-                        {event.user?.fullName?.charAt(0) || 'U'}
-                      </Avatar>
-                      <div className="flex flex-col">
-                        <span className="text-xs font-black text-slate-800">{event.user?.fullName || 'Unknown'}</span>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">Event Creator</span>
+                  <div className="p-8 space-y-6">
+                    {/* Category & Privacy Badges */}
+                    <div className="flex justify-between items-start flex-wrap gap-2">
+                      <div className="flex items-center gap-2">
+                        <Badge className={cn(
+                          "px-4 py-2 rounded-xl uppercase text-[10px] font-black tracking-tighter border-none",
+                          "bg-teal-50 text-teal-600"
+                        )}>
+                          {event.category || event.categoryName || 'Event'}
+                        </Badge>
+                        {event.privacy === 'internal' && (
+                          <Badge className="bg-rose-500/10 text-rose-500 border-none px-3 py-1.5 rounded-lg flex items-center gap-1 font-black text-[9px] uppercase tracking-wider">
+                            <Eye size={11} strokeWidth={3} />
+                            Internal
+                          </Badge>
+                        )}
                       </div>
                     </div>
-                    <Button 
-                      onClick={() => handleViewDetails(String(event.id))}
-                      variant="ghost" 
-                      className="rounded-xl group/btn text-teal-600 font-black text-xs hover:bg-teal-50"
-                    >
-                      DETAILS
-                      <ArrowRight size={14} className="ml-2 group-hover/btn:translate-x-1 transition-transform" />
-                    </Button>
+
+                    {/* Title & Description */}
+                    <div className="space-y-3">
+                      <h3 className="text-2xl font-black text-slate-800 leading-tight group-hover:text-teal-600 transition-colors">
+                        {event.title}
+                      </h3>
+                      {event.description && (
+                        <p className="text-slate-500 text-sm font-medium line-clamp-2">
+                          {event.description}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Date & Time Info */}
+                    <div className="flex items-start gap-3 p-4 bg-gradient-to-r from-teal-50 to-blue-50 rounded-2xl border border-teal-100">
+                      <div className="w-10 h-10 rounded-xl bg-teal-600 flex items-center justify-center text-white shrink-0">
+                        <Clock size={18} />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-black text-teal-600 uppercase leading-none mb-1">When</span>
+                        <span className="text-sm font-black text-slate-800">{formatDateRange()}</span>
+                      </div>
+                    </div>
+
+                    {/* Location & Contact Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-50">
+                      {/* Location */}
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
+                          <MapPin size={18} />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-black text-slate-300 uppercase leading-none mb-1">Where</span>
+                          <span className="text-xs font-bold text-slate-600">{event.location || 'TBD'}</span>
+                        </div>
+                      </div>
+
+                      {/* Contact Info */}
+                      {event.contactInfo && (
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
+                            <Phone size={18} />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[10px] font-black text-slate-300 uppercase leading-none mb-1">Contact</span>
+                            <span className="text-xs font-bold text-slate-600 break-all">{event.contactInfo}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Creator Info & Action Button */}
+                    <div className="flex items-center justify-between pt-6 border-t border-slate-50">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 text-[10px] font-black">
+                          {event.user?.fullName?.charAt(0) || 'U'}
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <span className="text-xs font-black text-slate-800">{event.user?.fullName || 'Posted'}</span>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase">
+                            {new Date(event.dateCreated).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                          </span>
+                        </div>
+                      </div>
+                      <Button 
+                        onClick={() => handleViewDetails(String(event.id))}
+                        variant="ghost" 
+                        className="rounded-xl group/btn text-teal-600 font-black text-xs hover:bg-teal-50"
+                      >
+                        DETAILS
+                        <ArrowRight size={14} className="ml-2 group-hover/btn:translate-x-1 transition-transform" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </Card>
-            ))
+                </Card>
+              );
+            })
           ) : (
             <div className="py-32 text-center bg-white rounded-[3rem] border-2 border-dashed border-slate-50 flex flex-col items-center justify-center">
               <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mb-6 text-slate-200">

@@ -220,7 +220,7 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
                   )}
                 >
                   <Megaphone className={cn("w-5 h-5 mr-3", communityNav.activeTab === 'updates' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
-                  {t('hub.news')} & {t('hub.announcements')}
+                  {t('hub.news')}
                 </Button>
 
                 <Button 
