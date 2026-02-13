@@ -38,7 +38,7 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ isOpen, onC
     try {
       // Format the payload according to new API requirements at POST /communities
       const isPublicOrg = formData.privacy === 'barangay' || formData.privacy === 'lgu';
-      const payload = {
+      const payload: any = {
         name: formData.name,
         description: formData.description,
         imageUrl: formData.imageUrl,
@@ -46,12 +46,16 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ isOpen, onC
         maxMembers: isPublicOrg ? 10000 : formData.maxMembers,
         privacy: formData.privacy,
         location: formData.location,
-        // New API fields
+        // Subscription and payment fields
         planId: formData.planId || 1, // Default to plan 1 if not selected
         addOns: formData.selectedAddOns, // Array of add-on codes
         paymentType: formData.paymentType, // 'monthly' or 'yearly'
         totalAmount: formData.totalAmount,
       };
+      // Include parentId only if it's not null/undefined
+      if (formData.parentId) {
+        payload.parentId = formData.parentId;
+      }
 
       // For now, use submitForReview as a fallback
       // In production, this should be a direct call to POST /communities

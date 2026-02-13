@@ -14,6 +14,7 @@ export interface CommunityFormData {
   maxMembers: number;
   selectedTier: TierType | null;
   planId: number | null; // Backend plan ID
+  parentId: number; // Parent community ID (0 for root communities)
   billingType: 'monthly' | 'yearly';
   selectedAddOns: string[]; // Array of add-on codes
   paymentType: 'monthly' | 'yearly';
@@ -44,6 +45,7 @@ export const INITIAL_FORM_DATA: CommunityFormData = {
   maxMembers: 10000, // Barangay gets unlimited members by default
   selectedTier: null,
   planId: null,
+  parentId: 0, // Root community by default
   billingType: 'monthly',
   selectedAddOns: [],
   paymentType: 'monthly',

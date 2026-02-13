@@ -20,29 +20,26 @@ const CreateCommunityPage: React.FC = () => {
   const handleFinalSubmit = async () => {
     setLoading(true);
     try {
-      const payload = {
+      // Format the payload according to new API requirements at POST /communities
+      const isPublicOrg = formData.privacy === 'barangay' || formData.privacy === 'lgu';
+      const payload: any = {
         name: formData.name,
         description: formData.description,
         imageUrl: formData.imageUrl,
-        maxMembers: formData.maxMembers,
+        // maxMembers=10000 indicates unlimited members for public organizations (barangay/lgu)
+        maxMembers: isPublicOrg ? 10000 : formData.maxMembers,
         privacy: formData.privacy,
         location: formData.location,
-        tier: formData.selectedTier,
-        hasLiveChat: formData.hasLiveChat,
-        hasFeedUpdates: formData.hasFeedUpdates,
-        hasNewsPosts: formData.hasNewsPosts,
-        hasAnnouncements: formData.hasAnnouncements,
-        hasDiscussionPosts: formData.hasDiscussionPosts,
-        hasIncidentReporting: formData.hasIncidentReporting,
-        hasEmergencyMap: formData.hasEmergencyMap,
-        hasBroadcastAlerts: formData.hasBroadcastAlerts,
-        hasMemberDirectory: formData.hasMemberDirectory,
-        hasSkillMatching: formData.hasSkillMatching,
-        hasEquipmentSharing: formData.hasEquipmentSharing,
-        hasNeedsBoard: formData.hasNeedsBoard,
-        hasTradeMarket: formData.hasTradeMarket,
-        hasEvents: formData.hasEvents,
+        // Subscription and payment fields
+        planId: formData.planId || 1, // Default to plan 1 if not selected
+        addOns: formData.selectedAddOns, // Array of add-on codes
+        paymentType: formData.paymentType, // 'monthly' or 'yearly'
+        totalAmount: formData.totalAmount,
       };
+      // Include parentId only if it's not null/undefined
+      if (formData.parentId) {
+        payload.parentId = formData.parentId;
+      }
 
       const result = await CommunityService.submitForReview(payload);
       if (result) {
