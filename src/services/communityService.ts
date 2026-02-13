@@ -98,28 +98,103 @@ export const CommunityService = {
 
   async getCommunityMembers(id: string): Promise<CommunityMember[]> {
     try {
-      // response.data.data contains { members: [], page: 1, ... }
+      // response.data.data contains { members: [], page: 1, memberCounts: { ... } }
       const response = await api.get<any>(`/communities/${id}/members`);
       const data = response.data?.data;
       
       if (data?.members && Array.isArray(data.members)) {
         // Map API fields (userId, userName) to CommunityMember type (id, username)
-        return data.members.map((m: any) => ({
-          id: m.userId,
-          name: m.userFullName || m.userName,
-          username: m.userName,
-          role: m.role,
-          joinedAt: m.joinedDate,
-          profilePicture: m.profilePictureUrl,
-          isSeller: m.isSeller,
-          memberIsApproved: m.memberIsApproved
-        }));
+        // API returns roles as array, so select the primary role (admin > moderator > member)
+        return data.members.map((m: any) => {
+          let role: 'admin' | 'moderator' | 'member' = 'member';
+          const rolesArray = m.roles || (m.role ? [m.role] : []);
+          
+          if (Array.isArray(rolesArray)) {
+            if (rolesArray.includes('admin')) {
+              role = 'admin';
+            } else if (rolesArray.includes('moderator')) {
+              role = 'moderator';
+            } else if (rolesArray.includes('member')) {
+              role = 'member';
+            }
+          } else if (m.role) {
+            // Fallback for legacy API response format
+            role = m.role as any;
+          }
+          
+          return {
+            id: m.userId,
+            name: m.userFullName || m.userName,
+            username: m.userName,
+            role: role,
+            roles: rolesArray, // Include all roles
+            joinedAt: m.joinedDate,
+            profilePicture: m.profilePictureUrl,
+            isSeller: m.isSeller,
+            isVolunteer: m.isVolunteer || false, // Add volunteer flag
+            memberIsApproved: m.memberIsApproved
+          };
+        });
       }
       
       return Array.isArray(data) ? data : [];
     } catch (error) {
       console.error('Error fetching community members:', error);
       return [];
+    }
+  },
+
+  async getCommunityVolunteers(communityId: string, pageSize: number = 10, page: number = 1): Promise<{ members: CommunityMember[]; totalCount: number; totalPages: number }> {
+    try {
+      // Fetch volunteers using role filter
+      const response = await api.get<any>(
+        `/community-members/community/${communityId}?role=volunteer&pageSize=${pageSize}&page=${page}`
+      );
+      const data = response.data?.data;
+      
+      if (data?.members && Array.isArray(data.members)) {
+        // Map API fields to CommunityMember type
+        const mapped = data.members.map((m: any) => {
+          let role: 'admin' | 'moderator' | 'member' = 'member';
+          const rolesArray = m.roles || (m.role ? [m.role] : []);
+          
+          if (Array.isArray(rolesArray)) {
+            if (rolesArray.includes('admin')) {
+              role = 'admin';
+            } else if (rolesArray.includes('moderator')) {
+              role = 'moderator';
+            } else if (rolesArray.includes('member')) {
+              role = 'member';
+            }
+          } else if (m.role) {
+            role = m.role as any;
+          }
+          
+          return {
+            id: m.userId,
+            name: m.userFullName || m.userName,
+            username: m.userName,
+            role: role,
+            roles: rolesArray,
+            joinedAt: m.joinedDate,
+            profilePicture: m.profilePictureUrl,
+            isSeller: m.isSeller,
+            isVolunteer: true, // Mark as volunteer since we fetched from volunteer endpoint
+            memberIsApproved: m.memberIsApproved || m.isApproved
+          };
+        });
+        
+        return {
+          members: mapped,
+          totalCount: data.totalCount || 0,
+          totalPages: data.totalPages || 1
+        };
+      }
+      
+      return { members: [], totalCount: 0, totalPages: 1 };
+    } catch (error) {
+      console.error('Error fetching community volunteers:', error);
+      return { members: [], totalCount: 0, totalPages: 1 };
     }
   },
 

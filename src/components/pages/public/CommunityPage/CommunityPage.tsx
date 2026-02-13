@@ -155,8 +155,8 @@ const CommunityPage: React.FC = () => {
                 community={community}
                 id={id}
                 posts={posts}
-                safeMembers={communityAccess.safeMembers}
-                safeJoinRequests={communityAccess.safeJoinRequests}
+                safeMembers={members}
+                safeJoinRequests={joinRequests}
                 isMember={communityAccess.isMember}
                 onJoinClick={handleJoin}
                 isNewsModalOpen={communityState.isNewsModalOpen}
@@ -192,7 +192,7 @@ const CommunityPage: React.FC = () => {
             <aside className="hidden lg:flex lg:col-span-3 lg:order-3 flex-col space-y-4 pt-2 pb-6 lg:h-full lg:overflow-y-auto lg:overflow-x-hidden scrollbar-hidden hover:custom-scrollbar transition-all min-w-0">
               <SidebarStats
                 community={community}
-                safeMembers={communityAccess.safeMembers}
+                safeMembers={members}
                 todaysAnnouncements={todaysAnnouncements}
                 todaysEvents={todaysEvents}
                 onUpdatesClick={() => handleTabChange('updates')}

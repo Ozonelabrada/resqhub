@@ -36,32 +36,25 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ isOpen, onC
   const handleFinalSubmit = async () => {
     setLoading(true);
     try {
-      // Format the payload according to API requirements
+      // Format the payload according to new API requirements at POST /communities
+      const isPublicOrg = formData.privacy === 'barangay' || formData.privacy === 'lgu';
       const payload = {
         name: formData.name,
         description: formData.description,
         imageUrl: formData.imageUrl,
-        maxMembers: formData.maxMembers,
+        // maxMembers=10000 indicates unlimited members for public organizations (barangay/lgu)
+        maxMembers: isPublicOrg ? 10000 : formData.maxMembers,
         privacy: formData.privacy,
         location: formData.location,
-        tier: formData.selectedTier,
-        // Include feature flags for backend compatibility
-        hasLiveChat: formData.hasLiveChat,
-        hasFeedUpdates: formData.hasFeedUpdates,
-        hasNewsPosts: formData.hasNewsPosts,
-        hasAnnouncements: formData.hasAnnouncements,
-        hasDiscussionPosts: formData.hasDiscussionPosts,
-        hasIncidentReporting: formData.hasIncidentReporting,
-        hasEmergencyMap: formData.hasEmergencyMap,
-        hasBroadcastAlerts: formData.hasBroadcastAlerts,
-        hasMemberDirectory: formData.hasMemberDirectory,
-        hasSkillMatching: formData.hasSkillMatching,
-        hasEquipmentSharing: formData.hasEquipmentSharing,
-        hasNeedsBoard: formData.hasNeedsBoard,
-        hasTradeMarket: formData.hasTradeMarket,
-        hasEvents: formData.hasEvents,
+        // New API fields
+        planId: formData.planId || 1, // Default to plan 1 if not selected
+        addOns: formData.selectedAddOns, // Array of add-on codes
+        paymentType: formData.paymentType, // 'monthly' or 'yearly'
+        totalAmount: formData.totalAmount,
       };
 
+      // For now, use submitForReview as a fallback
+      // In production, this should be a direct call to POST /communities
       const result = await CommunityService.submitForReview(payload);
       if (result) {
         setStep('success');
@@ -101,36 +94,38 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ isOpen, onC
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white max-h-[90vh]">
+      <DialogContent className="sm:max-w-[900px] p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white max-h-[95vh] flex flex-col">
         {step !== 'success' && (
-          <DialogHeader className="px-8 pt-8 pb-4 text-left bg-white relative z-10 border-b border-slate-50">
-            <div className="flex items-center justify-between mb-2">
-              <DialogTitle className="text-2xl font-black text-slate-800 tracking-tight">
-                {t('community.createTitle')}
-              </DialogTitle>
-              <div className="flex gap-1">
+          <DialogHeader className="px-6 sm:px-8 pt-6 sm:pt-8 pb-4 text-left bg-gradient-to-r from-white to-slate-50 relative z-10 border-b border-slate-100 flex-shrink-0">
+            <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+              <div>
+                <DialogTitle className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                  {t('community.createTitle')}
+                </DialogTitle>
+              </div>
+              <div className="flex gap-1.5">
                 {[1, 2, 3].map((i) => (
                   <div 
                     key={i} 
-                    className={`h-1.5 w-6 rounded-full transition-all duration-500 ${
+                    className={`h-2 rounded-full transition-all duration-500 ${
                       (step === 'details' && i === 1) || 
                       (step === 'tier' && i <= 2) || 
                       (step === 'review' && i <= 3) 
-                        ? 'bg-teal-500 w-10' : 'bg-slate-100'
+                        ? 'bg-teal-500 w-12' : 'bg-slate-200'
                     }`}
                   />
                 ))}
               </div>
             </div>
-            <DialogDescription className="text-slate-500 font-bold text-xs uppercase tracking-wider">
-               {step === 'details' && t('community.create.step_identity')}
-               {step === 'tier' && t('community.create.step_tier', 'Choose Your Plan')}
-               {step === 'review' && t('community.create.step_review')}
+            <DialogDescription className="text-slate-600 font-bold text-xs uppercase tracking-widest">
+               {step === 'details' && t('community.create.step_identity', 'Step 1: Community Details')}
+               {step === 'tier' && t('community.create.step_tier', 'Step 2: Choose Your Plan')}
+               {step === 'review' && t('community.create.step_review', 'Step 3: Review & Create')}
             </DialogDescription>
           </DialogHeader>
         )}
         
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden flex flex-col min-h-0">
           {renderStep()}
         </div>
       </DialogContent>

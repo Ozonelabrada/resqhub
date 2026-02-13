@@ -90,9 +90,9 @@ export const FeaturesStep: React.FC<StepProps> = ({ formData, setFormData, onNex
   const isSponsered = formData.privacy === 'barangay';
 
   return (
-    <div className="flex flex-col h-full max-h-[80vh]">
-      <ScrollArea className="flex-1 px-8 py-6">
-        <div className="space-y-6 pb-4">
+    <div className="flex flex-col h-full">
+      <ScrollArea className="flex-1 px-6 sm:px-8 py-6">
+        <div className="space-y-6 pb-28 pr-4 max-w-3xl">
           <CategorySection title={titles.social}>
             <FeatureToggle 
               label={t('community.create.features.live_chat_title')}
@@ -248,16 +248,16 @@ export const FeaturesStep: React.FC<StepProps> = ({ formData, setFormData, onNex
         </div>
       </ScrollArea>
 
-      <DialogFooter className="p-6 border-t border-slate-50 flex items-center justify-between gap-3 bg-white relative z-10 sticky bottom-0 mb-4">
-        <Button type="button" variant="ghost" onClick={onBack} className="font-bold text-slate-500">
+      <DialogFooter className="px-6 sm:px-8 py-4 border-t border-slate-100 flex items-center justify-between gap-3 bg-gradient-to-r from-white to-slate-50 relative z-20 sticky bottom-0 flex-shrink-0">
+        <Button type="button" variant="ghost" onClick={onBack} className="font-bold text-slate-600 hover:bg-slate-100">
           {t('common.back')}
         </Button>
         <Button 
             type="button" 
             onClick={onNext} 
-            className="bg-teal-600 hover:bg-teal-700 text-white font-black px-8 h-12 rounded-xl shadow-lg shadow-teal-100"
+            className="bg-teal-600 hover:bg-teal-700 text-white font-black px-6 sm:px-8 h-11 rounded-lg shadow-lg shadow-teal-100 flex items-center gap-2"
         >
-          {t('common.continue')} <ArrowRight size={18} className="ml-2" />
+          {t('common.continue')} <ArrowRight size={18} />
         </Button>
       </DialogFooter>
     </div>

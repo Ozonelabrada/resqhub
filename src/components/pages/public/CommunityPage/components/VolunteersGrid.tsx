@@ -1,10 +1,11 @@
-import React from 'react';
-import { Card, Avatar, Button, ShadcnBadge as Badge } from '@/components/ui';
+import React, { useState, useMemo } from 'react';
+import { Badge } from '@/components/ui';
 import {
-  Calendar,
-  User,
-  ExternalLink,
+  Search,
+  ChevronLeft,
+  ChevronRight,
   MessageCircle,
+  ExternalLink,
   UserPlus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -19,8 +20,7 @@ interface VolunteersGridProps {
 }
 
 /**
- * Volunteers grid component
- * <140 lines - handles volunteer display and management
+ * Volunteers table component with pagination and search
  */
 const VolunteersGrid: React.FC<VolunteersGridProps> = ({
   volunteers,
@@ -29,135 +29,171 @@ const VolunteersGrid: React.FC<VolunteersGridProps> = ({
   onAddVolunteer,
   isEmpty,
 }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const filteredVolunteers = useMemo(() => {
+    return volunteers.filter(volunteer => {
+      const matchesSearch = 
+        volunteer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        volunteer.username.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesSearch;
+    });
+  }, [volunteers, searchQuery]);
+
+  const totalPages = Math.ceil(filteredVolunteers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedVolunteers = filteredVolunteers.slice(startIndex, endIndex);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  if (isEmpty) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 rounded-[2.5rem] bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 space-y-4">
+        <div className="text-6xl">🤝</div>
+        <h3 className="text-2xl font-black text-slate-900 tracking-tight uppercase">
+          No Volunteers Yet
+        </h3>
+        <p className="text-slate-500 text-sm font-medium">
+          Start by adding volunteers to your community!
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 pb-20">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-2xl font-black text-slate-900 tracking-tight uppercase flex items-center gap-3">
-            <span className="text-2xl">🤝</span>
-            Community Volunteers
-          </h3>
-          <p className="text-slate-500 font-medium mt-1">
-            Manage community volunteers and volunteers
-          </p>
+      {/* Header & Search */}
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div className="relative w-full md:w-80">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <input 
+            type="text" 
+            placeholder="Search by name or username..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-12 pr-6 py-3.5 rounded-2xl bg-white border border-slate-100 shadow-sm focus:ring-4 focus:ring-purple-500/5 focus:border-purple-500 outline-none transition-all font-bold text-slate-700"
+          />
         </div>
-        <Button
+        <button
           onClick={onAddVolunteer}
-          className="bg-purple-600 hover:bg-purple-700 text-white rounded-2xl px-8 py-3 h-auto font-black text-sm uppercase tracking-wider shadow-lg shadow-purple-200 transition-all"
+          className="px-6 py-3.5 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl font-black text-sm uppercase tracking-wider transition-all shadow-lg shadow-purple-200 flex items-center gap-2 whitespace-nowrap"
         >
-          <UserPlus size={18} className="mr-2" />
+          <UserPlus size={18} />
           Add Volunteer
-        </Button>
+        </button>
       </div>
 
-      {isEmpty ? (
-        <div className="flex flex-col items-center justify-center py-20 rounded-[2.5rem] bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200">
-          <div className="text-6xl mb-4">🤝</div>
-          <h3 className="text-2xl font-black text-slate-900 mb-2 tracking-tight uppercase">
-            No Volunteers Yet
-          </h3>
-          <p className="text-slate-500 text-sm font-medium">
-            Start by adding volunteers to your community!
+      {/* Table */}
+      <div className="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm">
+        <table className="w-full">
+          <thead>
+            <tr className="bg-slate-50 border-b border-slate-200">
+              <th className="px-6 py-4 text-left text-[10px] font-black text-slate-600 uppercase tracking-widest">Volunteer</th>
+              <th className="px-6 py-4 text-left text-[10px] font-black text-slate-600 uppercase tracking-widest">Username</th>
+              <th className="px-6 py-4 text-left text-[10px] font-black text-slate-600 uppercase tracking-widest">Joined</th>
+              <th className="px-6 py-4 text-center text-[10px] font-black text-slate-600 uppercase tracking-widest">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {paginatedVolunteers.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="px-6 py-12 text-center">
+                  <p className="text-slate-500 font-semibold">No volunteers found</p>
+                </td>
+              </tr>
+            ) : (
+              paginatedVolunteers.map((volunteer) => {
+                const joinedDate = new Date(volunteer.joinedAt);
+                
+                return (
+                  <tr key={volunteer.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-400 to-violet-500 flex items-center justify-center text-sm font-black text-white">
+                          {volunteer.name?.charAt(0) || 'V'}
+                        </div>
+                        <div>
+                          <p className="font-black text-slate-900 text-sm">{volunteer.name}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm font-bold text-slate-600">@{volunteer.username}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm font-bold text-slate-600">
+                        {joinedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => onDirectChat(volunteer.id, volunteer.name)}
+                          className="p-2 rounded-lg hover:bg-slate-200 text-slate-600 hover:text-purple-600 transition-all"
+                          title="Send message"
+                        >
+                          <MessageCircle size={18} />
+                        </button>
+                        <button
+                          onClick={() => onViewProfile(volunteer.id)}
+                          className="p-2 rounded-lg hover:bg-slate-200 text-slate-600 hover:text-purple-600 transition-all"
+                          title="View profile"
+                        >
+                          <ExternalLink size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination */}
+      {filteredVolunteers.length > itemsPerPage && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-bold text-slate-500">
+            Showing {startIndex + 1}-{Math.min(endIndex, filteredVolunteers.length)} of {filteredVolunteers.length} volunteer{filteredVolunteers.length !== 1 ? 's' : ''}
           </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {volunteers.map((volunteer) => {
-            const joinedDate = new Date(volunteer.joinedAt);
-            const memberSince = Math.floor(
-              (new Date().getTime() - joinedDate.getTime()) / (1000 * 60 * 60 * 24)
-            );
-
-            return (
-              <Card
-                key={volunteer.id}
-                className="group relative p-0 rounded-[2.5rem] bg-gradient-to-br from-white to-slate-50 border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-purple-100/30 hover:border-purple-200 transition-all duration-300 overflow-hidden flex flex-col h-full"
-              >
-                <div className="h-1.5 bg-gradient-to-r from-purple-400 to-violet-400 group-hover:from-purple-500 group-hover:to-violet-500 transition-all" />
-
-                <div className="px-6 pt-6 pb-4 border-b border-slate-100">
-                  <Badge className="bg-purple-100 text-purple-700 border-none font-black text-[9px] uppercase tracking-widest px-3 py-1 shadow-sm flex items-center gap-1 w-fit">
-                    <span className="text-sm">🤝</span>
-                    Volunteer
-                  </Badge>
-                </div>
-
-                <div className="px-6 py-8 flex-1 flex flex-col items-center text-center">
-                  <div className="relative mb-6">
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-200 to-violet-200 rounded-2xl opacity-0 group-hover:opacity-100 blur-lg transition-opacity duration-300" />
-                    <Avatar
-                      src={volunteer.profilePicture}
-                      alt={volunteer.name}
-                      className="relative w-20 h-20 rounded-2xl border-4 border-white shadow-lg"
-                    />
-                  </div>
-
-                  <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight mb-1 group-hover:text-purple-600 transition-colors">
-                    {volunteer.name}
-                  </h3>
-                  <p className="text-xs font-bold text-slate-400 font-mono mb-6">
-                    @{volunteer.username}
-                  </p>
-
-                  <div className="w-full space-y-2">
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-100 group-hover:border-purple-200 group-hover:bg-purple-50/30 transition-all">
-                      <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
-                        <Calendar size={16} />
-                      </div>
-                      <div className="text-left">
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">
-                          Joined
-                        </p>
-                        <p className="text-xs font-bold text-slate-600">
-                          {joinedDate.toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric',
-                          })}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-100 group-hover:border-purple-200 group-hover:bg-purple-50/30 transition-all">
-                      <div className="w-8 h-8 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center">
-                        <User size={16} />
-                      </div>
-                      <div className="text-left">
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">
-                          Member For
-                        </p>
-                        <p className="text-xs font-bold text-slate-600">
-                          {memberSince === 0
-                            ? 'New'
-                            : memberSince === 1
-                              ? '1 day'
-                              : `${memberSince} days`}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="px-6 pb-6 border-t border-slate-100 space-y-3">
-                  <Button
-                    onClick={() => onDirectChat(volunteer.id, volunteer.name)}
-                    className="w-full h-10 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2"
-                  >
-                    <MessageCircle size={14} />
-                    Message
-                  </Button>
-
-                  <Button
-                    onClick={() => onViewProfile(volunteer.id)}
-                    className="w-full h-10 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-purple-200 hover:shadow-purple-300 flex items-center justify-center gap-2"
-                  >
-                    <ExternalLink size={14} />
-                    View Profile
-                  </Button>
-                </div>
-              </Card>
-            );
-          })}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={cn(
+                    "px-3 py-1 rounded-lg font-bold text-sm transition-all",
+                    currentPage === page
+                      ? "bg-purple-500 text-white"
+                      : "border border-slate-200 text-slate-700 hover:bg-slate-50"
+                  )}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
         </div>
       )}
     </div>

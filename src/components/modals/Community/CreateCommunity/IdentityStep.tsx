@@ -43,7 +43,6 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
           setLocationSuggestions(results || []);
           setShowSuggestions(true);
         } catch (error) {
-          console.error('Failed to fetch locations:', error);
           setLocationSuggestions([]);
         } finally {
           setIsSearchingLocation(false);
@@ -130,12 +129,23 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
   const labels = getPrivacyLabels(formData.privacy);
 
   return (
-    <form className="flex flex-col h-full max-h-[80vh]">
-      <ScrollArea className="flex-1 px-8 py-6">
-        <div className="space-y-6 pb-24">
+    <form className="flex flex-col h-full">
+      <ScrollArea className="flex-1 px-6 sm:px-8 py-6">
+        <div className="space-y-6 pb-28 pr-4 max-w-3xl">
           <div className="space-y-2">
             <label className="text-[10px] font-black text-teal-600 uppercase tracking-[0.2em]">{t('community.create.type_privacy')}</label>
-            <Select value={formData.privacy} onValueChange={(v: any) => setFormData({...formData, privacy: v})}>
+            <Select 
+              value={formData.privacy} 
+              onValueChange={(v: any) => {
+                // Auto-set unlimited members for public organizations
+                const isPublicOrg = v === 'barangay' || v === 'lgu';
+                setFormData({
+                  ...formData, 
+                  privacy: v,
+                  maxMembers: isPublicOrg ? 10000 : formData.maxMembers
+                });
+              }}
+            >
               <SelectTrigger className="h-14 rounded-2xl border-slate-200 focus:ring-teal-500/20 font-black bg-slate-50/50 text-slate-700">
                 <SelectValue placeholder={t('community.create.select_privacy')} />
               </SelectTrigger>
@@ -205,7 +215,7 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
             <Input 
               required
               placeholder={labels.namePlaceholder}
-              className="h-12 rounded-xl border-slate-200 focus:ring-teal-500/20 font-bold"
+              className="h-12 sm:h-14 rounded-xl border-slate-200 focus:ring-teal-500/20 font-bold text-base placeholder:text-slate-400"
               value={formData.name}
               onChange={(e) => setFormData({...formData, name: e.target.value})}
             />
@@ -216,7 +226,7 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
             <Textarea 
               required
               placeholder={labels.descPlaceholder}
-              className="min-h-[100px] rounded-xl border-slate-200 focus:ring-teal-500/20 font-medium"
+              className="min-h-[120px] rounded-xl border-slate-200 focus:ring-teal-500/20 font-medium text-base placeholder:text-slate-400"
               value={formData.description}
               onChange={(e) => setFormData({...formData, description: e.target.value})}
             />
@@ -296,7 +306,7 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
               <Input 
                 required
                 placeholder={labels.locationPlaceholder}
-                className="h-12 rounded-xl border-slate-200 focus:ring-teal-500/20 font-bold pr-10 bg-white"
+                className="h-12 sm:h-14 rounded-xl border-slate-200 focus:ring-teal-500/20 font-bold text-base placeholder:text-slate-400 pr-10 bg-white"
                 value={formData.location}
                 onChange={(e) => {
                   setFormData({...formData, location: e.target.value});
@@ -344,29 +354,48 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{t('community.create.review.capacity')}</label>
-              <span className="text-[10px] font-black text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full uppercase tracking-tighter">
-                {formData.privacy === 'barangay' ? t('community.create.review.sponsored') : t('community.create.review.quota_tier')}
-              </span>
+              {(formData.privacy === 'barangay' || formData.privacy === 'lgu') ? (
+                <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-tighter flex items-center gap-1.5">
+                  <span>✓</span> {t('community.create.review.unlimited')}
+                </span>
+              ) : (
+                <span className="text-[10px] font-black text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                  {t('community.create.review.quota_tier')}
+                </span>
+              )}
             </div>
-            <Select 
-              value={formData.maxMembers.toString()} 
-              onValueChange={(v) => setFormData({...formData, maxMembers: parseInt(v)})}
-            >
-              <SelectTrigger className="h-14 rounded-2xl border-slate-200 focus:ring-teal-500/20 font-black bg-slate-50/50 text-slate-700">
-                <SelectValue placeholder={t('community.create.review.select_capacity')} />
-              </SelectTrigger>
-              <SelectContent className="rounded-2xl border-slate-100 shadow-2xl p-2 bg-white">
-                {[
-                  { value: 100, label: t('community.create.review.members_count', { count: 100 }), price: 0 },
-                  { value: 500, label: t('community.create.review.members_count', { count: 500 }), price: 500 },
-                  { value: 1000, label: t('community.create.review.members_count', { count: 1000 }), price: 1000 },
-                  { value: 5000, label: t('community.create.review.members_count', { count: 5000 }), price: 2500 },
-                  { value: 10000, label: t('community.create.review.unlimited'), price: 5000 },
-                ].map((tier) => (
-                  <SelectItem 
-                    key={tier.value} 
-                    value={tier.value.toString()} 
-                    className="py-3 rounded-xl focus:bg-teal-50 focus:text-teal-700 font-bold transition-colors"
+            
+            {(formData.privacy === 'barangay' || formData.privacy === 'lgu') ? (
+              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+                <p className="text-xs font-bold text-emerald-900">
+                  🏛️ Public organizations automatically have unlimited members.
+                </p>
+                <p className="text-[10px] text-emerald-700 mt-1">
+                  {formData.privacy === 'barangay' 
+                    ? 'Barangays can accommodate all residents in the community.'
+                    : 'Municipalities can accommodate all constituents in the community.'}
+                </p>
+              </div>
+            ) : (
+              <Select 
+                value={formData.maxMembers.toString()} 
+                onValueChange={(v) => setFormData({...formData, maxMembers: parseInt(v)})}
+              >
+                <SelectTrigger className="h-12 sm:h-14 rounded-xl border-slate-200 focus:ring-teal-500/20 font-black bg-white text-slate-700 text-base">
+                  <SelectValue placeholder={t('community.create.review.select_capacity')} />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border-slate-100 shadow-2xl p-2 bg-white">
+                  {[
+                    { value: 100, label: t('community.create.review.members_count', { count: 100 }), price: 0 },
+                    { value: 500, label: t('community.create.review.members_count', { count: 500 }), price: 500 },
+                    { value: 1000, label: t('community.create.review.members_count', { count: 1000 }), price: 1000 },
+                    { value: 5000, label: t('community.create.review.members_count', { count: 5000 }), price: 2500 },
+                    { value: 10000, label: t('community.create.review.unlimited'), price: 5000 },
+                  ].map((tier) => (
+                    <SelectItem 
+                      key={tier.value} 
+                      value={tier.value.toString()} 
+                      className="py-3 rounded-xl focus:bg-teal-50 focus:text-teal-700 font-bold transition-colors"
                   >
                     <div className="flex items-center justify-between w-full gap-20">
                       <div className="flex items-center gap-3">
@@ -381,6 +410,7 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
                 ))}
               </SelectContent>
             </Select>
+            )}
             <p className="text-[10px] text-slate-400 font-bold leading-tight uppercase tracking-tight">
               {t('community.create.review.capacity_notice')} {formData.privacy === 'barangay' ? t('community.create.review.sponsored_notice') : ''}
             </p>
@@ -388,12 +418,12 @@ export const IdentityStep: React.FC<StepProps> = ({ formData, setFormData, onNex
         </div>
       </ScrollArea>
 
-      <DialogFooter className="p-6 border-t border-slate-50 flex items-center justify-end gap-3 bg-white relative z-10 sticky bottom-0 mb-4">
+      <DialogFooter className="px-6 sm:px-8 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-gradient-to-r from-white to-slate-50 relative z-20 sticky bottom-0 flex-shrink-0">
         <Button 
             type="button" 
             disabled={!isFormValid}
             onClick={onNext} 
-            className="bg-teal-600 hover:bg-teal-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-black px-8 h-12 rounded-xl shadow-lg shadow-teal-100 flex items-center gap-2"
+            className="bg-teal-600 hover:bg-teal-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-black px-6 sm:px-8 h-11 rounded-lg shadow-lg shadow-teal-100 flex items-center gap-2 whitespace-nowrap"
         >
           {t('common.continue')} <ArrowRight size={18} />
         </Button>

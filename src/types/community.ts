@@ -20,6 +20,14 @@ export interface Community {
   isAdmin?: boolean;
   isModerator?: boolean;
   isPrivate?: boolean;
+  communityUserRoles?: string[]; // e.g., ["member", "admin", "moderator"]
+  resources?: Array<{
+    id?: string | number;
+    title: string;
+    description?: string;
+    url?: string;
+    type?: string; // e.g., 'link', 'file', 'document'
+  }>;
   // Feature Flags
   hasLiveChat?: boolean;
   hasFeedUpdates?: boolean;
@@ -83,9 +91,11 @@ export interface CommunityMember {
   name: string;
   username: string;
   role: 'admin' | 'moderator' | 'member';
+  roles?: string[]; // All roles for the member (e.g., ["member", "admin"])
   joinedAt: string;
   profilePicture?: string;
   isSeller?: boolean;
+  isVolunteer?: boolean; // Whether member is a volunteer
   memberIsApproved?: boolean;
 }
 

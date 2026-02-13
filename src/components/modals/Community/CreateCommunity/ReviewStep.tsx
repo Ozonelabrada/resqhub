@@ -73,9 +73,9 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
   const TierIcon = getTierIcon(formData.selectedTier);
 
   return (
-    <div className="flex flex-col h-full max-h-[80vh]">
-      <ScrollArea className="flex-1 px-8 py-6">
-        <div className="space-y-8 pb-4 max-w-2xl">
+    <div className="flex flex-col h-full">
+      <ScrollArea className="flex-1 px-6 sm:px-8 py-6">
+        <div className="space-y-8 pb-28 pr-4 max-w-3xl">
           {/* Community Overview */}
           <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100">
             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">{t('community.create.review.overview')}</h4>
@@ -182,28 +182,89 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
           )}
 
           {/* Capacity Info */}
-          <div className="p-5 rounded-3xl bg-blue-50 border border-blue-100 flex gap-4">
-            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-              <Users className="text-blue-600" size={20} />
+          {(formData.privacy === 'barangay' || formData.privacy === 'lgu') ? (
+            <div className="p-5 rounded-3xl bg-emerald-50 border border-emerald-200 flex gap-4">
+              <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                <Users className="text-emerald-600" size={20} />
+              </div>
+              <div className="text-sm">
+                <p className="font-black text-emerald-900">🏛️ {t('community.capacity')}</p>
+                <p className="text-emerald-700 font-medium">
+                  ✓ Unlimited members - public organizations can accommodate all residents
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="p-5 rounded-3xl bg-blue-50 border border-blue-100 flex gap-4">
+              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                <Users className="text-blue-600" size={20} />
+              </div>
+              <div className="text-sm">
+                <p className="font-black text-blue-900">{t('community.capacity')}</p>
+                <p className="text-blue-700 font-medium">
+                  {formData.maxMembers >= 10000 ? t('community.unlimitedMembers', 'Unlimited members') : `Up to ${formData.maxMembers.toLocaleString()} members`}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Payment Type */}
+          <div className="p-5 rounded-3xl bg-indigo-50 border border-indigo-100 flex gap-4">
+            <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+              <Calendar className="text-indigo-600" size={20} />
             </div>
             <div className="text-sm">
-              <p className="font-black text-blue-900">{t('community.capacity')}</p>
-              <p className="text-blue-700 font-medium">
-                {formData.maxMembers >= 10000 ? t('community.unlimitedMembers', 'Unlimited members') : `Up to ${formData.maxMembers.toLocaleString()} members`}
+              <p className="font-black text-indigo-900">💳 Billing Period</p>
+              <p className="text-indigo-700 font-medium">
+                {formData.billingType === 'monthly' ? '📅 Monthly Billing' : '📆 Yearly Billing (20% Discount)'}
               </p>
+            </div>
+          </div>
+
+          {/* Add-ons Section */}
+          {formData.selectedAddOns.length > 0 && (
+            <div className="space-y-3">
+              <h4 className="text-sm font-black text-slate-800">🎁 Selected Add-ons</h4>
+              <div className="grid gap-2">
+                {formData.selectedAddOns.map((addOnCode) => (
+                  <div key={addOnCode} className="p-3 bg-purple-50 rounded-lg border border-purple-100 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Check size={16} className="text-purple-600" />
+                      <span className="font-bold text-purple-700 capitalize">
+                        {addOnCode.replace(/_/g, ' ')}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Total Amount */}
+          <div className="p-6 bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl border border-slate-700">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-white">Total Amount:</span>
+              <div className="text-right">
+                <p className="text-3xl font-black text-white">
+                  {formatCurrencyPHP(formData.totalAmount)}
+                </p>
+                <p className="text-xs font-medium text-slate-300 mt-1">
+                  {formData.billingType === 'yearly' ? 'Billed annually' : 'Billed monthly'}
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </ScrollArea>
 
-      <div className="p-6 border-t border-slate-50 flex items-center justify-between gap-4 bg-white relative z-10 sticky bottom-0 mb-4">
-        <Button variant="ghost" onClick={onBack} className="font-bold text-slate-500" disabled={loading}>
+      <div className="px-6 sm:px-8 py-4 border-t border-slate-100 flex items-center justify-between gap-4 bg-gradient-to-r from-white to-slate-50 relative z-20 sticky bottom-0 flex-shrink-0">
+        <Button variant="ghost" onClick={onBack} className="font-bold text-slate-600 hover:bg-slate-100" disabled={loading}>
           {t('common.back')}
         </Button>
         <Button 
           onClick={onFinalSubmit} 
           disabled={loading}
-          className="flex-1 bg-teal-600 hover:bg-teal-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-black h-12 rounded-xl shadow-lg shadow-teal-100 flex items-center justify-center gap-2"
+          className="flex-1 bg-teal-600 hover:bg-teal-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-black h-11 rounded-lg shadow-lg shadow-teal-100 flex items-center justify-center gap-2"
         >
           {loading && <Spinner size="sm" />}
           {loading ? t('common.loading') : selectedTier?.instantApproval ? t('community.create.now', 'Create Now') : t('community.create.review.submit_review')}

@@ -13,6 +13,11 @@ export interface CommunityFormData {
   imageUrl?: string | null;
   maxMembers: number;
   selectedTier: TierType | null;
+  planId: number | null; // Backend plan ID
+  billingType: 'monthly' | 'yearly';
+  selectedAddOns: string[]; // Array of add-on codes
+  paymentType: 'monthly' | 'yearly';
+  totalAmount: number;
   // Legacy boolean fields (for backend compatibility & pricing calculation)
   hasLiveChat: boolean;
   hasFeedUpdates: boolean;
@@ -36,8 +41,13 @@ export const INITIAL_FORM_DATA: CommunityFormData = {
   location: '',
   privacy: 'barangay',
   imageUrl: '',
-  maxMembers: 100,
+  maxMembers: 10000, // Barangay gets unlimited members by default
   selectedTier: null,
+  planId: null,
+  billingType: 'monthly',
+  selectedAddOns: [],
+  paymentType: 'monthly',
+  totalAmount: 0,
   // Legacy fields (will be populated when tier is selected)
   hasLiveChat: false,
   hasFeedUpdates: false,

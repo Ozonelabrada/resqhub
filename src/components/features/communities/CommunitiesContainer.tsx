@@ -983,7 +983,7 @@ export const CommunitiesContainer: React.FC = () => {
             className="bg-teal-600 hover:bg-teal-700 text-white font-bold h-10 px-4 rounded-xl shadow-lg shadow-teal-100 transition-all flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">{t('communities.create', 'Create')}</span>
+            <span className="hidden sm:inline">{t('communities.create', 'Apply for Community')}</span>
           </Button>
         </div>
       </div>

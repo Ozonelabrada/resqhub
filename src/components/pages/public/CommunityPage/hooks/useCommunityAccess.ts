@@ -4,6 +4,7 @@ interface Community {
   memberIsApproved?: boolean;
   isAdmin?: boolean;
   isModerator?: boolean;
+  communityUserRoles?: string[];
   name?: string;
 }
 
@@ -14,8 +15,12 @@ export const useCommunityAccess = (community: Community | null) => {
   const memberIsApproved = community?.memberIsApproved === true;
   const isFullMember = isMember && memberIsApproved;
   const isPendingMember = isMember && !memberIsApproved;
-  const isAdmin = community?.isAdmin || false;
-  const isModerator = community?.isModerator || false;
+  
+  // Check both legacy flags and new communityUserRoles array
+  const isAdmin = community?.isAdmin || 
+    (community?.communityUserRoles?.some(role => role.toLowerCase() === 'admin') || false);
+  const isModerator = community?.isModerator || 
+    (community?.communityUserRoles?.some(role => role.toLowerCase() === 'moderator') || false);
   const isPrivileged = isAdmin || isModerator;
 
   return {

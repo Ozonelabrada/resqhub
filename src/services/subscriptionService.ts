@@ -59,23 +59,36 @@ export interface UserSubscriptionsResponse {
   baseEntity: any;
 }
 
+export interface AddOn {
+  id: number;
+  name: string;
+  code: string;
+  description: string;
+  type: string;
+  isActive: boolean;
+  monthlyPrice: number;
+  oneTimePrice: number | null;
+  dateCreated: string;
+  lastModifiedDate: string;
+}
+
+export interface AddOnsResponse {
+  features: AddOn[];
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
+  pageSize: number;
+}
+
 export const SubscriptionService = {
   async getPlans(isActive: boolean = true, page: number = 1, pageSize: number = 10): Promise<SubscriptionPlan[]> {
     try {
       const response = await api.get<{ data: SubscriptionPlansResponse }>(
         `/plans?isActive=${isActive}&page=${page}&pageSize=${pageSize}`
       );
-      
-      console.log('Full API response:', response);
-      console.log('response.data:', response.data);
-      console.log('response.data.data:', response.data?.data);
-      console.log('response.data.data.plans:', response.data?.data?.plans);
-      
       const plans = response.data?.data?.plans || [];
-      console.log(`Retrieved ${plans.length} plans from API`);
       return plans;
     } catch (error) {
-      console.error('Error fetching subscription plans:', error);
       return [];
     }
   },
@@ -85,7 +98,6 @@ export const SubscriptionService = {
       const response = await api.get<{ data: SubscriptionStatus }>('/subscriptions/status');
       return response.data?.data || { isActive: false, isPremium: false };
     } catch (error) {
-      console.error('Error fetching subscription status:', error);
       return { isActive: false, isPremium: false };
     }
   },
@@ -95,7 +107,6 @@ export const SubscriptionService = {
       const response = await api.get<UserSubscriptionsResponse>(`/subscriptions/user/${userId}`);
       return response.data?.data || [];
     } catch (error) {
-      console.error('Error fetching user subscriptions:', error);
       return [];
     }
   },
@@ -105,8 +116,19 @@ export const SubscriptionService = {
       const response = await api.post<{ data: { checkoutUrl: string } }>('/subscriptions/checkout', { planId });
       return response.data?.data || null;
     } catch (error) {
-      console.error('Error initiating subscription:', error);
       return null;
+    }
+  },
+
+  async getAddOns(isActive: boolean = true, page: number = 1, pageSize: number = 50): Promise<AddOn[]> {
+    try {
+      const response = await api.get<{ data: AddOnsResponse }>(
+        `/Features?isActive=${isActive}&type=addOns&pageSize=${pageSize}&page=${page}`
+      );
+      const addOns = response.data?.data?.features || [];
+      return addOns;
+    } catch (error) {
+      return [];
     }
   }
 };
