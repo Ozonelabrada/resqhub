@@ -40,6 +40,13 @@ export const useNewsFeed = (options?: {
         status: options?.status !== undefined ? options.status : 'active' // Default to active string
       });
 
+      if (reports.length === 0) {
+        setItems([]);
+        setHasMore(false);
+        setLoading(false);
+        return;
+      }
+
       const mappedItems: NewsFeedItem[] = reports.map(report => {
         const reportTypeStr = report.reportType || 'lost';
         const typeStr = typeof reportTypeStr === 'string' ? reportTypeStr.toLowerCase() : 'lost';
@@ -135,7 +142,6 @@ export const useNewsFeed = (options?: {
       setCurrentPage(page);
 
     } catch (error) {
-      console.error('Error fetching newsfeed:', error);
       setError('Failed to load news feed');
       setHasMore(false);
     } finally {

@@ -1,3 +1,13 @@
+import {
+  convertPHTimeToDeviceTime,
+  formatBackendDateToLocal,
+  formatBackendDateTimeToLocal,
+  formatBackendTimeToLocal,
+  formatBackendDateTimeAgo,
+  formatBackendDateRange as formatBackendDateRangeUtil,
+  getTimeDifferenceFromNow
+} from './timezone';
+
 /**
  * Category style definitions for consistent styling across components
  */
@@ -37,11 +47,11 @@ export const formatCurrencyPHP = (amount: number): string => {
 
 /**
  * Format a date string or Date object to a readable format
+ * Handles backend dates (assumed to be PH time) and converts to device timezone
  */
 export const formatDate = (date: string | Date | undefined, options?: Intl.DateTimeFormatOptions): string => {
   if (!date) return '';
-  const d = typeof date === 'string' ? new Date(date) : date;
-  return d.toLocaleDateString('en-US', options || {
+  return formatBackendDateToLocal(date, options || {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
@@ -50,33 +60,23 @@ export const formatDate = (date: string | Date | undefined, options?: Intl.DateT
 
 /**
  * Format a date range with start and end dates
+ * Handles backend dates (assumed to be PH time) and converts to device timezone
  * Returns display format and status flags (isActive, isUpcoming)
  */
 export interface DateRangeFormat {
   display: string;
   isActive: boolean;
   isUpcoming: boolean;
+  isPast?: boolean;
 }
 
 export const formatDateRange = (startDate: string, endDate: string): DateRangeFormat => {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  const isActive = today >= start && today <= end;
-  const isUpcoming = today < start;
-  
-  const formatDate = (date: Date) => date.toLocaleDateString('en-US', { 
-    month: 'short', 
-    day: 'numeric',
-    year: 'numeric'
-  });
-  
+  const result = formatBackendDateRangeUtil(startDate, endDate);
   return {
-    display: `${formatDate(start)} - ${formatDate(end)}`,
-    isActive,
-    isUpcoming
+    display: result.display,
+    isActive: result.isActive,
+    isUpcoming: result.isUpcoming,
+    isPast: result.isPast
   };
 };
 
@@ -92,20 +92,11 @@ export const formatNumberCompact = (num: number): string => {
 
 /**
  * Simple time ago formatter
+ * Handles backend dates (assumed to be PH time) and converts to device timezone
  */
 export const formatDistanceToNow = (date: Date | string, _options?: { addSuffix?: boolean }): string => {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - d.getTime()) / 1000);
-  
-  if (diffInSeconds < 60) return 'just now';
-  const diffInMinutes = Math.floor(diffInSeconds / 60);
-  if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) return `${diffInHours}h ago`;
-  const diffInDays = Math.floor(diffInHours / 24);
-  if (diffInDays < 30) return `${diffInDays}d ago`;
-  return d.toLocaleDateString();
+  if (!date) return '';
+  return formatBackendDateTimeAgo(date);
 };
 
 // Roadmap Data Types and Formatters

@@ -94,9 +94,6 @@ const CommunityPage: React.FC = () => {
     );
   }
 
-  const todaysAnnouncements: any[] = [];
-  const todaysEvents: any[] = [];
-
   return (
     <div className="min-h-screen lg:h-[calc(100vh-60px)] flex flex-col bg-slate-50 lg:overflow-hidden lg:-mt-10">
       {/* COMMUNITY HEADER */}
@@ -184,8 +181,6 @@ const CommunityPage: React.FC = () => {
               <SidebarStats
                 community={community}
                 safeMembers={members}
-                todaysAnnouncements={todaysAnnouncements}
-                todaysEvents={todaysEvents}
                 onUpdatesClick={() => handleTabChange('updates')}
                 onMembersClick={() => handleTabChange('members')}
               />

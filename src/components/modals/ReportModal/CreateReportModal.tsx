@@ -66,7 +66,6 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    categoryId: 0,
     location: '',
     contactInfo: '',
     rewardDetails: '',
@@ -183,7 +182,6 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
         location: formData.location,
         contactInfo: formData.contactInfo,
         reportType: String(formData.reportType),
-        categoryId: 0, // Backend will auto-detect category based on description
         imageUrls: imageUrls,
         rewardDetails: formData.rewardDetails || '',
       };
@@ -229,7 +227,6 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
         setFormData({
           title: '',
           description: '',
-          categoryId: 0,
           location: '',
           contactInfo: '',
           rewardDetails: '',

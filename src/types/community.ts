@@ -17,6 +17,7 @@ export interface Community {
   maxMembers?: number | null;
   isMember?: boolean | string; // Can be boolean or string ('true'/'false') from API
   memberIsApproved?: boolean;
+  currentUserIsApproved?: boolean; // From API: indicates if user is approved in this community
   isAdmin?: boolean;
   isModerator?: boolean;
   isPrivate?: boolean;

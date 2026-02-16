@@ -3,12 +3,10 @@ import {
   Input, 
   Button, 
   Textarea,
-  Select,
   Alert,
   Tabs,
   TabsList,
-  TabsTrigger,
-  Spinner
+  TabsTrigger
 } from '../../ui';
 import { 
   FileText, 
@@ -16,15 +14,11 @@ import {
   Tag, 
   DollarSign, 
   Phone,
-  Camera,
-  Upload,
-  X,
   Save
 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { Modal } from '../../ui/Modal/Modal';
 import { ReportsService, type LostFoundItem } from '../../../services/reportsService';
-import { CategoryService } from '../../../services/categoryService';
 import { useTranslation } from 'react-i18next';
 import { searchLocations, type LocationSuggestion } from '../../../utils/geolocation';
 import { cn } from '../../../lib/utils';
@@ -42,19 +36,13 @@ interface EditReportModalProps {
 interface FormData {
   title: string;
   description: string;
-  categoryId: string;
   location: string;
   contactInfo: string;
   rewardDetails: string | number;
   reportType: string;
 }
 
-interface Category {
-  label: string;
-  value: string;
-}
-
-export const EditReportModal: React.FC<EditReportModalProps> = ({ 
+export const EditReportModal: React.FC<EditReportModalProps> = ({
   isOpen, 
   onClose, 
   onSuccess,
@@ -62,31 +50,17 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({
 }) => {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
   const [formData, setFormData] = useState<FormData>({
     title: '',
     description: '',
-    categoryId: '',
     location: '',
     contactInfo: '',
     rewardDetails: '',
     reportType: 'Lost'
   });
-  // Debug effect to log category matching
-  useEffect(() => {
-    if (formData.categoryId && categories.length > 0) {
-      const matched = categories.find(c => String(c.value) === String(formData.categoryId));
-      console.log('Category match debug:', {
-        selectedValue: formData.categoryId,
-        selectedValueType: typeof formData.categoryId,
-        categories: categories.map(c => ({ label: c.label, value: c.value, type: typeof c.value })),
-        matched: matched?.label
-      });
-    }
-  }, [formData.categoryId, categories]);
   
   const [locationSuggestions, setLocationSuggestions] = useState<LocationSuggestion[]>([]);
   const [isSearchingLocation, setIsSearchingLocation] = useState(false);
@@ -94,17 +68,14 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      // Load categories first, then initialize form data
-      const initializeForm = async () => {
-        await loadCategories();
-        
+      // Initialize form data
+      const initializeForm = () => {
         // Use type-safe extraction
         const extractedData = extractReportData(report);
         
         setFormData({
           title: extractedData.title,
           description: extractedData.description,
-          categoryId: extractedData.categoryId,
           location: extractedData.location,
           contactInfo: String(extractedData.contactInfo),
           rewardDetails: extractedData.rewardDetails,
@@ -129,26 +100,6 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({
 
     return () => clearTimeout(timer);
   }, [formData.location, isSearchingLocation]);
-
-  const loadCategories = async (): Promise<Category[]> => {
-    try {
-      const cats = await CategoryService.getCategories();
-      
-      if (cats && cats.length > 0) {
-        const mappedCategories: Category[] = cats.map(c => ({ 
-          label: `${c.icon || '🏷️'} ${c.name}`, 
-          value: String(c.id)
-        }));
-        
-        setCategories(mappedCategories);
-        return mappedCategories;
-      }
-      return [];
-    } catch (err) {
-      console.error('Failed to load categories', err);
-      return [];
-    }
-  };
 
   const handleInputChange = (field: keyof FormData, value: string | number): void => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -179,10 +130,7 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({
     setError('');
 
     try {
-      const result = await ReportsService.updateReport(Number(report.id || 0), {
-        ...formData,
-        categoryId: Number(formData.categoryId || 0) // Convert string back to number for API
-      });
+      const result = await ReportsService.updateReport(Number(report.id || 0), formData);
 
       if (result.success) {
         // Show success toast
@@ -280,18 +228,6 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({
                 placeholder={t('report.item_title_placeholder')}
                 required
                 className="rounded-2xl border-slate-100 bg-slate-50 focus-visible:ring-teal-600"
-              />
-            </div>
-
-            {/* Category */}
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">{t('report.category')}</label>
-              <Select
-                value={formData.categoryId}
-                options={categories}
-                onChange={(val) => handleInputChange('categoryId', val)}
-                placeholder={t('report.category_placeholder')}
-                className="rounded-2xl border-slate-100 bg-slate-50"
               />
             </div>
 

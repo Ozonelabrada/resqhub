@@ -26,7 +26,6 @@ import {
   Navigation
 } from 'lucide-react';
 import { ItemsService } from '../../../services/itemsService';
-import { CategoryService } from '../../../services/categoryService';
 import { useAuth } from '../../../context/AuthContext';
 import { getGeolocation, type GeolocationData } from '../../../utils/geolocation';
 import { sanitizeInput } from '../../../utils/validation';
@@ -41,7 +40,6 @@ interface ReportModalProps {
 interface FormData {
   title: string;
   description: string;
-  categoryId: number | null;
   location: string;
   contactInfo: string;
   reward: string;
@@ -59,35 +57,20 @@ export const ReportModal: React.FC<ReportModalProps> = ({
   const [formData, setFormData] = useState<FormData>({
     title: '',
     description: '',
-    categoryId: null,
     location: '',
     contactInfo: '',
     reward: '',
     images: []
   });
 
-  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<any>(null);
 
   useEffect(() => {
     if (visible) {
-      loadCategories();
       handleGetLocation();
     }
   }, [visible]);
-
-  const loadCategories = async () => {
-    try {
-      const cats = await CategoryService.getCategories();
-      setCategories(cats.map((cat: any) => ({
-        label: cat.name,
-        value: cat.id
-      })));
-    } catch (error) {
-      console.error('Failed to load categories:', error);
-    }
-  };
 
   const handleGetLocation = async () => {
     try {
@@ -131,7 +114,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
 
   const handleSubmit = async () => {
     // Validation
-    if (!formData.title || !formData.description || !formData.categoryId || !formData.location || !formData.contactInfo) {
+    if (!formData.title || !formData.description || !formData.location || !formData.contactInfo) {
       toast?.show({
         severity: 'error',
         summary: 'Validation Error',
@@ -144,7 +127,6 @@ export const ReportModal: React.FC<ReportModalProps> = ({
     try {
       const reportPayload = {
         userId: user?.id ? String(user.id) : undefined,
-        categoryId: formData.categoryId,
         title: sanitizeInput(formData.title),
         description: formData.description,
         location: sanitizeInput(formData.location),
@@ -178,7 +160,6 @@ export const ReportModal: React.FC<ReportModalProps> = ({
       setFormData({
         title: '',
         description: '',
-        categoryId: null,
         location: '',
         contactInfo: '',
         reward: '',
@@ -242,21 +223,6 @@ export const ReportModal: React.FC<ReportModalProps> = ({
                 placeholder="Detailed description of the item"
                 rows={4}
                 className="rounded-2xl shadow-sm focus:ring-teal-600 focus:border-teal-600"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="category" className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                <Tag className="w-4 h-4 text-emerald-600" />
-                Category *
-              </label>
-              <Select
-                id="category"
-                value={formData.categoryId?.toString() || ''}
-                options={categories.map(cat => ({ label: cat.label, value: String(cat.value || '') }))}
-                onChange={(value) => handleInputChange('categoryId', parseInt(value))}
-                placeholder="Select a category"
-                className="rounded-2xl shadow-sm focus:ring-emerald-600 focus:border-emerald-600"
               />
             </div>
 

@@ -34,7 +34,7 @@ interface NewsFeedSidebarProps {
   openLoginModal: () => void;
   navigate: (path: string) => void;
   currentView?: string;
-  onViewChange?: (view: 'feed' | 'messages' | 'communities') => void;
+  onViewChange?: (view: 'feed' | 'messages' | 'communities' | 'trade-market') => void;
   className?: string;
   communityNav?: {
     activeTab: CommunityTabType;
@@ -155,6 +155,22 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
                 </svg>
               </div>
               {t('common.communities')}
+            </Button>
+            <Button 
+              variant="ghost"
+              onClick={() => onViewChange?.('trade-market')}
+              className={cn(
+                "w-full justify-between py-3 rounded-2xl font-bold transition-all border-none group",
+                currentView === 'trade-market' ? "text-amber-700 bg-amber-50 shadow-sm" : "text-slate-600 hover:bg-amber-50 hover:text-amber-700 relative overflow-hidden"
+              )}
+            >
+              <div className="flex items-center">
+                <div className="relative mr-3">
+                  <ShoppingBag className={cn("w-5 h-5", currentView === 'trade-market' ? "text-amber-600" : "text-slate-400 group-hover:text-amber-600")} />
+                  <div className="absolute inset-0 bg-amber-400 rounded-full opacity-0 group-hover:opacity-20 transition-opacity" />
+                </div>
+                <span className="font-bold">{t('common.trade_market', 'Trade Market Hub')}</span>
+              </div>
             </Button>
           </>
         )}

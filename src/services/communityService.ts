@@ -611,5 +611,84 @@ export const CommunityService = {
       console.error('Error adding volunteers to community:', error);
       return false;
     }
+  },
+
+  async getMyCommunitiesPage(pageSize: number = 10, page: number = 1): Promise<{ communities: Community[]; totalCount: number; totalPages: number }> {
+    try {
+      const response = await api.get<any>(`/communities/my-communities?pageSize=${pageSize}&page=${page}`);
+      const data = response.data?.data || response.data;
+      
+      if (data?.communities && Array.isArray(data.communities)) {
+        return {
+          communities: data.communities,
+          totalCount: data.totalCount || 0,
+          totalPages: data.totalPages || 1
+        };
+      }
+      
+      if (Array.isArray(data)) {
+        return {
+          communities: data,
+          totalCount: data.length || 0,
+          totalPages: 1
+        };
+      }
+      
+      return { communities: [], totalCount: 0, totalPages: 1 };
+    } catch (error) {
+      console.error('Error fetching my communities:', error);
+      return { communities: [], totalCount: 0, totalPages: 1 };
+    }
+  },
+
+  async getAllApprovedCommunitiesPage(pageSize: number = 10, page: number = 1): Promise<{ communities: Community[]; totalCount: number; totalPages: number }> {
+    try {
+      const response = await api.get<any>(`/communities?status=approved&pageSize=${pageSize}&page=${page}`);
+      const data = response.data?.data || response.data;
+      
+      if (data?.communities && Array.isArray(data.communities)) {
+        return {
+          communities: data.communities,
+          totalCount: data.totalCount || 0,
+          totalPages: data.totalPages || 1
+        };
+      }
+      
+      if (Array.isArray(data)) {
+        return {
+          communities: data,
+          totalCount: data.length || 0,
+          totalPages: 1
+        };
+      }
+      
+      return { communities: [], totalCount: 0, totalPages: 1 };
+    } catch (error) {
+      console.error('Error fetching approved communities:', error);
+      return { communities: [], totalCount: 0, totalPages: 1 };
+    }
+  },
+
+  async getTodaysUpdates(): Promise<{
+    date: string;
+    events: any[];
+    totalCount: number;
+  }> {
+    try {
+      const response = await api.get('/community-events/today');
+      const data = response.data?.data;
+      return {
+        date: data?.date || new Date().toISOString().split('T')[0],
+        events: Array.isArray(data?.events) ? data.events : [],
+        totalCount: data?.totalCount || 0
+      };
+    } catch (error) {
+      console.error('Error fetching today\'s updates:', error);
+      return {
+        date: new Date().toISOString().split('T')[0],
+        events: [],
+        totalCount: 0
+      };
+    }
   }
 };

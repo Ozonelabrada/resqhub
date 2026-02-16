@@ -52,32 +52,32 @@ export const CommunityEvents: React.FC<{
     navigate(`/community/${communityId}/event/${eventId}`);
   };
 
-  // Fetch calendar data from backend
-  useEffect(() => {
-    const fetchCalendarData = async () => {
-      if (!communityId) {
-        setCalendarData([]);
-        return;
-      }
-      
-      setCalendarLoading(true);
-      try {
-        const data = await CommunityService.getCalendarEvents({
-          communityId,
-          page: 1,
-          pageSize: 100,
-        });
-        setCalendarData(data);
-      } catch (err) {
-        console.error('Failed to fetch calendar data:', err);
-        setCalendarData([]);
-      } finally {
-        setCalendarLoading(false);
-      }
-    };
+  // Calendar API call removed - no longer needed
+  // useEffect(() => {
+  //   const fetchCalendarData = async () => {
+  //     if (!communityId) {
+  //       setCalendarData([]);
+  //       return;
+  //     }
+  //     
+  //     setCalendarLoading(true);
+  //     try {
+  //       const data = await CommunityService.getCalendarEvents({
+  //         communityId,
+  //         page: 1,
+  //         pageSize: 100,
+  //       });
+  //       setCalendarData(data);
+  //     } catch (err) {
+  //       console.error('Failed to fetch calendar data:', err);
+  //       setCalendarData([]);
+  //     } finally {
+  //       setCalendarLoading(false);
+  //     }
+  //   };
 
-    fetchCalendarData();
-  }, [communityId]);
+  //   fetchCalendarData();
+  // }, [communityId]);
 
   // Fetch events from backend
   useEffect(() => {
