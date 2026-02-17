@@ -277,21 +277,7 @@ const CommunityDetailsPage: React.FC = () => {
 
     switch (community.status.toLowerCase()) {
       case 'pending':
-        return [
-          editItem,
-          {
-            label: 'Approve Community',
-            icon: <CheckCircle size={16} className="text-green-600" />,
-            action: () => setShowApproveModal(true),
-            variant: 'success' as const
-          },
-          {
-            label: 'Reject Community',
-            icon: <XCircle size={16} className="text-red-600" />,
-            action: () => setShowRejectModal(true),
-            variant: 'danger' as const
-          }
-        ];
+        return [editItem];
       case 'active':
         return [
           editItem,

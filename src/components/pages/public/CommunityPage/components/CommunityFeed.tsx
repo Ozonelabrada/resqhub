@@ -10,6 +10,7 @@ import { ReactionsService } from '@/services/reactionsService';
 import { useAuth } from '@/context/AuthContext';
 import { CreateReportModal, ReportDetailModal } from '@/components/modals';
 import { MatchModal } from '@/components/modals/MatchModal/MatchModal';
+import { ImageCollageDisplay } from '@/components/features/reports/ImageCollageDisplay';
 
 interface CommunityFeedProps {
   communityId: string;
@@ -199,182 +200,101 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
             <Card 
               key={post.id} 
               onClick={() => handleOpenDetail(post)}
-              className="p-8 border-none shadow-sm rounded-[2.5rem] bg-white group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-transparent hover:border-teal-50 cursor-pointer"
+              className="group bg-white border border-gray-100 rounded-2xl md:rounded-[2.5rem] overflow-visible shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col w-full"
             >
-              <div className="flex items-start gap-4 md:gap-6">
-                <Avatar className="w-12 h-12 border-4 border-slate-50 shadow-md transition-transform shrink-0 bg-slate-100 uppercase font-black">
-                  {post.user?.profilePicture ? (
-                    <img src={post.user.profilePicture.startsWith('http') ? post.user.profilePicture : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.user.profilePicture}`} alt={post.user.username} className="w-full h-full object-cover" />
-                  ) : (
-                    post.user?.username?.charAt(0) || post.title?.charAt(0) || '?'
-                  )}
-                </Avatar>
-                <div className="flex-1">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-                    <div className="flex items-center gap-3">
-                      <span className="font-black text-slate-800 text-base">@{post.user?.username || 'community_member'}</span>
+              <div className="flex flex-col md:flex-row w-full">
+                {/* Image Container - Professional Collage Layout */}
+                {post.images && post.images.length > 0 && (
+                  <div className="relative w-full md:w-[32rem] h-48 sm:h-56 md:h-80 lg:h-96">
+                    {/* Collage Display Component */}
+                    <ImageCollageDisplay
+                      images={post.images}
+                      title={post.title}
+                      containerHeight="h-full"
+                    />
+
+                    {/* Status Badge - Top Overlay */}
+                    <div className="absolute top-4 left-4 flex gap-2 z-20 pointer-events-none">
+                      <Badge className={cn(
+                        "px-3 py-1 rounded-full font-black text-[9px] uppercase tracking-[0.1em] border shadow-md",
+                        post.reportType?.toLowerCase() === 'lost' ? 'bg-orange-600 text-white border-orange-500' : 
+                        post.reportType?.toLowerCase() === 'found' ? 'bg-emerald-600 text-white border-emerald-500' :
+                        post.reportType?.toLowerCase() === 'news' ? 'bg-teal-600 text-white border-teal-500' :
+                        post.reportType?.toLowerCase() === 'announcement' ? 'bg-blue-600 text-white border-blue-500' :
+                        'bg-slate-600 text-white border-slate-500'
+                      )}>
+                        {post.reportType || 'Post'}
+                      </Badge>
                       {post.privacy === 'internal' && (
-                        <Badge className="bg-rose-500/10 text-rose-500 border-none px-2 py-0.5 rounded-lg flex items-center gap-1 font-black text-[9px] uppercase tracking-wider">
+                        <Badge className="bg-rose-50 text-rose-600 border border-rose-100 px-3 py-1 rounded-full flex items-center gap-1 font-black text-[9px] uppercase tracking-wider shadow-md">
                           <Eye size={10} strokeWidth={3} />
                           Internal
                         </Badge>
                       )}
-                      <Badge className={cn(
-                        "px-3 py-1 rounded-lg font-black text-[9px] uppercase tracking-[0.1em] border-none",
-                        post.reportType?.toLowerCase() === 'lost' ? 'bg-orange-600 text-white' : 
-                        post.reportType?.toLowerCase() === 'found' ? 'bg-emerald-600 text-white' :
-                        post.reportType?.toLowerCase() === 'news' ? 'bg-teal-600 text-white' :
-                        post.reportType?.toLowerCase() === 'announcement' ? 'bg-blue-600 text-white' :
-                        'bg-slate-600 text-white'
-                      )}>
-                        {post.reportType || 'Post'}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">{formatDate(post.dateCreated)}</span>
                     </div>
                   </div>
-                  
-                  <h3 className="font-black text-xl text-slate-900 mb-2 group-hover:text-teal-600 transition-colors uppercase tracking-tight leading-tight">{post.title}</h3>
-                  <p className="text-slate-600 font-medium text-base mb-4 leading-relaxed line-clamp-4">{post.description}</p>
-                  
-                  {/* Images Display - Enhanced Collage Layout */}
-                  {post.images && post.images.length > 0 && (
-                    <div className="w-full h-80 overflow-hidden bg-gray-100 rounded-2xl mb-6">
-                      {/* Dynamic Collage Grid */}
-                      <div className="w-full h-full grid gap-0.5" style={{gridTemplateColumns: 'repeat(4, 1fr)', gridTemplateRows: 'repeat(4, 1fr)'}}>
-                        {post.images.length === 1 ? (
-                          // 1 Image: Full container
-                          <img 
-                            src={post.images[0].imageUrl.startsWith('http') ? post.images[0].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[0].imageUrl}`}
-                            alt={post.title}
-                            className="w-full h-full object-cover col-span-4 row-span-4 cursor-pointer hover:brightness-110 transition-all duration-300"
-                          />
-                        ) : post.images.length === 2 ? (
-                          // 2 Images: Side-by-side full height
-                          post.images.map((img) => (
-                            <img 
-                              key={img.id}
-                              src={img.imageUrl.startsWith('http') ? img.imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${img.imageUrl}`}
-                              alt={post.title}
-                              className="w-full h-full object-cover col-span-2 row-span-4 cursor-pointer hover:brightness-110 transition-all duration-300"
-                            />
-                          ))
-                        ) : post.images.length === 3 ? (
-                          // 3 Images: Large left (2x4) + 2 stacked right (2x2 each)
-                          <>
-                            <img 
-                              src={post.images[0].imageUrl.startsWith('http') ? post.images[0].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[0].imageUrl}`}
-                              alt={post.title}
-                              className="w-full h-full object-cover col-span-2 row-span-4 cursor-pointer hover:brightness-110 transition-all duration-300"
-                            />
-                            <img 
-                              src={post.images[1].imageUrl.startsWith('http') ? post.images[1].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[1].imageUrl}`}
-                              alt={post.title}
-                              className="w-full h-full object-cover col-span-2 row-span-2 cursor-pointer hover:brightness-110 transition-all duration-300"
-                            />
-                            <img 
-                              src={post.images[2].imageUrl.startsWith('http') ? post.images[2].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[2].imageUrl}`}
-                              alt={post.title}
-                              className="w-full h-full object-cover col-span-2 row-span-2 cursor-pointer hover:brightness-110 transition-all duration-300"
-                            />
-                            <div className="col-span-2 row-span-1"></div>
-                          </>
-                        ) : post.images.length === 4 ? (
-                          // 4 Images: Large left (2x4) + top right (2x2) + 2 bottom right (2x1 each)
-                          <>
-                            <img 
-                              src={post.images[0].imageUrl.startsWith('http') ? post.images[0].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[0].imageUrl}`}
-                              alt={post.title}
-                              className="w-full h-full object-cover col-span-2 row-span-4 cursor-pointer hover:brightness-110 transition-all duration-300"
-                            />
-                            <img 
-                              src={post.images[1].imageUrl.startsWith('http') ? post.images[1].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[1].imageUrl}`}
-                              alt={post.title}
-                              className="w-full h-full object-cover col-span-2 row-span-2 cursor-pointer hover:brightness-110 transition-all duration-300"
-                            />
-                            <img 
-                              src={post.images[2].imageUrl.startsWith('http') ? post.images[2].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[2].imageUrl}`}
-                              alt={post.title}
-                              className="w-full h-full object-cover col-span-1 row-span-2 cursor-pointer hover:brightness-110 transition-all duration-300"
-                            />
-                            <img 
-                              src={post.images[3].imageUrl.startsWith('http') ? post.images[3].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[3].imageUrl}`}
-                              alt={post.title}
-                              className="w-full h-full object-cover col-span-1 row-span-2 cursor-pointer hover:brightness-110 transition-all duration-300"
-                            />
-                            <div className="col-span-2 row-span-1"></div>
-                          </>
-                        ) : post.images.length === 5 ? (
-                          // 5 Images: Large left (2x4) + top right (2x2) + 2 middle (1x1) + 1 bottom (2x1)
-                          <>
-                            <img 
-                              src={post.images[0].imageUrl.startsWith('http') ? post.images[0].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[0].imageUrl}`}
-                              alt={post.title}
-                              className="w-full h-full object-cover col-span-2 row-span-4 cursor-pointer hover:brightness-110 transition-all duration-300"
-                            />
-                            <img 
-                              src={post.images[1].imageUrl.startsWith('http') ? post.images[1].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[1].imageUrl}`}
-                              alt={post.title}
-                              className="w-full h-full object-cover col-span-2 row-span-2 cursor-pointer hover:brightness-110 transition-all duration-300"
-                            />
-                            <img 
-                              src={post.images[2].imageUrl.startsWith('http') ? post.images[2].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[2].imageUrl}`}
-                              alt={post.title}
-                              className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300"
-                            />
-                            <img 
-                              src={post.images[3].imageUrl.startsWith('http') ? post.images[3].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[3].imageUrl}`}
-                              alt={post.title}
-                              className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300"
-                            />
-                            <img 
-                              src={post.images[4].imageUrl.startsWith('http') ? post.images[4].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[4].imageUrl}`}
-                              alt={post.title}
-                              className="w-full h-full object-cover col-span-2 row-span-2 cursor-pointer hover:brightness-110 transition-all duration-300"
-                            />
-                          </>
-                        ) : (
-                          // 6+ Images: Large left (2x4) + top right (2x2) + 2 middle (1x1 each) + bottom right (2x1) with count overlay
-                          <>
-                            <img 
-                              src={post.images[0].imageUrl.startsWith('http') ? post.images[0].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[0].imageUrl}`}
-                              alt={post.title}
-                              className="w-full h-full object-cover col-span-2 row-span-4 cursor-pointer hover:brightness-110 transition-all duration-300"
-                            />
-                            <img 
-                              src={post.images[1].imageUrl.startsWith('http') ? post.images[1].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[1].imageUrl}`}
-                              alt={post.title}
-                              className="w-full h-full object-cover col-span-2 row-span-2 cursor-pointer hover:brightness-110 transition-all duration-300"
-                            />
-                            <img 
-                              src={post.images[2].imageUrl.startsWith('http') ? post.images[2].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[2].imageUrl}`}
-                              alt={post.title}
-                              className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300"
-                            />
-                            <img 
-                              src={post.images[3].imageUrl.startsWith('http') ? post.images[3].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[3].imageUrl}`}
-                              alt={post.title}
-                              className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300"
-                            />
-                            <div className="relative w-full h-full object-cover col-span-2 row-span-2 overflow-hidden bg-gray-200 cursor-pointer">
-                              <img 
-                                src={post.images[4].imageUrl.startsWith('http') ? post.images[4].imageUrl : `${import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com'}/${post.images[4].imageUrl}`}
-                                alt={post.title}
-                                className="w-full h-full object-cover hover:brightness-110 transition-all duration-300"
-                              />
-                              {post.images.length > 5 && (
-                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center hover:bg-black/40 transition-all duration-300">
-                                  <span className="text-white font-black text-3xl">+{post.images.length - 5}</span>
-                                </div>
-                              )}
-                            </div>
-                          </>
-                        )}
+                )}
+
+                {/* Content Area */}
+                <div className="flex-1 p-4 md:p-8 flex flex-col">
+                  <div className="flex justify-between items-start gap-2 w-full mb-4">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base sm:text-lg md:text-2xl font-black text-slate-900 leading-snug group-hover:text-teal-600 transition-colors uppercase tracking-tight break-words">
+                        {post.title}
+                      </h3>
+                      <div className="flex flex-wrap items-center gap-2 text-slate-500 font-bold text-[8px] sm:text-[9px] md:text-xs mt-2 min-w-0">
+                        <span className="text-slate-300 flex-shrink-0">Posted by</span>
+                        <span className="font-black text-slate-700 flex-shrink-0">@{post.user?.username || 'community_member'}</span>
+                        <span className="text-slate-300 flex-shrink-0">•</span>
+                        <span className="flex-shrink-0">{formatDate(post.dateCreated)}</span>
                       </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-1.5 sm:mt-2 md:mt-3 mb-2 sm:mb-3 md:mb-6">
+                    <p className="text-slate-600 text-[11px] sm:text-sm md:text-base leading-relaxed line-clamp-4">
+                      {post.description}
+                    </p>
+                  </div>
+
+                  {/* Possible Matches */}
+                  {Array.isArray((post as any).possibleMatches) && (post as any).possibleMatches.length > 0 && post.images && post.images.length > 0 && (
+                    <div className="p-4 border-t border-slate-50 bg-slate-50 mb-4">
+                      <button
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          setMatchesOpenMap(prev => ({ ...prev, [post.id]: !prev[post.id] })); 
+                        }}
+                        className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-white shadow-sm hover:shadow-md"
+                      >
+                        <span className="text-sm font-black text-slate-700">Possible Matches ({(post as any).possibleMatches.length})</span>
+                        {matchesOpenMap[post.id] ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+                      </button>
+
+                      {matchesOpenMap[post.id] && (
+                        <div className="mt-3 space-y-2">
+                          {((post as any).possibleMatches as Array<any>).map((m: any, i: number) => (
+                            <button
+                              key={i}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenMatch(post.id, m.reportId || m.id);
+                              }}
+                              className="w-full text-left px-3 py-2 rounded-lg bg-white/90 hover:bg-teal-50 border border-slate-100 flex items-center justify-between"
+                            >
+                              <div className="truncate">
+                                <div className="text-sm font-black text-slate-800 truncate">{m.name || m.username || 'Unknown'}</div>
+                                <div className="text-xs text-slate-400 truncate">{m.title || m.description || ''}</div>
+                              </div>
+                              <div className="text-xs text-teal-600 font-black">View</div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
 
+                  {/* Mod Tools */}
                   {isAdmin && (
                     <div className="flex items-center gap-2 mb-6 p-3 rounded-2xl bg-slate-50 border border-slate-100/50">
                       <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mr-2 flex items-center gap-1.5 ml-1">
@@ -390,107 +310,58 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
                     </div>
                   )}
 
-                  {/* Possible Matches */}
-                  {Array.isArray((post as any).possibleMatches) && (post as any).possibleMatches.length > 0 && (
-                    <div className="mb-4 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                      <button
-                        onClick={() => setMatchesOpenMap(prev => ({ ...prev, [post.id]: !prev[post.id] }))}
-                        className="w-full flex items-center justify-between px-3 py-2 rounded-md bg-white hover:bg-teal-50"
+                  {/* Action Buttons */}
+                  <div className="mt-auto pt-1.5 sm:pt-2 md:pt-4 border-t border-gray-50 flex flex-col w-full">
+                    <div className="flex items-center gap-1 w-full flex-wrap justify-start">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          isUserMember && handlePostReaction(post.id);
+                        }}
+                        disabled={!isUserMember}
+                        className={cn(
+                          "flex items-center gap-0.5 px-1.5 sm:px-2 md:px-4 py-0.5 sm:py-1 md:py-2 rounded-md sm:rounded-lg md:rounded-2xl font-black text-[8px] sm:text-[9px] md:text-xs transition-all whitespace-nowrap",
+                          post.isReacted ? "bg-rose-50 text-rose-600" : "text-slate-400 hover:bg-gray-50 hover:text-rose-500",
+                          !isUserMember && "cursor-not-allowed opacity-50"
+                        )}
                       >
-                        <span className="font-black text-sm">Possible Matches ({(post as any).possibleMatches.length})</span>
-                        {matchesOpenMap[post.id] ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                        <Heart className={cn("w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 flex-shrink-0", post.isReacted && "fill-current")} />
+                        <span className="min-w-max">{post.reactionsCount || 0}</span>
                       </button>
 
-                      {matchesOpenMap[post.id] && (
-                        <div className="mt-3 space-y-2">
-                          {((post as any).possibleMatches as Array<any>).map((m: any, i: number) => (
-                            <div key={i} className="flex items-center justify-between bg-white p-2 rounded-md border border-slate-100">
-                              <div className="truncate">
-                                <div className="text-sm font-black truncate">{m.name || m.username || 'Unknown'}</div>
-                                <div className="text-xs text-slate-400 truncate">{m.title || m.description || ''}</div>
-                              </div>
-                              <button onClick={() => handleOpenMatch(post.id, m.reportId || m.id)} className="text-xs font-black text-teal-600">View</button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleComments(post.id);
+                        }}
+                        className={cn(
+                          "flex items-center gap-0.5 px-1.5 sm:px-2 md:px-4 py-0.5 sm:py-1 md:py-2 rounded-md sm:rounded-lg md:rounded-2xl font-black text-[8px] sm:text-[9px] md:text-xs transition-all whitespace-nowrap text-slate-400 hover:bg-gray-50 hover:text-teal-500"
+                        )}
+                      >
+                        <MessageSquare className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 flex-shrink-0" />
+                        <span className="min-w-max">{post.commentsCount || 0}</span>
+                      </button>
+
+                      <button 
+                        onClick={(e) => { 
+                          e.stopPropagation();
+                          setSelectedPostForMatch(post); 
+                          setIsMatchModalOpen(true); 
+                        }}
+                        disabled={post.status?.toLowerCase() === 'reunited'}
+                        className={cn(
+                          "flex items-center gap-0.5 px-1.5 sm:px-2 md:px-4 py-0.5 sm:py-1 md:py-2 rounded-md sm:rounded-lg md:rounded-2xl font-black text-[8px] sm:text-[9px] md:text-xs transition-all whitespace-nowrap text-slate-400 hover:bg-gray-50 hover:text-orange-500",
+                          post.status?.toLowerCase() === 'reunited' && "cursor-not-allowed opacity-40"
+                        )}
+                        title={post.status?.toLowerCase() === 'reunited' ? "Already resolved" : "Find Matches"}
+                      >
+                        <Handshake className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 flex-shrink-0" />
+                      </button>
                     </div>
-                  )}
-
-                  {/* Interaction Bar */}
-                  <div className="flex items-center gap-6 py-4 border-t border-slate-50 mt-2">
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        isUserMember && handlePostReaction(post.id);
-                      }}
-                      className={cn(
-                        "flex items-center gap-2 group/btn",
-                        !isUserMember && "cursor-not-allowed opacity-70"
-                      )}
-                      title={!isUserMember ? "Join community to react" : ""}
-                    >
-                      <div className={cn(
-                        "w-9 h-9 rounded-xl flex items-center justify-center transition-all",
-                        post.isReacted
-                          ? "bg-rose-50 text-rose-500" 
-                          : "bg-slate-50 text-slate-400 group-hover/btn:bg-rose-50 group-hover/btn:text-rose-500",
-                        !isUserMember && "group-hover/btn:bg-slate-50 group-hover/btn:text-slate-400"
-                      )}>
-                        <Heart size={18} className={post.isReacted ? "fill-current" : ""} />
-                      </div>
-                      <span className={cn(
-                        "text-xs font-black transition-colors uppercase tracking-widest",
-                        post.isReacted ? "text-rose-600" : "text-slate-500 group-hover/btn:text-rose-600",
-                        !isUserMember && "group-hover/btn:text-slate-500"
-                      )}>
-                        {post.reactionsCount || 0}
-                      </span>
-                    </button>
-
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleComments(post.id);
-                      }}
-                      className="flex items-center gap-2 group/btn"
-                    >
-                      <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover/btn:bg-teal-50 group-hover/btn:text-teal-600 transition-all">
-                        <MessageSquare size={18} />
-                      </div>
-                      <span className="text-xs font-black text-slate-500 group-hover/btn:text-teal-600 transition-colors uppercase tracking-widest">{post.commentsCount || 0}</span>
-                      <div className="ml-1 text-slate-300">
-                        {expandedComments[post.id] ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                      </div>
-                    </button>
-
-                    <button 
-                      onClick={(e) => { 
-                        e.stopPropagation();
-                        setSelectedPostForMatch(post); 
-                        setIsMatchModalOpen(true); 
-                      }}
-                      disabled={post.status?.toLowerCase() === 'reunited'}
-                      className={cn(
-                        "flex items-center gap-2 group/btn ml-2",
-                        post.status?.toLowerCase() === 'reunited' && "cursor-not-allowed opacity-40"
-                      )}
-                      title={post.status?.toLowerCase() === 'reunited' ? "Already resolved" : "Possible Matches"}
-                    >
-                      <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover/btn:bg-orange-50 group-hover/btn:text-orange-600 transition-all">
-                        <Handshake size={18} />
-                      </div>
-                    </button>
-                    
-                    {!isUserMember && expandedComments[post.id] && (
-                      <div className="ml-auto text-[10px] font-black text-orange-400 uppercase tracking-widest bg-orange-50 px-3 py-1 rounded-lg">
-                        Visitor Mode: Join to Comment
-                      </div>
-                    )}
                   </div>
-                  
+
                   {expandedComments[post.id] && (
-                    <div className="pt-6 border-t border-slate-50 mt-0 px-2 animate-in slide-in-from-top-4 duration-300">
+                    <div className="pt-6 border-t border-slate-50 mt-4 px-2 animate-in slide-in-from-top-4 duration-300">
                       <CommentSection 
                         itemId={post.id} 
                         itemType={post.reportType?.toLowerCase() === 'found' ? 'found' : 'lost'} 
