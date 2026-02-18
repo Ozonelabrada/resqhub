@@ -19,6 +19,8 @@ export interface CommunityFormData {
   selectedAddOns: string[]; // Array of add-on codes
   paymentType: 'monthly' | 'yearly';
   totalAmount: number;
+  // UI-driven feature list (used by FeaturesStep)
+  features: Array<{ code: string; isActive: boolean; label?: string }>;
   // Legacy boolean fields (for backend compatibility & pricing calculation)
   hasLiveChat: boolean;
   hasFeedUpdates: boolean;
@@ -50,6 +52,23 @@ export const INITIAL_FORM_DATA: CommunityFormData = {
   selectedAddOns: [],
   paymentType: 'monthly',
   totalAmount: 0,
+  // UI feature list (mirrors legacy boolean flags for the wizard)
+  features: [
+    { code: 'live_chat', isActive: false },
+    { code: 'feed_updates', isActive: false },
+    { code: 'news_posts', isActive: false },
+    { code: 'announcements', isActive: false },
+    { code: 'discussion_posts', isActive: false },
+    { code: 'incident_reporting', isActive: false },
+    { code: 'emergency_map', isActive: false },
+    { code: 'broadcast_alerts', isActive: false },
+    { code: 'member_directory', isActive: false },
+    { code: 'skill_matching', isActive: false },
+    { code: 'equipment_sharing', isActive: false },
+    { code: 'needs_board', isActive: false },
+    { code: 'trade_market', isActive: false },
+    { code: 'events', isActive: false },
+  ],
   // Legacy fields (will be populated when tier is selected)
   hasLiveChat: false,
   hasFeedUpdates: false,

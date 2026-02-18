@@ -85,16 +85,16 @@ const PublicLayout = () => {
           icon: <Clock className="w-4 h-4 mr-2" />,
           command: () => navigate('/activity')
         },
-        isFeatureEnabled('reports') ? {
-          label: t('common.success_stories'),
-          icon: <Heart className="w-4 h-4 mr-2" />,
-          command: () => navigate('/success-stories')
-        } : null,
-        {
-          label: t('common.safety_tips'),
-          icon: <Info className="w-4 h-4 mr-2" />,
-          command: () => navigate('/safety-tips')
-        }
+        // isFeatureEnabled('reports') ? {
+        //   label: t('common.success_stories'),
+        //   icon: <Heart className="w-4 h-4 mr-2" />,
+        //   command: () => navigate('/success-stories')
+        // } : null,
+        // {
+        //   label: t('common.safety_tips'),
+        //   icon: <Info className="w-4 h-4 mr-2" />,
+        //   command: () => navigate('/safety-tips')
+        // }
       ].filter(Boolean) as any[]
     }
   ];

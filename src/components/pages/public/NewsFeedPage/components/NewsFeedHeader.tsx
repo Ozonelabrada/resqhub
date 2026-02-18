@@ -79,7 +79,7 @@ const NewsFeedHeader: React.FC<NewsFeedHeaderProps> = ({
           
           <div className="flex items-center gap-2 shrink-0">
             {/* Sort Filter - Hidden on mobile to save space */}
-            <Select value={sortBy} onValueChange={(val: any) => setSortBy(val)}>
+            <Select disabled value={sortBy} onValueChange={(val: any) => setSortBy(val)}>
               <SelectTrigger className="hidden sm:flex w-[120px] h-10 bg-slate-50 border-none rounded-xl font-bold text-slate-600 text-[11px]">
                 <SelectValue placeholder={t('common.sort') || "Sort"} />
               </SelectTrigger>
@@ -91,7 +91,8 @@ const NewsFeedHeader: React.FC<NewsFeedHeaderProps> = ({
             </Select>
 
             <Button 
-              variant="ghost" 
+              variant="ghost"
+              disabled 
               size="sm"
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
               className={cn(

@@ -4,23 +4,32 @@ import { authManager } from '../utils/sessionManager';
 export interface BackendUserData {
   id: string;
   email: string;
-  name: string;
-  firstName: string;
-  lastName: string;
-  fullName: string;
-  username: string;
-  profilePicture: string;
-  coverPhoto: string | null;
-  bio: string | null;
-  location: string | null;
-  joinDate: string;
-  emailVerified: boolean;
-  verificationStatus: number;
-  successfulReturns: number;
-  helpedPeople: number;
-  role: number;
-  createdAt: string;
-  updatedAt: string;
+  name?: string;
+  firstName?: string;
+  lastName?: string;
+  fullName?: string;
+  username?: string;
+  // legacy and alternate keys supported by backend
+  userName?: string;
+  profilePicture?: string;
+  profilePictureUrl?: string;
+  coverPhoto?: string | null;
+  coverPhotoUrl?: string | null;
+  bio?: string | null;
+  location?: string | null;
+  phone?: string | null;
+  phoneNumber?: string | null;
+  address?: string | null;
+  dateOfBirth?: string | null;
+  sex?: string | null;
+  joinDate?: string;
+  emailVerified?: boolean;
+  verificationStatus?: number;
+  successfulReturns?: number;
+  helpedPeople?: number;
+  role?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface BackendUserResponse {
@@ -117,24 +126,31 @@ export class UserService {
     return {
       id: backendUser.id,
       email: backendUser.email,
-      name: backendUser.name || backendUser.fullName || 'User Name',
-      firstName: backendUser.firstName,
-      lastName: backendUser.lastName,
-      fullName: backendUser.fullName || backendUser.name || 'User Name',
-      username: backendUser.username || backendUser.email?.split('@')[0] || 'username',
-      profilePicture: backendUser.profilePicture || null,
-      coverPhoto: backendUser.coverPhoto || null,
+      name: backendUser.name || backendUser.fullName || `${backendUser.firstName || ''} ${backendUser.lastName || ''}`.trim() || 'User Name',
+      firstName: backendUser.firstName || null,
+      lastName: backendUser.lastName || null,
+      fullName: backendUser.fullName || `${backendUser.firstName || ''} ${backendUser.lastName || ''}`.trim() || backendUser.name || 'User Name',
+      // prefer username, fall back to userName (possible alternate key)
+      username: backendUser.username || backendUser.userName || backendUser.email?.split('@')[0] || 'username',
+      // surface both modern and legacy picture keys
+      profilePicture: backendUser.profilePictureUrl || backendUser.profilePicture || null,
+      coverPhoto: backendUser.coverPhotoUrl || backendUser.coverPhoto || null,
+      // optional profile extras
       bio: backendUser.bio || 'Helping reunite lost items with their owners 🔍',
-      location: backendUser.location || 'Location not set',
-      joinDate: backendUser.joinDate || backendUser.createdAt,
-      emailVerified: backendUser.emailVerified,
-      verificationStatus: this.getVerificationStatusText(backendUser.verificationStatus),
+      location: backendUser.location || null,
+      phoneNumber: backendUser.phoneNumber || backendUser.phone || null,
+      address: backendUser.address || null,
+      dateOfBirth: backendUser.dateOfBirth || null,
+      sex: backendUser.sex || null,
+      joinDate: backendUser.joinDate || backendUser.createdAt || null,
+      emailVerified: backendUser.emailVerified ?? false,
+      verificationStatus: this.getVerificationStatusText(backendUser.verificationStatus ?? 0),
       successfulReturns: backendUser.successfulReturns || 0,
       helpedPeople: backendUser.helpedPeople || 0,
-      role: this.getRoleText(backendUser.role),
-      createdAt: backendUser.createdAt,
-      updatedAt: backendUser.updatedAt
-    };
+      role: this.getRoleText(backendUser.role ?? 0),
+      createdAt: backendUser.createdAt || null,
+      updatedAt: backendUser.updatedAt || null
+    } as any;
   }
 
   private static getVerificationStatusText(status: number): string {

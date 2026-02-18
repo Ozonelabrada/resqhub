@@ -131,11 +131,11 @@ export const LegalPage: React.FC<LegalPageProps> = ({
                   <p className="text-teal-700 mt-1 m-0 text-sm">We're here to help you understand how we protect your data.</p>
                 </div>
               </div>
-              <Link to="/contact-us">
-                <Button className="bg-teal-600 hover:bg-teal-700 text-white whitespace-nowrap">
+              {/* <Link to="/contact-us" >
+                <Button disabled className="bg-teal-600 hover:bg-teal-700 text-white whitespace-nowrap">
                   Contact Us
                 </Button>
-              </Link>
+              </Link> */}
             </div>
           )}
         </article>

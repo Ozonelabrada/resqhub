@@ -83,6 +83,9 @@ export interface CommunityPost {
     profilePicture: string | null;
     fullName: string;
   };
+  // Optional event fields (some reports include event start/end)
+  startDate?: string | null;
+  endDate?: string | null;
   dateCreated: string;
   lastModifiedDate: string;
 }

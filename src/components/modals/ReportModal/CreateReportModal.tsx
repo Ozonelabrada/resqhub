@@ -94,7 +94,11 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
     const timer = setTimeout(async () => {
       if (formData.location.length >= 3 && isSearchingLocation) {
         const results = await searchLocations(formData.location);
-        setLocationSuggestions(results);
+        // If user has a saved profile location, keep it as the first suggestion (avoid duplicates)
+        const merged = user?.location
+          ? (results.some(r => r.display_name === user.location) ? results : [{ display_name: user.location, lat: '', lon: '', name: user.location, address: {} }, ...results])
+          : results;
+        setLocationSuggestions(merged);
         setShowSuggestions(true);
         setIsSearchingLocation(false);
       }
@@ -102,6 +106,16 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
 
     return () => clearTimeout(timer);
   }, [formData.location, isSearchingLocation]);
+
+  // If user has a profile location and the location input is empty, surface it as a suggestion
+  useEffect(() => {
+    if (user?.location && (!formData.location || formData.location.trim() === '')) {
+      setLocationSuggestions(prev => {
+        if (prev.some(s => s.display_name === user.location)) return prev;
+        return [{ display_name: user.location, lat: '', lon: '', name: user.location, address: {} }, ...prev];
+      });
+    }
+  }, [user?.location, formData.location]);
 
   const handleInputChange = (field: string, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));

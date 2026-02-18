@@ -235,7 +235,8 @@ export const ContactForm: React.FC = () => {
         <div className="flex flex-col sm:flex-row items-center gap-4">
           <Button 
             type="submit" 
-            disabled={isSubmitting}
+            // disabled={isSubmitting}
+            disabled
             className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white font-bold h-12 px-8"
           >
             {isSubmitting ? (

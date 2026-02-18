@@ -13,10 +13,14 @@ interface EventResourcesProps {
 const EventResources: React.FC<EventResourcesProps> = ({ event }) => {
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-black text-slate-800 mb-6 flex items-center gap-2">
-        <Download size={20} />
-        Resources & Materials
-      </h3>
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
+          <Download size={20} />
+          Resources & Materials
+        </h3>
+        <div className="text-xs font-bold text-slate-500 uppercase mt-1">{event?.stats?.resources?.total ?? event?.resources?.length ?? 0} items</div>
+      </div>
+
       {event?.resources && event.resources.length > 0 ? (
         <div className="space-y-3">
           {event.resources.map((resource) => (

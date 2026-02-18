@@ -596,6 +596,22 @@ export const CommunityService = {
     }
   },
 
+  async getEventStatistics(communityId: string | number, eventId: string | number): Promise<{ success: boolean; data?: any; message?: string }> {
+    try {
+      const response = await api.get(`/communities/${communityId}/events/${eventId}/statistics`);
+      return {
+        success: true,
+        data: response.data?.data || response.data
+      };
+    } catch (error: any) {
+      console.error('Error fetching event statistics:', error);
+      return {
+        success: false,
+        message: error?.response?.data?.message || error?.message || 'Failed to fetch event statistics'
+      };
+    }
+  },
+
   async addVolunteersToCommunity(
     communityId: string | number,
     userIds: string[]

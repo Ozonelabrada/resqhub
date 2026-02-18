@@ -1147,6 +1147,7 @@ export const CommunitiesContainer: React.FC<{ initialTab?: 'my-communities' | 'a
           <div className="flex items-center gap-3 bg-slate-50 p-2 pr-4 rounded-2xl border border-slate-100">
              <Button 
                 onClick={() => setView('store-application')}
+                disabled
                 size="sm"
                 className="bg-slate-900 hover:bg-slate-800 text-white font-black h-10 px-4 rounded-xl transition-all flex items-center gap-2 group"
              >

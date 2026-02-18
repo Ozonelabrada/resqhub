@@ -58,6 +58,7 @@ const SuccessStoriesSection: React.FC<SuccessStoriesSectionProps> = ({
         <Button
           variant="ghost"
           size="sm"
+          disabled
           className="w-full rounded-xl bg-slate-50 hover:bg-emerald-50 hover:text-emerald-600 font-bold group/btn"
           onClick={() => navigate(`/success-stories/${item.id}`)}
         >
@@ -91,6 +92,7 @@ const SuccessStoriesSection: React.FC<SuccessStoriesSectionProps> = ({
           
           <Button
             variant="ghost"
+            disabled
             className="text-white border-white/20 hover:bg-white/10 rounded-2xl px-8 h-14 font-bold"
             onClick={() => navigate('/success-stories')}
           >

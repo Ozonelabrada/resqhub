@@ -23,7 +23,8 @@ interface StoreStatusCounts {
 interface StoresGridProps {
   stores: any[];
   isLoading: boolean;
-  activeTab: 'pending' | 'approved' | 'denied' | 'suspended';
+  // use 'rejected' consistently across hooks/statusCounts
+  activeTab: 'pending' | 'approved' | 'rejected' | 'suspended';
   statusCounts: StoreStatusCounts;
   onViewDetails: (store: any) => void;
   onTabChange?: (tab: 'pending' | 'approved' | 'rejected' | 'suspended') => void;
@@ -47,7 +48,7 @@ const StoresGrid: React.FC<StoresGridProps> = ({
   const statusTabs = [
     { id: 'pending', label: 'Pending', count: statusCounts.pending, icon: Clock, color: 'blue' },
     { id: 'approved', label: 'Approved', count: statusCounts.approved, icon: CheckCircle2, color: 'emerald' },
-    { id: 'denied', label: 'Denied', count: statusCounts.rejected || 0, icon: X, color: 'rose' },
+    { id: 'rejected', label: 'Denied', count: statusCounts.rejected || 0, icon: X, color: 'rose' },
     { id: 'suspended', label: 'Suspended', count: statusCounts.suspended, icon: AlertCircle, color: 'amber' },
   ];
 
@@ -74,7 +75,7 @@ const StoresGrid: React.FC<StoresGridProps> = ({
     switch (tab) {
       case 'pending': return 'blue';
       case 'approved': return 'emerald';
-      case 'denied': return 'rose';
+      case 'rejected': return 'rose';
       case 'suspended': return 'amber';
       default: return 'slate';
     }
@@ -173,7 +174,7 @@ const StoresGrid: React.FC<StoresGridProps> = ({
                           "border-none font-black text-[9px] uppercase tracking-widest px-3 py-1.5",
                           activeTab === 'pending' && 'bg-blue-100 text-blue-700',
                           activeTab === 'approved' && 'bg-emerald-100 text-emerald-700',
-                          activeTab === 'denied' && 'bg-rose-100 text-rose-700',
+                          activeTab === 'rejected' && 'bg-rose-100 text-rose-700',
                           activeTab === 'suspended' && 'bg-amber-100 text-amber-700'
                         )}>
                           {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}

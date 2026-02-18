@@ -2,12 +2,20 @@
 export interface UserProfile {
   id: string;
   fullName: string;
+  firstName?: string | null;
+  lastName?: string | null;
   username: string;
   email: string;
   bio?: string;
-  location?: string;
+  location?: string | null;
   profilePicture?: string | null;
   coverPhoto?: string | null;
+  profilePictureUrl?: string | null;
+  coverPhotoUrl?: string | null;
+  phoneNumber?: string | null;
+  address?: string | null;
+  dateOfBirth?: string | null;
+  sex?: string | null;
   joinDate?: string;
   lastActive?: string;
 }
@@ -102,10 +110,18 @@ export interface UserStats {
 }
 
 export interface EditProfileForm {
+  firstName?: string;
+  lastName?: string;
   fullName: string;
   username: string;
   bio: string;
-  location: string;
-  profilePicture: string;
-  coverPhoto: string;
+  location?: string | null;
+  profilePicture?: string | null;
+  profilePictureUrl?: string | null;
+  coverPhoto?: string | null;
+  coverPhotoUrl?: string | null;
+  phoneNumber?: string | null;
+  address?: string | null;
+  dateOfBirth?: string | null; // ISO date string
+  sex?: string | null;
 }

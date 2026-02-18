@@ -141,7 +141,8 @@ export const CommunityEvents: React.FC<{
   };
 
   // Helper function to check if a date falls within an event's date range
-  const isDateInEventRange = (eventStartDate: string | undefined, eventEndDate: string | undefined, checkDate: string): boolean => {
+  // Accept `null` as well because `CommunityPost.startDate` / `endDate` can be null
+  const isDateInEventRange = (eventStartDate: string | null | undefined, eventEndDate: string | null | undefined, checkDate: string): boolean => {
     const start = new Date(eventStartDate || new Date()).toISOString().split('T')[0];
     const end = eventEndDate ? new Date(eventEndDate).toISOString().split('T')[0] : start;
     
@@ -466,7 +467,9 @@ export const CommunityEvents: React.FC<{
               const startDate = new Date(event.startDate || event.dateCreated);
               const endDate = event.endDate ? new Date(event.endDate) : null;
               const isSameDay = endDate && startDate.toDateString() === endDate.toDateString();
-              const hasImage = event.reportUrl && event.reportUrl.trim() !== '';
+              // Prefer images[] on CommunityPost; fall back to legacy `reportUrl` when present on raw API objects
+              const imageUrl = (event as any).reportUrl ?? event.images?.[0]?.imageUrl ?? '';
+              const hasImage = !!(imageUrl && imageUrl.trim() !== '');
               
               const formatTime = (date: Date) => {
                 return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
@@ -499,7 +502,7 @@ export const CommunityEvents: React.FC<{
                   {hasImage && (
                     <div className="relative h-48 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden group-hover:opacity-90 transition-opacity">
                       <img 
-                        src={event.reportUrl} 
+                        src={imageUrl}
                         alt={event.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         onError={(e) => {
@@ -518,7 +521,7 @@ export const CommunityEvents: React.FC<{
                           "px-4 py-2 rounded-xl uppercase text-[10px] font-black tracking-tighter border-none",
                           "bg-teal-50 text-teal-600"
                         )}>
-                          {event.category || event.categoryName || 'Event'}
+                          {event.categoryName || 'Event'}
                         </Badge>
                         {event.privacy === 'internal' && (
                           <Badge className="bg-rose-500/10 text-rose-500 border-none px-3 py-1.5 rounded-lg flex items-center gap-1 font-black text-[9px] uppercase tracking-wider">

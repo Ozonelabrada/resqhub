@@ -27,6 +27,7 @@ import {
   CheckCircle2,
   AlertCircle,
   X,
+  Phone,
   Image as ImageIcon
 } from 'lucide-react';
 import { UserService, type BackendUserData } from '../../../services/userService';
@@ -50,9 +51,14 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     lastName: '',
     username: '',
     bio: '',
-    location: '',
+    phoneNumber: '',
+    address: '',
+    dateOfBirth: '',
+    sex: '',
     profilePicture: '',
-    coverPhoto: ''
+    profilePictureUrl: '',
+    coverPhoto: '' ,
+    coverPhotoUrl: ''
   });
   const [loading, setLoading] = useState(false);
   const [profilePicturePreview, setProfilePicturePreview] = useState<string>('');
@@ -63,30 +69,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const profileUploadRef = useRef<HTMLInputElement>(null);
   const coverUploadRef = useRef<HTMLInputElement>(null);
 
-  // Location options
-  const locationOptions = [
-    { label: 'Select your location', value: '' },
-    { label: 'New York, NY', value: 'New York, NY' },
-    { label: 'Los Angeles, CA', value: 'Los Angeles, CA' },
-    { label: 'Chicago, IL', value: 'Chicago, IL' },
-    { label: 'Houston, TX', value: 'Houston, TX' },
-    { label: 'Phoenix, AZ', value: 'Phoenix, AZ' },
-    { label: 'Philadelphia, PA', value: 'Philadelphia, PA' },
-    { label: 'San Antonio, TX', value: 'San Antonio, TX' },
-    { label: 'San Diego, CA', value: 'San Diego, CA' },
-    { label: 'Dallas, TX', value: 'Dallas, TX' },
-    { label: 'San Jose, CA', value: 'San Jose, CA' },
-    { label: 'Austin, TX', value: 'Austin, TX' },
-    { label: 'Jacksonville, FL', value: 'Jacksonville, FL' },
-    { label: 'Fort Worth, TX', value: 'Fort Worth, TX' },
-    { label: 'Columbus, OH', value: 'Columbus, OH' },
-    { label: 'Charlotte, NC', value: 'Charlotte, NC' },
-    { label: 'San Francisco, CA', value: 'San Francisco, CA' },
-    { label: 'Indianapolis, IN', value: 'Indianapolis, IN' },
-    { label: 'Seattle, WA', value: 'Seattle, WA' },
-    { label: 'Denver, CO', value: 'Denver, CO' },
-    { label: 'Other', value: 'Other' }
-  ];
+
 
   // Initialize form data when modal opens
   useEffect(() => {
@@ -96,7 +79,6 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         lastName: userData.lastName || '',
         username: userData.username || '',
         bio: userData.bio || '',
-        location: userData.location || '',
         profilePicture: userData.profilePicture || '',
         coverPhoto: userData.coverPhoto || ''
       });
@@ -258,10 +240,16 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         lastName: formData.lastName,
         fullName: `${formData.firstName} ${formData.lastName}`,
         username: formData.username,
+        userName: formData.username,
         bio: formData.bio || null,
-        location: formData.location || null,
-        profilePicture: formData.profilePicture,
-        coverPhoto: formData.coverPhoto || null
+        phoneNumber: formData.phoneNumber || null,
+        address: formData.address || null,
+        dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth).toISOString() : null,
+        sex: formData.sex || null,
+        profilePicture: formData.profilePicture || formData.profilePictureUrl || null,
+        profilePictureUrl: formData.profilePictureUrl || formData.profilePicture || null,
+        coverPhoto: formData.coverPhoto || formData.coverPhotoUrl || null,
+        coverPhotoUrl: formData.coverPhotoUrl || formData.coverPhoto || null
       };
 
       // Update user profile
@@ -471,19 +459,59 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="location" className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-blue-500" />
-                  Location
+                <label htmlFor="phone" className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-emerald-600" />
+                  Phone
                 </label>
-                <Select
-                  id="location"
-                  value={formData.location}
-                  onChange={(value) => handleInputChange('location', value)}
-                  options={locationOptions}
-                  placeholder="Select your location"
+                <Input
+                  id="phone"
+                  value={formData.phoneNumber}
+                  onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                  placeholder="+63 912 345 6789"
                   className="rounded-2xl"
                 />
               </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <label htmlFor="address" className="text-sm font-semibold text-slate-700">
+                  Address
+                </label>
+                <Input
+                  id="address"
+                  value={formData.address}
+                  onChange={(e) => handleInputChange('address', e.target.value)}
+                  placeholder="Street, barangay, city"
+                  className="rounded-2xl"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="dob" className="text-sm font-semibold text-slate-700">Date of Birth</label>
+                <Input
+                  id="dob"
+                  type="date"
+                  value={formData.dateOfBirth}
+                  onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                  className="rounded-2xl"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="sex" className="text-sm font-semibold text-slate-700">Sex</label>
+                <Select
+                  id="sex"
+                  value={formData.sex}
+                  onChange={(v) => handleInputChange('sex', v)}
+                  options={[
+                    { label: 'Prefer not to say', value: '' },
+                    { label: 'Female', value: 'female' },
+                    { label: 'Male', value: 'male' },
+                    { label: 'Other', value: 'other' }
+                  ]}
+                />
+              </div>
+
+
 
               <div className="md:col-span-2 space-y-2">
                 <label htmlFor="bio" className="text-sm font-semibold text-slate-700 flex items-center gap-2">

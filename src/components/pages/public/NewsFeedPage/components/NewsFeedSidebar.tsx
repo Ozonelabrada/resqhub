@@ -159,6 +159,7 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
             <Button 
               variant="ghost"
               onClick={() => onViewChange?.('trade-market')}
+              disabled
               className={cn(
                 "w-full justify-between py-3 rounded-2xl font-bold transition-all border-none group",
                 currentView === 'trade-market' ? "text-amber-700 bg-amber-50 shadow-sm" : "text-slate-600 hover:bg-amber-50 hover:text-amber-700 relative overflow-hidden"
@@ -216,6 +217,7 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
             <Button 
               variant="ghost" 
               onClick={() => communityNav.onTabChange('trade')}
+              disabled
               className={cn(
                 "w-full justify-start py-6 rounded-2xl font-bold transition-all border-none group",
                 communityNav.activeTab === 'trade' ? "text-teal-600 bg-teal-50 shadow-sm" : "text-slate-500 hover:bg-gray-50 hover:text-teal-600"

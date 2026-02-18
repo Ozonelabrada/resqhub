@@ -168,7 +168,10 @@ export const CommunityMyReports: React.FC<CommunityMyReportsProps> = ({
                     viewMode === 'grid' ? "w-full aspect-[4/3]" : "w-40 aspect-square shrink-0"
                   )}>
                     <ImageCollageDisplay
-                      images={report.images || []}
+                      images={(report.imageUrls && report.imageUrls.length > 0)
+                        ? report.imageUrls
+                        : ((report.images?.map(i => i.imageUrl).filter(Boolean) as string[]) || [])
+                      }
                       title={report.title || ''}
                       containerHeight={viewMode === 'grid' ? 'h-full' : 'h-full'}
                     />

@@ -92,7 +92,11 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({
     const timer = setTimeout(async () => {
       if (formData.location.length >= 3 && isSearchingLocation) {
         const results = await searchLocations(formData.location);
-        setLocationSuggestions(results);
+        // Merge profile location (if available) as first suggestion
+        const merged = user?.location
+          ? (results.some(r => r.display_name === user.location) ? results : [{ display_name: user.location, lat: '', lon: '', name: user.location, address: {} }, ...results])
+          : results;
+        setLocationSuggestions(merged);
         setShowSuggestions(true);
         setIsSearchingLocation(false);
       }
@@ -100,6 +104,16 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({
 
     return () => clearTimeout(timer);
   }, [formData.location, isSearchingLocation]);
+
+  // Surface profile location when input is empty so it appears on focus
+  useEffect(() => {
+    if (user?.location && (!formData.location || formData.location.trim() === '')) {
+      setLocationSuggestions(prev => {
+        if (prev.some(s => s.display_name === user.location)) return prev;
+        return [{ display_name: user.location, lat: '', lon: '', name: user.location, address: {} }, ...prev];
+      });
+    }
+  }, [user?.location, formData.location]);
 
   const handleInputChange = (field: keyof FormData, value: string | number): void => {
     setFormData(prev => ({ ...prev, [field]: value }));

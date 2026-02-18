@@ -126,6 +126,8 @@ export const CreateNewsModal: React.FC<CreateNewsModalProps> = ({ isOpen, onClos
     const newContents = [...contents];
     newContents[index] = value;
     setContents(newContents);
+    // keep react-hook-form in sync so zod validation for `content` passes
+    setValue(`newsArticles.${index}.content`, value, { shouldValidate: true, shouldDirty: true });
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
@@ -155,8 +157,11 @@ export const CreateNewsModal: React.FC<CreateNewsModalProps> = ({ isOpen, onClos
         ...data,
         newsArticles: data.newsArticles.map((article, idx) => ({
           ...article,
+          // ensure content is the rich-editor value
           content: contents[idx],
           imageUrl: imagePreviews[idx] || undefined,
+          // convert YYYY-MM-DD -> ISO timestamp for backend
+          publishDate: article.publishDate ? new Date(article.publishDate).toISOString() : new Date().toISOString(),
         })),
       };
       await onSubmit(newsData);
@@ -340,6 +345,9 @@ export const CreateNewsModal: React.FC<CreateNewsModalProps> = ({ isOpen, onClos
                       placeholder="Write article content..."
                       minHeight="min-h-[150px]"
                     />
+                    {errors.newsArticles?.[index]?.content && (
+                      <p className="text-xs font-bold text-red-500 mt-1">⚠ {errors.newsArticles[index]?.content?.message}</p>
+                    )}
                     {contents[index].replace(/<[^>]*>/g, '').length < 10 && (
                       <p className="text-xs font-bold text-red-500 mt-1">⚠ Content must be at least 10 characters</p>
                     )}
