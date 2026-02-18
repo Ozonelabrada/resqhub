@@ -1,13 +1,14 @@
-import React from 'react';
-import { Card, Button, ShadcnBadge as Badge } from '@/components/ui';
+import React, { useState, useMemo } from 'react';
+import { Badge } from '@/components/ui';
 import {
   Clock,
   CheckCircle2,
   X,
   AlertCircle,
   Loader2,
-  ShoppingBag,
-  MapPin,
+  Search,
+  ChevronLeft,
+  ChevronRight,
   ExternalLink,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -22,6 +23,7 @@ interface StoreStatusCounts {
 interface StoresGridProps {
   stores: any[];
   isLoading: boolean;
+  // use 'rejected' consistently across hooks/statusCounts
   activeTab: 'pending' | 'approved' | 'rejected' | 'suspended';
   statusCounts: StoreStatusCounts;
   onViewDetails: (store: any) => void;
@@ -29,8 +31,7 @@ interface StoresGridProps {
 }
 
 /**
- * Stores/Sellers grid component
- * <180 lines - handles store listings and status filtering
+ * Stores/Sellers table component with status tabs, pagination and search
  */
 const StoresGrid: React.FC<StoresGridProps> = ({
   stores,
@@ -40,186 +41,219 @@ const StoresGrid: React.FC<StoresGridProps> = ({
   onViewDetails,
   onTabChange,
 }) => {
-  const getStatusConfig = (tab: string) => {
-    switch (tab) {
-      case 'pending':
-        return { color: 'blue', icon: Clock, label: 'Pending Store Applications' };
-      case 'approved':
-        return { color: 'emerald', icon: CheckCircle2, label: 'Approved Stores' };
-      case 'rejected':
-        return { color: 'rose', icon: X, label: 'Rejected Stores' };
-      case 'suspended':
-        return { color: 'amber', icon: AlertCircle, label: 'Suspended Stores' };
-      default:
-        return { color: 'slate', icon: ShoppingBag, label: 'Stores' };
-    }
-  };
-
-  const config = getStatusConfig(activeTab);
-  const IconComponent = config.icon;
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const statusTabs = [
     { id: 'pending', label: 'Pending', count: statusCounts.pending, icon: Clock, color: 'blue' },
     { id: 'approved', label: 'Approved', count: statusCounts.approved, icon: CheckCircle2, color: 'emerald' },
-    { id: 'rejected', label: 'Rejected', count: statusCounts.rejected, icon: X, color: 'rose' },
+    { id: 'rejected', label: 'Denied', count: statusCounts.rejected || 0, icon: X, color: 'rose' },
     { id: 'suspended', label: 'Suspended', count: statusCounts.suspended, icon: AlertCircle, color: 'amber' },
   ];
 
+  const filteredStores = useMemo(() => {
+    return stores.filter(store => {
+      const matchesSearch = 
+        store.storeName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        store.ownerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        store.storeEmail?.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesSearch;
+    });
+  }, [stores, searchQuery]);
+
+  const totalPages = Math.ceil(filteredStores.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedStores = filteredStores.slice(startIndex, endIndex);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, activeTab]);
+
+  const getStatusColor = (tab: string) => {
+    switch (tab) {
+      case 'pending': return 'blue';
+      case 'approved': return 'emerald';
+      case 'rejected': return 'rose';
+      case 'suspended': return 'amber';
+      default: return 'slate';
+    }
+  };
+
+  const statusColor = getStatusColor(activeTab);
+
   return (
-    <div className="space-y-4 pb-20">
+    <div className="space-y-6 pb-20">
       {/* Status Tabs */}
       <div className="flex items-center gap-2 p-1.5 bg-slate-50 rounded-2xl w-full overflow-x-auto">
-        {statusTabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => onTabChange?.(tab.id as 'pending' | 'approved' | 'rejected' | 'suspended')}
-            className={cn(
-              "px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-[0.1em] transition-all flex items-center gap-1.5 whitespace-nowrap",
-              activeTab === tab.id
-                ? `bg-${tab.color}-500 text-white shadow-lg shadow-${tab.color}-100`
-                : 'text-slate-400 hover:text-slate-600'
-            )}
-          >
-            <tab.icon size={12} />
-            {tab.label}
-            <Badge
+        {statusTabs.map((tab) => {
+          const TabIcon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => onTabChange?.(tab.id as any)}
               className={cn(
-                'border-none px-1.5 py-0 min-w-[20px] h-5 text-[10px]',
+                "px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-[0.1em] transition-all flex items-center gap-1.5 whitespace-nowrap",
                 activeTab === tab.id
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'bg-slate-200 text-slate-600'
+                  ? `bg-${tab.color}-500 text-white shadow-lg`
+                  : 'text-slate-400 hover:text-slate-600'
               )}
             >
-              {tab.count}
-            </Badge>
-          </button>
-        ))}
+              <TabIcon size={14} />
+              {tab.label}
+              <Badge
+                className={cn(
+                  'border-none px-1.5 py-0 min-w-[20px] h-5 text-[9px]',
+                  activeTab === tab.id
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'bg-slate-200 text-slate-600'
+                )}
+              >
+                {tab.count}
+              </Badge>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-2xl font-black text-slate-900 tracking-tight uppercase flex items-center gap-3">
-            <IconComponent
-              className={cn(
-                'size-7',
-                activeTab === 'pending' && 'text-blue-600',
-                activeTab === 'approved' && 'text-emerald-600',
-                activeTab === 'rejected' && 'text-rose-600',
-                activeTab === 'suspended' && 'text-amber-600'
-              )}
-            />
-            {config.label}
-          </h3>
-          <p className="text-slate-500 font-medium mt-1">
-            {activeTab === 'pending' && 'Stores awaiting approval to sell in the community'}
-            {activeTab === 'approved' && 'Stores approved to sell in the community'}
-            {activeTab === 'rejected' && 'Stores that did not meet community requirements'}
-            {activeTab === 'suspended' && 'Stores with suspended selling privileges'}
-          </p>
-        </div>
+      {/* Search */}
+      <div className="relative w-full md:w-80">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+        <input 
+          type="text" 
+          placeholder="Search by store name or email..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-12 pr-6 py-3.5 rounded-2xl bg-white border border-slate-100 shadow-sm focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 outline-none transition-all font-bold text-slate-700"
+        />
       </div>
 
-      {/* Grid */}
+      {/* Loading */}
       {isLoading ? (
         <div className="flex justify-center py-20">
           <Loader2 className="animate-spin text-emerald-600" size={40} />
         </div>
-      ) : stores.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {stores.map((store) => (
-            <Card
-              key={store.storeId}
-              className={cn(
-                'group relative p-0 rounded-[2.5rem] bg-gradient-to-br from-white to-slate-50 shadow-sm hover:shadow-2xl hover:border-opacity-50 transition-all duration-300 overflow-hidden flex flex-col h-full',
-                activeTab === 'pending' && 'border border-blue-100 hover:shadow-blue-100/30 hover:border-blue-200',
-                activeTab === 'approved' && 'border border-emerald-100 hover:shadow-emerald-100/30 hover:border-emerald-200',
-                activeTab === 'rejected' && 'border border-rose-100 hover:shadow-rose-100/30 hover:border-rose-200',
-                activeTab === 'suspended' && 'border border-amber-100 hover:shadow-amber-100/30 hover:border-amber-200'
-              )}
-            >
-              <div
-                className={cn(
-                  'h-1.5 transition-all',
-                  activeTab === 'pending' && 'bg-gradient-to-r from-blue-400 to-cyan-400 group-hover:from-blue-500 group-hover:to-cyan-500',
-                  activeTab === 'approved' && 'bg-gradient-to-r from-emerald-400 to-teal-400 group-hover:from-emerald-500 group-hover:to-teal-500',
-                  activeTab === 'rejected' && 'bg-gradient-to-r from-rose-400 to-pink-400 group-hover:from-rose-500 group-hover:to-pink-500',
-                  activeTab === 'suspended' && 'bg-gradient-to-r from-amber-400 to-orange-400 group-hover:from-amber-500 group-hover:to-orange-500'
-                )}
-              />
-
-              <div className="px-6 pt-6 pb-4 border-b border-slate-100">
-                <Badge
-                  className={cn(
-                    'border-none font-black text-[9px] uppercase tracking-widest px-2 py-0.5 shadow-sm flex items-center gap-1 w-fit',
-                    activeTab === 'pending' && 'bg-blue-100 text-blue-700',
-                    activeTab === 'approved' && 'bg-emerald-100 text-emerald-700',
-                    activeTab === 'rejected' && 'bg-rose-100 text-rose-700',
-                    activeTab === 'suspended' && 'bg-amber-100 text-amber-700'
-                  )}
-                >
-                  <IconComponent size={10} />
-                  {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
-                </Badge>
-              </div>
-
-              <div className="px-6 py-8 flex-1 flex flex-col items-center text-center space-y-4">
-                <div
-                  className={cn(
-                    'w-16 h-16 rounded-2xl border-4 border-white shadow-lg flex items-center justify-center font-black text-lg text-white',
-                    activeTab === 'pending' && 'bg-blue-400',
-                    activeTab === 'approved' && 'bg-emerald-400',
-                    activeTab === 'rejected' && 'bg-rose-400',
-                    activeTab === 'suspended' && 'bg-amber-400'
-                  )}
-                >
-                  {store.storeName?.charAt(0)}
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight mb-1">
-                    {store.storeName}
-                  </h3>
-                  <p className="text-xs font-bold text-slate-400 font-mono mb-2">
-                    ID: {store.storeId}
-                  </p>
-                  {store.location && (
-                    <p className="text-xs text-slate-500 flex items-center justify-center gap-1">
-                      <MapPin size={12} />
-                      {store.location}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="px-6 pb-6 border-t border-slate-100">
-                <Button
-                  onClick={() => onViewDetails(store)}
-                  className={cn(
-                    'w-full h-10 rounded-xl text-white font-black text-[10px] uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-2',
-                    activeTab === 'pending' && 'bg-blue-600 hover:bg-blue-700 shadow-blue-200',
-                    activeTab === 'approved' && 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200',
-                    activeTab === 'rejected' && 'bg-rose-600 hover:bg-rose-700 shadow-rose-200',
-                    activeTab === 'suspended' && 'bg-amber-600 hover:bg-amber-700 shadow-amber-200'
-                  )}
-                >
-                  <ExternalLink size={14} />
-                  View Details
-                </Button>
-              </div>
-            </Card>
-          ))}
-        </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-20 rounded-[2.5rem] bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200">
-          <ShoppingBag size={48} className="text-slate-300 mb-4" />
-          <h3 className="text-2xl font-black text-slate-900 mb-2 tracking-tight uppercase">
-            {activeTab === 'pending' && 'No Pending Applications'}
-            {activeTab === 'approved' && 'No Approved Stores'}
-            {activeTab === 'rejected' && 'No Rejected Stores'}
-            {activeTab === 'suspended' && 'No Suspended Stores'}
-          </h3>
-        </div>
+        <>
+          {/* Table */}
+          <div className="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200">
+                  <th className="px-6 py-4 text-left text-[10px] font-black text-slate-600 uppercase tracking-widest">Store Name</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-black text-slate-600 uppercase tracking-widest">Email</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-black text-slate-600 uppercase tracking-widest">Status</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-black text-slate-600 uppercase tracking-widest">Verified</th>
+                  <th className="px-6 py-4 text-center text-[10px] font-black text-slate-600 uppercase tracking-widest">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedStores.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-12 text-center">
+                      <p className="text-slate-500 font-semibold">No stores found</p>
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedStores.map((store) => (
+                    <tr key={store.storeId} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-sm font-black text-white">
+                            {store.storeName?.charAt(0) || 'S'}
+                          </div>
+                          <p className="font-black text-slate-900 text-sm">{store.storeName || '-'}</p>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="text-sm text-slate-600 break-all">{store.storeEmail || '-'}</p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <Badge className={cn(
+                          "border-none font-black text-[9px] uppercase tracking-widest px-3 py-1.5",
+                          activeTab === 'pending' && 'bg-blue-100 text-blue-700',
+                          activeTab === 'approved' && 'bg-emerald-100 text-emerald-700',
+                          activeTab === 'rejected' && 'bg-rose-100 text-rose-700',
+                          activeTab === 'suspended' && 'bg-amber-100 text-amber-700'
+                        )}>
+                          {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          {store.isVerified ? (
+                            <>
+                              <CheckCircle2 size={16} className="text-emerald-600" />
+                              <span className="text-sm font-bold text-slate-600">Yes</span>
+                            </>
+                          ) : (
+                            <>
+                              <X size={16} className="text-slate-400" />
+                              <span className="text-sm font-bold text-slate-600">No</span>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => onViewDetails(store)}
+                            className="p-2 rounded-lg hover:bg-slate-200 text-slate-600 hover:text-emerald-600 transition-all"
+                            title="View details"
+                          >
+                            <ExternalLink size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          {filteredStores.length > itemsPerPage && (
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-bold text-slate-500">
+                Showing {startIndex + 1}-{Math.min(endIndex, filteredStores.length)} of {filteredStores.length} store{filteredStores.length !== 1 ? 's' : ''}
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={cn(
+                        "px-3 py-1 rounded-lg font-bold text-sm transition-all",
+                        currentPage === page
+                          ? `bg-${statusColor}-500 text-white`
+                          : "border border-slate-200 text-slate-700 hover:bg-slate-50"
+                      )}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

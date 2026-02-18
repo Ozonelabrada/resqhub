@@ -1,11 +1,26 @@
 import api from '../api/client';
 
 export interface SubscriptionPlan {
-  id: string;
+  id: number;
   name: string;
-  price: number;
-  interval: 'month' | 'year';
-  features: string[];
+  code: string;
+  description: string;
+  monthlyPrice: number;
+  annualPrice: number;
+  isActive: boolean;
+  features: any[];
+  status: string;
+  subscribersCount: number;
+  dateCreated: string;
+  lastModifiedDate: string;
+}
+
+export interface SubscriptionPlansResponse {
+  plans: SubscriptionPlan[];
+  totalCount: number;
+  pageSize: number;
+  page: number;
+  totalPages: number;
 }
 
 export interface SubscriptionStatus {
@@ -15,28 +30,65 @@ export interface SubscriptionStatus {
   isPremium: boolean;
 }
 
+export interface UserSubscription {
+  id: number;
+  userId: string;
+  communityId: number;
+  planId: number;
+  status: 'Pending' | 'Approved' | 'Rejected' | 'Expired' | 'Cancelled';
+  startDate: string;
+  endDate: string;
+  stripeSubscriptionId: string | null;
+  dateCreated: string;
+  lastModifiedDate: string;
+  planName: string;
+  planCode: string;
+  monthlyPrice: number;
+  annualPrice: number;
+  communityName: string | null;
+  features: string[];
+  addOns: any[];
+}
+
+export interface UserSubscriptionsResponse {
+  message: string;
+  succeeded: boolean;
+  statusCode: number;
+  data: UserSubscription[];
+  errors: any;
+  baseEntity: any;
+}
+
+export interface AddOn {
+  id: number;
+  name: string;
+  code: string;
+  description: string;
+  type: string;
+  isActive: boolean;
+  monthlyPrice: number;
+  oneTimePrice: number | null;
+  dateCreated: string;
+  lastModifiedDate: string;
+}
+
+export interface AddOnsResponse {
+  features: AddOn[];
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
+  pageSize: number;
+}
+
 export const SubscriptionService = {
-  async getPlans(): Promise<SubscriptionPlan[]> {
+  async getPlans(isActive: boolean = true, page: number = 1, pageSize: number = 10): Promise<SubscriptionPlan[]> {
     try {
-      // Mocked for now, but following the pattern
-      return [
-        {
-          id: 'free',
-          name: 'Free',
-          price: 0,
-          interval: 'month',
-          features: ['Join communities', 'Create basic posts', 'Standard approval time']
-        },
-        {
-          id: 'premium',
-          name: 'Premium',
-          price: 29,
-          interval: 'month',
-          features: ['Instant community approval', 'Unlimited communities', 'Priority support', 'Verified badge']
-        }
-      ];
+      const response = await api.get<{ data: SubscriptionPlansResponse }>(
+        `/plans?isActive=${isActive}&page=${page}&pageSize=${pageSize}`
+      );
+      const plans = response.data?.data?.plans || [];
+      return plans;
     } catch (error) {
-      console.error('Error fetching subscription plans:', error);
       return [];
     }
   },
@@ -46,8 +98,16 @@ export const SubscriptionService = {
       const response = await api.get<{ data: SubscriptionStatus }>('/subscriptions/status');
       return response.data?.data || { isActive: false, isPremium: false };
     } catch (error) {
-      console.error('Error fetching subscription status:', error);
       return { isActive: false, isPremium: false };
+    }
+  },
+
+  async getUserSubscriptions(userId: string): Promise<UserSubscription[]> {
+    try {
+      const response = await api.get<UserSubscriptionsResponse>(`/subscriptions/user/${userId}`);
+      return response.data?.data || [];
+    } catch (error) {
+      return [];
     }
   },
 
@@ -56,8 +116,19 @@ export const SubscriptionService = {
       const response = await api.post<{ data: { checkoutUrl: string } }>('/subscriptions/checkout', { planId });
       return response.data?.data || null;
     } catch (error) {
-      console.error('Error initiating subscription:', error);
       return null;
+    }
+  },
+
+  async getAddOns(isActive: boolean = true, page: number = 1, pageSize: number = 50): Promise<AddOn[]> {
+    try {
+      const response = await api.get<{ data: AddOnsResponse }>(
+        `/Features?isActive=${isActive}&type=addOns&pageSize=${pageSize}&page=${page}`
+      );
+      const addOns = response.data?.data?.features || [];
+      return addOns;
+    } catch (error) {
+      return [];
     }
   }
 };

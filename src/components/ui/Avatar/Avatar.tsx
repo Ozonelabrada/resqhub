@@ -10,7 +10,7 @@ export interface AvatarProps {
   style?: React.CSSProperties;
   onClick?: (event: any) => void;
   children?: React.ReactNode;
-  src?: string;
+  src?: string | undefined | null;
   alt?: string;
   fallback?: string;
 }

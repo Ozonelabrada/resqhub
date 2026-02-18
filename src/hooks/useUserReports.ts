@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { LostFoundItem } from '../types';
 import { ItemsService } from '../services/itemsService';
 import { UserService } from '../services/userService';
+import { ReportsService, type UserReportStatistics, type UserReportsResponse } from '../services/reportsService';
 import type { UserReport } from '../types/personalHub';
 
 export const useUserReports = (userId: string | null) => {
@@ -154,5 +155,51 @@ export const useUserReports = (userId: string | null) => {
     error,
     loadMore,
     refetch: () => fetchReports(false)
+  };
+};
+
+export const useUserReportsWithStatistics = (userId: string | undefined, pageSize: number = 10, page: number = 1) => {
+  const [reports, setReports] = useState<LostFoundItem[]>([]);
+  const [statistics, setStatistics] = useState<UserReportStatistics | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchUserReports = useCallback(async () => {
+    if (!userId) {
+      setReports([]);
+      setStatistics(null);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await ReportsService.getUserReportsWithStatistics(userId, pageSize, page);
+      
+      if (response) {
+        setReports(response.reports.data || []);
+        setStatistics(response.statistics || null);
+      } else {
+        setError('Failed to fetch user reports');
+      }
+    } catch (err) {
+      console.error('Error fetching user reports with statistics:', err);
+      setError('Failed to load user reports');
+    } finally {
+      setLoading(false);
+    }
+  }, [userId, pageSize, page]);
+
+  useEffect(() => {
+    fetchUserReports();
+  }, [fetchUserReports]);
+
+  return {
+    reports,
+    statistics,
+    loading,
+    error,
+    refetch: fetchUserReports
   };
 };

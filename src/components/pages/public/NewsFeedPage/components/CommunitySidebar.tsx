@@ -307,7 +307,8 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
               </div>
             ))
           ) : (trendingReports.length > 0 ? trendingReports : STATIC_TRENDING).slice(0, 3).map((report: any, idx: number) => (
-            <div key={report.id || report._id || idx} className="group flex items-start gap-4 cursor-pointer" onClick={() => navigate(`/item/${report.id || report._id}`)}>
+            <div key={report.id || report._id || idx} className="group flex items-start gap-4 cursor-pointer">
+            {/* <div key={report.id || report._id || idx} className="group flex items-start gap-4 cursor-pointer" onClick={() => navigate(`/item/${report.id || report._id}`)}> */}
               <div className="relative w-14 h-14 rounded-2xl overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-100">
                 {report.images?.[0] ? (
                   <img src={report.images[0]} alt="" className="object-cover w-full h-full group-hover:scale-110 transition-transform" />
@@ -332,6 +333,7 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
           ))}
         </div>
         <Button 
+            disabled
             variant="ghost" 
             className="w-full mt-8 py-6 rounded-2xl border border-gray-100 text-teal-600 font-bold hover:bg-teal-50 transition-colors"
             onClick={() => navigate('/hub')}
@@ -384,7 +386,7 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({
                 </div>
               </div>
             ))}
-            <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white font-black rounded-xl h-12 mt-2">
+            <Button disabled className="w-full bg-orange-500 hover:bg-orange-600 text-white font-black rounded-xl h-12 mt-2">
               {t('safety.full_guide') || "Read Full Safety Guide"}
             </Button>
           </div>

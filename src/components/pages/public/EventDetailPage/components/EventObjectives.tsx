@@ -14,8 +14,9 @@ interface EventObjectivesProps {
  * <70 lines - displays event objectives with completion status
  */
 const EventObjectives: React.FC<EventObjectivesProps> = ({ event, isEventCreator }) => {
-  const completedCount = event?.objectives?.filter(o => o.completed).length || 0;
-  const totalCount = event?.objectives?.length || 0;
+  const completedCount = (event?.stats?.objectives?.completed ?? event?.objectives?.filter(o => o.completed).length) || 0;
+  const totalCount = (event?.stats?.objectives?.total ?? event?.objectives?.length) || 0;
+  const progress = event?.stats?.objectives?.progressPercent ?? (totalCount ? Math.round((completedCount / totalCount) * 100) : 0);
 
   return (
     <div className="space-y-4">
@@ -29,6 +30,9 @@ const EventObjectives: React.FC<EventObjectivesProps> = ({ event, isEventCreator
             Add Objective
           </Button>
         )}
+      </div>
+      <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+        <div className="h-3 bg-teal-600 rounded-full" style={{ width: `${progress}%` }} />
       </div>
 
       <div className="space-y-3">

@@ -10,8 +10,10 @@ import { Watchlist } from './personalHub/Watchlist';
 import { ReportsGrid } from './personalHub/ReportsGrid';
 import { OverviewGrid } from './personalHub/OverviewGrid';
 import { EditProfileModal } from './personalHub/EditProfileModal';
-import { useUserProfile, useStatistics, useNewsFeed, useCommunities } from '../../../../hooks';
+import { useUserProfile, useStatistics, useNewsFeed } from '../../../../hooks';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../ui/tabs';
+import { CommunityService } from '../../../../services';
+import type { Community } from '../../../../types/community';
 import { Card, Avatar, Badge, Button } from '../../../ui';
 import { LayoutGrid, FileText, Activity, Bookmark, Sparkles, Users, Building2, ShieldCheck, Star, TrendingUp, Eye, Heart, MessageSquare, MapPin, Clock, Check } from 'lucide-react';
 import { cn } from '../../../../lib/utils';
@@ -25,7 +27,9 @@ const PersonalHubPage: React.FC = () => {
   const { userData: profile, updateProfile, loading: profileLoading } = useUserProfile();
   const { statistics: stats } = useStatistics();
   const { items: reports } = useNewsFeed();
-  const { communities } = useCommunities();
+
+  const [myCommunities, setMyCommunities] = React.useState<Community[]>([]);
+  const [myCommunitiesLoading, setMyCommunitiesLoading] = React.useState(false);
 
   const setActiveTab = (tab: string) => {
     setSearchParams({ tab });
@@ -47,6 +51,29 @@ const PersonalHubPage: React.FC = () => {
       totalViews: reportsList.reduce((sum: number, r: any) => sum + (r.views || 0), 0),
     };
   }, [reports]);
+
+  // Fetch user's communities (use my-communities endpoint)
+  React.useEffect(() => {
+    let mounted = true;
+    const loadMyCommunities = async () => {
+      if (!profile?.id) return;
+      setMyCommunitiesLoading(true);
+      try {
+        const result = await CommunityService.getMyCommunitiesPage(10, 1);
+        if (!mounted) return;
+        setMyCommunities(result.communities || []);
+      } catch (err) {
+        console.error('Error fetching my communities:', err);
+        if (mounted) setMyCommunities([]);
+      } finally {
+        if (mounted) setMyCommunitiesLoading(false);
+      }
+    };
+
+    loadMyCommunities();
+
+    return () => { mounted = false; };
+  }, [profile?.id]);
 
   // Get user's role badges
   const getRoleBadges = () => {
@@ -114,7 +141,7 @@ const PersonalHubPage: React.FC = () => {
               )}
 
               {/* Communities Involved */}
-              {communities && communities.length > 0 && (
+              {myCommunities && myCommunities.length > 0 && (
                 <Card className="p-6 rounded-3xl">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
@@ -123,10 +150,10 @@ const PersonalHubPage: React.FC = () => {
                       </div>
                       <h3 className="font-bold text-slate-900">Communities</h3>
                     </div>
-                    <span className="text-xs font-bold text-slate-500">{communities.length}</span>
+                    <span className="text-xs font-bold text-slate-500">{myCommunities.length}</span>
                   </div>
                   <div className="space-y-3 max-h-64 overflow-y-auto">
-                    {communities.map((community: any) => (
+                    {myCommunities.map((community: any) => (
                       <button
                         key={community.id}
                         onClick={() => navigate(`/community/${community.id}`)}
@@ -208,6 +235,7 @@ const PersonalHubPage: React.FC = () => {
                       </TabsTrigger>
                       <TabsTrigger 
                         value="activity" 
+                        disabled
                         className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-teal-600 data-[state=active]:shadow-sm transition-all whitespace-nowrap"
                       >
                         <Activity size={14} />
@@ -215,6 +243,7 @@ const PersonalHubPage: React.FC = () => {
                       </TabsTrigger>
                       <TabsTrigger 
                         value="watchlist" 
+                        disabled
                         className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-teal-600 data-[state=active]:shadow-sm transition-all whitespace-nowrap"
                       >
                         <Bookmark size={14} />
@@ -272,7 +301,7 @@ const PersonalHubPage: React.FC = () => {
                       </div>
                   </div>
                   
-                  <button className="w-full mt-8 py-4 bg-teal-50 text-teal-700 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-teal-600 hover:text-white transition-all">
+                  <button disabled className="w-full mt-8 py-4 bg-teal-50 text-teal-700 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-teal-600 hover:text-white transition-all">
                      Explore map
                   </button>
                 </div>

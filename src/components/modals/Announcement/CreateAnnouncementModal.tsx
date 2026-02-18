@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
   DialogContent, 
@@ -11,13 +11,15 @@ import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { t } from 'i18next';
-import { X, Globe, Lock } from 'lucide-react';
+import { X, Globe, Lock, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RichTextEditor } from '@/components/common/RichTextEditor/RichTextEditor';
 
 const announcementSchema = z.object({
   title: z.string().min(1, 'Title is required').min(3, 'Title must be at least 3 characters'),
   content: z.string().min(1, 'Content is required').min(10, 'Content must be at least 10 characters'),
+  publishDate: z.string().min(1, 'Publish date is required'),
+  publishTime: z.string().optional(),
   privacy: z.enum(['public', 'internal']),
 });
 
@@ -34,15 +36,34 @@ export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = (
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid },
     reset,
   } = useForm<AnnouncementFormData>({
     resolver: zodResolver(announcementSchema),
+    mode: 'onChange',
   });
 
   const [isLoading, setIsLoading] = useState(false);
   const [richContent, setRichContent] = useState<string>('');
   const [privacy, setPrivacy] = useState<'public' | 'internal'>('public');
+  const [useScheduling, setUseScheduling] = useState(false);
+
+  const getDefaultDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  useEffect(() => {
+    if (!isOpen) {
+      reset();
+      setRichContent('');
+      setPrivacy('public');
+      setUseScheduling(false);
+    }
+  }, [isOpen, reset]);
 
   const handleFormSubmit: SubmitHandler<AnnouncementFormData> = async (data) => {
     setIsLoading(true);
@@ -52,10 +73,7 @@ export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = (
         content: richContent,
         privacy,
       };
-      onSubmit(announcementData);
-      reset();
-      setRichContent('');
-      setPrivacy('public');
+      await onSubmit(announcementData);
       onClose();
     } catch (error) {
       console.error('Error submitting announcement:', error);
@@ -122,10 +140,59 @@ export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = (
               )}
             </div>
 
+            {/* Publish Schedule Section */}
+            <div className="space-y-2 p-4 bg-blue-50 border-2 border-blue-200 rounded-2xl">
+              <label className="flex items-center gap-2 text-sm font-black text-slate-700 uppercase tracking-wider cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={useScheduling}
+                  onChange={(e) => setUseScheduling(e.target.checked)}
+                  className="w-5 h-5 rounded text-teal-600 cursor-pointer"
+                />
+                <Clock size={16} className="text-teal-600" />
+                Schedule Announcement Publishing
+              </label>
+              {useScheduling && (
+                <div className="grid grid-cols-2 gap-4 mt-3">
+                  <div>
+                    <label htmlFor="publishDate" className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">
+                      Publish Date
+                    </label>
+                    <Input
+                      id="publishDate"
+                      type="date"
+                      className={cn(
+                        "w-full px-4 py-3 rounded-2xl border-2 bg-white font-semibold text-slate-800 transition-all",
+                        errors.publishDate ? "border-red-300 focus:border-red-500" : "border-slate-200 focus:border-teal-500"
+                      )}
+                      {...register('publishDate')}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="publishTime" className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">
+                      Publish Time (Optional)
+                    </label>
+                    <Input
+                      id="publishTime"
+                      type="time"
+                      className={cn(
+                        "w-full px-4 py-3 rounded-2xl border-2 bg-white font-semibold text-slate-800 transition-all",
+                        errors.publishTime ? "border-red-300 focus:border-red-500" : "border-slate-200 focus:border-teal-500"
+                      )}
+                      {...register('publishTime')}
+                    />
+                  </div>
+                </div>
+              )}
+              {!useScheduling && (
+                <p className="text-xs text-slate-500 font-medium">Announcement will be published immediately upon creation</p>
+              )}
+            </div>
+
             {/* Privacy Settings */}
             <div className="space-y-2">
               <label className="block text-sm font-black text-slate-700 uppercase tracking-wider">
-                Privacy
+                Privacy Level
               </label>
               <div className="flex gap-3">
                 <button
@@ -134,11 +201,11 @@ export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = (
                   className={cn(
                     "flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border-2 font-black transition-all",
                     privacy === 'public'
-                      ? "border-teal-500 bg-teal-50 text-teal-700"
+                      ? "border-blue-500 bg-blue-50 text-blue-700"
                       : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
                   )}
                 >
-                  <Globe size={18} />
+                  <Globe size={16} />
                   Public
                 </button>
                 <button
@@ -147,11 +214,11 @@ export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = (
                   className={cn(
                     "flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border-2 font-black transition-all",
                     privacy === 'internal'
-                      ? "border-teal-500 bg-teal-50 text-teal-700"
+                      ? "border-purple-500 bg-purple-50 text-purple-700"
                       : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
                   )}
                 >
-                  <Lock size={18} />
+                  <Lock size={16} />
                   Internal
                 </button>
               </div>
@@ -172,7 +239,7 @@ export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = (
             <Button
               type="submit"
               className="px-8 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-black transition-all shadow-lg shadow-teal-600/20 disabled:opacity-50"
-              disabled={isLoading || richContent.replace(/<[^>]*>/g, '').length < 10}
+              disabled={isLoading || !!(richContent && richContent.replace(/<[^>]*>/g, '').length < 10)}
             >
               {isLoading ? 'Publishing...' : t('createAnnouncementModal.submit')}
             </Button>

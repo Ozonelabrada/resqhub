@@ -15,11 +15,14 @@ const HubHomePage = lazy(() => import('./components/pages/public/HubHomePage/Hub
 const NewsFeedPage = lazy(() => import('./components/pages/public/NewsFeedPage/NewsFeedPage'));
 const CommunityAboutPage = lazy(() => import('./components/pages/public/CommunityAboutPage/CommunityAboutPage'));
 const CommunitiesPage = lazy(() => import('./components/pages/public/CommunitiesPage/CommunitiesPage'));
+const CreateCommunityPage = lazy(() => import('./components/pages/public/CreateCommunityPage/CreateCommunityPage'));
 const CommunityPage = lazy(() => import('./components/pages/public/CommunityPage/CommunityPage'));
 const EventDetailPage = lazy(() => import('./components/pages/public/EventDetailPage/EventDetailPage'));
 const MessagesPage = lazy(() => import('./components/pages/public/MessagesPage/MessagesPage'));
 const NotificationsPage = lazy(() => import('./components/pages/public/NotificationsPage/NotificationsPage'));
 const ItemDetailPage = lazy(() => import('./components/pages/public/ItemDetailPage/ItemDetailPage'));
+const StoreDetailPage = lazy(() => import('./components/pages/public/StoreDetailPage/StoreDetailPage'));
+const TradeMarketHubPage = lazy(() => import('./components/pages/public/TradeMarketHubPage/TradeMarketHubPage'));
 const CommunityManagementPage = lazy(() => import('./components/pages/admin/CommunityManagementPage'));
 const AdminDashboard = lazy(() => import('./components/pages/admin/AdminDashboard'));
 const CommunityDetailsPage = lazy(() => import('./components/pages/admin/CommunityDetailsPage'));
@@ -74,8 +77,10 @@ const AppRouter = () => {
           
           {/* Communities */}
           <Route path="communities" element={<CommunitiesPage />} />
+          <Route path="communities/create" element={<AuthGuard requireAuth={true}><CreateCommunityPage /></AuthGuard>} />
           <Route path="community/:id" element={<CommunityPage />} />
           <Route path="community/:id/event/:eventId" element={<EventDetailPage />} />
+          <Route path="trade-market" element={<AuthGuard requireAuth={true}><TradeMarketHubPage /></AuthGuard>} />
           
           {/* Legal and Support */}
           <Route path="privacy-policy" element={<PrivacyPolicyPage />} />
@@ -85,6 +90,7 @@ const AppRouter = () => {
           {/* Items / Details */}
           <Route path="item/:id" element={isFeatureEnabled('reports') ? <ItemDetailPage /> : <Navigate to="/hub" replace />} />
           <Route path="success-stories/:id" element={isFeatureEnabled('reports') ? <ItemDetailPage /> : <Navigate to="/hub" replace />} />
+          <Route path="store/:id" element={<StoreDetailPage />} />
           
           {/* Protected Routes */}
           <Route path="profile" element={<AuthGuard requireAuth={true}><PersonalHubPage /></AuthGuard>} />

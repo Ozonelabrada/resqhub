@@ -1,21 +1,50 @@
 import type { NewsFormData } from '@/components/modals/News/CreateNewsModal';
-import type { AnnouncementFormData } from '@/components/modals/Announcement/CreateAnnouncementModal';
 import type { EventFormData } from '@/components/modals/Event/CreateEventModal';
+import { CommunityService } from '@/services/communityService';
 
-export const useCommunityHandlers = (refresh: () => void) => {
-  const handleNewsSuccess = (data: NewsFormData) => {
+export const useCommunityHandlers = (refresh: () => void, communityId?: string | number) => {
+  const handleNewsSuccess = async (data: NewsFormData) => {
     console.log('News created:', data);
-    refresh();
+    try {
+      const payload = {
+        communityId: communityId || '',
+        newsArticles: data.newsArticles.map((article) => ({
+          ...article,
+        })),
+        sendNotifications: data.sendNotifications,
+        notificationMessage: data.notificationMessage,
+      };
+      const result = await CommunityService.createCommunityNews(payload);
+      if (result.success) {
+        refresh();
+      } else {
+        console.error('Failed to create news:', result.message);
+      }
+    } catch (error) {
+      console.error('Error creating news:', error);
+    }
   };
 
-  const handleAnnouncementSuccess = (data: AnnouncementFormData) => {
-    console.log('Announcement created:', data);
-    refresh();
-  };
-
-  const handleEventSuccess = (data: EventFormData) => {
+  const handleEventSuccess = async (data: EventFormData) => {
     console.log('Event created:', data);
-    refresh();
+    try {
+      const payload = {
+        communityId: communityId || '',
+        events: data.events.map((event) => ({
+          ...event,
+        })),
+        sendNotifications: data.sendNotifications,
+        notificationMessage: data.notificationMessage,
+      };
+      const result = await CommunityService.createCommunityEvents(payload);
+      if (result.success) {
+        refresh();
+      } else {
+        console.error('Failed to create event:', result.message);
+      }
+    } catch (error) {
+      console.error('Error creating event:', error);
+    }
   };
 
   const handleCommunityReportSuccess = () => {
@@ -24,8 +53,8 @@ export const useCommunityHandlers = (refresh: () => void) => {
   };
 
   const handleOpenCommunityReportModal = (
-    type: 'News' | 'Announcement',
-    setCommunityReportType: (type: 'News' | 'Announcement') => void,
+    type: 'News',
+    setCommunityReportType: (type: 'News') => void,
     setIsCommunityReportModalOpen: (open: boolean) => void
   ) => {
     setCommunityReportType(type);
@@ -34,7 +63,6 @@ export const useCommunityHandlers = (refresh: () => void) => {
 
   return {
     handleNewsSuccess,
-    handleAnnouncementSuccess,
     handleEventSuccess,
     handleCommunityReportSuccess,
     handleOpenCommunityReportModal,

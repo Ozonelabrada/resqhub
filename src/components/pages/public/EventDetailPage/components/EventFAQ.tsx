@@ -13,10 +13,14 @@ interface EventFAQProps {
 const EventFAQ: React.FC<EventFAQProps> = ({ event }) => {
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-black text-slate-800 mb-6 flex items-center gap-2">
-        <HelpCircle size={20} />
-        Frequently Asked Questions
-      </h3>
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
+          <HelpCircle size={20} />
+          Frequently Asked Questions
+        </h3>
+        <div className="text-xs font-bold text-slate-500 uppercase mt-1">{event?.stats?.faq?.total ?? event?.faqs?.length ?? 0} Qs</div>
+      </div>
+
       <div className="space-y-3">
         {event?.faqs?.map((faq) => (
           <details

@@ -82,19 +82,19 @@ export const useHubActions = (isAuthenticated: boolean, logout: () => void) => {
       icon: <Bell className="w-4 h-4 mr-2" />,
       command: () => navigate('/notifications')
     },
-    {
-      label: 'Settings',
-      icon: <Settings className="w-4 h-4 mr-2" />,
-      command: () => navigate('/settings')
-    },
+    // {
+    //   label: 'Settings',
+    //   icon: <Settings className="w-4 h-4 mr-2" />,
+    //   command: () => navigate('/settings')
+    // },
     {
       separator: true
     },
-    {
-      label: 'Help & Support',
-      icon: <HelpCircle className="w-4 h-4 mr-2" />,
-      command: () => navigate('/help')
-    },
+    // {
+    //   label: 'Help & Support',
+    //   icon: <HelpCircle className="w-4 h-4 mr-2" />,
+    //   command: () => navigate('/help')
+    // },
     {
       label: 'Logout',
       icon: <LogOut className="w-4 h-4 mr-2 text-red-500" />,

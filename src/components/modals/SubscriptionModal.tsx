@@ -9,10 +9,19 @@ import {
   Spinner
 } from '../ui';
 import { Check, Zap, Shield, Crown, Sparkles } from 'lucide-react';
-import { SubscriptionService, type SubscriptionPlan } from '../../services/subscriptionService';
+import { SubscriptionService } from '../../services/subscriptionService';
 import { cn } from '../../lib/utils';
 import { SITE } from '@/constants/site';
 import { formatCurrencyPHP } from '@/utils/formatter';
+
+interface DisplayPlan {
+  id: string;
+  name: string;
+  price: number;
+  interval?: 'month' | 'year' | string;
+  features: string[];
+  status?: string;
+}
 
 interface SubscriptionModalProps {
   isOpen: boolean;
@@ -21,7 +30,7 @@ interface SubscriptionModalProps {
 }
 
 const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [plans, setPlans] = useState<DisplayPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);
 
@@ -34,7 +43,23 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ isOpen, onClose, 
   const fetchPlans = async () => {
     setLoading(true);
     const data = await SubscriptionService.getPlans();
-    setPlans(data);
+
+    const uiPlans: DisplayPlan[] = (data && data.length > 0)
+      ? data.map(p => ({
+          id: p.code ?? String(p.id),
+          name: p.name,
+          price: (p.monthlyPrice ?? p.annualPrice ?? 0),
+          interval: 'month',
+          features: Array.isArray(p.features) ? p.features.map(f => String(f)) : [],
+          status: p.status,
+        }))
+      : [
+          { id: 'free', name: 'Free', price: 0, interval: 'month', features: ['Basic community features'] },
+          { id: 'pro', name: 'Pro', price: 2499, interval: 'month', features: ['Advanced analytics', 'Priority support'] },
+          { id: 'premium', name: 'Premium', price: 4999, interval: 'month', features: ['White-label', '24/7 support'] },
+        ];
+
+    setPlans(uiPlans);
     setLoading(false);
   };
 
@@ -122,13 +147,13 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ isOpen, onClose, 
                                 key={plan.id}
                                 className={cn(
                                     "p-6 rounded-[2rem] border-2 transition-all cursor-pointer relative",
-                                    plan.id === 'premium' 
+                                    (['premium','pro'].includes(plan.id))
                                         ? "border-teal-600 bg-white shadow-xl shadow-teal-600/5 ring-4 ring-teal-50" 
                                         : "border-slate-100 bg-white hover:border-slate-200"
                                 )}
-                                onClick={() => plan.id === 'premium' && handleSubscribe(plan.id)}
+                                onClick={() => (['premium','pro'].includes(plan.id)) && handleSubscribe(plan.id)}
                             >
-                                {plan.id === 'premium' && (
+                                {(['premium','pro'].includes(plan.id)) && (
                                     <div className="absolute top-0 right-10 -translate-y-1/2 bg-teal-600 text-white px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
                                         <Crown size={12} />
                                         Recommended
@@ -147,7 +172,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ isOpen, onClose, 
                                 <div className="space-y-2 mb-6">
                                     {plan.features.map((f, i) => (
                                         <div key={i} className="flex items-center gap-3">
-                                            <div className={cn("w-5 h-5 rounded-full flex items-center justify-center shrink-0", plan.id === 'premium' ? "bg-teal-50 text-teal-600" : "bg-slate-50 text-slate-400")}>
+                                            <div className={cn("w-5 h-5 rounded-full flex items-center justify-center shrink-0", (['premium','pro'].includes(plan.id) ? "bg-teal-50 text-teal-600" : "bg-slate-50 text-slate-400"))}>
                                                 <Check size={12} strokeWidth={3} />
                                             </div>
                                             <span className="text-sm font-medium text-slate-600">{f}</span>
@@ -157,7 +182,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ isOpen, onClose, 
                                 <Button 
                                     className={cn(
                                         "w-full h-12 rounded-2xl font-black transition-all",
-                                        plan.id === 'premium' 
+                                        (['premium','pro'].includes(plan.id)) 
                                             ? "bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-100" 
                                             : "bg-slate-100 text-slate-400 hover:bg-slate-200"
                                     )}

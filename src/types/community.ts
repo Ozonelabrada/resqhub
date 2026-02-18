@@ -13,13 +13,22 @@ export interface Community {
   foundedDate?: string;
   dateCreated?: string;
   createdBy?: string;
-  status?: string; // 'active' | 'pending' | 'rejected' | 'disabled' | etc.
+  status?: string; // 'active' | 'pending' | 'denied' | 'disabled' | etc.
   maxMembers?: number | null;
   isMember?: boolean | string; // Can be boolean or string ('true'/'false') from API
   memberIsApproved?: boolean;
+  currentUserIsApproved?: boolean; // From API: indicates if user is approved in this community
   isAdmin?: boolean;
   isModerator?: boolean;
   isPrivate?: boolean;
+  communityUserRoles?: string[]; // e.g., ["member", "admin", "moderator"]
+  resources?: Array<{
+    id?: string | number;
+    title: string;
+    description?: string;
+    url?: string;
+    type?: string; // e.g., 'link', 'file', 'document'
+  }>;
   // Feature Flags
   hasLiveChat?: boolean;
   hasFeedUpdates?: boolean;
@@ -74,6 +83,9 @@ export interface CommunityPost {
     profilePicture: string | null;
     fullName: string;
   };
+  // Optional event fields (some reports include event start/end)
+  startDate?: string | null;
+  endDate?: string | null;
   dateCreated: string;
   lastModifiedDate: string;
 }
@@ -83,9 +95,11 @@ export interface CommunityMember {
   name: string;
   username: string;
   role: 'admin' | 'moderator' | 'member';
+  roles?: string[]; // All roles for the member (e.g., ["member", "admin"])
   joinedAt: string;
   profilePicture?: string;
   isSeller?: boolean;
+  isVolunteer?: boolean; // Whether member is a volunteer
   memberIsApproved?: boolean;
 }
 
@@ -98,7 +112,7 @@ export interface JoinRequest {
   profilePictureUrl?: string;
   communityId: number;
   dateCreated: string;
-  status: 'Pending' | 'Approved' | 'Rejected';
+  status: 'Pending' | 'Approved' | 'Denied';
   // Admin review fields
   userAddress?: string;
   userPhone?: string;

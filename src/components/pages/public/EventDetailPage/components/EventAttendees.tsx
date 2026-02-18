@@ -22,7 +22,7 @@ const EventAttendees: React.FC<EventAttendeesProps> = ({
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-black text-slate-800">
-          Attendees ({event?.attendees?.length || 0})
+          Attendees ({event?.stats?.attendees?.total ?? event?.attendees?.length ?? 0})
         </h3>
         {event?.status === 'in-progress' && isEventCreator && (
           <Button

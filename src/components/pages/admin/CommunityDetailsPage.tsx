@@ -111,6 +111,9 @@ const CommunityDetailsPage: React.FC = () => {
     }
   };
 
+  // Helper function to normalize status for case-insensitive comparison
+  const normalizeStatus = (status: string): string => status?.toLowerCase().trim() || '';
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -165,9 +168,9 @@ const CommunityDetailsPage: React.FC = () => {
       });
       
       if (response.succeeded && community) {
-        setCommunity({ ...community, status: 'rejected' });
+        setCommunity({ ...community, status: 'denied' });
         setShowRejectModal(false);
-        (window as any).showToast?.('success', 'Rejected', 'Community request has been rejected.');
+        (window as any).showToast?.('success', 'Denied', 'Community request has been denied.');
       }
     } catch (error) {
       console.error('Error rejecting community:', error);
@@ -246,15 +249,16 @@ const CommunityDetailsPage: React.FC = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
+    const normalizedStatus = status?.toLowerCase().trim() || '';
+    switch (normalizedStatus) {
       case 'active':
         return <Badge className="bg-green-100 text-green-800">Active</Badge>;
       case 'pending':
         return <Badge className="bg-orange-100 text-orange-800">Pending</Badge>;
       case 'disabled':
         return <Badge className="bg-red-100 text-red-800">Disabled</Badge>;
-      case 'rejected':
-        return <Badge className="bg-gray-100 text-gray-800">Rejected</Badge>;
+      case 'denied':
+        return <Badge className="bg-gray-100 text-gray-800">Denied</Badge>;
       case 'suspended':
         return <Badge className="bg-yellow-100 text-yellow-800">Suspended</Badge>;
       case 'terminated':
@@ -273,21 +277,7 @@ const CommunityDetailsPage: React.FC = () => {
 
     switch (community.status.toLowerCase()) {
       case 'pending':
-        return [
-          editItem,
-          {
-            label: 'Approve Community',
-            icon: <CheckCircle size={16} className="text-green-600" />,
-            action: () => setShowApproveModal(true),
-            variant: 'success' as const
-          },
-          {
-            label: 'Reject Community',
-            icon: <XCircle size={16} className="text-red-600" />,
-            action: () => setShowRejectModal(true),
-            variant: 'danger' as const
-          }
-        ];
+        return [editItem];
       case 'active':
         return [
           editItem,
@@ -322,7 +312,7 @@ const CommunityDetailsPage: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Pending Banner */}
-      {community.status === 'pending' && (
+      {normalizeStatus(community.status) === 'pending' && (
         <div className="bg-white border-2 border-amber-200 p-6 rounded-[2.5rem] flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-amber-50">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600">
@@ -566,9 +556,104 @@ const CommunityDetailsPage: React.FC = () => {
               </div>
             )}
           </Card>
-        </TabContent>
 
-        {/* Hierarchy Tab */}
+          {/* Match Compatibility Score */}
+          <Card className="p-6 bg-gradient-to-br from-teal-50 to-blue-50 border border-teal-100">
+            <div className="flex items-start justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-black text-slate-900 mb-1">Match Compatibility</h3>
+                <p className="text-sm text-slate-600">Community alignment with similar communities</p>
+              </div>
+              <div className="text-right">
+                <p className="text-4xl font-black text-teal-600">--</p>
+                <p className="text-xs text-slate-500 font-bold uppercase">compatibility score</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 bg-white rounded-xl border border-teal-100">
+                <p className="text-[10px] font-black text-teal-600 uppercase mb-2">Category Match</p>
+                <p className="text-2xl font-black text-slate-800">--</p>
+              </div>
+              <div className="p-4 bg-white rounded-xl border border-teal-100">
+                <p className="text-[10px] font-black text-blue-600 uppercase mb-2">Location Match</p>
+                <p className="text-2xl font-black text-slate-800">--</p>
+              </div>
+              <div className="p-4 bg-white rounded-xl border border-teal-100">
+                <p className="text-[10px] font-black text-purple-600 uppercase mb-2">Size Match</p>
+                <p className="text-2xl font-black text-slate-800">--</p>
+              </div>
+            </div>
+          </Card>
+
+          {/* Matched Communities */}
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-black text-slate-900">Matched Communities</h3>
+                <p className="text-sm text-slate-600 mt-1">Similar communities based on match criteria</p>
+              </div>
+              <Badge className="bg-slate-100 text-slate-700 font-bold">0</Badge>
+            </div>
+            <div className="space-y-3">
+              <div className="text-center py-12">
+                <Shield size={32} className="mx-auto text-slate-300 mb-3" />
+                <p className="text-slate-500 font-medium">No matched communities available</p>
+                <p className="text-xs text-slate-400 mt-1">Match data will appear here once backend provides recommendations</p>
+              </div>
+            </div>
+          </Card>
+
+          {/* Match Insights */}
+          <Card className="p-6">
+            <h3 className="text-lg font-black text-slate-900 mb-6">Match Insights</h3>
+            <div className="space-y-4">
+              <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl border border-blue-200">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
+                    1
+                  </div>
+                  <div>
+                    <p className="font-black text-blue-900 mb-1">Category Alignment</p>
+                    <p className="text-sm text-blue-800">Communities are matched based on shared categories and interests</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-xl border border-green-200">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
+                    2
+                  </div>
+                  <div>
+                    <p className="font-black text-green-900 mb-1">Geographic Proximity</p>
+                    <p className="text-sm text-green-800">Communities in similar locations or regions are matched together</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl border border-purple-200">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
+                    3
+                  </div>
+                  <div>
+                    <p className="font-black text-purple-900 mb-1">Community Size</p>
+                    <p className="text-sm text-purple-800">Similar member counts increase matching likelihood</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-4 bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl border border-orange-200">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
+                    4
+                  </div>
+                  <div>
+                    <p className="font-black text-orange-900 mb-1">Activity Level</p>
+                    <p className="text-sm text-orange-800">Communities with similar engagement patterns are recommended</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </TabContent>
         <TabContent value="hierarchy" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {community.childCommunities && community.childCommunities.length > 0 ? (
@@ -584,7 +669,7 @@ const CommunityDetailsPage: React.FC = () => {
                     </div>
                     <Badge className={cn(
                       "px-3 py-1 rounded-full font-bold text-[10px] uppercase border-none",
-                      child.status === 'active' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                      normalizeStatus(child.status) === 'active' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
                     )}>
                       {child.status || 'inactive'}
                     </Badge>
@@ -662,8 +747,8 @@ const CommunityDetailsPage: React.FC = () => {
                     </p>
                   </div>
                   <Badge className={cn(
-                    subscription.status === 'active' ? 'bg-green-100 text-green-800' :
-                    subscription.status === 'expired' ? 'bg-red-100 text-red-800' :
+                    normalizeStatus(subscription.status) === 'active' ? 'bg-green-100 text-green-800' :
+                    normalizeStatus(subscription.status) === 'expired' ? 'bg-red-100 text-red-800' :
                     'bg-orange-100 text-orange-800'
                   )}>
                     {subscription.status}
@@ -693,9 +778,9 @@ const CommunityDetailsPage: React.FC = () => {
                   </div>
                   <div className="text-right">
                     <Badge className={cn(
-                      payment.status === 'completed' ? 'bg-green-100 text-green-800' :
-                      payment.status === 'pending' ? 'bg-orange-100 text-orange-800' :
-                      payment.status === 'failed' ? 'bg-red-100 text-red-800' :
+                      normalizeStatus(payment.status) === 'completed' ? 'bg-green-100 text-green-800' :
+                      normalizeStatus(payment.status) === 'pending' ? 'bg-orange-100 text-orange-800' :
+                      normalizeStatus(payment.status) === 'failed' ? 'bg-red-100 text-red-800' :
                       'bg-blue-100 text-blue-800'
                     )}>
                       {payment.status}

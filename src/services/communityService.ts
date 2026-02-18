@@ -98,28 +98,103 @@ export const CommunityService = {
 
   async getCommunityMembers(id: string): Promise<CommunityMember[]> {
     try {
-      // response.data.data contains { members: [], page: 1, ... }
+      // response.data.data contains { members: [], page: 1, memberCounts: { ... } }
       const response = await api.get<any>(`/communities/${id}/members`);
       const data = response.data?.data;
       
       if (data?.members && Array.isArray(data.members)) {
         // Map API fields (userId, userName) to CommunityMember type (id, username)
-        return data.members.map((m: any) => ({
-          id: m.userId,
-          name: m.userFullName || m.userName,
-          username: m.userName,
-          role: m.role,
-          joinedAt: m.joinedDate,
-          profilePicture: m.profilePictureUrl,
-          isSeller: m.isSeller,
-          memberIsApproved: m.memberIsApproved
-        }));
+        // API returns roles as array, so select the primary role (admin > moderator > member)
+        return data.members.map((m: any) => {
+          let role: 'admin' | 'moderator' | 'member' = 'member';
+          const rolesArray = m.roles || (m.role ? [m.role] : []);
+          
+          if (Array.isArray(rolesArray)) {
+            if (rolesArray.includes('admin')) {
+              role = 'admin';
+            } else if (rolesArray.includes('moderator')) {
+              role = 'moderator';
+            } else if (rolesArray.includes('member')) {
+              role = 'member';
+            }
+          } else if (m.role) {
+            // Fallback for legacy API response format
+            role = m.role as any;
+          }
+          
+          return {
+            id: m.userId,
+            name: m.userFullName || m.userName,
+            username: m.userName,
+            role: role,
+            roles: rolesArray, // Include all roles
+            joinedAt: m.joinedDate,
+            profilePicture: m.profilePictureUrl,
+            isSeller: m.isSeller,
+            isVolunteer: m.isVolunteer || false, // Add volunteer flag
+            memberIsApproved: m.memberIsApproved
+          };
+        });
       }
       
       return Array.isArray(data) ? data : [];
     } catch (error) {
       console.error('Error fetching community members:', error);
       return [];
+    }
+  },
+
+  async getCommunityVolunteers(communityId: string, pageSize: number = 10, page: number = 1): Promise<{ members: CommunityMember[]; totalCount: number; totalPages: number }> {
+    try {
+      // Fetch volunteers using role filter
+      const response = await api.get<any>(
+        `/community-members/community/${communityId}?role=volunteer&pageSize=${pageSize}&page=${page}`
+      );
+      const data = response.data?.data;
+      
+      if (data?.members && Array.isArray(data.members)) {
+        // Map API fields to CommunityMember type
+        const mapped = data.members.map((m: any) => {
+          let role: 'admin' | 'moderator' | 'member' = 'member';
+          const rolesArray = m.roles || (m.role ? [m.role] : []);
+          
+          if (Array.isArray(rolesArray)) {
+            if (rolesArray.includes('admin')) {
+              role = 'admin';
+            } else if (rolesArray.includes('moderator')) {
+              role = 'moderator';
+            } else if (rolesArray.includes('member')) {
+              role = 'member';
+            }
+          } else if (m.role) {
+            role = m.role as any;
+          }
+          
+          return {
+            id: m.userId,
+            name: m.userFullName || m.userName,
+            username: m.userName,
+            role: role,
+            roles: rolesArray,
+            joinedAt: m.joinedDate,
+            profilePicture: m.profilePictureUrl,
+            isSeller: m.isSeller,
+            isVolunteer: true, // Mark as volunteer since we fetched from volunteer endpoint
+            memberIsApproved: m.memberIsApproved || m.isApproved
+          };
+        });
+        
+        return {
+          members: mapped,
+          totalCount: data.totalCount || 0,
+          totalPages: data.totalPages || 1
+        };
+      }
+      
+      return { members: [], totalCount: 0, totalPages: 1 };
+    } catch (error) {
+      console.error('Error fetching community volunteers:', error);
+      return { members: [], totalCount: 0, totalPages: 1 };
     }
   },
 
@@ -153,7 +228,7 @@ export const CommunityService = {
     }
   },
 
-  async updateStatus(id: string, status: 'approved' | 'rejected', reason?: string): Promise<boolean> {
+  async updateStatus(id: string, status: 'approved' | 'denied', reason?: string): Promise<boolean> {
     try {
       await api.patch(`/admin/communities/${id}/status`, { status, reason });
       return true;
@@ -448,6 +523,95 @@ export const CommunityService = {
 
 
 
+  async createCommunityEvents(payload: {
+    communityId: string | number;
+    events: Array<{
+      title: string;
+      description: string;
+      startDate: string;
+      endDate: string;
+      location: string;
+      contactInfo: string;
+      category: string;
+      imageUrl?: string;
+      maxAttendees?: number;
+      publishDate: string;
+      privacy: 'public' | 'internal';
+    }>;
+    sendNotifications?: boolean;
+    notificationMessage?: string;
+  }): Promise<{ success: boolean; data?: any; message?: string }> {
+    try {
+      console.log('Creating community events with payload:', payload);
+      
+      const response = await api.post('/community-events', payload);
+      console.log('Community events created successfully:', response.data);
+      
+      return {
+        success: true,
+        data: response.data?.data || response.data
+      };
+    } catch (error: any) {
+      console.error('Error creating community events:', error);
+      return {
+        success: false,
+        message: error?.response?.data?.message || error?.message || 'Failed to create events'
+      };
+    }
+  },
+
+  async createCommunityNews(payload: {
+    communityId: string | number;
+    newsArticles: Array<{
+      title: string;
+      content: string;
+      summary: string;
+      category: string;
+      author: string;
+      imageUrl?: string;
+      publishDate: string;
+      isFeatured: boolean;
+      privacy: 'public' | 'internal';
+      sourceUrl?: string;
+    }>;
+    sendNotifications?: boolean;
+    notificationMessage?: string;
+  }): Promise<{ success: boolean; data?: any; message?: string }> {
+    try {
+      console.log('Creating community news with payload:', payload);
+      
+      const response = await api.post('/community-news', payload);
+      console.log('Community news created successfully:', response.data);
+      
+      return {
+        success: true,
+        data: response.data?.data || response.data
+      };
+    } catch (error: any) {
+      console.error('Error creating community news:', error);
+      return {
+        success: false,
+        message: error?.response?.data?.message || error?.message || 'Failed to create news'
+      };
+    }
+  },
+
+  async getEventStatistics(communityId: string | number, eventId: string | number): Promise<{ success: boolean; data?: any; message?: string }> {
+    try {
+      const response = await api.get(`/communities/${communityId}/events/${eventId}/statistics`);
+      return {
+        success: true,
+        data: response.data?.data || response.data
+      };
+    } catch (error: any) {
+      console.error('Error fetching event statistics:', error);
+      return {
+        success: false,
+        message: error?.response?.data?.message || error?.message || 'Failed to fetch event statistics'
+      };
+    }
+  },
+
   async addVolunteersToCommunity(
     communityId: string | number,
     userIds: string[]
@@ -462,6 +626,85 @@ export const CommunityService = {
     } catch (error) {
       console.error('Error adding volunteers to community:', error);
       return false;
+    }
+  },
+
+  async getMyCommunitiesPage(pageSize: number = 10, page: number = 1): Promise<{ communities: Community[]; totalCount: number; totalPages: number }> {
+    try {
+      const response = await api.get<any>(`/communities/my-communities?pageSize=${pageSize}&page=${page}`);
+      const data = response.data?.data || response.data;
+      
+      if (data?.communities && Array.isArray(data.communities)) {
+        return {
+          communities: data.communities,
+          totalCount: data.totalCount || 0,
+          totalPages: data.totalPages || 1
+        };
+      }
+      
+      if (Array.isArray(data)) {
+        return {
+          communities: data,
+          totalCount: data.length || 0,
+          totalPages: 1
+        };
+      }
+      
+      return { communities: [], totalCount: 0, totalPages: 1 };
+    } catch (error) {
+      console.error('Error fetching my communities:', error);
+      return { communities: [], totalCount: 0, totalPages: 1 };
+    }
+  },
+
+  async getAllApprovedCommunitiesPage(pageSize: number = 10, page: number = 1): Promise<{ communities: Community[]; totalCount: number; totalPages: number }> {
+    try {
+      const response = await api.get<any>(`/communities?status=approved&pageSize=${pageSize}&page=${page}`);
+      const data = response.data?.data || response.data;
+      
+      if (data?.communities && Array.isArray(data.communities)) {
+        return {
+          communities: data.communities,
+          totalCount: data.totalCount || 0,
+          totalPages: data.totalPages || 1
+        };
+      }
+      
+      if (Array.isArray(data)) {
+        return {
+          communities: data,
+          totalCount: data.length || 0,
+          totalPages: 1
+        };
+      }
+      
+      return { communities: [], totalCount: 0, totalPages: 1 };
+    } catch (error) {
+      console.error('Error fetching approved communities:', error);
+      return { communities: [], totalCount: 0, totalPages: 1 };
+    }
+  },
+
+  async getTodaysUpdates(): Promise<{
+    date: string;
+    events: any[];
+    totalCount: number;
+  }> {
+    try {
+      const response = await api.get('/community-events/today');
+      const data = response.data?.data;
+      return {
+        date: data?.date || new Date().toISOString().split('T')[0],
+        events: Array.isArray(data?.events) ? data.events : [],
+        totalCount: data?.totalCount || 0
+      };
+    } catch (error) {
+      console.error('Error fetching today\'s updates:', error);
+      return {
+        date: new Date().toISOString().split('T')[0],
+        events: [],
+        totalCount: 0
+      };
     }
   }
 };

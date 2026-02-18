@@ -70,17 +70,17 @@ export const ProfilePreviewModal: React.FC<ProfilePreviewModalProps> = ({
       // BackendUserData doesn't have dateOfBirth, so we skip age calculation
       
       setLocalUser({
-        fullName: apiUser.fullName,
-        username: apiUser.username,
-        profilePicture: apiUser.profilePicture,
-        email: apiUser.email,
+        fullName: apiUser.fullName ?? apiUser.name ?? '',
+        username: apiUser.username ?? apiUser.email?.split('@')[0] ?? '',
+        profilePicture: apiUser.profilePicture ?? undefined,
+        email: apiUser.email ?? undefined,
         location: apiUser.location ?? undefined,
         contactNumber: undefined,
-        joinDate: new Date(apiUser.joinDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        joinDate: apiUser.joinDate ? new Date(apiUser.joinDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : undefined,
         sex: undefined,
         age,
         verificationStatus: apiUser.emailVerified ? 'Verified' : 'Unverified',
-        memberSince: Math.floor((new Date().getTime() - new Date(apiUser.joinDate).getTime()) / (1000 * 60 * 60 * 24))
+        memberSince: apiUser.joinDate ? Math.floor((Date.now() - new Date(apiUser.joinDate).getTime()) / (1000 * 60 * 60 * 24)) : undefined
       });
     } else if (propUser) {
       // Use prop user if no API data
@@ -196,7 +196,9 @@ export const ProfilePreviewModal: React.FC<ProfilePreviewModalProps> = ({
 
             {/* Main Info Grid */}
             <div className="grid grid-cols-1 w-full gap-3 mb-6">
-              {/* Address */}
+
+
+              {/* Address (profile primary location) */}
               {user.location && (
                 <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 hover:border-teal-200 hover:bg-teal-50/30 transition-all">
                   <div className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-orange-500">
@@ -209,7 +211,7 @@ export const ProfilePreviewModal: React.FC<ProfilePreviewModalProps> = ({
                 </div>
               )}
 
-              {/* Address */}
+              {/* Full address */}
               {user.address && (
                 <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all">
                   <div className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-blue-600">

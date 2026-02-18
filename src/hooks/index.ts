@@ -11,6 +11,8 @@ export { useWatchList } from './useWatchList';
 export { useNewsFeed } from './useNewsFeed';
 export { useFeatureFlags } from './useFeatureFlags';
 export { useScreenSize } from './useScreenSize';
+export { useUserSubscriptions } from './useUserSubscriptions';
+export { useTodaysUpdates } from './useTodaysUpdates';
 
 // Admin hooks
 export * from './admin';

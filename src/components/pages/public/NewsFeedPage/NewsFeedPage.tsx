@@ -16,7 +16,6 @@ import {
   Spinner
 } from '../../../ui';
 import { 
-  CreateCommunityModal, 
   InviteModal, 
   CreateReportModal,
   ProfilePreviewModal
@@ -26,6 +25,7 @@ import { cn } from '@/lib/utils';
 import { MessagesContainer } from '../../../features/messages/MessagesContainer';
 import { CommunitiesContainer } from '../../../features/communities/CommunitiesContainer';
 import { CommunityService } from '@/services/communityService';
+import TradeMarketHubPage from '../TradeMarketHubPage/TradeMarketHubPage';
 import NewsFeedSidebar from './components/NewsFeedSidebar';
 import NewsFeedHeader from './components/NewsFeedHeader';
 import NewsFeedSkeleton from './components/NewsFeedSkeleton';
@@ -39,14 +39,13 @@ const NewsFeedPage: React.FC = () => {
   const { isAuthenticated, user, openLoginModal } = useAuth();
   
   // State
-  const [currentView, setCurrentView] = useState<'feed' | 'messages' | 'communities'>('feed');
+  const [currentView, setCurrentView] = useState<'feed' | 'messages' | 'communities' | 'trade-market'>('feed');
   const [selectedConversationId, setSelectedConversationId] = useState<string | undefined>(undefined);
   const [filter, setFilter] = useState<'all' | 'lost' | 'found'>('all');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'recent' | 'popular' | 'distance'>('recent');
-  const [isCommunityModalOpen, setIsCommunityModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [selectedCommunityForInvite, setSelectedCommunityForInvite] = useState<string>('');
@@ -202,7 +201,7 @@ const NewsFeedPage: React.FC = () => {
     }
   };
 
-  const handleViewChange = (view: 'feed' | 'messages' | 'communities') => {
+  const handleViewChange = (view: 'feed' | 'messages' | 'communities' | 'trade-market') => {
     setCurrentView(view);
     // Sync with URL if possible, though mostly internal state for now
   };
@@ -361,9 +360,12 @@ const NewsFeedPage: React.FC = () => {
             </div>
           ) : currentView === 'messages' ? (
             <MessagesContainer initialConversationId={selectedConversationId} />
-          ) : (
-            <CommunitiesContainer />
-          )}
+          ) : currentView === 'communities' ? (
+            <CommunitiesContainer initialTab="my-communities" />
+          ) : currentView === 'trade-market' ? (
+            <TradeMarketHubPage />
+          ) : null
+        }
         </div>
 
         {/* --- SIDEBAR: COMMUNITY STATS & TRENDING - Hidden on mobile --- */}
@@ -380,7 +382,7 @@ const NewsFeedPage: React.FC = () => {
                 setSelectedCommunityForInvite(communityName);
                 setIsInviteModalOpen(true);
               }}
-              onOpenCreateCommunity={() => setIsCommunityModalOpen(true)}
+              onOpenCreateCommunity={() => navigate('/communities/create')}
               onJoinCommunity={handleJoinCommunity}
               isSafetyExpanded={isSafetyExpanded}
               setIsSafetyExpanded={setIsSafetyExpanded}
@@ -397,11 +399,6 @@ const NewsFeedPage: React.FC = () => {
       {/* --- FOOTER CTA - REMOVED FOR MOBILE OPTIMIZATION --- */}
 
       {/* MODALS */}
-      <CreateCommunityModal 
-        isOpen={isCommunityModalOpen} 
-        onClose={() => setIsCommunityModalOpen(false)} 
-      />
-      
       <InviteModal
         isOpen={isInviteModalOpen}
         onClose={() => setIsInviteModalOpen(false)}

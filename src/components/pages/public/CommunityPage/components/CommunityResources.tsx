@@ -122,6 +122,7 @@ export const CommunityResources: React.FC<{
           {isAdmin && (
             <Button
               onClick={() => setLocalIsModalOpen(true)}
+              disabled
               className="h-14 px-8 bg-teal-600 hover:bg-teal-700 text-white font-black rounded-2xl flex items-center gap-2 shadow-xl shadow-teal-200/50 transition-all"
             >
               <Plus className="w-5 h-5" />
@@ -158,7 +159,9 @@ export const CommunityResources: React.FC<{
                   {resource.type === 'Contact' ? resource.value : resource.type === 'Document' ? resource.value.split('.')[1].toUpperCase() : 'URL'}
                 </span>
                 
-                <Button className="h-10 px-6 bg-slate-900 hover:bg-teal-600 text-white font-black rounded-xl text-[10px] uppercase tracking-[0.2em] transition-all flex items-center gap-2">
+                <Button
+                disabled
+                 className="h-10 px-6 bg-slate-900 hover:bg-teal-600 text-white font-black rounded-xl text-[10px] uppercase tracking-[0.2em] transition-all flex items-center gap-2">
                   {resource.type === 'Contact' ? 'CALL NOW' : resource.type === 'Document' ? 'DOWNLOAD' : 'VISIT SITE'}
                   <ArrowUpRight size={14} className="stroke-[3px]" />
                 </Button>
@@ -178,7 +181,7 @@ export const CommunityResources: React.FC<{
           <p className="text-teal-50 font-medium max-w-md">
             If there's a community document or contact that should be here, let the administration know.
           </p>
-          <Button className="bg-white text-teal-600 font-black rounded-xl px-10 h-12 hover:bg-teal-50 uppercase tracking-widest text-[11px] mt-4">
+          <Button disabled className="bg-white text-teal-600 font-black rounded-xl px-10 h-12 hover:bg-teal-50 uppercase tracking-widest text-[11px] mt-4">
             Contact Admin
           </Button>
         </div>
