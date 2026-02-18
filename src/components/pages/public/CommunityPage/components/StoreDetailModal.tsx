@@ -39,7 +39,7 @@ export const StoreDetailModal: React.FC<StoreDetailModalProps> = ({
         return 'bg-blue-400';
       case 'approved':
         return 'bg-emerald-400';
-      case 'rejected':
+      case 'denied':
         return 'bg-rose-400';
       case 'suspended':
         return 'bg-amber-400';
@@ -54,7 +54,7 @@ export const StoreDetailModal: React.FC<StoreDetailModalProps> = ({
         return 'bg-blue-100 text-blue-700';
       case 'approved':
         return 'bg-emerald-100 text-emerald-700';
-      case 'rejected':
+      case 'denied':
         return 'bg-rose-100 text-rose-700';
       case 'suspended':
         return 'bg-amber-100 text-amber-700';

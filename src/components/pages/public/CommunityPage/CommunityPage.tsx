@@ -44,7 +44,7 @@ const CommunityPage: React.FC = () => {
 
   const communityState = useCommunityState();
   const communityAccess = useCommunityAccess(community);
-  const handlers = useCommunityHandlers(refresh);
+  const handlers = useCommunityHandlers(refresh, community?.id);
 
   const handleOpenReportModal = () => {
     if (!isAuthenticated) {
@@ -94,9 +94,6 @@ const CommunityPage: React.FC = () => {
     );
   }
 
-  const todaysAnnouncements: any[] = [];
-  const todaysEvents: any[] = [];
-
   return (
     <div className="min-h-screen lg:h-[calc(100vh-60px)] flex flex-col bg-slate-50 lg:overflow-hidden lg:-mt-10">
       {/* COMMUNITY HEADER */}
@@ -145,8 +142,6 @@ const CommunityPage: React.FC = () => {
             <div className="space-y-6">
               <TabContentRenderer
                 activeTab={activeTab}
-                activeUpdatesSubTab={communityState.activeUpdatesSubTab}
-                onUpdatesSubTabChange={communityState.setActiveUpdatesSubTab}
                 isFullMember={communityAccess.isFullMember}
                 isPendingMember={communityAccess.isPendingMember}
                 isPrivileged={communityAccess.isPrivileged}
@@ -155,23 +150,17 @@ const CommunityPage: React.FC = () => {
                 community={community}
                 id={id}
                 posts={posts}
-                safeMembers={communityAccess.safeMembers}
-                safeJoinRequests={communityAccess.safeJoinRequests}
+                safeMembers={members}
+                safeJoinRequests={joinRequests}
                 isMember={communityAccess.isMember}
                 onJoinClick={handleJoin}
                 isNewsModalOpen={communityState.isNewsModalOpen}
-                isAnnouncementModalOpen={communityState.isAnnouncementModalOpen}
                 isEventModalOpen={communityState.isEventModalOpen}
                 onNewsModalClose={() => communityState.setIsNewsModalOpen(false)}
-                onAnnouncementModalClose={() => communityState.setIsAnnouncementModalOpen(false)}
                 onEventModalClose={() => communityState.setIsEventModalOpen(false)}
                 onNewsSuccess={(data) => {
                   communityState.setIsNewsModalOpen(false);
                   handlers.handleNewsSuccess(data);
-                }}
-                onAnnouncementSuccess={(data) => {
-                  communityState.setIsAnnouncementModalOpen(false);
-                  handlers.handleAnnouncementSuccess(data);
                 }}
                 onEventSuccess={(data) => {
                   communityState.setIsEventModalOpen(false);
@@ -179,7 +168,6 @@ const CommunityPage: React.FC = () => {
                 }}
                 onRefresh={refresh}
                 onNewsModalOpen={() => communityState.setIsNewsModalOpen(true)}
-                onAnnouncementModalOpen={() => communityState.setIsAnnouncementModalOpen(true)}
                 onEventModalOpen={() => communityState.setIsEventModalOpen(true)}
                 onApprove={approveRequest}
                 onReject={rejectRequest}
@@ -192,9 +180,7 @@ const CommunityPage: React.FC = () => {
             <aside className="hidden lg:flex lg:col-span-3 lg:order-3 flex-col space-y-4 pt-2 pb-6 lg:h-full lg:overflow-y-auto lg:overflow-x-hidden scrollbar-hidden hover:custom-scrollbar transition-all min-w-0">
               <SidebarStats
                 community={community}
-                safeMembers={communityAccess.safeMembers}
-                todaysAnnouncements={todaysAnnouncements}
-                todaysEvents={todaysEvents}
+                safeMembers={members}
                 onUpdatesClick={() => handleTabChange('updates')}
                 onMembersClick={() => handleTabChange('members')}
               />

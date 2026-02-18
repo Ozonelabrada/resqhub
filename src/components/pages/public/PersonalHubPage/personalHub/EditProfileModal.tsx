@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Input, Textarea, Select, Button, Avatar } from '../../../../ui';
-import { Camera, User, MapPin, Info, Save, X } from 'lucide-react';
+import { Camera, User, MapPin, Info, Save, X, Phone } from 'lucide-react';
 import type { EditProfileForm, UserProfile } from '../../../../../types/personalHub';
 
 interface EditProfileModalProps {
@@ -18,42 +18,56 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   onSave,
   loading
 }) => {
-  const [formData, setFormData] = useState<EditProfileForm>({
+  const [formData, setFormData] = useState<EditProfileForm & {
+    firstName?: string;
+    lastName?: string;
+    phoneNumber?: string;
+    address?: string;
+    dateOfBirth?: string;
+    sex?: string;
+    profilePictureUrl?: string;
+    coverPhotoUrl?: string;
+  }>({
+    firstName: '',
+    lastName: '',
     fullName: '',
     username: '',
     bio: '',
-    location: '',
+    phoneNumber: '',
+    address: '',
+    dateOfBirth: '',
+    sex: '',
     profilePicture: '',
-    coverPhoto: ''
+    profilePictureUrl: '',
+    coverPhoto: '' ,
+    coverPhotoUrl: ''
   });
 
-  const locationOptions = [
-    { label: 'New York, NY', value: 'New York, NY' },
-    { label: 'Los Angeles, CA', value: 'Los Angeles, CA' },
-    { label: 'Chicago, IL', value: 'Chicago, IL' },
-    { label: 'Houston, TX', value: 'Houston, TX' },
-    { label: 'Phoenix, AZ', value: 'Phoenix, AZ' },
-    { label: 'Philadelphia, PA', value: 'Philadelphia, PA' },
-    { label: 'San Antonio, TX', value: 'San Antonio, TX' },
-    { label: 'San Diego, CA', value: 'San Diego, CA' },
-    { label: 'Dallas, TX', value: 'Dallas, TX' },
-    { label: 'San Jose, CA', value: 'San Jose, CA' }
-  ];
+
 
   useEffect(() => {
     if (userData && visible) {
+      // try to split fullName into first/last when available
+      const nameParts = (userData.fullName || '').split(' ').filter(Boolean);
       setFormData({
+        firstName: userData.firstName ?? nameParts[0] ?? '',
+        lastName: userData.lastName ?? nameParts.slice(1).join(' ') ?? '',
         fullName: userData.fullName || '',
-        username: userData.username || '',
+        username: (userData.username || userData.username) ?? '',
         bio: userData.bio || '',
-        location: userData.location || '',
-        profilePicture: userData.profilePicture || '',
-        coverPhoto: userData.coverPhoto || ''
+        profilePicture: userData.profilePicture || userData.profilePictureUrl || '',
+        profilePictureUrl: userData.profilePictureUrl || userData.profilePicture || '',
+        coverPhoto: userData.coverPhoto || userData.coverPhotoUrl || '',
+        coverPhotoUrl: userData.coverPhotoUrl || userData.coverPhoto || '',
+        phoneNumber: (userData.phoneNumber || userData.phoneNumber) ?? '',
+        address: userData.address ?? '',
+        dateOfBirth: userData.dateOfBirth ? userData.dateOfBirth.split('T')[0] : '',
+        sex: userData.sex ?? ''
       });
     }
   }, [userData, visible]);
 
-  const handleInputChange = (field: keyof EditProfileForm, value: string) => {
+  const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -70,7 +84,25 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   };
 
   const handleSave = async () => {
-    await onSave(formData);
+    // Map modal fields to API-friendly payload
+    const payload: Record<string, any> = {
+      firstName: formData.firstName || undefined,
+      lastName: formData.lastName || undefined,
+      // include both variants for compatibility
+      username: formData.username || undefined,
+      userName: formData.username || undefined,
+      profilePictureUrl: formData.profilePictureUrl || formData.profilePicture || undefined,
+      coverPhotoUrl: formData.coverPhotoUrl || formData.coverPhoto || undefined,
+      profilePicture: formData.profilePicture || formData.profilePictureUrl || undefined,
+      coverPhoto: formData.coverPhoto || formData.coverPhotoUrl || undefined,
+      bio: formData.bio || undefined,
+      phoneNumber: formData.phoneNumber || undefined,
+      address: formData.address || undefined,
+      dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth).toISOString() : undefined,
+      sex: formData.sex || undefined
+    };
+
+    await onSave(payload as any);
   };
 
   return (
@@ -134,12 +166,20 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Input
-              label="Full Name"
-              placeholder="Enter your full name"
-              value={formData.fullName}
-              onChange={(e) => handleInputChange('fullName', e.target.value)}
+              label="First Name"
+              placeholder="Enter your first name"
+              value={formData.firstName || ''}
+              onChange={(e) => handleInputChange('firstName', e.target.value)}
               leftIcon={<User size={18} className="text-teal-600" />}
             />
+            <Input
+              label="Last Name"
+              placeholder="Enter your last name"
+              value={formData.lastName || ''}
+              onChange={(e) => handleInputChange('lastName', e.target.value)}
+              leftIcon={<User size={18} className="text-teal-600" />}
+            />
+
             <Input
               label="Username"
               placeholder="Choose a username"
@@ -147,16 +187,44 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
               onChange={(e) => handleInputChange('username', e.target.value)}
               leftIcon={<Info size={18} className="text-emerald-600" />}
             />
+
+            <Input
+              label="Phone Number"
+              placeholder="e.g. +63 912 345 6789"
+              value={formData.phoneNumber || ''}
+              onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+              leftIcon={<Phone size={18} className="text-emerald-600" />}
+            />
           </div>
 
-          <Select
-            label="Location"
-            options={locationOptions}
-            value={formData.location}
-            onChange={(value) => handleInputChange('location', value)}
-            placeholder="Select your location"
+          <Input
+            label="Address"
+            placeholder="Street, barangay, city"
+            value={formData.address || ''}
+            onChange={(e) => handleInputChange('address', e.target.value)}
             leftIcon={<MapPin size={18} className="text-orange-600" />}
           />
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Input
+              label="Date of Birth"
+              type="date"
+              value={formData.dateOfBirth || ''}
+              onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+            />
+            <Select
+              label="Sex"
+              value={formData.sex || ''}
+              onChange={(v) => handleInputChange('sex', v)}
+              options={[
+                { label: 'Prefer not to say', value: '' },
+                { label: 'Female', value: 'female' },
+                { label: 'Male', value: 'male' },
+                { label: 'Other', value: 'other' }
+              ]}
+            />
+
+          </div>
 
           <Textarea
             label="Bio"

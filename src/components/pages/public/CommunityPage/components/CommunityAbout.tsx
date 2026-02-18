@@ -130,3 +130,5 @@ export const CommunityAbout: React.FC<CommunityAboutProps> = ({ community }) => 
     </div>
   );
 };
+
+export default CommunityAbout;

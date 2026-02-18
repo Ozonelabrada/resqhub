@@ -34,7 +34,7 @@ interface NewsFeedSidebarProps {
   openLoginModal: () => void;
   navigate: (path: string) => void;
   currentView?: string;
-  onViewChange?: (view: 'feed' | 'messages' | 'communities') => void;
+  onViewChange?: (view: 'feed' | 'messages' | 'communities' | 'trade-market') => void;
   className?: string;
   communityNav?: {
     activeTab: CommunityTabType;
@@ -156,6 +156,23 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
               </div>
               {t('common.communities')}
             </Button>
+            <Button 
+              variant="ghost"
+              onClick={() => onViewChange?.('trade-market')}
+              disabled
+              className={cn(
+                "w-full justify-between py-3 rounded-2xl font-bold transition-all border-none group",
+                currentView === 'trade-market' ? "text-amber-700 bg-amber-50 shadow-sm" : "text-slate-600 hover:bg-amber-50 hover:text-amber-700 relative overflow-hidden"
+              )}
+            >
+              <div className="flex items-center">
+                <div className="relative mr-3">
+                  <ShoppingBag className={cn("w-5 h-5", currentView === 'trade-market' ? "text-amber-600" : "text-slate-400 group-hover:text-amber-600")} />
+                  <div className="absolute inset-0 bg-amber-400 rounded-full opacity-0 group-hover:opacity-20 transition-opacity" />
+                </div>
+                <span className="font-bold">{t('common.trade_market', 'Trade Market Hub')}</span>
+              </div>
+            </Button>
           </>
         )}
         
@@ -200,6 +217,7 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
             <Button 
               variant="ghost" 
               onClick={() => communityNav.onTabChange('trade')}
+              disabled
               className={cn(
                 "w-full justify-start py-6 rounded-2xl font-bold transition-all border-none group",
                 communityNav.activeTab === 'trade' ? "text-teal-600 bg-teal-50 shadow-sm" : "text-slate-500 hover:bg-gray-50 hover:text-teal-600"
@@ -220,7 +238,7 @@ const NewsFeedSidebar: React.FC<NewsFeedSidebarProps> = ({
                   )}
                 >
                   <Megaphone className={cn("w-5 h-5 mr-3", communityNav.activeTab === 'updates' ? "text-teal-600" : "text-slate-400 group-hover:text-teal-600")} />
-                  {t('hub.news')} & {t('hub.announcements')}
+                  {t('hub.news')}
                 </Button>
 
                 <Button 

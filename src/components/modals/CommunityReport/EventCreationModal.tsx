@@ -59,11 +59,21 @@ export const EventCreationModal: React.FC<EventCreationModalProps> = ({
   const [isSearchingLocation, setIsSearchingLocation] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
+  const getDefaultDateTime = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: new Date().toISOString().split('T')[0],
+    startDate: getDefaultDateTime(),
+    endDate: getDefaultDateTime(),
     category: '',
     location: '',
     contactInfo: '',
@@ -211,8 +221,8 @@ export const EventCreationModal: React.FC<EventCreationModalProps> = ({
       setFormData({
         title: '',
         description: '',
-        startDate: new Date().toISOString().split('T')[0],
-        endDate: new Date().toISOString().split('T')[0],
+        startDate: getDefaultDateTime(),
+        endDate: getDefaultDateTime(),
         category: '',
         location: '',
         contactInfo: '',

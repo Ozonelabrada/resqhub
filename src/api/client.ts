@@ -57,8 +57,31 @@ api.interceptors.response.use(
       if (toast) {
         toast('error', 'Access Denied', 'You do not have permission to perform this action.');
       }
+    } else if (error.response?.status === 404) {
+      // Not found - silently ignore for GET requests, show error for others
+      console.warn('Resource not found (404):', error.config?.url);
+      // Don't show error notification for 404s on GET requests (normal to have no data)
+      // If you need to show error for specific POST/PUT 404s, add logic here
+    } else if (error.response?.status === 409) {
+      // Conflict - this is a warning, not necessarily an error
+      console.warn('Conflict (409):', error.config?.url, error.response.data);
+      const toast = getWindowExt()?.showToast;
+      if (toast) {
+        console.log('Showing warn toast for 409 conflict');
+        toast('warn', 'Conflict', error.response.data?.message || 'This resource already exists or conflicts with existing data.');
+      }
+    } else if (error.response?.data?.message?.toLowerCase().includes('conflict') || 
+               error.response?.data?.message?.toLowerCase().includes('already exists')) {
+      // Fallback for conflict-related errors that might not have 409 status
+      console.warn('Conflict detected from message:', error.response.data?.message);
+      const toast = getWindowExt()?.showToast;
+      if (toast) {
+        console.log('Showing warn toast for conflict message');
+        toast('warn', 'Conflict', error.response.data?.message || 'This resource already exists or conflicts with existing data.');
+      }
     } else if (error.response) {
       // Other API errors
+      console.warn('API Error - Status:', error.response?.status, 'URL:', error.config?.url);
       const toast = getWindowExt()?.showToast;
       if (toast) {
         toast('error', 'API Error', error.response.data?.message || 'Something went wrong.');

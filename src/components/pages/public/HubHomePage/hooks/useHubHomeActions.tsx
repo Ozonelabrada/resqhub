@@ -92,11 +92,11 @@ export const useHubHomeActions = (isAuthenticated: boolean, logout: () => void) 
     {
       separator: true
     },
-    {
-      label: 'Help & Support',
-      icon: <HelpCircle className="w-4 h-4 mr-2" />,
-      command: () => navigate('/help')
-    },
+    // {
+    //   label: 'Help & Support',
+    //   icon: <HelpCircle className="w-4 h-4 mr-2" />,
+    //   command: () => navigate('/help')
+    // },
     {
       label: 'Logout',
       icon: <LogOut className="w-4 h-4 mr-2 text-red-500" />,

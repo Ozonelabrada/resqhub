@@ -28,7 +28,7 @@ export const StoreActionMenu: React.FC<StoreActionMenuProps> = ({
   onReopen,
 }) => {
   const statusLower = storeStatus?.toLowerCase() || '';
-  const isApproveAvailable = statusLower === 'pending' || statusLower === 'rejected';
+  const isApproveAvailable = statusLower === 'pending' || statusLower === 'denied';
   const isRejectAvailable = statusLower === 'pending';
   const isSuspendAvailable = statusLower === 'approved';
   const isReopenAvailable = statusLower === 'suspended';

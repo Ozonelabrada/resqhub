@@ -24,7 +24,12 @@ import {
   Edit3,
   Users,
   Upload,
-  X
+  X,
+  UtensilsCrossed,
+  Bike,
+  Wrench,
+  ExternalLink,
+  ShoppingBag
 } from 'lucide-react';
 import { CommunityService, StoreService } from '@/services';
 import { uploadImageToCloudinary } from '@/services/cloudinaryService';
@@ -32,7 +37,6 @@ import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import { toast } from 'react-hot-toast';
 import type { Community } from '@/types/community';
-import { CreateCommunityModal } from '../../modals';
 
 interface UserStore {
   id: string | number;
@@ -41,6 +45,7 @@ interface UserStore {
   bannerImage: string;
   avatar: string;
   contactInfo?: string;
+  category?: 'food' | 'rider' | 'services';
   communitiesJoined: string[]; // IDs of communities this store is active in
   itemsCount: number;
   isVerified?: boolean;
@@ -60,10 +65,11 @@ const isCommunityMember = (community: Community): boolean => {
 
 // Helper function to check if member is approved
 const isMemberApproved = (community: Community): boolean => {
-  return community.memberIsApproved === true;
+  // Use currentUserIsApproved from API response if available, fall back to memberIsApproved
+  return community.currentUserIsApproved === true || community.memberIsApproved === true;
 };
 
-export const CommunitiesContainer: React.FC = () => {
+export const CommunitiesContainer: React.FC<{ initialTab?: 'my-communities' | 'all-communities' }> = ({ initialTab = 'my-communities' }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { communities: hookCommunities, loading: communitiesLoading, refresh } = useCommunities();
@@ -72,6 +78,7 @@ export const CommunitiesContainer: React.FC = () => {
   // Local state for communities (to handle search results)
   const [communities, setCommunities] = useState<Community[]>([]);
   const [view, setView] = useState<'list' | 'store-application'>('list');
+  const [communitiesTab, setCommunitiesTab] = useState<'my-communities' | 'all-communities'>(initialTab);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
@@ -79,8 +86,37 @@ export const CommunitiesContainer: React.FC = () => {
   const [joiningId, setJoiningId] = useState<string | number | null>(null);
   const [selectedCommunityForModal, setSelectedCommunityForModal] = useState<Community | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [myCommunitiesData, setMyCommunitiesData] = useState<Community[]>([]);
+  const [allApprovedCommunities, setAllApprovedCommunities] = useState<Community[]>([]);
+  const [myCommunitiesLoading, setMyCommunitiesLoading] = useState(false);
+  const [allCommunitiesLoading, setAllCommunitiesLoading] = useState(false);
+  // Removed trade-market state
+  // const [communityItems, setCommunityItems] = useState<any[]>([]);
+  // const [communityItemsLoading, setCommunityItemsLoading] = useState(false);
 
   const joinedCommunities = communities.filter(c => c.isMember);
+
+  // Removed trade-market tab - no longer needed
+  // Fetch community items when tab changes to trade-market - REMOVED
+  // useEffect(() => {
+  //   const fetchCommunityItems = async () => {
+  //     if (communitiesTab !== 'trade-market' || !isAuthenticated) return;
+  //     
+  //     setCommunityItemsLoading(true);
+  //     try {
+  //       // For now, show placeholder/empty items from user's communities
+  //       // This will be expanded when item listings API is available
+  //       setCommunityItems([]);
+  //     } catch (error) {
+  //       console.error('Error fetching community items:', error);
+  //       setCommunityItems([]);
+  //     } finally {
+  //       setCommunityItemsLoading(false);
+  //     }
+  //   };
+
+  //   fetchCommunityItems();
+  // }, [communitiesTab, isAuthenticated]);
 
   // Store Management State
   const [myStores, setMyStores] = useState<UserStore[]>([]);
@@ -95,7 +131,8 @@ export const CommunitiesContainer: React.FC = () => {
     description: '',
     bannerImage: '',
     avatar: '',
-    contactInfo: ''
+    contactInfo: '',
+    category: '' as 'food' | 'rider' | 'services' | ''
   });
   const [bannerUploadingId, setBannerUploadingId] = useState<string | number | null>(null);
   const [profileUploadingId, setProfileUploadingId] = useState<string | number | null>(null);
@@ -123,6 +160,7 @@ export const CommunitiesContainer: React.FC = () => {
         bannerImage: s.bannerUrl || 'https://images.unsplash.com/photo-1557683316-973673baf926?w=800',
         avatar: s.avatarUrl || `https://i.pravatar.cc/150?u=${s.name}`,
         contactInfo: s.contactInfo,
+        category: s.category,
         communitiesJoined: s.communitiesJoined || [], // Handle if API provides this
         itemsCount: s.itemsCount || 0,
         isVerified: s.isVerified
@@ -160,6 +198,44 @@ export const CommunitiesContainer: React.FC = () => {
 
     return () => clearTimeout(handler);
   }, [searchQuery]);
+
+  // Fetch my communities when component mounts or when tab changes to 'my-communities'
+  useEffect(() => {
+    const fetchMyCommunitiesData = async () => {
+      setMyCommunitiesLoading(true);
+      try {
+        const result = await CommunityService.getMyCommunitiesPage(10, 1);
+        setMyCommunitiesData(result.communities);
+      } catch (error) {
+        console.error('Error fetching my communities:', error);
+        setMyCommunitiesData([]);
+      } finally {
+        setMyCommunitiesLoading(false);
+      }
+    };
+
+    if (isAuthenticated) {
+      fetchMyCommunitiesData();
+    }
+  }, [isAuthenticated]);
+
+  // Fetch all approved communities
+  useEffect(() => {
+    const fetchAllApprovedCommunities = async () => {
+      setAllCommunitiesLoading(true);
+      try {
+        const result = await CommunityService.getAllApprovedCommunitiesPage(10, 1);
+        setAllApprovedCommunities(result.communities);
+      } catch (error) {
+        console.error('Error fetching all approved communities:', error);
+        setAllApprovedCommunities([]);
+      } finally {
+        setAllCommunitiesLoading(false);
+      }
+    };
+
+    fetchAllApprovedCommunities();
+  }, []);
 
   // Search communities when debounced query changes
   useEffect(() => {
@@ -206,19 +282,26 @@ export const CommunitiesContainer: React.FC = () => {
     }
   };
 
-  // Filter communities based on visibility rules:
-  // - If user is the creator: show all (regardless of status)
-  // - If user is a member: show it (regardless of status)
-  // - If user is not a member/creator: only show if status is 'approved' AND not 'suspended'
-  const filteredCommunities = communities.filter(community => {
-    const isCreator = user?.id && community.createdBy === user.id;
-    const isMember = isCommunityMember(community);
-    const isApproved = community.status?.toLowerCase() === 'approved';
-    const isSuspended = community.status?.toLowerCase() === 'suspended';
-    
-    // Show if: user is creator OR user is member OR (community is approved AND not suspended)
-    return isCreator || isMember || (isApproved && !isSuspended);
-  });
+  // Filter communities based on visibility rules and current tab:
+  // - My Communities: show only communities user is a member of or created
+  // - Browse Communities: show all approved communities (buttons will reflect status)
+  const filteredCommunities = (() => {
+    if (communitiesTab === 'my-communities') {
+      // For my-communities, show only communities where user is a member or creator
+      return myCommunitiesData.filter(community => {
+        const isCreator = user?.id && community.createdBy === user.id;
+        const isMember = isCommunityMember(community);
+        return isCreator || isMember;
+      });
+    } else {
+      // For all-communities, show all approved communities
+      return allApprovedCommunities.filter(community => {
+        const isApproved = community.status?.toLowerCase() === 'approved';
+        const isSuspended = community.status?.toLowerCase() === 'suspended';
+        return isApproved && !isSuspended;
+      });
+    }
+  })();
 
   const handleCreateStore = async () => {
     if (!newStoreData.name || !user?.id) {
@@ -234,7 +317,8 @@ export const CommunitiesContainer: React.FC = () => {
         ownerId: String(user.id),
         bannerUrl: newStoreData.bannerImage || 'https://images.unsplash.com/photo-1557683316-973673baf926?w=800',
         profileUrl: newStoreData.avatar || `https://i.pravatar.cc/150?u=${newStoreData.name}`,
-        contactInfo: newStoreData.contactInfo
+        contactInfo: newStoreData.contactInfo,
+        category: newStoreData.category
       };
 
       const result = await StoreService.createStore(payload);
@@ -246,12 +330,13 @@ export const CommunitiesContainer: React.FC = () => {
         bannerImage: payload.bannerUrl,
         avatar: payload.profileUrl,
         contactInfo: newStoreData.contactInfo,
+        category: newStoreData.category as 'food' | 'rider' | 'services' | undefined,
         communitiesJoined: [],
         itemsCount: 0
       };
       
       setMyStores([...myStores, newStore]);
-      setNewStoreData({ name: '', description: '', bannerImage: '', avatar: '', contactInfo: '' });
+      setNewStoreData({ name: '', description: '', bannerImage: '', avatar: '', contactInfo: '', category: '' });
       setShowCreateStoreForm(false);
       toast.success('Store profile created successfully!');
     } catch (error) {
@@ -269,7 +354,8 @@ export const CommunitiesContainer: React.FC = () => {
       const payload: any = {
         name: newStoreData.name,
         description: newStoreData.description,
-        contactInfo: newStoreData.contactInfo
+        contactInfo: newStoreData.contactInfo,
+        category: newStoreData.category
       };
 
       // Only include bannerUrl if it's been updated (not empty)
@@ -290,10 +376,11 @@ export const CommunitiesContainer: React.FC = () => {
         description: newStoreData.description,
         bannerImage: newStoreData.bannerImage || s.bannerImage,
         avatar: newStoreData.avatar || s.avatar,
-        contactInfo: newStoreData.contactInfo
+        contactInfo: newStoreData.contactInfo,
+        category: newStoreData.category as 'food' | 'rider' | 'services' | undefined
       } : s));
       
-      setNewStoreData({ name: '', description: '', bannerImage: '', avatar: '', contactInfo: '' });
+      setNewStoreData({ name: '', description: '', bannerImage: '', avatar: '', contactInfo: '', category: '' });
       setEditingStoreId(null);
       setShowCreateStoreForm(false);
       toast.success('Store updated successfully!');
@@ -377,7 +464,8 @@ export const CommunitiesContainer: React.FC = () => {
       description: store.description,
       bannerImage: store.bannerImage,
       avatar: store.avatar,
-      contactInfo: store.contactInfo || ''
+      contactInfo: store.contactInfo || '',
+      category: (store.category as 'food' | 'rider' | 'services' | '') || ''
     });
     setEditingStoreId(store.id);
     setShowCreateStoreForm(true);
@@ -480,7 +568,7 @@ export const CommunitiesContainer: React.FC = () => {
                   </div>
                   <h3 className="text-xl font-black uppercase">Sell in Communities</h3>
                   <p className="text-teal-50 text-sm font-medium leading-relaxed">
-                    Once you create a store, you can apply to list it in any community where you're a member. Each community has its own trade market.
+                    Once you create a store, you can apply to list it in any community where you're a member.
                   </p>
                   <ul className="space-y-2 pt-2">
                     {['Verify your identity', 'List your items', 'Reach local buyers'].map((item, i) => (
@@ -524,7 +612,7 @@ export const CommunitiesContainer: React.FC = () => {
                         <Button variant="ghost" size="sm" onClick={() => {
                           setShowCreateStoreForm(false);
                           setEditingStoreId(null);
-                          setNewStoreData({ name: '', description: '', bannerImage: '', avatar: '', contactInfo: '' });
+                          setNewStoreData({ name: '', description: '', bannerImage: '', avatar: '', contactInfo: '', category: '' });
                         }}>Cancel</Button>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -537,7 +625,104 @@ export const CommunitiesContainer: React.FC = () => {
                             className="h-12 rounded-xl border-none bg-white shadow-sm"
                           />
                         </div>
-                        <div className="space-y-1.5">
+                        <div className="col-span-1 md:col-span-2 space-y-2">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Store Category</label>
+                          <div className="grid grid-cols-3 gap-3">
+                            {/* Food Category */}
+                            <button
+                              onClick={() => setNewStoreData({...newStoreData, category: 'food'})}
+                              className={cn(
+                                "relative group flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border-2 transition-all duration-300",
+                                newStoreData.category === 'food'
+                                  ? "bg-orange-50 border-orange-400 shadow-lg shadow-orange-100"
+                                  : "bg-slate-50 border-slate-200 hover:border-orange-300 hover:bg-orange-50/30"
+                              )}
+                            >
+                              <div className={cn(
+                                "p-3 rounded-xl transition-all",
+                                newStoreData.category === 'food' 
+                                  ? "bg-orange-500 text-white scale-110" 
+                                  : "bg-orange-100 text-orange-500 group-hover:scale-110"
+                              )}>
+                                <UtensilsCrossed size={24} strokeWidth={2} />
+                              </div>
+                              <span className={cn(
+                                "text-xs font-black uppercase tracking-widest transition-colors",
+                                newStoreData.category === 'food' ? "text-orange-600" : "text-slate-600"
+                              )}>
+                                Food
+                              </span>
+                              {newStoreData.category === 'food' && (
+                                <div className="absolute top-2 right-2 bg-orange-500 text-white p-1 rounded-full">
+                                  <CheckCircle2 size={14} strokeWidth={3} />
+                                </div>
+                              )}
+                            </button>
+
+                            {/* Rider Category */}
+                            <button
+                              onClick={() => setNewStoreData({...newStoreData, category: 'rider'})}
+                              className={cn(
+                                "relative group flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border-2 transition-all duration-300",
+                                newStoreData.category === 'rider'
+                                  ? "bg-blue-50 border-blue-400 shadow-lg shadow-blue-100"
+                                  : "bg-slate-50 border-slate-200 hover:border-blue-300 hover:bg-blue-50/30"
+                              )}
+                            >
+                              <div className={cn(
+                                "p-3 rounded-xl transition-all",
+                                newStoreData.category === 'rider' 
+                                  ? "bg-blue-500 text-white scale-110" 
+                                  : "bg-blue-100 text-blue-500 group-hover:scale-110"
+                              )}>
+                                <Bike size={24} strokeWidth={2} />
+                              </div>
+                              <span className={cn(
+                                "text-xs font-black uppercase tracking-widest transition-colors",
+                                newStoreData.category === 'rider' ? "text-blue-600" : "text-slate-600"
+                              )}>
+                                Rider
+                              </span>
+                              {newStoreData.category === 'rider' && (
+                                <div className="absolute top-2 right-2 bg-blue-500 text-white p-1 rounded-full">
+                                  <CheckCircle2 size={14} strokeWidth={3} />
+                                </div>
+                              )}
+                            </button>
+
+                            {/* Services Category */}
+                            <button
+                              onClick={() => setNewStoreData({...newStoreData, category: 'services'})}
+                              className={cn(
+                                "relative group flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border-2 transition-all duration-300",
+                                newStoreData.category === 'services'
+                                  ? "bg-emerald-50 border-emerald-400 shadow-lg shadow-emerald-100"
+                                  : "bg-slate-50 border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/30"
+                              )}
+                            >
+                              <div className={cn(
+                                "p-3 rounded-xl transition-all",
+                                newStoreData.category === 'services' 
+                                  ? "bg-emerald-500 text-white scale-110" 
+                                  : "bg-emerald-100 text-emerald-500 group-hover:scale-110"
+                              )}>
+                                <Wrench size={24} strokeWidth={2} />
+                              </div>
+                              <span className={cn(
+                                "text-xs font-black uppercase tracking-widest transition-colors",
+                                newStoreData.category === 'services' ? "text-emerald-600" : "text-slate-600"
+                              )}>
+                                Services
+                              </span>
+                              {newStoreData.category === 'services' && (
+                                <div className="absolute top-2 right-2 bg-emerald-500 text-white p-1 rounded-full">
+                                  <CheckCircle2 size={14} strokeWidth={3} />
+                                </div>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                        <div className="col-span-1 md:col-span-2 space-y-1.5">
                           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Contact Info</label>
                           <Input 
                             value={newStoreData.contactInfo}
@@ -723,6 +908,15 @@ export const CommunitiesContainer: React.FC = () => {
                                    )}
                                 </div>
                                 <div className="flex items-center gap-2">
+                                  <Button 
+                                     variant="ghost" 
+                                     size="sm" 
+                                     onClick={() => navigate(`/store/${store.id}`)}
+                                     className="flex items-center gap-1 px-3 h-8 rounded-lg bg-teal-50 text-teal-600 hover:bg-teal-100 text-[10px] font-black"
+                                  >
+                                     <ExternalLink size={14} />
+                                     View Details
+                                  </Button>
                                   <Button 
                                      variant="ghost" 
                                      size="sm" 
@@ -953,6 +1147,7 @@ export const CommunitiesContainer: React.FC = () => {
           <div className="flex items-center gap-3 bg-slate-50 p-2 pr-4 rounded-2xl border border-slate-100">
              <Button 
                 onClick={() => setView('store-application')}
+                disabled
                 size="sm"
                 className="bg-slate-900 hover:bg-slate-800 text-white font-black h-10 px-4 rounded-xl transition-all flex items-center gap-2 group"
              >
@@ -979,18 +1174,51 @@ export const CommunitiesContainer: React.FC = () => {
           </div>
 
           <Button 
-            onClick={() => setIsCreateModalOpen(true)}
+            onClick={() => navigate('/communities/create')}
             size="sm"
             className="bg-teal-600 hover:bg-teal-700 text-white font-bold h-10 px-4 rounded-xl shadow-lg shadow-teal-100 transition-all flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">{t('communities.create', 'Create')}</span>
+            <span className="hidden sm:inline">{t('communities.create', 'Apply for Community')}</span>
           </Button>
         </div>
       </div>
 
+      {/* Communities Tab Navigation */}
+      {isAuthenticated && (
+        <div className="px-4 md:px-8 pb-4 border-b border-gray-100 flex items-center gap-3 shrink-0 overflow-x-auto">
+          <Button 
+            onClick={() => setCommunitiesTab('my-communities')}
+            variant="ghost"
+            className={cn(
+              "px-4 py-2 rounded-xl font-bold text-sm transition-all border-b-2 whitespace-nowrap",
+              communitiesTab === 'my-communities' 
+                ? "border-teal-600 text-teal-600 bg-teal-50" 
+                : "border-transparent text-slate-500 hover:text-teal-600"
+            )}
+          >
+            <Users className="w-4 h-4 mr-2" />
+            My Communities
+          </Button>
+          <Button 
+            onClick={() => setCommunitiesTab('all-communities')}
+            variant="ghost"
+            className={cn(
+              "px-4 py-2 rounded-xl font-bold text-sm transition-all border-b-2 whitespace-nowrap",
+              communitiesTab === 'all-communities' 
+                ? "border-teal-600 text-teal-600 bg-teal-50" 
+                : "border-transparent text-slate-500 hover:text-teal-600"
+            )}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Browse Communities
+          </Button>
+
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
-        {communitiesLoading || loading ? (
+        {(communitiesLoading || loading || myCommunitiesLoading || allCommunitiesLoading) ? (
           <div className="flex flex-col items-center justify-center py-20">
             <Spinner size="lg" />
             <p className="mt-4 text-slate-500 font-medium">Loading communities...</p>
@@ -1020,7 +1248,13 @@ export const CommunitiesContainer: React.FC = () => {
                   )}
                   <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] pointer-events-none"></div>
                   
-                  {isAuthenticated && isCommunityMember(community) && isMemberApproved(community) && (
+                  {isAuthenticated && user?.id && community.createdBy === user.id && (
+                    <Badge className="absolute top-3 left-3 bg-violet-500 text-white font-black uppercase text-[8px] tracking-widest px-2 py-0.5 border-none shadow-sm">
+                      Your Community
+                    </Badge>
+                  )}
+
+                  {isAuthenticated && isCommunityMember(community) && isMemberApproved(community) && !(user?.id && community.createdBy === user.id) && (
                     <Badge className="absolute top-3 left-3 bg-emerald-500 text-white font-black uppercase text-[8px] tracking-widest px-2 py-0.5 border-none shadow-sm">
                       Joined
                     </Badge>
@@ -1033,9 +1267,9 @@ export const CommunitiesContainer: React.FC = () => {
                     </Badge>
                   )}
 
-                  {/* Show status badge if community is pending, suspended, rejected, or disabled */}
+                  {/* Show status badge if community is pending, suspended, denied, or disabled */}
                   {isAuthenticated && 
-                    ['pending', 'suspended', 'rejected', 'disabled'].includes(community.status?.toLowerCase() || '') && (
+                    ['pending', 'suspended', 'denied', 'disabled'].includes(community.status?.toLowerCase() || '') && (
                     <Badge className={cn(
                       "absolute top-3 left-3 font-black uppercase text-[8px] tracking-widest px-2 py-0.5 border-none shadow-sm",
                       community.status?.toLowerCase() === 'pending' ? "bg-amber-500 text-white" :
@@ -1082,7 +1316,17 @@ export const CommunitiesContainer: React.FC = () => {
                       <Users size={12} />
                       <span className="text-[11px] font-bold text-slate-500">{community.memberCount || community.membersCount || 0} Members</span>
                     </div>
-                    {isAuthenticated && isCommunityMember(community) && isMemberApproved(community) ? (
+                    {isAuthenticated && user?.id && community.createdBy === user.id ? (
+                      <Button 
+                        onClick={() => navigate(`/community/${community.id || (community as any)._id}`)}
+                        variant="ghost" 
+                        size="sm" 
+                        className="p-0 h-auto hover:bg-transparent text-emerald-600 font-extrabold text-[10px] uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all"
+                      >
+                        Your Community
+                        <ArrowRight size={14} />
+                      </Button>
+                    ) : isAuthenticated && isCommunityMember(community) && isMemberApproved(community) ? (
                       <Button 
                         onClick={() => navigate(`/community/${community.id || (community as any)._id}`)}
                         variant="ghost" 
@@ -1092,7 +1336,7 @@ export const CommunitiesContainer: React.FC = () => {
                         Visit Hub
                         <ArrowRight size={14} />
                       </Button>
-                    ) : isAuthenticated && isCommunityMember(community) && !isMemberApproved(community) && !(user?.id && community.createdBy === user.id) ? (
+                    ) : isAuthenticated && isCommunityMember(community) && !isMemberApproved(community) ? (
                       <Button 
                         variant="ghost" 
                         size="sm" 
@@ -1145,28 +1389,32 @@ export const CommunitiesContainer: React.FC = () => {
               );
             })}
 
-            {filteredCommunities.length === 0 && !communitiesLoading && !loading && (
+            {filteredCommunities.length === 0 && !communitiesLoading && !loading && !myCommunitiesLoading && !allCommunitiesLoading && (
               <div className="col-span-full py-20 text-center">
                 <div className="bg-slate-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Users className="text-slate-200 w-10 h-10" />
                 </div>
-                <h3 className="text-slate-400 font-bold text-xl">No communities found</h3>
-                <p className="text-slate-400">Try a different search term or create your own community.</p>
+                <h3 className="text-slate-400 font-bold text-xl">
+                  {communitiesTab === 'my-communities' ? 'No communities yet' : 'No communities found'}
+                </h3>
+                <p className="text-slate-400">
+                  {communitiesTab === 'my-communities' 
+                    ? 'Join communities or create your own to get started.' 
+                    : 'Try switching to "My Communities" to see your joined communities.'}
+                </p>
+                {communitiesTab === 'my-communities' && (
+                  <Button 
+                    onClick={() => setCommunitiesTab('all-communities')}
+                    className="mt-4 bg-teal-600 hover:bg-teal-700 text-white font-bold px-6 py-2 rounded-xl"
+                  >
+                    Browse Communities
+                  </Button>
+                )}
               </div>
             )}
           </div>
         )}
       </div>
-
-      <CreateCommunityModal 
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSuccess={async () => {
-          setIsCreateModalOpen(false);
-          await refresh();
-          // The useEffect will update local communities when hookCommunities changes
-        }}
-      />
 
       <CommunityDetailModal
         isOpen={isDetailModalOpen}

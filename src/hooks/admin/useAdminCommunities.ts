@@ -98,7 +98,7 @@ export const useAdminCommunities = (initialParams: CommunityListParams = {}) => 
         // Update local state
         setCommunities(prev => prev.map(community => 
           String(community.id) === id 
-            ? { ...community, status: 'rejected' as const }
+            ? { ...community, status: 'denied' as const }
             : community
         ));
         
@@ -109,7 +109,7 @@ export const useAdminCommunities = (initialParams: CommunityListParams = {}) => 
           action: 'reject_community',
           resourceType: 'community',
           resourceId: id,
-          details: `Community rejected: ${reason}`
+          details: `Community denied: ${reason}`
         });
         
         return true;

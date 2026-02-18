@@ -190,7 +190,7 @@ const LeftSideBarPage: React.FC = () => {
 
       {/* Footer Actions */}
       <div className="mt-auto pt-6 space-y-2">
-        <Button variant="ghost" className="w-full justify-start text-slate-500 hover:text-blue-600 rounded-xl">
+        <Button disabled variant="ghost" className="w-full justify-start text-slate-500 hover:text-blue-600 rounded-xl">
           <Settings className="w-5 h-5 mr-3" />
           <span className="font-semibold text-sm">Settings</span>
         </Button>

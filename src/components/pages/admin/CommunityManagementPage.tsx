@@ -27,6 +27,9 @@ const CommunityManagementPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('live');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Normalize status to lowercase for case-insensitive comparison
+  const normalizeStatus = (status: string): string => status?.toLowerCase().trim() || '';
+
   useEffect(() => {
     fetchCommunities();
   }, [activeTab, searchQuery]);
@@ -35,13 +38,13 @@ const CommunityManagementPage: React.FC = () => {
     setLoading(true);
     try {
       // For 'live' tab, fetch 'approved' communities
-      let statusParam: 'pending' | 'approved' | 'disabled' | 'rejected' | 'all' = 'all';
+      let statusParam: 'pending' | 'approved' | 'disabled' | 'denied' | 'all' = 'all';
       
       if (activeTab === 'live') {
         // Fetch approved communities
         statusParam = 'approved';
-      } else if (activeTab === 'pending' || activeTab === 'disabled' || activeTab === 'rejected') {
-        statusParam = activeTab as 'pending' | 'disabled' | 'rejected';
+      } else if (activeTab === 'pending' || activeTab === 'disabled' || activeTab === 'denied') {
+        statusParam = activeTab as 'pending' | 'disabled' | 'denied';
       }
       
       const response = await AdminService.getCommunities({ 
@@ -51,7 +54,14 @@ const CommunityManagementPage: React.FC = () => {
       // Safety check for data structure
       // Handle response.data (if service returns whole body) or response (if service returns inner data)
       const dataObj = response.data || response;
-      const items = Array.isArray(dataObj.items) ? dataObj.items : (Array.isArray(dataObj) ? dataObj : []);
+      let items = Array.isArray(dataObj.items) ? dataObj.items : (Array.isArray(dataObj) ? dataObj : []);
+      
+      // Normalize status for all items to lowercase for consistent filtering
+      items = items.map(item => ({
+        ...item,
+        status: item.status ? item.status.toLowerCase().trim() : 'inactive'
+      }));
+      
       setCommunities(items);
     } catch (error) {
       console.error('Failed to fetch communities:', error);
@@ -91,7 +101,7 @@ const CommunityManagementPage: React.FC = () => {
                     <TabTrigger value="pending" className="rounded-xl px-6 py-2.5 font-bold data-[state=active]:bg-teal-600 data-[state=active]:text-white transition-all">
                         Pending Requests
                     </TabTrigger>
-                    <TabTrigger value="rejected" className="rounded-xl px-6 py-2.5 font-bold data-[state=active]:bg-teal-600 data-[state=active]:text-white transition-all">
+                    <TabTrigger value="denied" className="rounded-xl px-6 py-2.5 font-bold data-[state=active]:bg-teal-600 data-[state=active]:text-white transition-all">
                         Archive
                     </TabTrigger>
                 </TabList>
@@ -121,16 +131,17 @@ const CommunityManagementPage: React.FC = () => {
                                     </div>
                                     <Badge className={cn(
                                         "border-none px-4 py-1.5 rounded-full font-black text-[10px] uppercase",
-                                        item.status === 'pending' ? "bg-amber-100 text-amber-700" :
-                                        item.status === 'active' ? "bg-green-100 text-green-700" :
-                                        "bg-red-100 text-red-700"
+                                        normalizeStatus(item.status) === 'pending' ? "bg-amber-100 text-amber-700" :
+                                        normalizeStatus(item.status) === 'approved' || normalizeStatus(item.status) === 'active' ? "bg-green-100 text-green-700" :
+                                        normalizeStatus(item.status) === 'denied' || normalizeStatus(item.status) === 'archived' ? "bg-red-100 text-red-700" :
+                                        "bg-slate-100 text-slate-700"
                                     )}>
-                                        {item.status || 'inactive'}
+                                        {normalizeStatus(item.status) === 'approved' ? 'Active' : item.status || 'inactive'}
                                     </Badge>
                                 </div>
                                 <h3 className="text-2xl font-black text-slate-900 mb-2 truncate" title={item.name}>{item.name}</h3>
                                 <p className="text-slate-500 font-medium text-sm line-clamp-3 mb-6 leading-relaxed">
-                                    {item.status === 'active' ? 'This community is currently live and active.' : `This community is currently ${item.status || 'inactive'}.`}
+                                    {normalizeStatus(item.status) === 'approved' || normalizeStatus(item.status) === 'active' ? 'This community is currently live and active.' : `This community is currently ${normalizeStatus(item.status) || 'inactive'}.`}
                                 </p>
                                 
                                 <div className="space-y-4 pt-6 border-t border-slate-50">

@@ -41,6 +41,7 @@ import { MatchModal } from '@/components/modals/MatchModal/MatchModal';
 import { MatchManagementModal } from '@/components/modals/MatchModal/MatchManagementModal';
 import { MatchSuccessModal } from '@/components/modals/MatchModal/MatchSuccessModal';
 import { ImageViewerModal } from '@/components/modals/ImageViewerModal';
+import { ImageCollageDisplay } from '@/components/features/reports/ImageCollageDisplay';
 import { formatCurrencyPHP } from '@/utils/formatter';
 import { showToast, getWindowExt } from '@/types/window';
 import { safeStopPropagation, extractSyntheticEvent } from '@/types/events';
@@ -433,156 +434,14 @@ const NewsFeedCard: React.FC<NewsFeedCardProps> = ({ item, onProfileClick, onCom
       >
         {/* Image Container - Professional Collage Layout */}
         {item.images && item.images.length > 0 && (
-          <div className="relative w-full md:w-[32rem] h-48 sm:h-56 md:h-80 lg:h-96 overflow-hidden bg-gray-100">
-            
-            {/* Dynamic Collage Grid */}
-            <div className="w-full h-full grid gap-0.5" style={{gridTemplateColumns: 'repeat(4, 1fr)', gridTemplateRows: 'repeat(4, 1fr)'}}>
-              {item.images.length === 1 ? (
-                // 1 Image: Full container
-                <img 
-                  loading="lazy"
-                  src={item.images[0]} 
-                  alt={item.title}
-                  onClick={() => handleImageClick(item.images[0])}
-                  className="w-full h-full object-cover col-span-4 row-span-4 cursor-pointer hover:brightness-110 transition-all duration-300" 
-                />
-              ) : item.images.length === 2 ? (
-                // 2 Images: Side-by-side full height
-                item.images.map((img: string, idx: number) => (
-                  <img 
-                    key={idx} 
-                    src={img} 
-                    alt="" 
-                    onClick={() => handleImageClick(img)}
-                    className="w-full h-full object-cover col-span-2 row-span-4 cursor-pointer hover:brightness-110 transition-all duration-300" 
-                  />
-                ))
-              ) : item.images.length === 3 ? (
-                // 3 Images: Large left (2x4) + 2 stacked right (2x2 each)
-                <>
-                  <img 
-                    src={item.images[0]} 
-                    alt="" 
-                    onClick={() => handleImageClick(item.images[0])}
-                    className="w-full h-full object-cover col-span-2 row-span-4 cursor-pointer hover:brightness-110 transition-all duration-300" 
-                  />
-                  <img 
-                    src={item.images[1]} 
-                    alt="" 
-                    onClick={() => handleImageClick(item.images[1])}
-                    className="w-full h-full object-cover col-span-2 row-span-2 cursor-pointer hover:brightness-110 transition-all duration-300" 
-                  />
-                  <img 
-                    src={item.images[2]} 
-                    alt="" 
-                    onClick={() => handleImageClick(item.images[2])}
-                    className="w-full h-full object-cover col-span-2 row-span-2 cursor-pointer hover:brightness-110 transition-all duration-300" 
-                  />
-                </>
-              ) : item.images.length === 4 ? (
-                // 4 Images: Large left (2x4) + top right (2x2) + 2 bottom right (2x1 each)
-                <>
-                  <img 
-                    src={item.images[0]} 
-                    alt="" 
-                    onClick={() => handleImageClick(item.images[0])}
-                    className="w-full h-full object-cover col-span-2 row-span-4 cursor-pointer hover:brightness-110 transition-all duration-300" 
-                  />
-                  <img 
-                    src={item.images[1]} 
-                    alt="" 
-                    onClick={() => handleImageClick(item.images[1])}
-                    className="w-full h-full object-cover col-span-2 row-span-2 cursor-pointer hover:brightness-110 transition-all duration-300" 
-                  />
-                  <img 
-                    src={item.images[2]} 
-                    alt="" 
-                    onClick={() => handleImageClick(item.images[2])}
-                    className="w-full h-full object-cover col-span-1 row-span-2 cursor-pointer hover:brightness-110 transition-all duration-300" 
-                  />
-                  <img 
-                    src={item.images[3]} 
-                    alt="" 
-                    onClick={() => handleImageClick(item.images[3])}
-                    className="w-full h-full object-cover col-span-1 row-span-2 cursor-pointer hover:brightness-110 transition-all duration-300" 
-                  />
-                </>
-              ) : item.images.length === 5 ? (
-                // 5 Images: Large left (2x4) + top right (2x2) + 2 middle (1x1) + 1 bottom (2x1)
-                <>
-                  <img 
-                    src={item.images[0]} 
-                    alt="" 
-                    onClick={() => handleImageClick(item.images[0])}
-                    className="w-full h-full object-cover col-span-2 row-span-4 cursor-pointer hover:brightness-110 transition-all duration-300" 
-                  />
-                  <img 
-                    src={item.images[1]} 
-                    alt="" 
-                    onClick={() => handleImageClick(item.images[1])}
-                    className="w-full h-full object-cover col-span-2 row-span-2 cursor-pointer hover:brightness-110 transition-all duration-300" 
-                  />
-                  <img 
-                    src={item.images[2]} 
-                    alt="" 
-                    onClick={() => handleImageClick(item.images[2])}
-                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300" 
-                  />
-                  <img 
-                    src={item.images[3]} 
-                    alt="" 
-                    onClick={() => handleImageClick(item.images[3])}
-                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300" 
-                  />
-                  <img 
-                    src={item.images[4]} 
-                    alt="" 
-                    onClick={() => handleImageClick(item.images[4])}
-                    className="w-full h-full object-cover col-span-2 row-span-2 cursor-pointer hover:brightness-110 transition-all duration-300" 
-                  />
-                </>
-              ) : (
-                // 6+ Images: Large left (2x4) + top right (2x2) + 2 middle (1x1 each) + bottom right (2x1) with count overlay
-                <>
-                  <img 
-                    src={item.images[0]} 
-                    alt="" 
-                    onClick={() => handleImageClick(item.images[0])}
-                    className="w-full h-full object-cover col-span-2 row-span-4 cursor-pointer hover:brightness-110 transition-all duration-300" 
-                  />
-                  <img 
-                    src={item.images[1]} 
-                    alt="" 
-                    onClick={() => handleImageClick(item.images[1])}
-                    className="w-full h-full object-cover col-span-2 row-span-2 cursor-pointer hover:brightness-110 transition-all duration-300" 
-                  />
-                  <img 
-                    src={item.images[2]} 
-                    alt="" 
-                    onClick={() => handleImageClick(item.images[2])}
-                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300" 
-                  />
-                  <img 
-                    src={item.images[3]} 
-                    alt="" 
-                    onClick={() => handleImageClick(item.images[3])}
-                    className="w-full h-full object-cover col-span-1 row-span-1 cursor-pointer hover:brightness-110 transition-all duration-300" 
-                  />
-                  <div className="relative w-full h-full object-cover col-span-2 row-span-2 overflow-hidden bg-gray-200 cursor-pointer" onClick={() => handleImageClick(item.images[4])}>
-                    <img 
-                      src={item.images[4]} 
-                      alt="" 
-                      className="w-full h-full object-cover hover:brightness-110 transition-all duration-300" 
-                    />
-                    {item.images.length > 5 && (
-                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center hover:bg-black/40 transition-all duration-300">
-                        <span className="text-white font-black text-3xl">+{item.images.length - 5}</span>
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
+          <div className="relative w-full md:w-[32rem] h-48 sm:h-56 md:h-80 lg:h-96">
+            {/* Collage Display Component */}
+            <ImageCollageDisplay
+              images={item.images}
+              title={item.title}
+              containerHeight="h-full"
+              onClick={handleImageClick}
+            />
 
             {/* Badges - Top Overlay */}
             <div className="absolute top-4 left-4 flex gap-2 z-20 pointer-events-none">

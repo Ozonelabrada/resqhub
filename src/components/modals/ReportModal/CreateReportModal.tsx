@@ -66,7 +66,6 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    categoryId: 0,
     location: '',
     contactInfo: '',
     rewardDetails: '',
@@ -95,7 +94,11 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
     const timer = setTimeout(async () => {
       if (formData.location.length >= 3 && isSearchingLocation) {
         const results = await searchLocations(formData.location);
-        setLocationSuggestions(results);
+        // If user has a saved profile location (non-empty string), keep it as the first suggestion (avoid duplicates)
+        const merged = (typeof user?.location === 'string' && user.location.trim() !== '')
+          ? (results.some(r => r.display_name === user.location) ? results : [{ display_name: user.location as string, lat: '', lon: '', name: user.location as string, address: {} }, ...results])
+          : results;
+        setLocationSuggestions(merged);
         setShowSuggestions(true);
         setIsSearchingLocation(false);
       }
@@ -103,6 +106,16 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
 
     return () => clearTimeout(timer);
   }, [formData.location, isSearchingLocation]);
+
+  // If user has a profile location and the location input is empty, surface it as a suggestion
+  useEffect(() => {
+    if (typeof user?.location === 'string' && user.location.trim() !== '' && (!formData.location || formData.location.trim() === '')) {
+      setLocationSuggestions(prev => {
+        if (prev.some(s => s.display_name === user.location)) return prev;
+        return [{ display_name: user.location as string, lat: '', lon: '', name: user.location as string, address: {} }, ...prev];
+      });
+    }
+  }, [user?.location, formData.location]);
 
   const handleInputChange = (field: string, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -183,7 +196,6 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
         location: formData.location,
         contactInfo: formData.contactInfo,
         reportType: String(formData.reportType),
-        categoryId: 0, // Backend will auto-detect category based on description
         imageUrls: imageUrls,
         rewardDetails: formData.rewardDetails || '',
       };
@@ -229,7 +241,6 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
         setFormData({
           title: '',
           description: '',
-          categoryId: 0,
           location: '',
           contactInfo: '',
           rewardDetails: '',

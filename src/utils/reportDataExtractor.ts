@@ -11,7 +11,6 @@ export type ReportLike = LostFoundItem | NewsFeedItem | Record<string, unknown>;
 export interface ExtractedReportData {
   title: string;
   description: string;
-  categoryId: string;
   location: string;
   contactInfo: string;
   rewardDetails: string | number;
@@ -83,7 +82,6 @@ export const extractReportData = (report: ReportLike): ExtractedReportData => {
     return {
       title: '',
       description: '',
-      categoryId: '',
       location: '',
       contactInfo: '',
       rewardDetails: '',
@@ -96,7 +94,6 @@ export const extractReportData = (report: ReportLike): ExtractedReportData => {
   return {
     title: typeof reportObj.title === 'string' ? reportObj.title : '',
     description: typeof reportObj.description === 'string' ? reportObj.description : '',
-    categoryId: String(reportObj.categoryId || ''),
     location: typeof reportObj.location === 'string' ? reportObj.location : '',
     contactInfo: extractContactInfo(report),
     rewardDetails: extractRewardDescription(report),
@@ -138,10 +135,6 @@ export const validateReportData = (data: ExtractedReportData): { valid: boolean;
 
   if (data.title.trim().length < 5) {
     errors.push('Title must be at least 5 characters');
-  }
-
-  if (!data.categoryId) {
-    errors.push('Category is required');
   }
 
   if (data.description.trim().length < 10) {

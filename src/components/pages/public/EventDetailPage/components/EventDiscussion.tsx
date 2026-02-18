@@ -24,7 +24,7 @@ const EventDiscussion: React.FC<EventDiscussionProps> = ({ event, userFullName }
     <div className="space-y-6">
       <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
         <MessageCircle size={20} />
-        Discussion ({event?.comments?.length || 0})
+        Discussion ({event?.stats?.discussion?.commentsCount ?? event?.comments?.length ?? 0})
       </h3>
 
       {/* Comment Input */}

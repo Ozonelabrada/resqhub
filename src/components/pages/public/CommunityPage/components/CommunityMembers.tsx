@@ -96,6 +96,27 @@ export const CommunityMembers: React.FC<CommunityMembersProps> = ({
     }
   }, [communityId, fetchMemberCounts]);
 
+  // Fetch and filter volunteers from API endpoint
+  useEffect(() => {
+    const fetchVolunteers = async () => {
+      if (activeSubTab === 'volunteers' && communityId) {
+        try {
+          const result = await CommunityService.getCommunityVolunteers(
+            String(communityId),
+            10, // pageSize
+            1   // page
+          );
+          setVolunteers(result.members);
+        } catch (error) {
+          console.error('Error fetching volunteers:', error);
+          setVolunteers([]);
+        }
+      }
+    };
+    
+    fetchVolunteers();
+  }, [activeSubTab, communityId]);
+
   // Fetch stores when sellers tab is active
   useEffect(() => {
     if (activeSubTab === 'sellers' && communityId) {

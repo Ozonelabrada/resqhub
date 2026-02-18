@@ -7,7 +7,6 @@ export interface CreateReportPayload {
   location: string;
   contactInfo: string;
   reportType: string;
-  categoryId: number;
   imageUrls: string[];
   rewardDetails?: string;
   communityId?: string | number;
@@ -18,7 +17,7 @@ export interface LostFoundItem {
   reportId?: number;
   userId?: string;
   reportType?: 'Lost' | 'Found' | number | string;
-  status?: number;
+  status?: string | number;
   statusDescription?: string;
   title?: string;
   itemName?: string;
@@ -82,6 +81,28 @@ export interface LostFoundItem {
   type?: 'lost' | 'found' | 'news' | 'discussion' | 'announcement';
 }
 
+export interface UserReportStatistics {
+  totalReport: number;
+  lostCount: number;
+  foundCount: number;
+  activeCount: number;
+}
+
+export interface UserReportsResponse {
+  reports: {
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+    pageNumber: number;
+    succeeded: boolean;
+    data: LostFoundItem[];
+    errorMessage: string;
+    loadMore: boolean;
+    baseEntity: any;
+  };
+  statistics: UserReportStatistics;
+}
+
 export const ReportsService = {
   async getReportById(id: string | number): Promise<LostFoundItem | null> {
     try {
@@ -111,35 +132,47 @@ export const ReportsService = {
   }): Promise<LostFoundItem[]> {
     try {
       const query = new URLSearchParams();
+      
+      // Always include page and pageSize
+      const page = params?.page || 1;
+      const pageSize = params?.pageSize || 10;
+      query.append('pageNumber', String(page));
+      query.append('pageSize', String(pageSize));
+      
       if (params?.reportType && params.reportType !== 'all') {
         // Capitalize for backend consistency (e.g., 'lost' -> 'Lost')
         const formattedType = params.reportType.charAt(0).toUpperCase() + params.reportType.slice(1).toLowerCase();
         query.append('ReportType', formattedType);
       }
-      if (params?.page) query.append('pageNumber', String(params.page));
-      if (params?.pageSize) query.append('pageSize', String(params.pageSize));
       if (params?.search) query.append('search', params.search);
-      if (params?.status !== undefined) query.append('ReportStatus', String(params.status));
+      if (params?.status !== undefined) {
+        // Ensure status is formatted correctly (capitalize first letter if string)
+        const statusStr = String(params.status);
+        const formattedStatus = statusStr.charAt(0).toUpperCase() + statusStr.slice(1).toLowerCase();
+        query.append('ReportStatus', formattedStatus);
+      }
       
       const url = `/reports/all${query.toString() ? '?' + query.toString() : ''}`;
       const response = await api.get<any>(url);
       
-      // Robust extraction to handle various backend response structures
+      // Robust extraction to handle backend response structure
       const rawData = response.data;
       let items: LostFoundItem[] = [];
 
-      // Check for nested data property (standard for this API)
-      if (rawData?.data?.data && Array.isArray(rawData.data.data)) {
+      // Check for the correct backend structure first: response.data.data.reports.data
+      if (rawData?.data?.reports?.data && Array.isArray(rawData.data.reports.data)) {
+        items = rawData.data.reports.data;
+      } else if (rawData?.data?.data?.reports?.data && Array.isArray(rawData.data.data.reports.data)) {
+        items = rawData.data.data.reports.data;
+      } else if (rawData?.data?.data && Array.isArray(rawData.data.data)) {
         items = rawData.data.data;
       } else if (rawData?.data && Array.isArray(rawData.data)) {
         items = rawData.data;
       } else if (Array.isArray(rawData)) {
         items = rawData;
       }
-
       return items;
     } catch (error) {
-      console.error('Error fetching reports:', error);
       return [];
     }
   },
@@ -265,6 +298,22 @@ export const ReportsService = {
         success: false, 
         message: error?.message || 'Failed to save images' 
       };
+    }
+  },
+
+  async getUserReportsWithStatistics(userId: string, pageSize: number = 10, page: number = 1): Promise<UserReportsResponse | null> {
+    try {
+      const response = await api.get<UserReportsResponse>('/reports/all', {
+        params: {
+          userId,
+          pageSize,
+          page
+        }
+      });
+      return response.data || null;
+    } catch (error) {
+      console.error('Error fetching user reports with statistics:', error);
+      return null;
     }
   }
 };

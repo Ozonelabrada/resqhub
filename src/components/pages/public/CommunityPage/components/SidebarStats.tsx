@@ -1,12 +1,11 @@
 import React from 'react';
 import { MapPin, Calendar, Heart, TrendingUp, Megaphone, ShieldCheck } from 'lucide-react';
 import { Card, Avatar, Badge, Button } from '@/components/ui';
+import { useTodaysUpdates } from '@/hooks/useTodaysUpdates';
 
 interface SidebarStatsProps {
   community: any;
   safeMembers: any[];
-  todaysAnnouncements: any[];
-  todaysEvents: any[];
   onUpdatesClick: () => void;
   onMembersClick: () => void;
 }
@@ -22,80 +21,117 @@ const STATIC_MEMBERS = [
 const SidebarStats: React.FC<SidebarStatsProps> = ({
   community,
   safeMembers,
-  todaysAnnouncements,
-  todaysEvents,
   onUpdatesClick,
   onMembersClick,
 }) => {
+  const { updates, loading, error } = useTodaysUpdates();
+
+  const getTypeStyles = (type: string) => {
+    const styles: Record<string, any> = {
+      event: {
+        icon: Calendar,
+        bgColor: 'bg-emerald-50',
+        textColor: 'text-emerald-500',
+        badgeBg: 'border-emerald-100 text-emerald-500',
+        itemBg: 'bg-emerald-50/30'
+      },
+      news: {
+        icon: Megaphone,
+        bgColor: 'bg-blue-50',
+        textColor: 'text-blue-500',
+        badgeBg: 'border-blue-100 text-blue-500',
+        itemBg: 'bg-blue-50/30'
+      },
+      announcement: {
+        icon: Megaphone,
+        bgColor: 'bg-purple-50',
+        textColor: 'text-purple-500',
+        badgeBg: 'border-purple-100 text-purple-500',
+        itemBg: 'bg-purple-50/30'
+      }
+    };
+    return styles[type] || styles.event;
+  };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return { month: 'JAN', day: '01' };
+    
+    // Extract date part directly from ISO string (YYYY-MM-DD) to avoid timezone issues
+    const dateMatch = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (dateMatch) {
+      const [, year, monthStr, dayStr] = dateMatch;
+      const date = new Date(`${year}-${monthStr}-${dayStr}T00:00:00Z`);
+      const month = date.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+      return { month, day: dayStr };
+    }
+    
+    // Fallback to original parsing
+    const date = new Date(dateString);
+    const month = date.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+    const day = String(date.getDate()).padStart(2, '0');
+    return { month, day };
+  };
+
   return (
     <>
-      {/* TODAY'S UPDATES */}
+      {/* CONSOLIDATED UPDATES SECTION */}
       <div className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-gray-50 flex flex-col gap-4 group/card hover:shadow-md transition-all shrink-0">
         <div className="flex items-center justify-between cursor-pointer" onClick={onUpdatesClick}>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center group-hover/card:scale-110 transition-transform">
-              <Megaphone className="text-blue-500 w-5 h-5" />
+            <div className="w-10 h-10 rounded-2xl bg-teal-50 flex items-center justify-center group-hover/card:scale-110 transition-transform">
+              <Megaphone className="text-teal-500 w-5 h-5" />
             </div>
-            <h3 className="text-slate-900 font-black text-lg tracking-tight">Today's Updates</h3>
+            <h3 className="text-slate-900 font-black text-lg tracking-tight">Updates</h3>
           </div>
-          <Badge variant="outline" className="text-[9px] border-blue-100 text-blue-500 font-black uppercase tracking-tighter">
-            {todaysAnnouncements.length} new
+          <Badge variant="outline" className="text-[9px] border-teal-100 text-teal-500 font-black uppercase tracking-tighter">
+            {loading ? 'Loading...' : `${updates.length} Today`}
           </Badge>
         </div>
 
         <div className="space-y-3">
-          {todaysAnnouncements.length > 0 ? (
-            todaysAnnouncements.slice(0, 2).map((ann) => (
-              <div
-                key={ann.id}
-                className="p-3 bg-slate-50 rounded-2xl border border-transparent hover:border-blue-100 transition-colors cursor-pointer"
-                onClick={onUpdatesClick}
-              >
-                <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">
-                  {(ann as any).category || 'Zone 2'}
-                </p>
-                <p className="text-sm font-bold text-slate-800 line-clamp-1">{ann.title}</p>
-              </div>
-            ))
-          ) : (
-            <p className="text-xs text-slate-400 italic px-2">No new updates</p>
-          )}
-        </div>
-      </div>
-
-      {/* JOIN THE ACTION */}
-      <div className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-gray-50 flex flex-col gap-4 group/card hover:shadow-md transition-all shrink-0">
-        <div className="flex items-center justify-between cursor-pointer" onClick={onUpdatesClick}>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center group-hover/card:scale-110 transition-transform">
-              <Calendar className="text-emerald-500 w-5 h-5" />
+          {loading ? (
+            <div className="flex items-center justify-center py-4">
+              <div className="w-4 h-4 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
             </div>
-            <h3 className="text-slate-900 font-black text-lg tracking-tight">Join the Action</h3>
-          </div>
-          <Badge variant="outline" className="text-[9px] border-emerald-100 text-emerald-500 font-black uppercase tracking-tighter">
-            {todaysEvents.length} TODAY
-          </Badge>
-        </div>
+          ) : error ? (
+            <p className="text-xs text-red-500 italic px-2">Failed to load updates</p>
+          ) : updates.length > 0 ? (
+            updates.slice(0, 5).map((update) => {
+              const typeStyle = getTypeStyles(update.type);
+              const Icon = typeStyle.icon;
+              const { month, day } = formatDate(update.startDate);
 
-        <div className="space-y-3">
-          {todaysEvents.length > 0 ? (
-            todaysEvents.slice(0, 2).map((event) => (
-              <div
-                key={event.id}
-                className="flex items-center gap-3 p-3 bg-emerald-50/30 rounded-2xl hover:bg-emerald-50 transition-colors cursor-pointer"
-                onClick={onUpdatesClick}
-              >
-                <div className="flex flex-col items-center justify-center bg-white min-w-[40px] h-10 rounded-xl shadow-sm border border-emerald-100">
-                  <span className="text-[10px] font-black text-emerald-600 leading-none">JAN</span>
-                  <span className="text-sm font-black text-slate-800 leading-none">12</span>
+              return (
+                <div
+                  key={update.id}
+                  className={`flex items-start gap-3 p-3 rounded-2xl hover:shadow-sm transition-all cursor-pointer ${typeStyle.itemBg}`}
+                  onClick={onUpdatesClick}
+                >
+                  <div className="flex flex-col items-center justify-center bg-white min-w-[40px] h-10 rounded-xl shadow-sm border"
+                    style={{ borderColor: getTypeStyles(update.type).badgeBg.split(' ')[1] }}>
+                    <span className={`text-[10px] font-black leading-none ${typeStyle.textColor}`}>
+                      {month}
+                    </span>
+                    <span className="text-sm font-black text-slate-800 leading-none">{day}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${typeStyle.textColor}`}>
+                          {update.category || update.type}
+                        </p>
+                        <p className="text-sm font-bold text-slate-800 line-clamp-2">{update.title}</p>
+                      </div>
+                      <Badge className={`text-[8px] font-black uppercase tracking-tighter px-2 py-0.5 h-fit ${typeStyle.badgeBg}`} variant="outline">
+                        {update.type}
+                      </Badge>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-slate-800 truncate">{event.title}</p>
-                </div>
-              </div>
-            ))
+              );
+            })
           ) : (
-            <p className="text-xs text-slate-400 italic px-2">Quiet day, check back later!</p>
+            <p className="text-xs text-slate-400 italic px-2">No updates for today</p>
           )}
         </div>
       </div>

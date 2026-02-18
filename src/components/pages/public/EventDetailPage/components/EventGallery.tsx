@@ -18,20 +18,27 @@ const EventGallery: React.FC<EventGalleryProps> = ({ event }) => {
         Event Gallery
       </h3>
       {event?.gallery && event.gallery.length > 0 ? (
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-          {event.gallery.map((image, index) => (
-            <div
-              key={index}
-              className="aspect-square rounded-xl overflow-hidden bg-slate-200 hover:shadow-lg transition-all cursor-pointer group"
-            >
-              <img
-                src={image}
-                alt={`Gallery ${index + 1}`}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-              />
-            </div>
-          ))}
-        </div>
+        <>
+          <div className="flex items-center justify-between mb-4">
+            <div />
+            <div className="text-xs font-bold text-slate-500 uppercase">Photos: {event?.stats?.gallery?.photosCount ?? event.gallery.length}</div>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+            {event.gallery.map((image, index) => (
+              <div
+                key={index}
+                className="aspect-square rounded-xl overflow-hidden bg-slate-200 hover:shadow-lg transition-all cursor-pointer group"
+              >
+                <img
+                  src={image}
+                  alt={`Gallery ${index + 1}`}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                />
+              </div>
+            ))}
+          </div>
+        </>
       ) : (
         <div className="py-12 text-center bg-slate-50 rounded-xl">
           <ImageIcon size={32} className="mx-auto text-slate-400 mb-3" />

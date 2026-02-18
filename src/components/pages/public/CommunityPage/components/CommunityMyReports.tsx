@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { ReportsService } from '@/services/reportsService';
 import type { LostFoundItem } from '@/services/reportsService';
 import { ReportDetailDrawer } from '@/components/features/reports/ReportDetail';
+import { ImageCollageDisplay } from '@/components/features/reports/ImageCollageDisplay';
 
 interface CommunityMyReportsProps {
   communityId: string | number;
@@ -166,9 +167,15 @@ export const CommunityMyReports: React.FC<CommunityMyReportsProps> = ({
                     "relative overflow-hidden bg-slate-100",
                     viewMode === 'grid' ? "w-full aspect-[4/3]" : "w-40 aspect-square shrink-0"
                   )}>
-                    {report.images && report.images.length > 0 ? (
-                      <img src={report.images[0].imageUrl} alt={report.title || ''} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                    ) : (
+                    <ImageCollageDisplay
+                      images={(report.imageUrls && report.imageUrls.length > 0)
+                        ? report.imageUrls
+                        : ((report.images?.map(i => i.imageUrl).filter(Boolean) as string[]) || [])
+                      }
+                      title={report.title || ''}
+                      containerHeight={viewMode === 'grid' ? 'h-full' : 'h-full'}
+                    />
+                    {(!report.images || report.images.length === 0) && (
                       <div className="w-full h-full flex items-center justify-center text-slate-300">
                         <Heart size={40} className="opacity-20" />
                       </div>
