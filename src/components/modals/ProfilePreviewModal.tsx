@@ -70,17 +70,17 @@ export const ProfilePreviewModal: React.FC<ProfilePreviewModalProps> = ({
       // BackendUserData doesn't have dateOfBirth, so we skip age calculation
       
       setLocalUser({
-        fullName: apiUser.fullName,
-        username: apiUser.username,
-        profilePicture: apiUser.profilePicture,
-        email: apiUser.email,
+        fullName: apiUser.fullName ?? apiUser.name ?? '',
+        username: apiUser.username ?? apiUser.email?.split('@')[0] ?? '',
+        profilePicture: apiUser.profilePicture ?? undefined,
+        email: apiUser.email ?? undefined,
         location: apiUser.location ?? undefined,
         contactNumber: undefined,
-        joinDate: new Date(apiUser.joinDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        joinDate: apiUser.joinDate ? new Date(apiUser.joinDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : undefined,
         sex: undefined,
         age,
         verificationStatus: apiUser.emailVerified ? 'Verified' : 'Unverified',
-        memberSince: Math.floor((new Date().getTime() - new Date(apiUser.joinDate).getTime()) / (1000 * 60 * 60 * 24))
+        memberSince: apiUser.joinDate ? Math.floor((Date.now() - new Date(apiUser.joinDate).getTime()) / (1000 * 60 * 60 * 24)) : undefined
       });
     } else if (propUser) {
       // Use prop user if no API data

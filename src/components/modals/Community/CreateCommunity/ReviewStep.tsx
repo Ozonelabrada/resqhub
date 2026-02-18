@@ -68,7 +68,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
 }) => {
   const { t } = useTranslation();
   
-  const selectedTier = formData.selectedTier ? SUBSCRIPTION_TIERS[formData.selectedTier] : null;
+  const selectedTier = formData.selectedTier ? SUBSCRIPTION_TIERS.find(t => t.type === formData.selectedTier) ?? null : null;
   const tierColor = getTierColor(formData.selectedTier);
   const TierIcon = getTierIcon(formData.selectedTier);
 
@@ -146,7 +146,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
                 <div>
                   <p className={`text-[10px] font-black ${tierColor.text} uppercase tracking-widest mb-3`}>Included Features</p>
                   <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {selectedTier.highlightFeatures.map((feature, idx) => (
+                    {selectedTier.highlightFeatures.map((feature: string, idx: number) => (
                       <li key={idx} className="flex items-center gap-2 text-sm font-bold">
                         <Check size={16} className={tierColor.text} />
                         <span className={tierColor.text}>{feature}</span>

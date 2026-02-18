@@ -37,7 +37,7 @@ export const DirectChatModal: React.FC<DirectChatModalProps> = ({
     user: {
       id: String(user.id),
       fullName: user.fullName || user.email,
-      username: user.username,
+      username: user.username || '',
       profilePicture: user.profilePicture || '',
       isOnline: false
     },

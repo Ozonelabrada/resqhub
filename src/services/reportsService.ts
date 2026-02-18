@@ -17,7 +17,7 @@ export interface LostFoundItem {
   reportId?: number;
   userId?: string;
   reportType?: 'Lost' | 'Found' | number | string;
-  status?: number;
+  status?: string | number;
   statusDescription?: string;
   title?: string;
   itemName?: string;

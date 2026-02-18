@@ -148,7 +148,7 @@ export const useEventData = (communityId?: string, eventId?: string) => {
 
         // Mock data for demonstration
         // helper to compute simple stats from mock data
-        const attendees = [
+        const attendees: EventAttendee[] = [
           { id: '1', fullName: 'Sarah Johnson', checkedIn: false, role: 'organizer' },
           { id: '2', fullName: 'John Doe', checkedIn: false, role: 'participant' },
           { id: '3', fullName: 'Maria Smith', checkedIn: true, checkedInAt: '2025-03-15T08:05:00', role: 'volunteer' },
@@ -176,7 +176,7 @@ export const useEventData = (communityId?: string, eventId?: string) => {
           'https://via.placeholder.com/400x300?text=Event+Photo+4',
         ];
 
-        const resources = [
+        const resources: EventResource[] = [
           { id: '1', name: 'Event Waiver Form', url: '#', type: 'document' },
           { id: '2', name: 'Sustainability Guide', url: '#', type: 'document' },
           { id: '3', name: 'Equipment Checklist', url: '#', type: 'file' },

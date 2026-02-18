@@ -31,7 +31,7 @@ export interface AuthResponse extends BaseApiResponse {
 }
 
 export type UserData = {
-  id: number | string;
+  id:  string;
   name: string;
   username: string;
   email: string;

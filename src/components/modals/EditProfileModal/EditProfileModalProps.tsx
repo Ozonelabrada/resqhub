@@ -77,10 +77,16 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       setFormData({
         firstName: userData.firstName || '',
         lastName: userData.lastName || '',
-        username: userData.username || '',
+        username: (userData.username || (userData.userName as string) || '') as string,
         bio: userData.bio || '',
-        profilePicture: userData.profilePicture || '',
-        coverPhoto: userData.coverPhoto || ''
+        phoneNumber: (userData.phoneNumber || (userData.phone as string) || '') as string,
+        address: userData.address || '',
+        dateOfBirth: userData.dateOfBirth ? String(userData.dateOfBirth).split('T')[0] : '',
+        sex: userData.sex || '',
+        profilePicture: userData.profilePicture || userData.profilePictureUrl || '',
+        profilePictureUrl: userData.profilePictureUrl || userData.profilePicture || '',
+        coverPhoto: userData.coverPhoto || userData.coverPhotoUrl || '',
+        coverPhotoUrl: userData.coverPhotoUrl || userData.coverPhoto || ''
       });
       setProfilePicturePreview(userData.profilePicture || '');
       setCoverPhotoPreview(userData.coverPhoto || '');
@@ -241,15 +247,15 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         fullName: `${formData.firstName} ${formData.lastName}`,
         username: formData.username,
         userName: formData.username,
-        bio: formData.bio || null,
-        phoneNumber: formData.phoneNumber || null,
-        address: formData.address || null,
-        dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth).toISOString() : null,
-        sex: formData.sex || null,
-        profilePicture: formData.profilePicture || formData.profilePictureUrl || null,
-        profilePictureUrl: formData.profilePictureUrl || formData.profilePicture || null,
-        coverPhoto: formData.coverPhoto || formData.coverPhotoUrl || null,
-        coverPhotoUrl: formData.coverPhotoUrl || formData.coverPhoto || null
+        bio: formData.bio || undefined,
+        phoneNumber: formData.phoneNumber || undefined,
+        address: formData.address || undefined,
+        dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth).toISOString() : undefined,
+        sex: formData.sex || undefined,
+        profilePicture: formData.profilePicture || formData.profilePictureUrl || undefined,
+        profilePictureUrl: formData.profilePictureUrl || formData.profilePicture || undefined,
+        coverPhoto: formData.coverPhoto || formData.coverPhotoUrl || undefined,
+        coverPhotoUrl: formData.coverPhotoUrl || formData.coverPhoto || undefined
       };
 
       // Update user profile

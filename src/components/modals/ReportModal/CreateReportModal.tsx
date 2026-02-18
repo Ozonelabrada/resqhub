@@ -94,9 +94,9 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
     const timer = setTimeout(async () => {
       if (formData.location.length >= 3 && isSearchingLocation) {
         const results = await searchLocations(formData.location);
-        // If user has a saved profile location, keep it as the first suggestion (avoid duplicates)
-        const merged = user?.location
-          ? (results.some(r => r.display_name === user.location) ? results : [{ display_name: user.location, lat: '', lon: '', name: user.location, address: {} }, ...results])
+        // If user has a saved profile location (non-empty string), keep it as the first suggestion (avoid duplicates)
+        const merged = (typeof user?.location === 'string' && user.location.trim() !== '')
+          ? (results.some(r => r.display_name === user.location) ? results : [{ display_name: user.location as string, lat: '', lon: '', name: user.location as string, address: {} }, ...results])
           : results;
         setLocationSuggestions(merged);
         setShowSuggestions(true);
@@ -109,10 +109,10 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
 
   // If user has a profile location and the location input is empty, surface it as a suggestion
   useEffect(() => {
-    if (user?.location && (!formData.location || formData.location.trim() === '')) {
+    if (typeof user?.location === 'string' && user.location.trim() !== '' && (!formData.location || formData.location.trim() === '')) {
       setLocationSuggestions(prev => {
         if (prev.some(s => s.display_name === user.location)) return prev;
-        return [{ display_name: user.location, lat: '', lon: '', name: user.location, address: {} }, ...prev];
+        return [{ display_name: user.location as string, lat: '', lon: '', name: user.location as string, address: {} }, ...prev];
       });
     }
   }, [user?.location, formData.location]);
