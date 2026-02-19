@@ -39,14 +39,7 @@ export const MobileNavigation: React.FC = () => {
       path: '/communities',
       active: location.pathname.startsWith('/communities') || location.pathname.startsWith('/community/')
     },
-    ...(isFeatureEnabled('messages') ? [
-      {
-        icon: MessageSquare,
-        label: t('common.messages'),
-        path: '/messages',
-        active: location.pathname === '/messages'
-      }
-    ] : []),
+
     {
       icon: isAuthenticated ? User : LogIn,
       label: isAuthenticated ? t('common.profile') : t('common.login'),
@@ -64,11 +57,10 @@ export const MobileNavigation: React.FC = () => {
           return (
             <button
               key={index}
+              disabled
               className={cn(
                 "flex flex-col items-center justify-center p-2 rounded-2xl transition-all duration-300 min-w-[64px]",
-                item.active 
-                  ? "text-teal-600" 
-                  : "text-slate-400 hover:text-slate-600"
+                  (item.active ? "text-teal-600" : "text-slate-400 hover:text-slate-600")
               )}
               onClick={() => {
                 if (item.onClick) {

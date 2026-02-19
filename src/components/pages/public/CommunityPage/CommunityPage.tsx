@@ -95,21 +95,24 @@ const CommunityPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen lg:h-[calc(100vh-60px)] flex flex-col bg-slate-50 lg:overflow-hidden lg:-mt-10">
+    <div className="min-h-screen lg:h-[calc(100vh-60px)] flex flex-col bg-slate-50 lg:overflow-hidden lg:-mt-10 overflow-x-hidden">
       {/* COMMUNITY HEADER */}
       <CommunityHeader
         community={community}
         isAdmin={communityAccess.isAdmin}
         isMember={communityAccess.isMember}
+        memberCount={community.membersCount || 0}
+        activeTab={activeTab as CommunityTabType}
+        onTabChange={(tab) => handleTabChange(tab)}
         onSettingsClick={() => communityState.setIsSettingsOpen(true)}
         onModerationClick={() => communityState.setIsModerationOpen(true)}
       />
 
       {/* MAIN LAYOUT */}
-      <div className="w-full px-4 md:px-6 lg:px-8 py-2 lg:pt-32 flex-1 lg:h-full lg:overflow-hidden min-h-0">
-        <main className="w-full h-full grid grid-cols-1 lg:grid-cols-10 gap-6 lg:overflow-hidden">
-          {/* LEFT SIDEBAR */}
-          <div className="order-2 lg:order-1 lg:col-span-2 lg:h-full lg:overflow-y-auto lg:overflow-x-hidden scrollbar-hidden hover:custom-scrollbar transition-all pt-2 pb-6 min-w-0">
+      <div className="w-full px-3 md:px-4 lg:px-8 py-3 lg:pt-32 flex-1 lg:h-full lg:overflow-hidden min-h-0 overflow-x-hidden">
+        <main className="w-full h-full grid grid-cols-1 lg:grid-cols-10 gap-4 md:gap-6 lg:overflow-hidden">
+          {/* LEFT SIDEBAR - HIDDEN ON MOBILE */}
+          <div className="hidden lg:block order-1 lg:col-span-2 lg:h-full lg:overflow-y-auto lg:overflow-x-hidden scrollbar-hidden hover:custom-scrollbar transition-all pt-2 pb-6 min-w-0">
             <NewsFeedSidebar
               className="w-full h-fit"
               isAuthenticated={isAuthenticated}
@@ -133,8 +136,8 @@ const CommunityPage: React.FC = () => {
           {/* CENTER CONTENT */}
           <div
             className={cn(
-              'order-1 pb-20 lg:pb-6 lg:h-full lg:overflow-y-auto lg:overflow-x-hidden scrollbar-hidden hover:custom-scrollbar transition-all pt-2 px-1 scroll-smooth min-w-0',
-              activeTab === 'feed' ? 'lg:col-span-5 lg:order-2' : 'lg:col-span-8 lg:order-2'
+              'w-full pb-20 lg:pb-6 lg:h-full lg:overflow-y-auto lg:overflow-x-hidden scrollbar-hidden hover:custom-scrollbar transition-all pt-4 md:pt-3 px-1 scroll-smooth min-w-0 lg:order-2 overflow-x-hidden',
+              activeTab === 'feed' ? 'lg:col-span-5' : 'lg:col-span-8'
             )}
           >
             <PendingApprovalBanner show={communityAccess.isPendingMember} />
@@ -195,8 +198,6 @@ const CommunityPage: React.FC = () => {
         communityName={community.name}
         isMember={communityAccess.isMember}
         isAdmin={communityAccess.isAdmin}
-        isChatOpen={communityState.isChatOpen}
-        onChatToggle={() => communityState.setIsChatOpen(!communityState.isChatOpen)}
         onCreatePost={handleOpenReportModal}
         activeTab={activeTab}
       />

@@ -28,7 +28,9 @@ import {
   Camera, 
   Upload, 
   X,
-  Eye
+  Eye,
+  MinusCircle,
+  PlusCircle
 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { Modal } from '../../ui/Modal/Modal';
@@ -313,20 +315,26 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
                   className="w-full"
                 >
                   <TabsList className={cn(
-                    "grid w-full p-1 bg-slate-100 rounded-2xl h-auto min-h-14",
+                    "grid w-full p-2 bg-slate-100 rounded-2xl h-auto min-h-[56px] gap-2",
                     "grid-cols-2"
-                  )}>
+                  )} role="tablist" aria-label={t('report.type_question')}> 
                     <TabsTrigger 
                       value="Lost" 
-                      className="rounded-xl font-bold py-2 transition-all data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+                      className="rounded-xl font-bold transition-all data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md"
                     >
-                      {t('report.lost_item')}
+                      <div className="flex flex-col sm:flex-row items-center justify-center gap-2 px-3 py-3 min-h-[44px]">
+                        <MinusCircle className="w-5 h-5 text-teal-600 sm:text-current" />
+                        <span className="text-sm leading-none">{t('report.lost_item')}</span>
+                      </div>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="Found" 
-                      className="rounded-xl font-bold py-2 transition-all data-[state=active]:bg-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+                      className="rounded-xl font-bold transition-all data-[state=active]:bg-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-md"
                     >
-                      {t('report.found_item')}
+                      <div className="flex flex-col sm:flex-row items-center justify-center gap-2 px-3 py-3 min-h-[44px]">
+                        <PlusCircle className="w-5 h-5 text-emerald-600 sm:text-current" />
+                        <span className="text-sm leading-none">{t('report.found_item')}</span>
+                      </div>
                     </TabsTrigger>
                     {isCommunityContext && (
                       <>
@@ -344,7 +352,7 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
                   onChange={(e) => handleInputChange('title', e.target.value)}
                   placeholder={t('report.item_title_placeholder')}
                   required
-                  className="rounded-2xl border-slate-100 bg-slate-50 focus-visible:ring-teal-600"
+                  className="rounded-2xl border-slate-100 bg-slate-50 focus-visible:ring-teal-600 h-12"
                 />
               </div>
 
@@ -360,7 +368,7 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
                     onChange={(e) => handleInputChange('location', e.target.value)}
                     placeholder={t('report.location_placeholder')}
                     required
-                    className="rounded-2xl border-slate-100 bg-slate-50 focus-visible:ring-teal-600"
+                    className="rounded-2xl border-slate-100 bg-slate-50 focus-visible:ring-teal-600 h-12"
                     onBlur={() => {
                       // Small delay to allow onMouseDown to trigger first
                       setTimeout(() => setShowSuggestions(false), 200);
@@ -375,15 +383,17 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
                         <div
                           key={`${suggestion.lat}-${suggestion.lon}`}
                           role="button"
-                          className="w-full text-left px-4 py-3 text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors border-b border-slate-50 last:border-0 flex items-start gap-2 cursor-pointer"
+                          tabIndex={0}
+                          className="w-full text-left px-4 py-4 text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors border-b border-slate-50 last:border-0 flex items-start gap-2 cursor-pointer min-h-[48px]"
                           onMouseDown={(e) => {
                             // Prevent focus from leaving input immediately
                             e.preventDefault();
                             handleSelectLocation(suggestion);
                           }}
+                          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSelectLocation(suggestion); } }}
                         >
                           <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-slate-400" />
-                          <span>{suggestion.display_name}</span>
+                          <span className="truncate">{suggestion.display_name}</span>
                         </div>
                       ))}
                     </div>
@@ -414,7 +424,7 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
                   onChange={(e) => handleInputChange('contactInfo', e.target.value)}
                   placeholder={t('report.contact_placeholder')}
                   required
-                  className="rounded-2xl border-slate-100 bg-slate-50 focus-visible:ring-teal-600"
+                  className="rounded-2xl border-slate-100 bg-slate-50 focus-visible:ring-teal-600 h-12"
                 />
               </div>
 
@@ -428,7 +438,7 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
                   value={formData.rewardDetails}
                   onChange={(e) => handleInputChange('rewardDetails', e.target.value)}
                   placeholder={t('report.reward_placeholder')}
-                  className="rounded-2xl border-slate-100 bg-slate-50 focus-visible:ring-teal-600"
+                  className="rounded-2xl border-slate-100 bg-slate-50 focus-visible:ring-teal-600 h-12"
                 />
               </div>
             </div>
@@ -440,29 +450,31 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
                 {t('report.images')}
               </label>
               
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {images.map((img, index) => (
                   <div key={index} className="relative aspect-square rounded-2xl overflow-hidden border-2 border-slate-50 group">
-                    <img src={img} alt="Preview" className="w-full h-full object-cover" />
+                    <img src={img} alt={`${t('report.image_preview')} ${index + 1}`} className="w-full h-full object-cover" />
                     <button
                       type="button"
+                      aria-label={t('report.remove_image')}
                       onClick={() => removeImage(index)}
-                      className="absolute top-1 right-1 bg-white/80 backdrop-blur-sm p-1 rounded-full text-rose-500 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm p-2 rounded-full text-rose-500 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-300"
                     >
                       <X size={14} />
                     </button>
                   </div>
                 ))}
                 {images.length < 5 && (
-                  <label className="aspect-square rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-slate-50 transition-all text-slate-400 hover:text-teal-600 hover:border-teal-200">
-                    <Upload size={24} />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">{t('report.upload')}</span>
+                  <label className="aspect-square rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-slate-50 transition-all text-slate-400 hover:text-teal-600 hover:border-teal-200 p-2">
+                    <div className="flex flex-col items-center gap-2">
+                      <Upload size={28} />
+                      <span className="text-xs font-bold uppercase tracking-widest">{t('report.upload')}</span>
+                    </div>
                     <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageUpload} />
                   </label>
                 )}
               </div>
             </div>
-
             <div className="pt-6">
               <Button
                 type="submit"

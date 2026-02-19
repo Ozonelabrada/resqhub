@@ -47,6 +47,7 @@ import PublicLayout from './layouts/PublicLayout';
 // Auth Components
 import AuthGuard from './components/common/AuthGuard';
 import AdminGuard from './components/common/AdminGuard';
+import ErrorBoundary from './components/common/ErrorBoundary';
 
 import { useFeatureFlags } from './hooks';
 
@@ -195,7 +196,7 @@ const App = () => {
   };
 
   return (
-    <div className="App">
+    <div className="App overflow-x-hidden w-screen h-screen">
       <Toaster position="top-center" reverseOrder={false} />
       <Toast ref={toast} />
       
@@ -220,7 +221,9 @@ const App = () => {
       )} 
       
       <div style={{ paddingTop: !isOnline || showOnlineBanner || isServerDown ? '40px' : '0' }}>
-        <AppRouter />
+        <ErrorBoundary>
+          <AppRouter />
+        </ErrorBoundary>
       </div>
     </div>
   );
