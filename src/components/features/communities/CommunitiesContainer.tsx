@@ -540,7 +540,7 @@ export const CommunitiesContainer: React.FC<{ initialTab?: 'my-communities' | 'a
 
   if (view === 'store-application') {
     return (
-      <Card className="flex flex-col h-[calc(100vh-140px)] border-none shadow-xl rounded-[2.5rem] bg-white overflow-hidden animate-in slide-in-from-right duration-500 relative">
+      <Card className="flex flex-col h-[calc(100vh-140px)] border-none shadow-xl rounded-lg sm:rounded-[2.5rem] bg-white overflow-hidden animate-in slide-in-from-right duration-500 relative">
         <div className="p-8 border-b border-gray-100 flex items-center gap-6 shrink-0 bg-slate-50/50">
           <Button 
             onClick={() => setView('list')}
@@ -1132,8 +1132,8 @@ export const CommunitiesContainer: React.FC<{ initialTab?: 'my-communities' | 'a
   }
 
   return (
-    <Card className="flex flex-col h-[calc(100vh-140px)] border-none shadow-xl rounded-[2.5rem] bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-500 relative">
-      <div className="p-4 md:p-8 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 shrink-0 text-decoration-none">
+    <Card className="flex flex-col h-[calc(100vh-140px)] border-none shadow-xl rounded-lg sm:rounded-[2.5rem] bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-500 relative">
+      <div className="px-3 md:px-8 py-3 md:py-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-6 shrink-0 text-decoration-none">
         <div className="flex flex-col gap-1">
           <h2 className="text-2xl font-black text-slate-900 tracking-tight">
             {t('common.communities', 'Communities')}
@@ -1143,55 +1143,57 @@ export const CommunitiesContainer: React.FC<{ initialTab?: 'my-communities' | 'a
           </p>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-3 bg-slate-50 p-2 pr-4 rounded-2xl border border-slate-100">
-             <Button 
-                onClick={() => setView('store-application')}
-                disabled
-                size="sm"
-                className="bg-slate-900 hover:bg-slate-800 text-white font-black h-10 px-4 rounded-xl transition-all flex items-center gap-2 group"
-             >
-                <StoreIcon className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                <span className="hidden sm:inline">Apply to Sell</span>
-             </Button>
-             <div className="flex flex-col leading-none">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Stores</span>
-                <span className="text-sm font-black text-slate-900">{myStores.length} Active</span>
-             </div>
-          </div>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full">
 
-          <div className="relative group w-64">
-            <div className="absolute -inset-1 bg-gradient-to-r from-teal-500/20 to-emerald-500/20 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition duration-500"></div>
-            <div className="relative flex items-center bg-gray-50 rounded-xl border border-transparent group-focus-within:bg-white group-focus-within:border-slate-100 transition-all overflow-hidden px-3">
+
+          <div className="relative group w-full sm:flex-1 sm:w-64 min-w-0" role="search" aria-label={t('communities.search_placeholder', 'Search communities') }>
+            <label htmlFor="community-search" className="sr-only">{t('communities.search_placeholder', 'Search communities by name or description...')}</label>
+            <div className="relative flex items-center bg-gray-50 rounded-xl border border-transparent group-focus-within:bg-white group-focus-within:border-slate-100 transition-all overflow-hidden px-3 min-w-0">
               <Search className="text-slate-400 w-4 h-4" />
-              <Input 
+              <Input
+                id="community-search"
+                aria-label={t('communities.search_placeholder', 'Search communities by name or description...')}
+                inputMode="search"
                 placeholder={t('communities.search_placeholder', 'Search communities by name or description...')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="border-none focus-visible:ring-0 h-10 text-slate-800 text-sm font-medium bg-transparent"
+                className="border-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:outline-none h-10 text-slate-800 text-sm font-medium bg-transparent"
               />
+              {searchQuery && (
+                <button
+                  type="button"
+                  aria-label={t('common.clear', 'Clear search')}
+                  onClick={() => setSearchQuery('')}
+                  className="ml-2 p-2 rounded-full text-slate-500 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-teal-500"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
             </div>
           </div>
 
           <Button 
             onClick={() => navigate('/communities/create')}
             size="sm"
-            className="bg-teal-600 hover:bg-teal-700 text-white font-bold h-10 px-4 rounded-xl shadow-lg shadow-teal-100 transition-all flex items-center gap-2"
+            aria-label={t('communities.create', 'Apply for Community')}
+            className="flex-shrink-0 w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white font-bold h-10 px-4 rounded-xl shadow-lg shadow-teal-100 transition-all flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">{t('communities.create', 'Apply for Community')}</span>
+            <span className="inline text-sm font-bold">{t('communities.create', 'Apply for Community')}</span>
           </Button>
         </div>
       </div>
 
       {/* Communities Tab Navigation */}
       {isAuthenticated && (
-        <div className="px-4 md:px-8 pb-4 border-b border-gray-100 flex items-center gap-3 shrink-0 overflow-x-auto">
+        <div role="tablist" aria-label={t('communities.tabs', 'Communities tabs')} className="px-4 md:px-8 pb-4 border-b border-gray-100 flex items-center gap-2 sm:gap-3 flex-nowrap shrink-0 overflow-x-auto sticky top-16 z-30 bg-white/95 backdrop-blur-sm sm:bg-transparent sm:backdrop-blur-none sm:top-auto">
           <Button 
+            role="tab"
+            aria-selected={communitiesTab === 'my-communities'}
             onClick={() => setCommunitiesTab('my-communities')}
             variant="ghost"
             className={cn(
-              "px-4 py-2 rounded-xl font-bold text-sm transition-all border-b-2 whitespace-nowrap",
+              "px-3 sm:px-4 py-2 min-h-[44px] sm:min-h-0 rounded-xl font-bold text-sm transition-all border-b-2 whitespace-nowrap flex-shrink-0",
               communitiesTab === 'my-communities' 
                 ? "border-teal-600 text-teal-600 bg-teal-50" 
                 : "border-transparent text-slate-500 hover:text-teal-600"
@@ -1201,10 +1203,12 @@ export const CommunitiesContainer: React.FC<{ initialTab?: 'my-communities' | 'a
             My Communities
           </Button>
           <Button 
+            role="tab"
+            aria-selected={communitiesTab === 'all-communities'}
             onClick={() => setCommunitiesTab('all-communities')}
             variant="ghost"
             className={cn(
-              "px-4 py-2 rounded-xl font-bold text-sm transition-all border-b-2 whitespace-nowrap",
+              "px-3 sm:px-4 py-2 min-h-[44px] sm:min-h-0 rounded-xl font-bold text-sm transition-all border-b-2 whitespace-nowrap flex-shrink-0",
               communitiesTab === 'all-communities' 
                 ? "border-teal-600 text-teal-600 bg-teal-50" 
                 : "border-transparent text-slate-500 hover:text-teal-600"
@@ -1217,19 +1221,22 @@ export const CommunitiesContainer: React.FC<{ initialTab?: 'my-communities' | 'a
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-3 md:p-8 custom-scrollbar">
         {(communitiesLoading || loading || myCommunitiesLoading || allCommunitiesLoading) ? (
           <div className="flex flex-col items-center justify-center py-20">
             <Spinner size="lg" />
             <p className="mt-4 text-slate-500 font-medium">Loading communities...</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 gap-3 md:gap-6">
             {filteredCommunities.map((community, idx) => {
               return (
               <Card 
                 key={community.id || (community as any)._id || idx}
-                className="group border border-slate-100 rounded-[2rem] overflow-hidden bg-white hover:shadow-2xl hover:shadow-teal-100/30 transition-all duration-500 cursor-pointer flex flex-col h-full"
+                role="button"
+                tabIndex={0}
+                aria-label={`Open community ${community.name}`}
+                className="group border border-slate-100 rounded-lg sm:rounded-[2rem] overflow-hidden bg-white hover:shadow-2xl hover:shadow-teal-100/30 transition-all duration-500 cursor-pointer flex flex-col h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
                 onClick={() => {
                   const isPending = community.status === 'pending' || community.status === 'Pending';
                   if (isPending) {
@@ -1239,10 +1246,22 @@ export const CommunitiesContainer: React.FC<{ initialTab?: 'my-communities' | 'a
                     navigate(`/community/${community.id || (community as any)._id}`);
                   }
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    const isPending = community.status === 'pending' || community.status === 'Pending';
+                    if (isPending) {
+                      setSelectedCommunityForModal(community);
+                      setIsDetailModalOpen(true);
+                    } else {
+                      navigate(`/community/${community.id || (community as any)._id}`);
+                    }
+                  }
+                }}
               >
-                <div className="h-32 relative overflow-hidden shrink-0">
+                <div className="hidden sm:block h-32 relative overflow-hidden shrink-0">
                   {community.banner || community.imageUrl ? (
-                    <img src={community.banner || community.imageUrl || undefined} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                    <img src={community.banner || community.imageUrl || undefined} alt={`${community.name} banner`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-teal-500 to-emerald-600" />
                   )}
@@ -1285,104 +1304,120 @@ export const CommunitiesContainer: React.FC<{ initialTab?: 'my-communities' | 'a
                       {community.tagline}
                     </Badge>
                   )}
-                  <div className="absolute -bottom-6 -left-6 w-20 h-20 bg-white/10 rounded-full blur-2xl"></div>
+                  <div className="hidden sm:block absolute -bottom-6 -left-6 w-20 h-20 bg-white/10 rounded-full blur-2xl"></div>
                 </div>
                 
-                <div className="p-3 md:p-5 flex flex-col flex-1">
+                <div className="p-2 md:p-5 flex flex-col flex-1">
                   <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2 text-teal-600">
-                      <MapPin size={12} />
-                      <span className="text-[9px] font-black uppercase tracking-widest">{community.location || 'Local Community'}</span>
-                    </div>
+                    {/* top short label removed to avoid duplicate location display; full address appears in the card footer */}
                   </div>
                   
-                  <div className="flex items-start gap-4 mb-3">
-                    {(community.logo || community.imageUrl) && (
-                      <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 shadow-sm border border-slate-50">
-                        <img src={community.logo || community.imageUrl || undefined} alt="" className="w-full h-full object-cover" />
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="relative flex-shrink-0">
+                      <div className="w-12 h-12 rounded-xl overflow-hidden shadow-sm border border-slate-50 bg-teal-50 flex items-center justify-center">
+                        {community.logo ? (
+                          <img src={community.logo} alt={`${community.name} logo`} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-md bg-teal-100" />
+                        )}
                       </div>
-                    )}
-                    <h3 className="text-base font-black text-slate-900 group-hover:text-teal-600 transition-colors line-clamp-2 leading-tight">
-                      {community.name}
-                    </h3>
+                      {isCommunityMember(community) && isMemberApproved(community) && (
+                        <span className="absolute -bottom-0.5 -left-0.5 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full" />
+                      )}
+                    </div>
+
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className="text-base font-black text-slate-900 group-hover:text-teal-600 transition-colors line-clamp-2 leading-tight">
+                          {community.name}
+                        </h3>
+                      </div>
+
+                      {isCommunityMember(community) && isMemberApproved(community) && (
+                        <span className="inline-flex items-center gap-2 mt-2 px-2 py-0.5 text-xs font-bold bg-emerald-50 text-emerald-700 rounded-full border border-emerald-100">
+                          Joined
+                        </span>
+                      )}
+                    </div>
                   </div>
                   
                   <p className="text-slate-500 text-[11px] leading-relaxed mb-4 md:mb-6 line-clamp-3 font-medium flex-1">
                     {community.description || 'No description available for this community.'}
                   </p>
                   
-                  <div className="flex items-center justify-between pt-2 md:pt-4 border-t border-slate-50 mt-auto">
-                    <div className="flex items-center gap-2 text-slate-400">
-                      <Users size={12} />
-                      <span className="text-[11px] font-bold text-slate-500">{community.memberCount || community.membersCount || 0} Members</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-2 md:pt-4 border-t border-slate-50 mt-auto">
+                    <div className="flex items-center gap-3 text-slate-400 text-xs flex-1">
+                      <div className="flex items-center gap-2">
+                        <Users size={12} />
+                        <span className="font-bold text-slate-500">{community.memberCount || community.membersCount || 0}</span>
+                        <span className="text-[11px] text-slate-400 ml-1">Members</span>
+                      </div>
+                      <div className="flex items-center gap-2 max-w-full">
+                        <MapPin size={12} />
+                        <span className="text-[11px] font-medium text-slate-500 break-words line-clamp-2 max-w-full">{community.location || 'Local Community'}</span>
+                      </div>
                     </div>
-                    {isAuthenticated && user?.id && community.createdBy === user.id ? (
-                      <Button 
-                        onClick={() => navigate(`/community/${community.id || (community as any)._id}`)}
-                        variant="ghost" 
-                        size="sm" 
-                        className="p-0 h-auto hover:bg-transparent text-emerald-600 font-extrabold text-[10px] uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all"
-                      >
-                        Your Community
-                        <ArrowRight size={14} />
-                      </Button>
-                    ) : isAuthenticated && isCommunityMember(community) && isMemberApproved(community) ? (
-                      <Button 
-                        onClick={() => navigate(`/community/${community.id || (community as any)._id}`)}
-                        variant="ghost" 
-                        size="sm" 
-                        className="p-0 h-auto hover:bg-transparent text-teal-600 font-extrabold text-[10px] uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all"
-                      >
-                        Visit Hub
-                        <ArrowRight size={14} />
-                      </Button>
-                    ) : isAuthenticated && isCommunityMember(community) && !isMemberApproved(community) ? (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        disabled
-                        className="p-0 h-auto hover:bg-transparent text-amber-600 font-extrabold text-[10px] uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all opacity-60"
-                      >
-                        Waiting for Approval
-                      </Button>
-                    ) : !isAuthenticated ? (
-                      <Button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openLoginModal();
-                        }}
-                        size="sm"
-                        className={cn(
-                          "h-8 rounded-lg px-4 text-[10px] font-black uppercase tracking-widest transition-all",
-                          "bg-teal-600 hover:bg-teal-700 text-white shadow-sm shadow-teal-100"
-                        )}
-                      >
-                        <div className="flex items-center gap-1.5">
-                          <UserPlus size={12} strokeWidth={3} />
+
+                    <div className="w-full sm:w-auto">
+                      {isAuthenticated && user?.id && community.createdBy === user.id ? (
+                        <Button 
+                          onClick={() => navigate(`/community/${community.id || (community as any)._id}`)}
+                          size="sm"
+                          className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white font-extrabold h-10 rounded-xl flex items-center justify-center gap-2"
+                        >
+                          <ArrowRight size={14} />
+                          Visit Hub
+                        </Button>
+                      ) : isAuthenticated && isCommunityMember(community) && isMemberApproved(community) ? (
+                        <Button 
+                          onClick={() => navigate(`/community/${community.id || (community as any)._id}`)}
+                          size="sm"
+                          className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white font-extrabold h-10 rounded-xl flex items-center justify-center gap-2"
+                        >
+                          <ArrowRight size={14} />
+                          Visit Hub
+                        </Button>
+                      ) : isAuthenticated && isCommunityMember(community) && !isMemberApproved(community) ? (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          disabled
+                          className="w-full sm:w-auto h-10 rounded-xl text-amber-600 font-extrabold bg-slate-50 opacity-60"
+                        >
+                          Waiting for Approval
+                        </Button>
+                      ) : !isAuthenticated ? (
+                        <Button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openLoginModal();
+                          }}
+                          size="sm"
+                          className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white font-extrabold h-10 rounded-xl"
+                        >
                           Sign In
-                        </div>
-                      </Button>
-                    ) : (
-                      <Button 
-                        onClick={(e) => handleJoin(e, community.id)}
-                        disabled={joiningId === community.id}
-                        size="sm"
-                        className={cn(
-                          "h-8 rounded-lg px-4 text-[10px] font-black uppercase tracking-widest transition-all",
-                          "bg-teal-600 hover:bg-teal-700 text-white shadow-sm shadow-teal-100",
-                          joiningId === community.id && "opacity-50 cursor-not-allowed"
-                        )}
-                      >
-                        {joiningId === community.id ? (
-                          <Spinner size="xs" className="border-white" />
-                        ) : (
-                          <div className="flex items-center gap-1.5">
-                            <UserPlus size={12} strokeWidth={3} />
-                            Request to Join
-                          </div>
-                        )}
-                      </Button>
-                    )}
+                        </Button>
+                      ) : (
+                        <Button 
+                          onClick={(e) => handleJoin(e, community.id)}
+                          disabled={joiningId === community.id}
+                          size="sm"
+                          className={cn(
+                            "w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white font-extrabold h-10 rounded-xl",
+                            joiningId === community.id && "opacity-50 cursor-not-allowed"
+                          )}
+                        >
+                          {joiningId === community.id ? (
+                            <Spinner size="xs" className="border-white" />
+                          ) : (
+                            <div className="flex items-center gap-1.5 justify-center">
+                              <UserPlus size={12} strokeWidth={3} />
+                              Request to Join
+                            </div>
+                          )}
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </Card>

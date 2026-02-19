@@ -2,12 +2,13 @@ import { useRef, useState } from 'react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
-import { useFeatureFlags, useScreenSize, useNotifications } from '../hooks';
+import { useFeatureFlags, useScreenSize, useNotifications, useTodaysUpdates } from '../hooks';
+import type { TodaysUpdate } from '../hooks/useTodaysUpdates';
 import { Menubar, Menu, Avatar, Button, Logo } from '../components/ui';
 import type { MenuRef } from '../components/ui';
 import { LoginModal } from '../components/modals/Auth/LoginModal';
 import { SignUpModal } from '../components/modals/Auth/SignUpModal';
-import { SettingsModal } from '../components/modals';
+import { SettingsModal, EventDetailModal } from '../components/modals';
 import {
   Home, 
   Users, 
@@ -37,6 +38,9 @@ const PublicLayout = () => {
   const { isFeatureEnabled } = useFeatureFlags();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { unreadCount } = useNotifications();
+  const { updates: todaysUpdates, loading: todaysLoading } = useTodaysUpdates();
+  const [selectedEvent, setSelectedEvent] = useState<TodaysUpdate | null>(null);
+  const [isEventDetailModalOpen, setIsEventDetailModalOpen] = useState(false);
   const { 
     isAuthenticated,
     isLoginModalOpen, 
@@ -206,7 +210,7 @@ const PublicLayout = () => {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-slate-50 overflow-x-hidden">
       {/* Desktop Navigation Bar - Hide on HomePage (/) */}
       <div className="hidden md:block">
         {location.pathname !== '/' && (
@@ -333,9 +337,47 @@ const PublicLayout = () => {
             <SidebarLink 
               icon={<MessageSquare size={20} />} 
               label={t('common.messages')} 
-              active={location.pathname === '/messages'}
-              onClick={() => { navigate('/messages'); setIsSidebarOpen(false); }}
+              active={false}
+              disabled={true}
+              className="opacity-50 cursor-not-allowed text-slate-400"
             />
+          )}
+
+          {/* What's Happening Today Section */}
+          {todaysUpdates.length > 0 && (
+            <div className="pt-4 pb-4">
+              <div className="h-px bg-slate-100 mx-4 mb-4" />
+              <h3 className="px-4 text-xs font-black uppercase tracking-widest text-slate-400 mb-3">What's Happening Today</h3>
+              <div className="space-y-2 px-2 max-h-48 overflow-y-auto">
+                {todaysUpdates.slice(0, 4).map((update) => (
+                  <div
+                    key={update.id}
+                    className="p-3 bg-gradient-to-br from-teal-50 to-emerald-50 rounded-xl border border-teal-100 hover:shadow-md transition-all cursor-pointer group"
+                    onClick={() => {
+                      console.log('Sidebar event clicked:', update);
+                      setSelectedEvent(update);
+                      setIsEventDetailModalOpen(true);
+                    }}
+                  >
+                    <div className="flex items-start gap-2">
+                      <span className={`text-xs font-bold uppercase px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0 ${
+                        update.type === 'event' ? 'bg-blue-100 text-blue-700' :
+                        update.type === 'announcement' ? 'bg-purple-100 text-purple-700' :
+                        'bg-orange-100 text-orange-700'
+                      }`}>
+                        {update.type}
+                      </span>
+                    </div>
+                    <p className="text-sm font-bold text-slate-900 mt-2 group-hover:text-teal-600 line-clamp-2">
+                      {update.title}
+                    </p>
+                    {update.communityName && (
+                      <p className="text-xs text-slate-500 mt-1">{update.communityName}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
           
           <div className="pt-4 pb-2">
@@ -353,6 +395,7 @@ const PublicLayout = () => {
               <SidebarLink 
                 icon={<Settings size={20} />} 
                 label={t('common.settings')} 
+                disabled={true}
                 active={location.pathname === '/settings'}
                 onClick={() => { navigate('/settings'); setIsSidebarOpen(false); }}
               />
@@ -406,6 +449,24 @@ const PublicLayout = () => {
       {/* Settings Modal */}
       <SettingsModal />
 
+      {/* Event Detail Modal */}
+      <EventDetailModal
+        isOpen={isEventDetailModalOpen}
+        onClose={() => {
+          setIsEventDetailModalOpen(false);
+          setSelectedEvent(null);
+        }}
+        event={selectedEvent}
+        onNavigateToCommunity={(communityId) => {
+          if (communityId) {
+            navigate(`/community/${communityId}`);
+          } else {
+            navigate('/communities');
+          }
+          setIsSidebarOpen(false);
+        }}
+      />
+
       {/* Authentication Status Banner (optional) */}
       {!isAuthenticated && location.pathname.includes('/item/') && (
         <div className="w-full p-3 text-center bg-orange-50 border-b border-orange-100 shadow-sm">
@@ -456,18 +517,21 @@ interface SidebarLinkProps {
   icon: React.ReactNode;
   label: string;
   active?: boolean;
-  onClick: () => void;
+  disabled?: boolean;
+  onClick?: () => void;
   className?: string;
 }
 
-const SidebarLink: React.FC<SidebarLinkProps> = ({ icon, label, active, onClick, className }) => (
+const SidebarLink: React.FC<SidebarLinkProps> = ({ icon, label, active, disabled, onClick, className }) => (
   <button
-    onClick={onClick}
+    onClick={disabled ? undefined : onClick}
+    disabled={disabled}
     className={cn(
       "w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all duration-200 font-bold text-sm",
-      active 
+      active && !disabled
         ? "bg-teal-50 text-teal-600 shadow-sm" 
         : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
+      disabled && "opacity-50 cursor-not-allowed text-slate-400",
       className
     )}
   >

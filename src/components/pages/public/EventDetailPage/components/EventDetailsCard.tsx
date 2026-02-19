@@ -13,7 +13,7 @@ interface EventDetailsCardProps {
  */
 const EventDetailsCard: React.FC<EventDetailsCardProps> = ({ event }) => {
   return (
-    <Card className="p-6 rounded-[2.5rem] bg-white border-slate-100">
+    <Card className="p-4 md:p-6 rounded-[2.5rem] bg-white border-slate-100">
       <h3 className="text-xs font-black text-slate-600 uppercase mb-4">Event Details</h3>
       <div className="space-y-4">
         {/* Start & End Date Row */}

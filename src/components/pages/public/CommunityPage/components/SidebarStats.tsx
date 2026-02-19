@@ -75,7 +75,7 @@ const SidebarStats: React.FC<SidebarStatsProps> = ({
   return (
     <>
       {/* CONSOLIDATED UPDATES SECTION */}
-      <div className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-gray-50 flex flex-col gap-4 group/card hover:shadow-md transition-all shrink-0">
+      <div className="bg-white rounded-[2.5rem] p-4 md:p-6 shadow-sm border border-gray-50 flex flex-col gap-4 group/card hover:shadow-md transition-all shrink-0">
         <div className="flex items-center justify-between cursor-pointer" onClick={onUpdatesClick}>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-teal-50 flex items-center justify-center group-hover/card:scale-110 transition-transform">
@@ -104,7 +104,7 @@ const SidebarStats: React.FC<SidebarStatsProps> = ({
               return (
                 <div
                   key={update.id}
-                  className={`flex items-start gap-3 p-3 rounded-2xl hover:shadow-sm transition-all cursor-pointer ${typeStyle.itemBg}`}
+                  className={`flex items-start gap-3 p-2 md:p-3 rounded-2xl hover:shadow-sm transition-all cursor-pointer ${typeStyle.itemBg}`}
                   onClick={onUpdatesClick}
                 >
                   <div className="flex flex-col items-center justify-center bg-white min-w-[40px] h-10 rounded-xl shadow-sm border"
@@ -117,10 +117,10 @@ const SidebarStats: React.FC<SidebarStatsProps> = ({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${typeStyle.textColor}`}>
+                        <p className={`text-[9px] md:text-[10px] font-black uppercase tracking-widest mb-1 ${typeStyle.textColor}`}>
                           {update.category || update.type}
                         </p>
-                        <p className="text-sm font-bold text-slate-800 line-clamp-2">{update.title}</p>
+                        <p className="text-xs md:text-sm font-bold text-slate-800 line-clamp-2">{update.title}</p>
                       </div>
                       <Badge className={`text-[8px] font-black uppercase tracking-tighter px-2 py-0.5 h-fit ${typeStyle.badgeBg}`} variant="outline">
                         {update.type}
@@ -137,14 +137,14 @@ const SidebarStats: React.FC<SidebarStatsProps> = ({
       </div>
 
       {/* STATISTICS */}
-      <Card className="p-7 border-none shadow-sm bg-white rounded-[2.5rem] relative group">
+      <Card className="p-4 md:p-6 lg:p-7 border-none shadow-sm bg-white rounded-[2.5rem] relative group">
         <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
           <TrendingUp size={120} />
         </div>
 
         <div className="relative z-10 space-y-7">
           <div>
-            <h3 className="text-slate-400 font-extrabold text-[11px] uppercase tracking-[0.2em] mb-6">
+            <h3 className="text-slate-400 font-extrabold text-[9px] md:text-[10px] lg:text-[11px] uppercase tracking-[0.2em] mb-4 md:mb-5 lg:mb-6">
               LOCAL STATISTICS
             </h3>
 
@@ -154,10 +154,10 @@ const SidebarStats: React.FC<SidebarStatsProps> = ({
                   <MapPin className="text-teal-600 w-5 h-5" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-0.5">
+                  <p className="text-[8px] lg:text-[9px] font-black text-slate-300 uppercase tracking-widest mb-0.5">
                     LOCATION
                   </p>
-                  <p className="text-sm font-black text-slate-900 truncate">
+                  <p className="text-xs md:text-sm font-black text-slate-900 truncate">
                     {community?.location || 'Manolo Fortich, Bukidnon'}
                   </p>
                 </div>
@@ -168,10 +168,10 @@ const SidebarStats: React.FC<SidebarStatsProps> = ({
                   <Calendar className="text-blue-500 w-5 h-5" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-0.5">
+                  <p className="text-[8px] lg:text-[9px] font-black text-slate-300 uppercase tracking-widest mb-0.5">
                     ACTIVE SINCE
                   </p>
-                  <p className="text-sm font-black text-slate-900 truncate">{community?.foundedDate || '2024'}</p>
+                  <p className="text-xs md:text-sm font-black text-slate-900 truncate">{community?.foundedDate || '2024'}</p>
                 </div>
               </div>
 
@@ -180,11 +180,11 @@ const SidebarStats: React.FC<SidebarStatsProps> = ({
                   <Heart className="text-emerald-500 w-5 h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-0.5">
+                  <p className="text-[8px] lg:text-[9px] font-black text-slate-300 uppercase tracking-widest mb-0.5">
                     RESOLVED CASES
                   </p>
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-black text-slate-900">188 items</p>
+                    <p className="text-xs md:text-sm font-black text-slate-900">188 items</p>
                     <Badge className="bg-emerald-100 text-emerald-600 border-none text-[8px] font-bold px-1.5 h-3.5">
                       +12%
                     </Badge>
@@ -197,19 +197,19 @@ const SidebarStats: React.FC<SidebarStatsProps> = ({
                   <TrendingUp className="text-amber-500 w-5 h-5" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-0.5">
+                  <p className="text-[8px] lg:text-[9px] font-black text-slate-300 uppercase tracking-widest mb-0.5">
                     ENGAGEMENT
                   </p>
-                  <p className="text-sm font-black text-slate-900 truncate">High Activity</p>
+                  <p className="text-xs md:text-sm font-black text-slate-900 truncate">High Activity</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* CONTRIBUTORS */}
-          <div className="pt-6 border-t border-slate-50">
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-slate-400 font-extrabold text-[11px] uppercase tracking-[0.2em]">
+          <div className="pt-4 md:pt-5 lg:pt-6 border-t border-slate-50">
+            <div className="flex items-center justify-between mb-4 md:mb-5">
+              <h3 className="text-slate-400 font-extrabold text-[9px] md:text-[10px] lg:text-[11px] uppercase tracking-[0.2em]">
                 TOP CONTRIBUTORS
               </h3>
               <Badge variant="outline" className="text-[8px] font-black text-teal-600 border-teal-100 uppercase">
@@ -239,7 +239,7 @@ const SidebarStats: React.FC<SidebarStatsProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={onMembersClick}
-                className="text-teal-600 font-black text-[10px] uppercase tracking-widest hover:bg-teal-50 px-3 h-8 rounded-xl"
+                className="text-teal-600 font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-teal-50 px-3 h-8 rounded-xl"
               >
                 View All
               </Button>
@@ -249,10 +249,10 @@ const SidebarStats: React.FC<SidebarStatsProps> = ({
       </Card>
 
       {/* COMMUNITY WATCH */}
-      <Card className="p-8 border-none shadow-sm rounded-[2.5rem] bg-teal-600 text-white relative group">
+      <Card className="p-4 md:p-6 lg:p-8 border-none shadow-sm rounded-[2.5rem] bg-teal-600 text-white relative group">
         <div className="relative z-10">
-          <h4 className="text-xl font-black mb-2">Community Watch</h4>
-          <p className="text-teal-100 text-sm font-medium leading-relaxed mb-6 opacity-80">
+          <h4 className="text-base md:text-lg lg:text-xl font-black mb-1 md:mb-2">Community Watch</h4>
+          <p className="text-teal-100 text-xs md:text-sm font-medium leading-relaxed mb-4 md:mb-6 opacity-80">
             Help keep our neighborhood safe by reporting suspicious activity.
           </p>
           <Button className="w-full bg-white text-teal-600 font-black rounded-xl hover:bg-teal-50 transition-colors">
@@ -263,8 +263,8 @@ const SidebarStats: React.FC<SidebarStatsProps> = ({
       </Card>
 
       {/* RULES */}
-      <Card className="p-8 rounded-[2.5rem] bg-white border-none shadow-sm">
-        <h4 className="font-black text-slate-900 mb-6 flex items-center gap-2">
+      <Card className="p-4 md:p-6 lg:p-8 rounded-[2.5rem] bg-white border-none shadow-sm">
+        <h4 className="font-black text-slate-900 mb-4 md:mb-6 flex items-center gap-2 text-base md:text-lg">
           <ShieldCheck size={20} className="text-teal-600" />
           Rules
         </h4>
@@ -272,10 +272,10 @@ const SidebarStats: React.FC<SidebarStatsProps> = ({
           {Array.isArray(community?.rules) && community.rules.length > 0 ? (
             community.rules.slice(0, 3).map((rule: string, i: number) => (
               <li key={rule} className="flex gap-4">
-                <span className="w-6 h-6 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center text-[10px] font-black shrink-0">
+                <span className="w-6 h-6 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center text-[9px] md:text-[10px] font-black shrink-0">
                   {i + 1}
                 </span>
-                <p className="text-xs text-slate-500 font-medium line-clamp-2">{rule}</p>
+                <p className="text-xs md:text-sm text-slate-500 font-medium line-clamp-2">{rule}</p>
               </li>
             ))
           ) : (

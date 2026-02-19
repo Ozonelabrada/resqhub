@@ -77,6 +77,8 @@
 
   html {
     font-size: var(--base-font-size);
+    overflow-x: hidden;
+    width: 100vw;
   }
 
   html.font-size-xs {
@@ -127,7 +129,8 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground font-sans overflow-x-hidden;
+    width: 100vw;
   }
   button, 
   a, 
