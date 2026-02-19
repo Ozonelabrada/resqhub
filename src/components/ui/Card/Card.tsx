@@ -2,7 +2,7 @@ import React from "react";
 import { Card as ShadcnCard } from "../card";
 import { cn } from "@/lib/utils";
 
-export interface CardProps {
+export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   className?: string;
   padding?: "none" | "sm" | "md" | "lg" | "xl";
@@ -10,7 +10,6 @@ export interface CardProps {
   rounded?: boolean;
   hover?: boolean;
   border?: boolean;
-  onClick?: () => void;
 }
 
 const shadowClasses = {
@@ -37,11 +36,11 @@ export const Card: React.FC<CardProps> = ({
   rounded = true,
   hover = false,
   border = true,
-  onClick,
+  ...rest
 }) => {
   return (
     <ShadcnCard
-      onClick={onClick}
+      {...rest}
       hover={hover}
       className={cn(
         !border && "border-0 shadow-none",

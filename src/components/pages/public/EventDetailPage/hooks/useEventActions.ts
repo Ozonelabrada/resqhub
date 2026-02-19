@@ -3,6 +3,7 @@ import { useState } from 'react';
 export const useEventActions = () => {
   const [isCheckedIn, setIsCheckedIn] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [isRsvpd, setIsRsvpd] = useState(false);
   const [showCheckInModal, setShowCheckInModal] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
   const [selectedTab, setSelectedTab] = useState<'overview' | 'schedule' | 'gallery' | 'attendees' | 'objectives' | 'discussion' | 'resources' | 'faq'>('overview');
@@ -23,8 +24,9 @@ export const useEventActions = () => {
   };
 
   const handleRSVP = () => {
+    setIsRsvpd(!isRsvpd);
     // TODO: Call API to RSVP
-    alert('RSVP confirmed!');
+    alert(isRsvpd ? 'RSVP cancelled!' : 'RSVP confirmed!');
   };
 
   const handleFavorite = () => {
@@ -47,6 +49,7 @@ export const useEventActions = () => {
   return {
     isCheckedIn,
     isFavorite,
+    isRsvpd,
     showCheckInModal,
     showQRModal,
     selectedTab,

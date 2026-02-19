@@ -177,20 +177,20 @@ export const CommunityEvents: React.FC<{
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* Header Section */}
-      <div className="bg-white p-8 rounded-[3rem] shadow-sm border border-slate-50 relative overflow-hidden">
+      <div className="bg-white p-4 md:p-6 lg:p-8 rounded-[3rem] shadow-sm border border-slate-50 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full -mr-32 -mt-32 blur-3xl" />
         
-        <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-          <div className="space-y-3">
+        <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-4 md:gap-6 lg:gap-8">
+          <div className="space-y-2 md:space-y-3">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-teal-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-teal-200">
-                <CalendarIcon size={24} />
+              <div className="w-10 md:w-12 h-10 md:h-12 bg-teal-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-teal-200">
+                <CalendarIcon size={20} className="md:w-6 md:h-6" />
               </div>
-              <h2 className="text-4xl font-black text-slate-900 tracking-tight uppercase italic">
+              <h2 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight uppercase italic">
                 Community <span className="text-teal-600">Events</span>
               </h2>
             </div>
-            <p className="text-slate-500 font-medium max-w-lg">
+            <p className="text-xs md:text-sm text-slate-500 font-medium max-w-lg">
               Stay connected with your neighbors through upcoming activities, workshops, and communal efforts.
             </p>
           </div>

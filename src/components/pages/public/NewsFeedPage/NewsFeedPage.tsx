@@ -9,6 +9,8 @@ import { useNewsFeed } from '@/hooks/useNewsFeed';
 import { useStatistics } from '@/hooks/useStatistics';
 import { useTrendingReports } from '@/hooks/useTrendingReports';
 import { useCommunities } from '@/hooks/useCommunities';
+import { useTodaysUpdates } from '@/hooks/useTodaysUpdates';
+import type { TodaysUpdate } from '@/hooks/useTodaysUpdates';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import {
@@ -18,7 +20,8 @@ import {
 import { 
   InviteModal, 
   CreateReportModal,
-  ProfilePreviewModal
+  ProfilePreviewModal,
+  EventDetailModal
 } from '../../../modals';
 import { ReportDetailDrawer } from '@/components/features/reports/ReportDetail';
 import { cn } from '@/lib/utils';
@@ -54,6 +57,11 @@ const NewsFeedPage: React.FC = () => {
   const [happeningTodayLoading, setHappeningTodayLoading] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<any>(null);
   const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<TodaysUpdate | null>(null);
+  const [isEventDetailModalOpen, setIsEventDetailModalOpen] = useState(false);
+
+  // Hook for today's updates/events carousel
+  const { updates: todaysUpdates, loading: todaysUpdatesLoading } = useTodaysUpdates();
 
   // Hooks
   const { 
@@ -311,6 +319,47 @@ const NewsFeedPage: React.FC = () => {
         >
           {currentView === 'feed' ? (
             <div className="space-y-2 md:space-y-4 h-auto w-full">
+              {/* WHAT'S HAPPENING TODAY - HORIZONTAL CAROUSEL */}
+              {todaysUpdates.length > 0 && (
+                <div className="w-full">
+                  <h3 className="text-xs md:text-sm font-black uppercase tracking-widest text-slate-400 mb-3 px-1">What's Happening Today</h3>
+                  <div className="overflow-x-auto scrollbar-hidden hover:custom-scrollbar pb-2">
+                    <div className="flex gap-2 md:gap-3 flex-nowrap">
+                      {todaysUpdates.slice(0, 8).map((update) => (
+                        <div
+                          key={update.id}
+                          className="flex-shrink-0 w-48 md:w-56 p-3 md:p-4 bg-gradient-to-br from-teal-50 to-emerald-50 rounded-lg md:rounded-xl border border-teal-100 hover:shadow-md transition-all cursor-pointer group"
+                          onClick={() => {
+                            console.log('Event clicked:', update);
+                            setSelectedEvent(update);
+                            setIsEventDetailModalOpen(true);
+                          }}
+                        >
+                          <div className="flex items-start gap-2 mb-2">
+                            <span className={`text-xs font-bold uppercase px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0 ${
+                              update.type === 'event' ? 'bg-blue-100 text-blue-700' :
+                              update.type === 'announcement' ? 'bg-purple-100 text-purple-700' :
+                              'bg-orange-100 text-orange-700'
+                            }`}>
+                              {update.type}
+                            </span>
+                          </div>
+                          <p className="text-sm font-bold text-slate-900 group-hover:text-teal-600 line-clamp-2">
+                            {update.title}
+                          </p>
+                          {update.communityName && (
+                            <p className="text-xs text-slate-500 mt-2 truncate">{update.communityName}</p>
+                          )}
+                          {update.location && (
+                            <p className="text-xs text-slate-400 mt-1 line-clamp-1">{update.location}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* MAIN FEED */}
               <div className="space-y-2 md:space-y-4">
                 {newsFeedItems.length === 0 && newsFeedLoading ? (
@@ -530,6 +579,23 @@ const NewsFeedPage: React.FC = () => {
         onClose={() => setIsProfilePreviewOpen(false)}
         onMessageClick={handleStartMessage}
         user={selectedUserForPreview}
+      />
+
+      {/* Event Detail Modal */}
+      <EventDetailModal
+        isOpen={isEventDetailModalOpen}
+        onClose={() => {
+          setIsEventDetailModalOpen(false);
+          setSelectedEvent(null);
+        }}
+        event={selectedEvent}
+        onNavigateToCommunity={(communityId) => {
+          if (communityId) {
+            navigate(`/community/${communityId}`);
+          } else {
+            navigate('/communities');
+          }
+        }}
       />
 
       {/* Community profile is now a dedicated page at /community/:id */}

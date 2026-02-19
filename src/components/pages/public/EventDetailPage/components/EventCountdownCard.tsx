@@ -22,24 +22,24 @@ const EventCountdownCard: React.FC<EventCountdownCardProps> = ({ event, timeRema
   }
 
   return (
-    <Card className="p-6 rounded-[2.5rem] bg-gradient-to-br from-orange-50 to-amber-50 border-orange-100">
+    <Card className="p-4 md:p-6 rounded-[2.5rem] bg-gradient-to-br from-orange-50 to-amber-50 border-orange-100">
       <h3 className="text-xs font-black text-orange-600 uppercase mb-4">Event Starts In</h3>
-      <div className="grid grid-cols-4 gap-2 mb-4">
+      <div className="grid grid-cols-4 gap-1 md:gap-2 mb-4">
         <div className="text-center">
-          <p className="text-2xl font-black text-orange-600">{timeRemaining.days}</p>
-          <p className="text-[10px] font-bold text-orange-500 uppercase">Days</p>
+          <p className="text-lg md:text-2xl font-black text-orange-600">{timeRemaining.days}</p>
+          <p className="text-[8px] md:text-[10px] font-bold text-orange-500 uppercase">Days</p>
         </div>
         <div className="text-center">
-          <p className="text-2xl font-black text-orange-600">{timeRemaining.hours}</p>
-          <p className="text-[10px] font-bold text-orange-500 uppercase">Hours</p>
+          <p className="text-lg md:text-2xl font-black text-orange-600">{timeRemaining.hours}</p>
+          <p className="text-[8px] md:text-[10px] font-bold text-orange-500 uppercase">Hours</p>
         </div>
         <div className="text-center">
-          <p className="text-2xl font-black text-orange-600">{timeRemaining.minutes}</p>
-          <p className="text-[10px] font-bold text-orange-500 uppercase">Mins</p>
+          <p className="text-lg md:text-2xl font-black text-orange-600">{timeRemaining.minutes}</p>
+          <p className="text-[8px] md:text-[10px] font-bold text-orange-500 uppercase">Mins</p>
         </div>
         <div className="text-center">
-          <p className="text-2xl font-black text-orange-600">{timeRemaining.seconds}</p>
-          <p className="text-[10px] font-bold text-orange-500 uppercase">Secs</p>
+          <p className="text-lg md:text-2xl font-black text-orange-600">{timeRemaining.seconds}</p>
+          <p className="text-[8px] md:text-[10px] font-bold text-orange-500 uppercase">Secs</p>
         </div>
       </div>
     </Card>

@@ -24,3 +24,4 @@ export { default as AddVolunteerModal } from './AddVolunteerModal';
 export { CreateNewsModal } from './News/CreateNewsModal';
 export { CreateAnnouncementModal } from './Announcement/CreateAnnouncementModal';
 export { CreateEventModal } from './Event/CreateEventModal';
+export { default as EventDetailModal } from './Event/EventDetailModal';

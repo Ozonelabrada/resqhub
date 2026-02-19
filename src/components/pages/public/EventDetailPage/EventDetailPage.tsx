@@ -21,6 +21,7 @@ import QRModal from './components/QRModal';
 import { useEventData } from './hooks/useEventData';
 import { useEventCountdown } from './hooks/useEventCountdown';
 import { useEventActions } from './hooks/useEventActions';
+import { useCommunityDetail } from '@/hooks/useCommunities';
 
 const EventDetailPage: React.FC = () => {
   const { id: communityId, eventId } = useParams();
@@ -28,10 +29,12 @@ const EventDetailPage: React.FC = () => {
   const { user } = useAuth();
 
   const { event, loading, error } = useEventData(communityId, eventId);
+  const { community } = useCommunityDetail(communityId);
   const timeRemaining = useEventCountdown(event?.startDate, event?.startTime);
   const {
     isCheckedIn,
     isFavorite,
+    isRsvpd,
     showCheckInModal,
     showQRModal,
     selectedTab,
@@ -46,8 +49,12 @@ const EventDetailPage: React.FC = () => {
     setShowQRModal,
   } = useEventActions();
 
-  const handleCheckInClick = () => setShowCheckInModal(true);
   const handleQRCodeClick = () => setShowQRModal(true);
+  const handleCheckInSuccess = (memberId: string, memberName: string) => {
+    handleConfirmCheckIn();
+    // TODO: Call API to mark member as checked in
+    console.log(`Checked in: ${memberName}`);
+  };
 
   if (loading) {
     return (
@@ -75,6 +82,8 @@ const EventDetailPage: React.FC = () => {
   }
 
   const isEventCreator = user?.id === event?.user?.id;
+  const isCommunityAdmin = community?.isAdmin || false;
+  const isModerator = community?.isModerator || false;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -95,7 +104,7 @@ const EventDetailPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex flex-col">
       {/* Navigation Bar */}
       <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-slate-100">
-        <div className="w-full px-8 py-4 flex items-center justify-between">
+        <div className="w-full px-4 lg:px-8 py-4 flex items-center justify-between">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-semibold transition-colors"
@@ -126,14 +135,14 @@ const EventDetailPage: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 w-full overflow-y-auto bg-white">
+      <div className="flex-1 w-full overflow-y-auto overflow-x-hidden bg-white">
         {/* Banner */}
         <div className="w-full h-96 bg-gradient-to-br from-teal-400 to-teal-600 overflow-hidden relative">
           {event?.banner && (
             <img src={event.banner} alt={event?.title} className="w-full h-full object-cover" />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent flex items-end">
-            <div className="w-full px-8 lg:px-12 pb-8">
+            <div className="w-full px-4 lg:px-8 lg:px-12 pb-8">
               <div className={cn("mb-4 rounded-xl font-black text-[10px] border px-3 py-1 inline-block", getStatusColor(event.status))}>
                 {event?.status.toUpperCase()}
               </div>
@@ -145,17 +154,17 @@ const EventDetailPage: React.FC = () => {
 
         {/* Content Grid */}
         <div className="w-full px-4 lg:px-8 py-8 lg:py-12">
-          <div className="grid lg:grid-cols-3 gap-6 lg:gap-8 w-full mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 w-full mx-auto">
             {/* Left Column - Tabs */}
-            <div className="lg:col-span-2 space-y-6">
-              <div className="bg-white rounded-[2.5rem] p-6 border border-slate-100">
-                <div className="flex gap-4 border-b border-slate-100 mb-6 overflow-x-auto pb-2">
+            <div className="lg:col-span-2 space-y-6 order-1">
+              <div className="bg-white rounded-[2.5rem] p-4 md:p-6 border border-slate-100 overflow-x-hidden">
+                <div className="flex gap-2 md:gap-4 border-b border-slate-100 mb-6 flex-wrap pb-2">
                   {(['overview', 'schedule', 'gallery', 'attendees', 'objectives', 'discussion', 'resources', 'faq'] as const).map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setSelectedTab(tab)}
                       className={cn(
-                        'px-6 py-3 font-bold text-sm uppercase transition-all rounded-t-xl whitespace-nowrap',
+                        'px-3 md:px-6 py-3 font-bold text-xs md:text-sm uppercase transition-all rounded-t-xl whitespace-nowrap',
                         selectedTab === tab
                           ? 'text-teal-600 border-b-2 border-teal-600'
                           : 'text-slate-500 hover:text-slate-700'
@@ -173,7 +182,7 @@ const EventDetailPage: React.FC = () => {
                   <EventAttendees
                     event={event}
                     isEventCreator={isEventCreator}
-                    onCheckInClick={() => setShowCheckInModal(true)}
+                    onCheckInClick={handleCheckIn}
                   />
                 )}
                 {selectedTab === 'objectives' && <EventObjectives event={event} isEventCreator={isEventCreator} />}
@@ -184,7 +193,7 @@ const EventDetailPage: React.FC = () => {
             </div>
 
             {/* Right Column - Sidebar Cards */}
-            <div className="lg:col-span-1 space-y-4">
+            <div className="lg:col-span-1 space-y-4 order-2 lg:order-none">
               <EventDetailsCard event={event} />
               {timeRemaining && event?.status === 'upcoming' && (
                 <EventCountdownCard event={event} timeRemaining={timeRemaining} />
@@ -193,10 +202,12 @@ const EventDetailPage: React.FC = () => {
               <EventCreatorCard
                 event={event}
                 isEventCreator={isEventCreator}
+                isCommunityAdmin={isCommunityAdmin}
                 isCheckedIn={isCheckedIn}
+                isRsvpd={isRsvpd}
                 isFavorite={isFavorite}
                 onStartEvent={handleStartEvent}
-                onCheckIn={handleCheckInClick}
+                onCheckIn={handleCheckIn}
                 onRSVP={handleRSVP}
                 onFavorite={handleFavorite}
                 onQRCode={handleQRCodeClick}
@@ -214,8 +225,18 @@ const EventDetailPage: React.FC = () => {
           onClose={() => setShowCheckInModal(false)}
         />
       )}
-      {event?.qrCode && showQRModal && (
-        <QRModal qrCode={event.qrCode} onClose={() => setShowQRModal(false)} />
+      {showQRModal && (
+        <QRModal
+          qrCode={event?.qrCode}
+          onClose={() => setShowQRModal(false)}
+          isAdmin={isCommunityAdmin || isEventCreator}
+          isModerator={isModerator}
+          userId={user?.id}
+          userName={user?.fullName || user?.name}
+          eventId={eventId}
+          hasRsvpd={isRsvpd}
+          onCheckInSuccess={handleCheckInSuccess}
+        />
       )}
     </div>
   );

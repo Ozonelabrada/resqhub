@@ -257,110 +257,112 @@ export const CommunityMembers: React.FC<CommunityMembersProps> = ({
   const memberSellers = members.filter(m => m.isSeller);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Integrated Header & Horizontal Sub-tabs */}
-      <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-50 space-y-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {/* Header Card */}
+      <div className="bg-white p-4 md:p-8 rounded-[2.5rem] shadow-sm border border-slate-50">
+        <div className="flex flex-col gap-6">
           <div>
-            <h2 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-              <UserCheck className="text-teal-600" size={32} />
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+              <UserCheck className="text-teal-600" size={28} />
               Directory
             </h2>
-            <p className="text-slate-500 font-medium mt-1">Manage and connect with your neighborhood community.</p>
+            <p className="text-slate-500 font-medium text-sm md:text-base mt-1">Manage and connect with your neighborhood community.</p>
           </div>
           
-          <div className="flex items-center gap-4">
-            <div className="text-center px-6 py-3 bg-slate-50 rounded-2xl border border-slate-100">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Members</p>
-              <p className="text-xl font-black text-slate-900">{memberCounts.allResidents}</p>
+          <div className="flex flex-wrap gap-3 md:gap-4">
+            <div className="text-center px-3 md:px-6 py-2 md:py-3 bg-slate-50 rounded-xl md:rounded-2xl border border-slate-100">
+              <p className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Members</p>
+              <p className="text-lg md:text-xl font-black text-slate-900">{memberCounts.allResidents}</p>
             </div>
             {memberCounts.sellers > 0 && (
-              <div className="text-center px-6 py-3 bg-teal-50 rounded-2xl border border-teal-100">
-                <p className="text-[10px] font-black text-teal-600 uppercase tracking-widest mb-1">Stores</p>
-                <p className="text-xl font-black text-teal-700">{memberCounts.sellers}</p>
+              <div className="text-center px-3 md:px-6 py-2 md:py-3 bg-teal-50 rounded-xl md:rounded-2xl border border-teal-100">
+                <p className="text-[8px] md:text-[10px] font-black text-teal-600 uppercase tracking-widest mb-1">Stores</p>
+                <p className="text-lg md:text-xl font-black text-teal-700">{memberCounts.sellers}</p>
               </div>
             )}
             {isPrivileged && memberCounts.pendingRequests > 0 && (
-              <div className="text-center px-6 py-3 bg-rose-50 rounded-2xl border border-rose-100">
-                <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-1">Pending</p>
-                <p className="text-xl font-black text-rose-700">{memberCounts.pendingRequests}</p>
+              <div className="text-center px-3 md:px-6 py-2 md:py-3 bg-rose-50 rounded-xl md:rounded-2xl border border-rose-100">
+                <p className="text-[8px] md:text-[10px] font-black text-rose-600 uppercase tracking-widest mb-1">Pending</p>
+                <p className="text-lg md:text-xl font-black text-rose-700">{memberCounts.pendingRequests}</p>
               </div>
             )}
           </div>
         </div>
-
-        {/* The "One Line" Tabs */}
-        {isPrivileged && (
-          <div className="flex items-center gap-2 p-1.5 bg-slate-50 rounded-2xl w-fit">
-            <button
-              onClick={() => setActiveSubTab('members')}
-              className={cn(
-                "px-8 py-3 rounded-xl text-xs font-black uppercase tracking-[0.1em] transition-all flex items-center gap-2",
-                activeSubTab === 'members' 
-                  ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200" 
-                  : "text-slate-400 hover:text-slate-600"
-              )}
-            >
-              All Residers
-              <Badge variant="secondary" className="bg-slate-200 text-slate-600 border-none px-1.5 py-0 min-w-[20px] h-5">{memberCounts.allResidents}</Badge>
-            </button>
-            <button
-              onClick={() => setActiveSubTab('requests')}
-              className={cn(
-                "px-8 py-3 rounded-xl text-xs font-black uppercase tracking-[0.1em] transition-all flex items-center gap-2",
-                activeSubTab === 'requests' 
-                  ? "bg-rose-500 text-white shadow-lg shadow-rose-100" 
-                  : "text-slate-400 hover:text-rose-500"
-              )}
-            >
-              Join Requests
-              {memberCounts.pendingRequests > 0 && (
-                <Badge className="bg-white text-rose-500 border-none px-1.5 py-0 min-w-[20px] h-5 shadow-sm">
-                  {memberCounts.pendingRequests}
-                </Badge>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveSubTab('volunteers')}
-              className={cn(
-                "px-8 py-3 rounded-xl text-xs font-black uppercase tracking-[0.1em] transition-all flex items-center gap-2",
-                activeSubTab === 'volunteers' 
-                  ? "bg-purple-500 text-white shadow-lg shadow-purple-100" 
-                  : "text-slate-400 hover:text-purple-500"
-              )}
-            >
-              Volunteers
-              <Badge className={cn(
-                "border-none px-1.5 py-0 min-w-[20px] h-5",
-                activeSubTab === 'volunteers'
-                  ? "bg-white text-purple-500 shadow-sm"
-                  : "bg-slate-200 text-slate-600"
-              )}>
-                {memberCounts.volunteers}
-              </Badge>
-            </button>
-            <button
-              onClick={() => setActiveSubTab('sellers')}
-              className={cn(
-                "px-8 py-3 rounded-xl text-xs font-black uppercase tracking-[0.1em] transition-all flex items-center gap-2",
-                activeSubTab === 'sellers' 
-                  ? "bg-emerald-500 text-white shadow-lg shadow-emerald-100" 
-                  : "text-slate-400 hover:text-emerald-500"
-              )}
-            >
-              Stores
-              <Badge className={cn(
-                "border-none px-1.5 py-0 min-w-[20px] h-5",
-                activeSubTab === 'sellers'
-                  ? "bg-white text-emerald-500 shadow-sm"
-                  : "bg-slate-200 text-slate-600"
-              )}>
-                {memberCounts.sellers}
-              </Badge>
-            </button>
-          </div>
-        )}
       </div>
+
+      {/* Tabs Footer */}
+      {isPrivileged && (
+        <div className="bg-white p-4 md:p-6 rounded-[2.5rem] shadow-sm border border-slate-50">
+          <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3 md:justify-start">
+              <button
+                onClick={() => setActiveSubTab('members')}
+                className={cn(
+                  "px-3 md:px-6 py-2 md:py-3 rounded-lg md:rounded-xl text-[10px] md:text-xs font-black uppercase tracking-[0.1em] transition-all flex items-center gap-2",
+                  activeSubTab === 'members' 
+                    ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200" 
+                    : "text-slate-400 hover:text-slate-600"
+                )}
+              >
+                All Residers
+                <Badge variant="secondary" className="bg-slate-200 text-slate-600 border-none px-1 py-0 min-w-[18px] h-4 text-[7px]">{memberCounts.allResidents}</Badge>
+              </button>
+              <button
+                onClick={() => setActiveSubTab('requests')}
+                className={cn(
+                  "px-3 md:px-6 py-2 md:py-3 rounded-lg md:rounded-xl text-[10px] md:text-xs font-black uppercase tracking-[0.1em] transition-all flex items-center gap-2",
+                  activeSubTab === 'requests' 
+                    ? "bg-rose-500 text-white shadow-lg shadow-rose-100" 
+                    : "text-slate-400 hover:text-rose-500"
+                )}
+              >
+                Requests
+                {memberCounts.pendingRequests > 0 && (
+                  <Badge className="bg-white text-rose-500 border-none px-1 py-0 min-w-[18px] h-4 shadow-sm text-[7px]">
+                    {memberCounts.pendingRequests}
+                  </Badge>
+                )}
+              </button>
+              <button
+                onClick={() => setActiveSubTab('volunteers')}
+                className={cn(
+                  "px-3 md:px-6 py-2 md:py-3 rounded-lg md:rounded-xl text-[10px] md:text-xs font-black uppercase tracking-[0.1em] transition-all flex items-center gap-2",
+                  activeSubTab === 'volunteers' 
+                    ? "bg-purple-500 text-white shadow-lg shadow-purple-100" 
+                    : "text-slate-400 hover:text-purple-500"
+                )}
+              >
+                Volunteers
+                <Badge className={cn(
+                  "border-none px-1 py-0 min-w-[18px] h-4 text-[7px]",
+                  activeSubTab === 'volunteers'
+                    ? "bg-white text-purple-500 shadow-sm"
+                    : "bg-slate-200 text-slate-600"
+                )}>
+                  {memberCounts.volunteers}
+                </Badge>
+              </button>
+              <button
+                onClick={() => setActiveSubTab('sellers')}
+                className={cn(
+                  "px-3 md:px-6 py-2 md:py-3 rounded-lg md:rounded-xl text-[10px] md:text-xs font-black uppercase tracking-[0.1em] transition-all flex items-center gap-2",
+                  activeSubTab === 'sellers' 
+                    ? "bg-emerald-500 text-white shadow-lg shadow-emerald-100" 
+                    : "text-slate-400 hover:text-emerald-500"
+                )}
+              >
+                Stores
+                <Badge className={cn(
+                  "border-none px-1 py-0 min-w-[18px] h-4 text-[7px]",
+                  activeSubTab === 'sellers'
+                    ? "bg-white text-emerald-500 shadow-sm"
+                    : "bg-slate-200 text-slate-600"
+                )}>
+                  {memberCounts.sellers}
+                </Badge>
+              </button>
+            </div>
+        </div>
+      )}
 
       {activeSubTab === 'members' && isPrivileged && (
         <MembersGrid
