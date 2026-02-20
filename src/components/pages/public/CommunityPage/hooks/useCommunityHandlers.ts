@@ -14,10 +14,12 @@ export const useCommunityHandlers = (refresh: () => void, communityId?: string |
         communityId: communityId || '',
         newsArticles: data.newsArticles.map((article) => ({
           ...article,
-          author: article.author || user?.fullName || user?.username || 'Unknown',
+          // form no longer supplies author; use current user
+          author: user?.fullName || user?.username || 'Unknown',
           content: article.content.replace(/<[^>]*>/g, ''),
           summary: article.content.replace(/<[^>]*>/g, ''),
         })),
+
 
         sendNotifications: data.sendNotifications,
         notificationMessage: data.notificationMessage,
