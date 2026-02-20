@@ -165,9 +165,17 @@ const CommunityPage: React.FC = () => {
                   communityState.setIsNewsModalOpen(false);
                   handlers.handleNewsSuccess(data);
                 }}
-                onEventSuccess={(data) => {
-                  communityState.setIsEventModalOpen(false);
-                  handlers.handleEventSuccess(data);
+                onEventSuccess={async (data) => {
+                  // Wait for the backend save to finish (handlers returns the API result)
+                  const result = await handlers.handleEventSuccess(data);
+
+                  // Throw to allow the modal caller to surface the error and keep modal open
+                  if (!result || result.success === false) {
+                    throw new Error(result?.message || 'Failed to create event');
+                  }
+
+                  // Let the modal close itself after successful submission (modal's onClose will be invoked by caller)
+                  return result;
                 }}
                 onRefresh={refresh}
                 onNewsModalOpen={() => communityState.setIsNewsModalOpen(true)}

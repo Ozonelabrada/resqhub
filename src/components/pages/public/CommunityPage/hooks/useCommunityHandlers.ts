@@ -36,14 +36,21 @@ export const useCommunityHandlers = (refresh: () => void, communityId?: string |
         sendNotifications: data.sendNotifications,
         notificationMessage: data.notificationMessage,
       };
+
       const result = await CommunityService.createCommunityEvents(payload);
+
       if (result.success) {
-        refresh();
+        // Refresh local data after successful creation
+        await refresh();
       } else {
         console.error('Failed to create event:', result.message);
       }
+
+      // Return the service result so callers can react accordingly
+      return result;
     } catch (error) {
       console.error('Error creating event:', error);
+      return { success: false, message: (error as any)?.message || 'Failed to create event' };
     }
   };
 

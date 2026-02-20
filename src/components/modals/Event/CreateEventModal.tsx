@@ -6,6 +6,7 @@ import {
   DialogTitle,
   Button, 
   Input,
+  Textarea,
 } from '@/components/ui';
 import { useForm, SubmitHandler, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,7 +14,10 @@ import { z } from 'zod';
 import { t } from 'i18next';
 import { X, Clock, Plus, Trash2, Globe, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { RichTextEditor } from '@/components/common/RichTextEditor/RichTextEditor';
+
+// We replaced the rich HTML editor with a simple textarea. Event descriptions will accept
+// plain text with lightweight markdown for bold (**text**) and newlines which will be
+// rendered elsewhere using a safe formatter.
 
 const eventItemSchema = z.object({
   title: z.string().min(1, 'Title is required').min(3, 'Title must be at least 3 characters'),
@@ -121,26 +125,60 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
     }
   };
 
+  // New: plain-text description handler (supports **bold** and newlines)
   const handleDescriptionChange = (index: number, value: string) => {
     const newDescriptions = [...descriptions];
     newDescriptions[index] = value;
     setDescriptions(newDescriptions);
+
+    // Sync plain text into react-hook-form so validation and submission use the same value
+    setValue(`events.${index}.description` as any, value.trim(), { shouldValidate: true, shouldDirty: true });
   };
 
   const handleFormSubmit: SubmitHandler<EventFormData> = async (data) => {
+    console.log('CreateEventModal.handleFormSubmit called', data);
     setIsLoading(true);
+
+    const eventData = {
+      ...data,
+      events: data.events.map((event, idx) => ({
+        ...event,
+        description: descriptions[idx],
+      })),
+    };
+
     try {
-      const eventData = {
-        ...data,
-        events: data.events.map((event, idx) => ({
-          ...event,
-          description: descriptions[idx],
-        })),
-      };
-      await onSubmit(eventData);
+      // Call parent submit handler if provided and capture result
+      let result: any = undefined;
+      if (onSubmit) {
+        result = await onSubmit(eventData as any);
+      }
+
+      // If parent returned an explicit result object, use it to decide success
+      if (result && typeof result === 'object' && 'success' in result) {
+        if (!result.success) {
+          throw new Error(result.message || 'Failed to save events');
+        }
+      }
+
+      // If parent didn't return a result, assume success (but still avoid page reload)
+      // NOTE: parent handlers should return `{ success: boolean }` for accuracy
+
+      const toast = (window as any).showToast;
+      if (toast) {
+        toast('success', 'Events Saved', `Created ${eventData.events.length} event${eventData.events.length !== 1 ? 's' : ''}`);
+      }
+
+      // Close modal and reset (modal callers usually refresh data via callback)
       onClose();
+      reset();
     } catch (error) {
       console.error('Error submitting events:', error);
+      const toast = (window as any).showToast;
+      if (toast) {
+        toast('error', 'Create Failed', (error as any)?.message || 'Failed to create events');
+      }
+      // keep modal open so user can fix inputs
     } finally {
       setIsLoading(false);
     }
@@ -164,7 +202,15 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
           <p className="text-sm text-slate-500 font-semibold mt-2">Create and schedule multiple events at once</p>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="overflow-y-auto max-h-[calc(95vh-240px)]">
+        <form
+            onSubmit={(e) => {
+              // Defensive: prevent native form submit (avoid page reload)
+              e.preventDefault();
+              // Run react-hook-form submission handler
+              handleSubmit(handleFormSubmit)();
+            }}
+            className="overflow-y-auto max-h-[calc(95vh-240px)]"
+          >
           <div className="px-8 py-6 space-y-6">
             {/* Events List */}
             <div className="space-y-4">
@@ -252,8 +298,14 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                         type="number"
                         placeholder="0"
                         className="px-4 py-3 rounded-2xl border-2 bg-white font-semibold text-slate-800"
-                        {...register(`events.${index}.maxAttendees`, { valueAsNumber: true })}
+                        {...register(`events.${index}.maxAttendees`, {
+                          // Convert empty string to undefined to avoid NaN in form state
+                          setValueAs: (v) => (v === '' || v === null ? undefined : Number(v)),
+                        })}
                       />
+                      {errors.events?.[index]?.maxAttendees && (
+                        <p className="text-xs font-bold text-red-500 mt-1">⚠ {String(errors.events[index]?.maxAttendees?.message)}</p>
+                      )}
                     </div>
 
                     {/* Dates */}
@@ -331,15 +383,15 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                   {/* Description */}
                   <div>
                     <label className="block text-sm font-black text-slate-700 uppercase tracking-wider mb-2">
-                      Description*
+                      Description* (supports **bold** and new lines)
                     </label>
-                    <RichTextEditor
+                    <Textarea
+                      placeholder="Event description (use **bold** for emphasis)..."
                       value={descriptions[index]}
-                      onChange={(value) => handleDescriptionChange(index, value)}
-                      placeholder="Event description..."
-                      minHeight="min-h-[120px]"
+                      onChange={(e) => handleDescriptionChange(index, (e.target as HTMLTextAreaElement).value)}
+                      className="px-4 py-3 rounded-2xl border-2 bg-white font-semibold text-slate-800 min-h-[120px] whitespace-pre-wrap"
                     />
-                    {descriptions[index].replace(/<[^>]*>/g, '').length < 10 && (
+                    {descriptions[index].trim().length < 10 && (
                       <p className="text-xs font-bold text-red-500 mt-1">⚠ Description must be at least 10 characters</p>
                     )}
                   </div>
@@ -378,23 +430,36 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
           </div>
 
           {/* Footer */}
-          <div className="px-8 py-4 bg-slate-50 border-t border-slate-200 flex gap-3 justify-end sticky bottom-0">
-            <Button
-              type="button"
-              onClick={onClose}
-              variant="outline"
-              className="px-6 py-3 rounded-xl font-black text-slate-700 border-slate-300 hover:bg-slate-100 transition-all"
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              className="px-8 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-black transition-all shadow-lg shadow-teal-600/20 disabled:opacity-50"
-              disabled={isLoading || !isValid || descriptions.some(d => d.replace(/<[^>]*>/g, '').length < 10)}
-            >
-              {isLoading ? 'Creating...' : `Create ${fields.length} Event${fields.length !== 1 ? 's' : ''}`}
-            </Button>
+          <div className="px-8 py-4 bg-slate-50 border-t border-slate-200 flex gap-3 items-center sticky bottom-0">
+            {/* show a short hint when the form is invalid to reduce confusion */}
+{(!isValid || descriptions.some(d => d.trim().length < 10)) && (
+              <p className="text-xs text-red-600 mr-auto">Please complete all required fields and ensure descriptions are at least 10 characters.</p>
+            )}
+
+            <div className="ml-auto flex gap-3">
+              <Button
+                type="button"
+                onClick={onClose}
+                variant="outline"
+                className="px-6 py-3 rounded-xl font-black text-slate-700 border-slate-300 hover:bg-slate-100 transition-all"
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  // Defensive: ensure single submission and no native reload
+                  if (isLoading) return;
+                  handleSubmit(handleFormSubmit)();
+                }}
+                className="px-8 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-black transition-all shadow-lg shadow-teal-600/20 disabled:opacity-50"
+                disabled={isLoading || !isValid || descriptions.some(d => d.replace(/<[^>]*>/g, '').length < 10)}
+              >
+                {isLoading ? 'Creating...' : `Create ${fields.length} Event${fields.length !== 1 ? 's' : ''}`}
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>

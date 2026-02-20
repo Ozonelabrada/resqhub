@@ -139,15 +139,104 @@ export const useEventData = (communityId?: string, eventId?: string) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const toDateOnly = (iso?: string | null) => {
+      if (!iso) return '';
+      try {
+        return new Date(iso).toISOString().split('T')[0];
+      } catch {
+        return String(iso).split('T')[0] || '';
+      }
+    };
+
+    const toTimeOnly = (iso?: string | null) => {
+      if (!iso) return '';
+      try {
+        const d = new Date(iso);
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mm = String(d.getMinutes()).padStart(2, '0');
+        return `${hh}:${mm}`;
+      } catch {
+        return '';
+      }
+    };
+
+    const computeStatus = (startIso?: string | null, endIso?: string | null) => {
+      try {
+        const now = new Date();
+        const start = startIso ? new Date(startIso) : null;
+        const end = endIso ? new Date(endIso) : null;
+        if (start && now < start) return 'upcoming';
+        if (start && end && now >= start && now <= end) return 'in-progress';
+        if (end && now > end) return 'completed';
+        return 'upcoming';
+      } catch {
+        return 'upcoming';
+      }
+    };
+
     const fetchEventData = async () => {
       try {
         setLoading(true);
-        // TODO: Replace with actual API call
-        // const response = await EventService.getEventDetails(communityId, eventId);
-        // setEvent(response);
 
-        // Mock data for demonstration
-        // helper to compute simple stats from mock data
+        // 1) Prefer backend community report endpoint: /communities/reports/{id}
+        const report = await CommunityService.getCommunityReportById(eventId!);
+
+        if (report) {
+          const mapped: EventData = {
+            id: String(report.id ?? eventId),
+            title: report.title || report.name || 'Event',
+            description: report.description || '',
+            startDate: toDateOnly(report.startDate),
+            startTime: toTimeOnly(report.startDate),
+            endDate: toDateOnly(report.endDate),
+            endTime: toTimeOnly(report.endDate),
+            location: report.location || report.venue || '',
+            contactInfo: report.contactInfo || report.contact || '',
+            privacy: (report.privacy as any) || 'public',
+            categoryName: report.category || report.categoryName || '',
+            status: computeStatus(report.startDate, report.endDate) as any,
+            user: {
+              id: String(report.createdBy?.id || report.userId || ''),
+              fullName: (report.createdBy?.name || report.createdBy?.fullName || report.communityName) || ''
+            },
+            attendees: [],
+            objectives: [],
+            capacity: report.capacity ?? undefined,
+            rsvpCount: report.rsvpCount ?? 0,
+            banner: report.bannerUrl || report.imageUrl || undefined,
+            qrCode: report.qrCode || undefined,
+            gallery: Array.isArray(report.gallery) ? report.gallery : [],
+            schedule: Array.isArray(report.schedule) ? report.schedule : [],
+            resources: Array.isArray(report.resources) ? report.resources : [],
+            faqs: Array.isArray(report.faqs) ? report.faqs : [],
+            sponsors: Array.isArray(report.sponsors) ? report.sponsors : [],
+            comments: Array.isArray(report.comments) ? report.comments : [],
+            ticketPrice: report.ticketPrice ?? undefined,
+            stats: undefined
+          } as EventData;
+
+          setEvent(mapped);
+
+          // 2) Fetch statistics and merge if available
+          try {
+            const statsResult = await CommunityService.getEventStatistics(report.communityId ?? communityId!, report.id ?? eventId!);
+            if (statsResult.success && statsResult.data) {
+              const returnedStats = statsResult.data.stats ?? statsResult.data;
+              setEvent(prev => prev ? ({ ...prev, stats: returnedStats }) : prev);
+            }
+          } catch (err) {
+            console.warn('Failed to fetch event statistics, continuing with report data', err);
+          }
+
+          setError(null);
+          setLoading(false);
+          return;
+        }
+
+        // 3) Fallback to previous mock data if report endpoint didn't return data
+        console.warn('Report endpoint returned no data — using fallback/mock event');
+
+        // (existing mock fallback preserved for offline/dev) -- keep same mock setup
         const attendees: EventAttendee[] = [
           { id: '1', fullName: 'Sarah Johnson', checkedIn: false, role: 'organizer' },
           { id: '2', fullName: 'John Doe', checkedIn: false, role: 'participant' },

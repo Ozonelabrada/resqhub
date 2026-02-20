@@ -17,6 +17,7 @@ import {
   Eye
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { formatSimpleMarkdown } from '@/utils/validation';
 import { YEARLY_ROADMAP, getRoadmapDatesForMonth, getRoadmapDateRange, AnnualEvent } from '@/constants/roadmapData';
 import { CommunityService } from '@/services/communityService';
 import type { CommunityPost } from '@/types/community';
@@ -538,9 +539,10 @@ export const CommunityEvents: React.FC<{
                         {event.title}
                       </h3>
                       {event.description && (
-                        <p className="text-slate-500 text-sm font-medium line-clamp-2">
-                          {event.description}
-                        </p>
+                        <p
+                          className="text-slate-500 text-sm font-medium line-clamp-2"
+                          dangerouslySetInnerHTML={{ __html: formatSimpleMarkdown(event.description) }}
+                        />
                       )}
                     </div>
 

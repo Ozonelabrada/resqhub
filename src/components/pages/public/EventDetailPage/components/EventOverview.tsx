@@ -10,6 +10,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { formatSimpleMarkdown } from '@/utils/validation';
 
 interface EventOverviewProps {
   event: EventData;
@@ -41,7 +42,7 @@ const EventOverview: React.FC<EventOverviewProps> = ({ event }) => {
       {/* About Section */}
       <div>
         <h3 className="text-lg font-black text-slate-800 mb-3">About This Event</h3>
-        <p className="text-slate-600 leading-relaxed">{event?.description}</p>
+        <p className="text-slate-600 leading-relaxed" dangerouslySetInnerHTML={{ __html: formatSimpleMarkdown(event?.description) }} />
       </div>
 
       {/* Key Stats */}

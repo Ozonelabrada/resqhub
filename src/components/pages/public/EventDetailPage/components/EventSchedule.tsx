@@ -1,6 +1,7 @@
 import React from 'react';
 import { EventData } from '../hooks/useEventData';
 import { Clock } from 'lucide-react';
+import { formatSimpleMarkdown } from '@/utils/validation';
 
 interface EventScheduleProps {
   event: EventData;
@@ -37,7 +38,7 @@ const EventSchedule: React.FC<EventScheduleProps> = ({ event }) => {
                 {item.time}
               </p>
               <p className="font-bold text-slate-800 mb-1">{item.title}</p>
-              <p className="text-sm text-slate-600">{item.description}</p>
+              <p className="text-sm text-slate-600" dangerouslySetInnerHTML={{ __html: formatSimpleMarkdown(item.description) }} />
             </div>
           </div>
         ))}
