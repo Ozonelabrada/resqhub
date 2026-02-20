@@ -321,7 +321,8 @@ const NewsFeedPage: React.FC = () => {
             <div className="space-y-2 md:space-y-4 h-auto w-full">
               {/* WHAT'S HAPPENING TODAY - HORIZONTAL CAROUSEL */}
               {todaysUpdates.length > 0 && (
-                <div className="w-full">
+                // Mobile-only carousel — hidden on large screens because sidebar contains the same data
+                <div className="w-full lg:hidden">
                   <h3 className="text-xs md:text-sm font-black uppercase tracking-widest text-slate-400 mb-3 px-1">What's Happening Today</h3>
                   <div className="overflow-x-auto scrollbar-hidden hover:custom-scrollbar pb-2">
                     <div className="flex gap-2 md:gap-3 flex-nowrap">
