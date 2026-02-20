@@ -42,13 +42,19 @@ api.interceptors.response.use(
   },
   async (error) => {
     if (error.response?.status === 401) {
-      // Token is invalid or expired - logout user
-      console.warn('Session expired - logging out');
-      authManager.logout();
-      
-      const toast = getWindowExt()?.showToast;
-      if (toast) {
-        toast('warn', 'Session Expired', 'Please log in again.');
+      // Token is invalid or expired - only notify if a user session existed
+      if (authManager.isAuthenticated()) {
+        console.warn('Session expired - logging out');
+        authManager.logout();
+
+        const toast = getWindowExt()?.showToast;
+        if (toast) {
+          toast('warn', 'Session Expired', 'Please log in again.');
+        }
+      } else {
+        // No active session on client — silently clear any stale token without showing a toast
+        authManager.logout();
+        console.debug('Received 401 but user was not authenticated; suppressing session-expired toast');
       }
     } else if (error.response?.status === 403) {
       // Forbidden - current user doesn't have permission for this specific endpoint

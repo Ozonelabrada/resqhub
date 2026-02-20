@@ -1314,7 +1314,8 @@ export const CommunitiesContainer: React.FC<{ initialTab?: 'my-communities' | 'a
                   
                   <div className="flex items-start gap-3 mb-3">
                     <div className="relative flex-shrink-0">
-                      <div className="w-12 h-12 rounded-xl overflow-hidden shadow-sm border border-slate-50 bg-teal-50 flex items-center justify-center">
+                      {/* Show logo on mobile only (hidden on sm and larger) */}
+                      <div className="w-12 h-12 rounded-xl overflow-hidden shadow-sm border border-slate-50 bg-teal-50 flex items-center justify-center sm:hidden">
                         {community.logo ? (
                           <img src={community.logo} alt={`${community.name} logo`} className="w-full h-full object-cover" />
                         ) : (
