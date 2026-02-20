@@ -161,9 +161,17 @@ const CommunityPage: React.FC = () => {
                 isEventModalOpen={communityState.isEventModalOpen}
                 onNewsModalClose={() => communityState.setIsNewsModalOpen(false)}
                 onEventModalClose={() => communityState.setIsEventModalOpen(false)}
-                onNewsSuccess={(data) => {
-                  communityState.setIsNewsModalOpen(false);
-                  handlers.handleNewsSuccess(data);
+                onNewsSuccess={async (data) => {
+                  // attempt to save via handler which returns nothing, so assume success
+                  try {
+                    await handlers.handleNewsSuccess(data);
+                    // close only on success
+                    communityState.setIsNewsModalOpen(false);
+                  } catch (err) {
+                    console.error('News save error:', err);
+                    // rethrow to surface error to modal if desired
+                    throw err;
+                  }
                 }}
                 onEventSuccess={async (data) => {
                   // Wait for the backend save to finish (handlers returns the API result)

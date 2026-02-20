@@ -20,6 +20,7 @@ import {
   Heart
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { formatSimpleMarkdown } from '@/utils/validation';
 import type { CommunityPost } from '@/types/community';
 
 export interface ReportDetailModalProps {
@@ -162,9 +163,10 @@ const ReportDetailModal: React.FC<ReportDetailModalProps> = ({ isOpen, onClose, 
                     <span className="w-4 h-[2px] bg-teal-600 rounded-full" />
                     Description
                   </h4>
-                  <p className="text-slate-600 font-medium leading-relaxed whitespace-pre-wrap">
-                    {report.description}
-                  </p>
+                  <p
+                    className="text-slate-600 font-medium leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: formatSimpleMarkdown(report.description) }}
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 pt-4">
