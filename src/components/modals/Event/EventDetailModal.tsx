@@ -15,6 +15,7 @@ import {
   ShadcnBadge as Badge
 } from '@/components/ui';
 import { formatDate } from '@/utils';
+import { formatSimpleMarkdown } from '@/utils/validation';
 import type { TodaysUpdate } from '@/hooks/useTodaysUpdates';
 
 interface EventDetailModalProps {
@@ -155,9 +156,7 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({
             {event.description && (
               <div className="p-2 md:p-3 bg-gradient-to-br from-teal-50 to-emerald-50 rounded-lg border border-teal-200">
                 <p className="text-xs text-slate-600 uppercase font-semibold mb-2">Details</p>
-                <p className="text-xs md:text-sm text-slate-700 leading-relaxed">
-                  {event.description}
-                </p>
+                <p className="text-xs md:text-sm text-slate-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: formatSimpleMarkdown(event.description) }} />
               </div>
             )}
           </div>

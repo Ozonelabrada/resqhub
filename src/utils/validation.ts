@@ -97,3 +97,49 @@ export const validateFileUpload = (file: File, allowedTypes: string[] = [], maxS
 
   return { valid: true };
 };
+
+// Strip HTML tags and decode common HTML entities. Use DOMParser in browser when available.
+export const stripHtml = (input: string | null | undefined): string => {
+  if (!input) return '';
+  try {
+    if (typeof window !== 'undefined' && 'DOMParser' in window) {
+      const doc = new DOMParser().parseFromString(String(input), 'text/html');
+      return (doc.body.textContent || '').trim();
+    }
+  } catch (err) {
+    // fall through to regex fallback
+  }
+
+  // Fallback: remove tags and decode some entities
+  const withoutTags = String(input).replace(/<[^>]*>/g, '');
+  return withoutTags
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .trim();
+};
+
+// Convert plain text with very small subset markdown into safe HTML
+// - preserves new lines
+// - supports **bold** for emphasis
+// This intentionally does NOT render arbitrary HTML from input.
+export const formatSimpleMarkdown = (input: string | null | undefined): string => {
+  if (!input) return '';
+
+  // If input contains HTML tags, first extract text so we never render backend HTML as-is
+  const text = /<[^>]+>/.test(String(input)) ? stripHtml(input) : String(input);
+
+  // Escape any user-supplied HTML
+  const escaped = sanitizeInput(text);
+
+  // Replace **bold** with <strong>
+  const withBold = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+  // Convert newlines to <br/> so line breaks are preserved
+  const withBreaks = withBold.replace(/\r?\n/g, '<br/>');
+
+  return withBreaks;
+};

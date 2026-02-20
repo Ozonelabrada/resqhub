@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, Share2, AlertCircle } from 'lucide-react';
 import { Button, Card, Spinner } from '@/components/ui';
 import { cn } from '@/lib/utils';
+import { formatSimpleMarkdown } from '@/utils/validation';
 import { useAuth } from '@/context/AuthContext';
 import EventOverview from './components/EventOverview';
 import EventSchedule from './components/EventSchedule';
@@ -147,7 +148,6 @@ const EventDetailPage: React.FC = () => {
                 {event?.status.toUpperCase()}
               </div>
               <h1 className="text-5xl lg:text-6xl font-black text-white mb-3 drop-shadow-lg max-w-4xl">{event?.title}</h1>
-              <p className="text-white/90 font-semibold max-w-3xl drop-shadow text-lg">{event?.description}</p>
             </div>
           </div>
         </div>

@@ -354,6 +354,24 @@ export const CommunityService = {
     }
   },
 
+  /**
+   * Get a single community report / event by report id using the /communities/reports/{id} endpoint
+   * Returns the backend "event" object when available (keeps backward compatibility with other services)
+   */
+  async getCommunityReportById(reportId: string | number): Promise<any | null> {
+    try {
+      const response = await api.get<any>(`/communities/reports/${reportId}`);
+      const raw = response.data;
+      // API may return { data: { event: { ... } } } or { data: { ... } }
+      if (raw?.data?.event) return raw.data.event;
+      if (raw?.data) return raw.data;
+      return raw;
+    } catch (error) {
+      console.error('Error fetching community report by id:', error);
+      return null;
+    }
+  },
+
   async getCalendarEvents(filters?: {
     communityId?: number | string;
     category?: string;
