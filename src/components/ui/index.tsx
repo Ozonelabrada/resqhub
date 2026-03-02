@@ -82,6 +82,7 @@ export { Avatar } from "./Avatar/Avatar";
 export { default as Toast } from "./Toast/Toast";
 export type { ToastRef, ToastMessage } from "./Toast/Toast";
 export { ProgressBar } from "./ProgressBar/ProgressBar";
+export { ProgressBar as Progress } from "./ProgressBar/ProgressBar";
 export { ImageGallery } from "./ImageGallery/ImageGallery";
 
 // Re-export common icon-related components if needed

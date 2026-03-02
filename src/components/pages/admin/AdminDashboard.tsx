@@ -13,7 +13,8 @@ import {
   CheckCircle,
   ArrowRight,
   Plus,
-  AlertTriangle
+  AlertTriangle,
+  Briefcase
 } from 'lucide-react';
 import {
   Card,
@@ -291,6 +292,38 @@ const AdminDashboard: React.FC = () => {
                   <div>
                     <p className="font-bold text-slate-900">Subscriptions</p>
                     <p className="text-sm text-slate-600">View plans and payments</p>
+                  </div>
+                </div>
+              </Button>
+
+              <Button
+                onClick={() => navigate('/admin/applications')}
+                variant="outline"
+                className="p-4 h-auto text-left justify-start border-slate-200 hover:border-teal-300 hover:bg-teal-50"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-teal-100 rounded-xl flex items-center justify-center">
+                    <Briefcase className="text-teal-600" size={20} />
+                  </div>
+                  <div>
+                    <p className="font-bold text-slate-900">Applications</p>
+                    <p className="text-sm text-slate-600">Manage rider, seller & provider apps</p>
+                  </div>
+                </div>
+              </Button>
+
+              <Button
+                onClick={() => navigate('/admin/riders')}
+                variant="outline"
+                className="p-4 h-auto text-left justify-start border-slate-200 hover:border-teal-300 hover:bg-teal-50"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
+                    <Users className="text-indigo-600" size={20} />
+                  </div>
+                  <div>
+                    <p className="font-bold text-slate-900">Rider Statistics</p>
+                    <p className="text-sm text-slate-600">Performance & activity metrics</p>
                   </div>
                 </div>
               </Button>

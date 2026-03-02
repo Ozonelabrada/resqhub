@@ -28,6 +28,8 @@ const AdminDashboard = lazy(() => import('./components/pages/admin/AdminDashboar
 const CommunityDetailsPage = lazy(() => import('./components/pages/admin/CommunityDetailsPage'));
 const ReportsPage = lazy(() => import('./components/pages/admin/ReportsPage'));
 const SubscriptionsPage = lazy(() => import('./components/pages/admin/SubscriptionsPage'));
+const ApplicationManagementPage = lazy(() => import('./components/pages/admin/ApplicationManagementPage'));
+const RiderStatisticsPage = lazy(() => import('./components/pages/admin/RiderStatisticsPage'));
 const AppConfigPage = lazy(() => import('./components/pages/admin/AppConfigPage'));
 const AdminLayout = lazy(() => import('./layouts/AdminLayout'));
 const SettingsPage = lazy(() => import('./components/pages/public/SettingPage/SettingsPage'));
@@ -124,6 +126,8 @@ const AppRouter = () => {
           <Route path="communities/:id" element={<CommunityDetailsPage />} />
           <Route path="reports" element={<ReportsPage />} />
           <Route path="subscriptions" element={<SubscriptionsPage />} />
+          <Route path="applications" element={<ApplicationManagementPage />} />
+          <Route path="riders" element={<RiderStatisticsPage />} />
           <Route path="app-config" element={<AppConfigPage />} />
         </Route>
 

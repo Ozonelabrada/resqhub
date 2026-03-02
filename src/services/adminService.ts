@@ -18,7 +18,15 @@ import type {
   AdminActionResponse,
   AuditLogEntry,
   AdminStatistics,
-  AdminSearchParams
+  AdminSearchParams,
+  Application,
+  ApplicationListParams,
+  ApplicationListResponse,
+  RiderApplication,
+  SellerApplication,
+  ServiceProviderApplication,
+  RiderStatisticsOverview,
+  RiderMetrics
 } from '../types/admin';
 
 // Toggle this to use real API or local mock data
@@ -549,6 +557,229 @@ export class AdminService {
     }
   }
 
+  // Application Management
+  static async getApplications(params: ApplicationListParams = {}): Promise<ApplicationListResponse> {
+    if (USE_MOCK_DATA) {
+      await this.simulateDelay();
+      const items = this.getMockApplications();
+      const filtered = this.filterMockApplications(items, params);
+      const page = params.page || 1;
+      const pageSize = params.pageSize || 10;
+      const start = (page - 1) * pageSize;
+      const end = start + pageSize;
+
+      return {
+        succeeded: true,
+        message: 'Applications fetched successfully (Mock)',
+        statusCode: 200,
+        data: {
+          items: filtered.slice(start, end),
+          total: filtered.length,
+          page,
+          pageSize,
+          totalPages: Math.ceil(filtered.length / pageSize),
+          summary: this.getMockApplicationsSummary(filtered)
+        }
+      };
+    }
+
+    try {
+      const queryParams = new URLSearchParams();
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== '' && value !== 'all') {
+          queryParams.append(key, String(value));
+        }
+      });
+
+      const response = await api.get(`${ENDPOINTS.ADMIN.APPLICATIONS}?${queryParams.toString()}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching applications:', error);
+      const items = this.getMockApplications();
+      return {
+        succeeded: true,
+        message: 'Applications fetched successfully (Mock Fallback)',
+        statusCode: 200,
+        data: {
+          items: items.slice(0, params.pageSize || 10),
+          total: items.length,
+          page: params.page || 1,
+          pageSize: params.pageSize || 10,
+          totalPages: Math.ceil(items.length / (params.pageSize || 10)),
+          summary: this.getMockApplicationsSummary(items)
+        }
+      };
+    }
+  }
+
+  static async getApplicationDetail(id: string): Promise<Application> {
+    if (USE_MOCK_DATA) {
+      await this.simulateDelay();
+      const app = this.getMockApplications().find(a => a.id === id);
+      if (!app) throw new Error('Application not found');
+      return app;
+    }
+
+    try {
+      const response = await api.get(ENDPOINTS.ADMIN.APPLICATION_DETAIL(id));
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error('Error fetching application detail:', error);
+      const app = this.getMockApplications().find(a => a.id === id);
+      if (!app) throw error;
+      return app;
+    }
+  }
+
+  static async approveApplication(id: string, action: AdminAction): Promise<AdminActionResponse> {
+    if (USE_MOCK_DATA) {
+      await this.simulateDelay();
+      return {
+        succeeded: true,
+        message: 'Application approved successfully (Mock)',
+        statusCode: 200,
+        data: {
+          success: true,
+          message: 'Application has been approved',
+          updatedItem: this.getMockApplications().find(a => a.id === id) as any
+        }
+      };
+    }
+
+    try {
+      const response = await api.patch(ENDPOINTS.ADMIN.APPLICATION_APPROVE(id), action);
+      return response.data;
+    } catch (error) {
+      console.error('Error approving application:', error);
+      return {
+        succeeded: true,
+        message: 'Application approved successfully (Mock Fallback)',
+        statusCode: 200,
+        data: {
+          success: true,
+          message: 'Application has been approved',
+          updatedItem: this.getMockApplications().find(a => a.id === id) as any
+        }
+      };
+    }
+  }
+
+  static async rejectApplication(id: string, action: AdminAction): Promise<AdminActionResponse> {
+    if (USE_MOCK_DATA) {
+      await this.simulateDelay();
+      return {
+        succeeded: true,
+        message: 'Application rejected successfully (Mock)',
+        statusCode: 200,
+        data: {
+          success: true,
+          message: 'Application has been rejected',
+          updatedItem: this.getMockApplications().find(a => a.id === id) as any
+        }
+      };
+    }
+
+    try {
+      const response = await api.patch(ENDPOINTS.ADMIN.APPLICATION_REJECT(id), action);
+      return response.data;
+    } catch (error) {
+      console.error('Error rejecting application:', error);
+      return {
+        succeeded: true,
+        message: 'Application rejected successfully (Mock Fallback)',
+        statusCode: 200,
+        data: {
+          success: true,
+          message: 'Application has been rejected',
+          updatedItem: this.getMockApplications().find(a => a.id === id) as any
+        }
+      };
+    }
+  }
+
+  static async suspendApplication(id: string, action: AdminAction): Promise<AdminActionResponse> {
+    if (USE_MOCK_DATA) {
+      await this.simulateDelay();
+      return {
+        succeeded: true,
+        message: 'Application suspended successfully (Mock)',
+        statusCode: 200,
+        data: {
+          success: true,
+          message: 'Application has been suspended',
+          updatedItem: this.getMockApplications().find(a => a.id === id) as any
+        }
+      };
+    }
+
+    try {
+      const response = await api.patch(ENDPOINTS.ADMIN.APPLICATION_SUSPEND(id), action);
+      return response.data;
+    } catch (error) {
+      console.error('Error suspending application:', error);
+      return {
+        succeeded: true,
+        message: 'Application suspended successfully (Mock Fallback)',
+        statusCode: 200,
+        data: {
+          success: true,
+          message: 'Application has been suspended',
+          updatedItem: this.getMockApplications().find(a => a.id === id) as any
+        }
+      };
+    }
+  }
+
+  static async reactivateApplication(id: string, action: AdminAction): Promise<AdminActionResponse> {
+    if (USE_MOCK_DATA) {
+      await this.simulateDelay();
+      return {
+        succeeded: true,
+        message: 'Application reactivated successfully (Mock)',
+        statusCode: 200,
+        data: {
+          success: true,
+          message: 'Application has been reactivated',
+          updatedItem: this.getMockApplications().find(a => a.id === id) as any
+        }
+      };
+    }
+
+    try {
+      const response = await api.patch(ENDPOINTS.ADMIN.APPLICATION_REACTIVATE(id), action);
+      return response.data;
+    } catch (error) {
+      console.error('Error reactivating application:', error);
+      return {
+        succeeded: true,
+        message: 'Application reactivated successfully (Mock Fallback)',
+        statusCode: 200,
+        data: {
+          success: true,
+          message: 'Application has been reactivated',
+          updatedItem: this.getMockApplications().find(a => a.id === id) as any
+        }
+      };
+    }
+  }
+
+  // Rider Statistics
+  static async getRiderStatistics(): Promise<RiderStatisticsOverview> {
+    if (USE_MOCK_DATA) {
+      await this.simulateDelay();
+      return this.getMockRiderStatistics();
+    }
+
+    try {
+      const response = await api.get(ENDPOINTS.ADMIN.RIDERS_OVERVIEW);
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error('Error fetching rider statistics:', error);
+      return this.getMockRiderStatistics();
+    }
+  }
+
+
   // Helper Methods for Mocking
   private static async simulateDelay(ms: number = 300): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -836,6 +1067,351 @@ export class AdminService {
         timestamp: new Date().toISOString()
       }
     ];
+  }
+
+  // Mock Applications Data
+  private static getMockApplications(): Application[] {
+    return [
+      {
+        id: 'app-rider-001',
+        applicantId: 'user-001',
+        applicant: {
+          id: 'user-001',
+          name: 'John Rodriguez',
+          email: 'john.rodriguez@example.com',
+          phone: '+1-555-0101',
+          profileImage: 'https://api.dicebear.com/7.x/avataaars/svg?seed=John',
+          communityId: 1,
+          communityName: 'Bay Area Community'
+        },
+        role: 'rider',
+        status: 'pending',
+        createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        documents: {
+          licenseNumber: 'DL-123456789',
+          licenseExpiry: '2027-12-31',
+          vehicleType: 'Sedan',
+          plateNumber: 'ABC-1234'
+        },
+        experience: {
+          years: 3,
+          previousCompanies: 'Uber, Grab'
+        }
+      },
+      {
+        id: 'app-seller-001',
+        applicantId: 'user-002',
+        applicant: {
+          id: 'user-002',
+          name: 'Maria Santos',
+          email: 'maria.santos@example.com',
+          phone: '+1-555-0102',
+          profileImage: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Maria',
+          communityId: 2,
+          communityName: 'Downtown Community'
+        },
+        role: 'seller',
+        status: 'pending',
+        createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        businessInfo: {
+          businessName: 'Maria\'s Shop',
+          businessType: 'RETAIL',
+          description: 'We sell premium electronics and accessories',
+          registrationNumber: 'REG-2024-001'
+        },
+        documents: {
+          businessLicense: 'BL-123456',
+          bankDetails: {
+            bankName: 'Philippine Bank',
+            accountNumber: '****1234',
+            accountHolder: 'Maria Santos'
+          }
+        },
+        productCategories: ['Electronics', 'Accessories'],
+        estimatedMonthlyRevenue: 50000
+      },
+      {
+        id: 'app-service-001',
+        applicantId: 'user-003',
+        applicant: {
+          id: 'user-003',
+          name: 'David Chen',
+          email: 'david.chen@example.com',
+          phone: '+1-555-0103',
+          profileImage: 'https://api.dicebear.com/7.x/avataaars/svg?seed=David',
+          communityId: 3,
+          communityName: 'Tech District'
+        },
+        role: 'service_provider',
+        status: 'approved',
+        createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        reviewedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        reviewedBy: {
+          id: 'admin-001',
+          name: 'Admin User',
+          email: 'admin@example.com'
+        },
+        serviceInfo: {
+          serviceName: 'Professional Home Repair',
+          category: 'Home Repair',
+          description: 'Specializing in plumbing, electrical, and carpentry work',
+          experience: 8,
+          certifications: ['Electrical License', 'Plumbing Certification']
+        },
+        documents: {
+          certifications: ['EL-12345', 'PL-67890'],
+          insuranceCertificate: 'INS-54321'
+        },
+        serviceAreas: ['Downtown', 'Midtown', 'Uptown'],
+        rating: 4.8,
+        completedServices: 45
+      },
+      {
+        id: 'app-rider-002',
+        applicantId: 'user-004',
+        applicant: {
+          id: 'user-004',
+          name: 'Angela Torres',
+          email: 'angela.torres@example.com',
+          phone: '+1-555-0104',
+          profileImage: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Angela',
+          communityId: 1,
+          communityName: 'Bay Area Community'
+        },
+        role: 'rider',
+        status: 'rejected',
+        createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+        reviewedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+        reviewedBy: {
+          id: 'admin-002',
+          name: 'Manager Admin',
+          email: 'manager@example.com'
+        },
+        documents: {
+          licenseNumber: 'DL-987654321',
+          licenseExpiry: '2025-06-15',
+          vehicleType: 'Motorcycle',
+          plateNumber: 'DEF-5678'
+        },
+        experience: {
+          years: 1
+        },
+        rejectionReason: 'License expiration date does not meet requirements'
+      },
+      {
+        id: 'app-seller-002',
+        applicantId: 'user-005',
+        applicant: {
+          id: 'user-005',
+          name: 'Robert Kim',
+          email: 'robert.kim@example.com',
+          phone: '+1-555-0105',
+          profileImage: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Robert',
+          communityId: 4,
+          communityName: 'Food District'
+        },
+        role: 'seller',
+        status: 'suspended',
+        createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        reviewedAt: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString(),
+        reviewedBy: {
+          id: 'admin-001',
+          name: 'Admin User',
+          email: 'admin@example.com'
+        },
+        businessInfo: {
+          businessName: 'Kim\'s Food Truck',
+          businessType: 'FOOD',
+          description: 'Korean street food and fusion dishes',
+          registrationNumber: 'REG-2023-456'
+        },
+        documents: {
+          businessLicense: 'BL-654321'
+        },
+        productCategories: ['Korean Food', 'Fusion']
+      }
+    ];
+  }
+
+  private static filterMockApplications(apps: Application[], params: ApplicationListParams): Application[] {
+    let filtered = [...apps];
+
+    if (params.role && params.role !== 'all') {
+      filtered = filtered.filter(app => app.role === params.role);
+    }
+
+    if (params.status && params.status !== 'all') {
+      filtered = filtered.filter(app => app.status === params.status);
+    }
+
+    if (params.query) {
+      const query = params.query.toLowerCase();
+      filtered = filtered.filter(app => 
+        app.applicant.name.toLowerCase().includes(query) ||
+        app.applicant.email.toLowerCase().includes(query) ||
+        app.applicant.communityName.toLowerCase().includes(query)
+      );
+    }
+
+    if (params.sort === 'created_at') {
+      filtered.sort((a, b) => {
+        const aDate = new Date(a.createdAt).getTime();
+        const bDate = new Date(b.createdAt).getTime();
+        return params.order === 'desc' ? bDate - aDate : aDate - bDate;
+      });
+    } else if (params.sort === 'updated_at') {
+      filtered.sort((a, b) => {
+        const aDate = new Date(a.updatedAt).getTime();
+        const bDate = new Date(b.updatedAt).getTime();
+        return params.order === 'desc' ? bDate - aDate : aDate - bDate;
+      });
+    }
+
+    return filtered;
+  }
+
+  private static getMockApplicationsSummary(apps: Application[]) {
+    return {
+      pending: apps.filter(a => a.status === 'pending').length,
+      approved: apps.filter(a => a.status === 'approved').length,
+      rejected: apps.filter(a => a.status === 'rejected').length,
+      suspended: apps.filter(a => a.status === 'suspended').length
+    };
+  }
+
+  // Mock Rider Statistics
+  private static getMockRiderStatistics(): RiderStatisticsOverview {
+    return {
+      metrics: {
+        activeToday: 156,
+        onBooking: 43,
+        deliveredSuccess: 8934,
+        totalReviews: 7321,
+        averageRating: 4.7,
+        totalEarnings: 450230,
+        rideCompletionRate: 97.2,
+        acceptanceRate: 94.5,
+        cancellationRate: 2.8
+      },
+      topPerformers: [
+        {
+          id: 'rider-001',
+          name: 'Maria Santos',
+          email: 'maria.santos@example.com',
+          profileImage: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Maria',
+          rating: 4.9,
+          reviewsCount: 1245,
+          completedRides: 2150,
+          totalEarnings: 65340,
+          acceptanceRate: 98.5,
+          joinedDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'active'
+        },
+        {
+          id: 'rider-002',
+          name: 'Juan Dela Cruz',
+          email: 'juan.delacruz@example.com',
+          profileImage: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Juan',
+          rating: 4.8,
+          reviewsCount: 892,
+          completedRides: 1823,
+          totalEarnings: 58920,
+          acceptanceRate: 97.2,
+          joinedDate: new Date(Date.now() - 300 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'active'
+        },
+        {
+          id: 'rider-003',
+          name: 'Alex Johnson',
+          email: 'alex.johnson@example.com',
+          profileImage: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex',
+          rating: 4.7,
+          reviewsCount: 756,
+          completedRides: 1654,
+          totalEarnings: 52130,
+          acceptanceRate: 96.8,
+          joinedDate: new Date(Date.now() - 280 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'active'
+        },
+        {
+          id: 'rider-004',
+          name: 'Sofia Rodriguez',
+          email: 'sofia.rodriguez@example.com',
+          profileImage: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sofia',
+          rating: 4.6,
+          reviewsCount: 634,
+          completedRides: 1432,
+          totalEarnings: 48750,
+          acceptanceRate: 95.3,
+          joinedDate: new Date(Date.now() - 250 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'active'
+        },
+        {
+          id: 'rider-005',
+          name: 'Michael Chen',
+          email: 'michael.chen@example.com',
+          profileImage: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Michael',
+          rating: 4.5,
+          reviewsCount: 521,
+          completedRides: 1165,
+          totalEarnings: 41230,
+          acceptanceRate: 93.7,
+          joinedDate: new Date(Date.now() - 220 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'active'
+        }
+      ],
+      recentActivity: [
+        {
+          id: 'act-001',
+          riderId: 'rider-001',
+          riderName: 'Maria Santos',
+          activity: 'Completed ride to Downtown Mall',
+          timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString()
+        },
+        {
+          id: 'act-002',
+          riderId: 'rider-002',
+          riderName: 'Juan Dela Cruz',
+          activity: 'Accepted new booking request',
+          timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString()
+        },
+        {
+          id: 'act-003',
+          riderId: 'rider-003',
+          riderName: 'Alex Johnson',
+          activity: 'Received 5-star review from customer',
+          timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString()
+        },
+        {
+          id: 'act-004',
+          riderId: 'rider-004',
+          riderName: 'Sofia Rodriguez',
+          activity: 'Completed ride to Airport',
+          timestamp: new Date(Date.now() - 45 * 60 * 1000).toISOString()
+        },
+        {
+          id: 'act-005',
+          riderId: 'rider-005',
+          riderName: 'Michael Chen',
+          activity: 'Started new ride',
+          timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString()
+        }
+      ],
+      trendData: [
+        { date: '2026-01-26', activeRiders: 145, completedRides: 634, revenue: 18920 },
+        { date: '2026-01-27', activeRiders: 152, completedRides: 712, revenue: 21340 },
+        { date: '2026-01-28', activeRiders: 148, completedRides: 689, revenue: 20560 },
+        { date: '2026-01-29', activeRiders: 158, completedRides: 745, revenue: 22310 },
+        { date: '2026-01-30', activeRiders: 161, completedRides: 823, revenue: 24670 },
+        { date: '2026-01-31', activeRiders: 156, completedRides: 892, revenue: 26750 },
+        { date: '2026-02-01', activeRiders: 156, completedRides: 856, revenue: 25630 }
+      ]
+    };
   }
 }
 

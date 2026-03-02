@@ -246,6 +246,131 @@ export interface AuditLogEntry {
   ipAddress?: string;
 }
 
+// =========================================
+// Application Management Types
+// =========================================
+export type ApplicationRole = 'rider' | 'seller' | 'service_provider';
+export type ApplicationStatus = 'pending' | 'approved' | 'rejected' | 'suspended';
+
+export interface ApplicationApplicant {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  profileImage?: string;
+  communityId: string | number;
+  communityName: string;
+}
+
+// Base application interface
+export interface BaseApplication {
+  id: string;
+  applicantId: string;
+  applicant: ApplicationApplicant;
+  role: ApplicationRole;
+  status: ApplicationStatus;
+  createdAt: string;
+  updatedAt: string;
+  reviewedAt?: string;
+  reviewedBy?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  rejectionReason?: string;
+}
+
+// Rider Application
+export interface RiderApplication extends BaseApplication {
+  role: 'rider';
+  documents: {
+    licenseNumber: string;
+    licenseExpiry: string;
+    vehicleType: string;
+    plateNumber: string;
+    insuranceCertificate?: string;
+  };
+  experience: {
+    years: number;
+    previousCompanies?: string;
+  };
+  rating?: number;
+  completedRides?: number;
+}
+
+// Seller Application
+export interface SellerApplication extends BaseApplication {
+  role: 'seller';
+  businessInfo: {
+    businessName: string;
+    businessType: string; // RETAIL, FOOD, SERVICES, EVENTS
+    description: string;
+    registrationNumber?: string;
+    taxId?: string;
+  };
+  documents: {
+    businessLicense?: string;
+    taxCertificate?: string;
+    bankDetails?: {
+      bankName: string;
+      accountNumber: string;
+      accountHolder: string;
+    };
+  };
+  productCategories?: string[];
+  estimatedMonthlyRevenue?: number;
+}
+
+// Service Provider Application
+export interface ServiceProviderApplication extends BaseApplication {
+  role: 'service_provider';
+  serviceInfo: {
+    serviceName: string;
+    category: string; // e.g., "Hair & Beauty", "Cleaning", "Home Repair"
+    description: string;
+    experience: number; // in years
+    certifications?: string[];
+  };
+  documents: {
+    certifications?: string[];
+    backgroundCheck?: string;
+    insuranceCertificate?: string;
+  };
+  serviceAreas?: string[];
+  rating?: number;
+  completedServices?: number;
+}
+
+// Union type for all applications
+export type Application = RiderApplication | SellerApplication | ServiceProviderApplication;
+
+export interface ApplicationListParams {
+  communityId?: string | number;
+  role?: ApplicationRole | 'all';
+  status?: ApplicationStatus | 'all';
+  query?: string;
+  page?: number;
+  pageSize?: number;
+  sort?: 'created_at' | 'updated_at' | 'status';
+  order?: 'asc' | 'desc';
+}
+
+export interface ApplicationListResponse extends BaseApiResponse {
+  data: {
+    items: Application[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages?: number;
+    summary?: {
+      pending: number;
+      approved: number;
+      rejected: number;
+      suspended: number;
+    };
+  };
+}
+
 // Statistics and Analytics
 export interface AdminStatistics {
   timeRange: string;
@@ -282,6 +407,53 @@ export interface AdminSearchParams {
   pageSize?: number;
   sort?: string;
   order?: 'asc' | 'desc';
+}
+
+// =========================================
+// Rider Statistics Types
+// =========================================
+export interface RiderMetrics {
+  activeToday: number;
+  onBooking: number;
+  deliveredSuccess: number;
+  totalReviews: number;
+  averageRating: number;
+  totalEarnings: number;
+  rideCompletionRate: number;
+  acceptanceRate: number;
+  cancellationRate: number;
+}
+
+export interface RiderPerformance {
+  id: string;
+  name: string;
+  email: string;
+  profileImage?: string;
+  rating: number;
+  reviewsCount: number;
+  completedRides: number;
+  totalEarnings: number;
+  acceptanceRate: number;
+  joinedDate: string;
+  status: 'active' | 'inactive' | 'suspended';
+}
+
+export interface RiderStatisticsOverview {
+  metrics: RiderMetrics;
+  topPerformers: RiderPerformance[];
+  recentActivity: Array<{
+    id: string;
+    riderId: string;
+    riderName: string;
+    activity: string;
+    timestamp: string;
+  }>;
+  trendData: Array<{
+    date: string;
+    activeRiders: number;
+    completedRides: number;
+    revenue: number;
+  }>;
 }
 
 // Export commonly used types

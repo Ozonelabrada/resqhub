@@ -16,6 +16,18 @@ export const ENDPOINTS = {
     PAYMENTS: '/admin/payments',
     AUDIT: '/admin/audit',
     AUDIT_LOG: '/admin/audit/log',
+    // Applications Management
+    APPLICATIONS: '/admin/applications',
+    APPLICATIONS_BY_ROLE: (role: string) => `/admin/applications?role=${role}`,
+    APPLICATION_DETAIL: (id: string) => `/admin/applications/${id}`,
+    APPLICATION_APPROVE: (id: string) => `/admin/applications/${id}/approve`,
+    APPLICATION_REJECT: (id: string) => `/admin/applications/${id}/reject`,
+    APPLICATION_SUSPEND: (id: string) => `/admin/applications/${id}/suspend`,
+    APPLICATION_REACTIVATE: (id: string) => `/admin/applications/${id}/reactivate`,
+    // Rider Statistics
+    RIDERS: '/admin/riders',
+    RIDERS_STATISTICS: '/admin/riders/statistics',
+    RIDERS_OVERVIEW: '/admin/riders/overview',
   },
   AUTH: {
     LOGIN: '/auth/login',

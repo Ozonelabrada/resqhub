@@ -18,7 +18,9 @@ import {
   User as UserIcon,
   Heart,
   Clock,
-  Home
+  Home,
+  Briefcase,
+  TrendingUp
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { 
@@ -91,6 +93,18 @@ const AdminLayout: React.FC = () => {
       label: 'Communities',
       icon: <Users size={20} />,
       path: '/admin/communities'
+    },
+    {
+      id: 'applications',
+      label: 'Applications',
+      icon: <Briefcase size={20} />,
+      path: '/admin/applications'
+    },
+    {
+      id: 'riders',
+      label: 'Riders',
+      icon: <TrendingUp size={20} />,
+      path: '/admin/riders'
     },
     {
       id: 'reports',
