@@ -30,26 +30,43 @@ import {
 import { AdminStatCard } from '../../ui/admin';
 import { cn } from '@/lib/utils';
 import { AdminService } from '@/services';
-import type { RiderStatisticsOverview, RiderPerformance } from '@/types/admin';
+import type { RiderStatisticsOverview, RiderPerformance, RiderListItem } from '@/types/admin';
 
 const RiderStatisticsPage: React.FC = () => {
   const [statistics, setStatistics] = useState<RiderStatisticsOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
 
+  // actual rider list from backend
+  const [riderList, setRiderList] = useState<RiderListItem[]>([]);
+  const [listLoading, setListLoading] = useState(false);
+
   useEffect(() => {
     loadStatistics();
+    loadRiderList();
   }, [timeRange]);
 
   const loadStatistics = async () => {
     try {
       setLoading(true);
-      const data = await AdminService.getRiderStatistics();
+      const data = await AdminService.getRiderStatistics(timeRange);
       setStatistics(data);
     } catch (error) {
       console.error('Error loading rider statistics:', error);
     } finally {
       setTimeout(() => setLoading(false), 300);
+    }
+  };
+
+  const loadRiderList = async () => {
+    try {
+      setListLoading(true);
+      const resp = await AdminService.getRiderList(1, 10);
+      setRiderList(resp.riders);
+    } catch (error) {
+      console.error('Error loading rider list:', error);
+    } finally {
+      setListLoading(false);
     }
   };
 
@@ -119,7 +136,7 @@ const RiderStatisticsPage: React.FC = () => {
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <AdminStatCard
           title="Active Today"
           value={metrics.activeToday}
@@ -153,6 +170,14 @@ const RiderStatisticsPage: React.FC = () => {
           changeLabel="All-time total"
           changeType="neutral"
         />
+        <AdminStatCard
+          title="Partner Riders"
+          value={metrics.partnerRiders}
+          icon={<Users className="text-indigo-600" size={24} />}
+          className="bg-indigo-50 border-indigo-100"
+          changeLabel="Total registered partners"
+          changeType="neutral"
+        />
       </div>
 
       {/* Performance Metrics */}
@@ -163,12 +188,12 @@ const RiderStatisticsPage: React.FC = () => {
             <CheckCircle className="text-green-600" size={24} />
           </div>
           <p className="text-3xl font-bold text-gray-900 mb-4">
-            {metrics.deliveredSuccess.toLocaleString()}
+            {metrics.completedRides?.toLocaleString() || '0'}
           </p>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Completion Rate</span>
-              <span className="font-bold text-green-600">{metrics.rideCompletionRate}%</span>
+              <span className="font-bold text-green-600">{metrics.rideCompletionRate != null ? `${metrics.rideCompletionRate}%` : '—'}</span>
             </div>
             <Progress value={metrics.rideCompletionRate} className="h-2" />
           </div>
@@ -180,12 +205,12 @@ const RiderStatisticsPage: React.FC = () => {
             <Target className="text-blue-600" size={24} />
           </div>
           <p className="text-3xl font-bold text-gray-900 mb-4">
-            {metrics.acceptanceRate}%
+            {metrics.acceptanceRate != null ? `${metrics.acceptanceRate}%` : '—'}
           </p>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Current Performance</span>
-              <span className="font-bold">{metrics.acceptanceRate}%</span>
+              <span className="font-bold">{metrics.acceptanceRate != null ? `${metrics.acceptanceRate}%` : '—'}</span>
             </div>
             <Progress value={metrics.acceptanceRate} className="h-2" />
           </div>
@@ -197,15 +222,15 @@ const RiderStatisticsPage: React.FC = () => {
             <Star className="text-yellow-600" size={24} />
           </div>
           <p className="text-3xl font-bold text-gray-900 mb-4">
-            {metrics.totalReviews.toLocaleString()}
+            {metrics.totalReviews?.toLocaleString() || '0'}
           </p>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Cancellation Rate</span>
-              <span className="font-bold text-red-600">{metrics.cancellationRate}%</span>
+              <span className="font-bold text-red-600">{metrics.cancellationRate != null ? `${metrics.cancellationRate}%` : '—'}</span>
             </div>
             <Progress
-              value={100 - metrics.cancellationRate}
+              value={metrics.cancellationRate != null ? 100 - metrics.cancellationRate : 0}
               className="h-2"
             />
           </div>
@@ -368,27 +393,9 @@ const RiderStatisticsPage: React.FC = () => {
 
         <div className="divide-y divide-gray-100">
           {recentActivity.length > 0 ? (
-            recentActivity.map((activity) => (
-              <div key={activity.id} className="p-4 hover:bg-gray-50 transition-colors">
-                <div className="flex items-start justify-between">
-                  <div className="flex gap-3 flex-1 min-w-0">
-                    <div className="w-2 h-2 bg-teal-500 rounded-full mt-2 flex-shrink-0" />
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold text-gray-900">
-                        {activity.riderName}
-                      </p>
-                      <p className="text-sm text-gray-600 truncate">
-                        {activity.activity}
-                      </p>
-                    </div>
-                  </div>
-                  <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
-                    {new Date(activity.timestamp).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </span>
-                </div>
+            recentActivity.map((msg, idx) => (
+              <div key={idx} className="p-4 hover:bg-gray-50 transition-colors">
+                <p className="text-sm text-gray-900">{msg}</p>
               </div>
             ))
           ) : (
@@ -397,6 +404,65 @@ const RiderStatisticsPage: React.FC = () => {
             </div>
           )}
         </div>
+      </Card>
+
+      {/* Rider list from backend */}
+      <Card>
+        <div className="p-6 border-b">
+          <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+            <Users className="text-indigo-600" size={24} />
+            Riders (sample)
+          </h2>
+        </div>
+        {listLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <Spinner size="lg" />
+          </div>
+        ) : riderList.length === 0 ? (
+          <div className="p-6 text-center text-gray-500">No riders found</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Rating</TableHead>
+                  <TableHead>Vehicle</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {riderList.map((r) => (
+                  <TableRow key={r.id}>
+                    <TableCell>{r.id}</TableCell>
+                    <TableCell>
+                      {r.userDetails.firstName} {r.userDetails.lastName}
+                    </TableCell>
+                    <TableCell>{r.userDetails.email}</TableCell>
+                    <TableCell>
+                      <Badge
+                        className={cn(
+                          'px-2 py-1 text-xs rounded',
+                          r.approvalStatus === 'approved'
+                            ? 'bg-green-50 text-green-700'
+                            : r.approvalStatus === 'pending'
+                            ? 'bg-yellow-50 text-yellow-700'
+                            : 'bg-red-50 text-red-700'
+                        )}
+                      >
+                        {r.approvalStatus}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{r.rating.toFixed(1)}</TableCell>
+                    <TableCell>{r.vehicle}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </Card>
     </div>
   );

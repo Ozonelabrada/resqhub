@@ -27,7 +27,12 @@ export const ENDPOINTS = {
     // Rider Statistics
     RIDERS: '/admin/riders',
     RIDERS_STATISTICS: '/admin/riders/statistics',
+    RIDERS_TOP_PERFORMERS: '/admin/riders/top-performers',
+    RIDERS_ACTIVITY_FEED: '/admin/riders/activity-feed',
+    RIDERS_TREND_DATA: '/admin/riders/trend-data',
     RIDERS_OVERVIEW: '/admin/riders/overview',
+    // public endpoint for the rider list (not admin scoped)
+    RIDERS_LIST: '/riders/list',
   },
   AUTH: {
     LOGIN: '/auth/login',

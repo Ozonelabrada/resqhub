@@ -584,15 +584,57 @@ export class AdminService {
     }
 
     try {
-      const queryParams = new URLSearchParams();
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== '' && value !== 'all') {
-          queryParams.append(key, String(value));
-        }
-      });
+      // build params object rather than manual string in case backend supports it
+      const query: Record<string, string | number> = {};
+      if (params.page) query.page = params.page;
+      if (params.pageSize) query.pageSize = params.pageSize;
+      if (params.role && params.role !== 'all') {
+        query.role = params.role;
+        // backend may expect applicationType instead of role
+        query.applicationType = params.role;
+      }
+      if (params.type) {
+        // explicit type filter takes precedence
+        query.type = params.type;
+      }
+      if (params.status && params.status !== 'all') {
+        // backend uses 'submitted' rather than 'pending'
+        query.status = params.status === 'pending' ? 'submitted' : params.status;
+      }
+      if (params.query) query.query = params.query;
+      if (params.communityId) query.communityId = params.communityId;
+      if (params.sort) query.sort = params.sort;
+      if (params.order) query.order = params.order;
 
-      const response = await api.get(`${ENDPOINTS.ADMIN.APPLICATIONS}?${queryParams.toString()}`);
-      return response.data;
+      const response = await api.get(ENDPOINTS.ADMIN.APPLICATIONS, { params: query });
+      const body = response.data;
+
+      // backend data shape may differ
+      const resp = body.data || {};
+      const totalCount = resp.totalCount ?? resp.total ?? 0;
+      const page = resp.page ?? params.page ?? 1;
+      const pageSize = resp.pageSize ?? params.pageSize ?? 10;
+      const apps: Application[] = resp.applications || resp.items || [];
+      const summary = {
+        pending: resp.submittedCount ?? 0,
+        approved: resp.approvedCount ?? 0,
+        rejected: resp.rejectedCount ?? 0,
+        suspended: resp.suspendedCount ?? 0,
+      };
+
+      return {
+        succeeded: body.succeeded,
+        message: body.message,
+        statusCode: body.statusCode,
+        data: {
+          items: apps,
+          total: totalCount,
+          page,
+          pageSize,
+          totalPages: resp.totalPages ?? Math.ceil(totalCount / pageSize),
+          summary
+        }
+      };
     } catch (error) {
       console.error('Error fetching applications:', error);
       const items = this.getMockApplications();
@@ -764,17 +806,273 @@ export class AdminService {
   }
 
   // Rider Statistics
-  static async getRiderStatistics(): Promise<RiderStatisticsOverview> {
+  /**
+   * Retrieve basic metrics such as activeToday, onBooking, completedRides, etc.
+   */
+  static async getRiderOverview(): Promise<RiderMetrics> {
+    if (USE_MOCK_DATA) {
+      await this.simulateDelay();
+      return this.getMockRiderStatistics().metrics;
+    }
+
+    try {
+      const response = await api.get(ENDPOINTS.ADMIN.RIDERS_STATISTICS);
+      // backend response shape:
+      // { message, succeeded, statusCode, data: { metrics: { ... } } }
+      const payload = response.data.data;
+      // payload may already be metrics object if server returns unwrapped
+      const metrics: RiderMetrics = payload?.metrics ?? payload;
+      return metrics;
+    } catch (error) {
+      console.error('Error fetching rider overview:', error);
+      return this.getMockRiderStatistics().metrics;
+    }
+  }
+
+  /**
+   * Fetch paginated list of top performers. Caller may override paging/sort.
+   */
+  static async getRiderTopPerformers(
+    page: number = 1,
+    pageSize: number = 5,
+    sortBy: string = 'rating',
+    sortDescending: boolean = true
+  ): Promise<{
+    performers: RiderPerformance[];
+    pagination: { page: number; pageSize: number; totalCount: number; totalPages: number };
+  }> {
+    if (USE_MOCK_DATA) {
+      await this.simulateDelay();
+      const mock = this.getMockRiderStatistics();
+      return {
+        performers: mock.topPerformers,
+        pagination: { page, pageSize, totalCount: mock.topPerformers.length, totalPages: 1 },
+      };
+    }
+
+    try {
+      const response = await api.get(ENDPOINTS.ADMIN.RIDERS_TOP_PERFORMERS, {
+        params: { page, pageSize, sortBy, sortDescending },
+      });
+      const payload: PaginatedRiderPerformanceResponse = response.data.data;
+      // map backend fields to our internal shape
+      const performers = payload.data.map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        email: p.email || '',
+        profileImage: p.avatarUrl,
+        rating: p.rating,
+        reviewsCount: p.reviewsCount || 0,
+        completedRides: p.completedRides,
+        totalEarnings: p.earnings,
+        acceptanceRate: p.acceptanceRate,
+        joinedDate: p.joinedDate || '',
+        status: p.status,
+      } as RiderPerformance));
+      return { performers, pagination: payload.pagination };
+    } catch (error) {
+      console.error('Error fetching top performers:', error);
+      const mock = this.getMockRiderStatistics();
+      return {
+        performers: mock.topPerformers,
+        pagination: { page, pageSize, totalCount: mock.topPerformers.length, totalPages: 1 },
+      };
+    }
+  }
+
+  /**
+   * Retrieve activity feed (array of messages).
+   */
+  static async getRiderActivityFeed(
+    page: number = 1,
+    pageSize: number = 20
+  ): Promise<{
+    activities: string[];
+    pagination: { page: number; pageSize: number; totalCount: number; totalPages: number };
+  }> {
+    if (USE_MOCK_DATA) {
+      await this.simulateDelay();
+      const mock = this.getMockRiderStatistics();
+      return {
+        activities: mock.recentActivity.map(a => a.activity),
+        pagination: { page, pageSize, totalCount: mock.recentActivity.length, totalPages: 1 },
+      };
+    }
+
+    try {
+      const response = await api.get(ENDPOINTS.ADMIN.RIDERS_ACTIVITY_FEED, {
+        params: { page, pageSize },
+      });
+      const payload: PaginatedStringResponse = response.data.data;
+      return { activities: payload.data, pagination: payload.pagination };
+    } catch (error) {
+      console.error('Error fetching activity feed:', error);
+      const mock = this.getMockRiderStatistics();
+      return {
+        activities: mock.recentActivity.map(a => a.activity),
+        pagination: { page, pageSize, totalCount: mock.recentActivity.length, totalPages: 1 },
+      };
+    }
+  }
+
+  /**
+   * Retrieve trend data between two dates; metric parameter is forwarded.
+   */
+  static async getRiderTrendData(
+    fromDate: string,
+    toDate: string,
+    metric: string = 'all'
+  ): Promise<RiderTrendPoint[]> {
+    if (USE_MOCK_DATA) {
+      await this.simulateDelay();
+      return this.getMockRiderStatistics().trendData;
+    }
+
+    try {
+      const response = await api.get(ENDPOINTS.ADMIN.RIDERS_TREND_DATA, {
+        params: { fromDate, toDate, metric },
+      });
+      const payload: RiderTrendPoint[] = response.data.data;
+      return payload;
+    } catch (error) {
+      console.error('Error fetching trend data:', error);
+      return this.getMockRiderStatistics().trendData;
+    }
+  }
+
+  /**
+   * Fetch paginated list of riders (public endpoint).
+   */
+  static async getRiderList(
+    page: number = 1,
+    pageSize: number = 10
+  ): Promise<RiderListResponse> {
+    if (USE_MOCK_DATA) {
+      await this.simulateDelay();
+      const stats = this.getMockRiderStatistics();
+      // convert mock stats to list format with fake riders
+      return {
+        totalCount: stats.topPerformers.length,
+        allCount: stats.topPerformers.length,
+        pendingCount: 0,
+        approvedCount: stats.topPerformers.length,
+        rejectedCount: 0,
+        suspendedCount: 0,
+        page,
+        pageSize,
+        riders: stats.topPerformers.map((p, idx) => ({
+          id: idx + 1,
+          userId: p.id,
+          location: '',
+          vehicle: '',
+          plate: '',
+          rating: p.rating,
+          reviews: p.reviewsCount || 0,
+          isActive: p.status === 'active',
+          approvalStatus: p.status,
+          occupied: false,
+          avatar: p.profileImage,
+          totalCompletedRides: p.completedRides,
+          cancelledRides: 0,
+          dateCreated: new Date().toISOString(),
+          userDetails: {
+            userId: p.id,
+            firstName: p.name.split(' ')[0],
+            lastName: p.name.split(' ')[1] || '',
+            email: p.email || '',
+            phoneNumber: '',
+            userName: p.name,
+            profilePictureUrl: p.profileImage || null,
+          },
+        })) as any,
+      };
+    }
+
+    try {
+      const response = await api.get(ENDPOINTS.ADMIN.RIDERS_LIST, {
+        params: { page, pageSize },
+      });
+      const payload: { data: RiderListResponse } = response.data;
+      return payload.data;
+    } catch (error) {
+      console.error('Error fetching rider list:', error);
+      // fallback to empty
+      return {
+        totalCount: 0,
+        allCount: 0,
+        pendingCount: 0,
+        approvedCount: 0,
+        rejectedCount: 0,
+        suspendedCount: 0,
+        page,
+        pageSize,
+        riders: [],
+      };
+    }
+  }
+
+  /**
+   * Aggregate all pieces into a single overview object.
+   * timeRange is one of '7d'|'30d'|'90d'|'1y'; it is used to request trend data.
+   */
+  static async getRiderStatistics(
+    timeRange: '7d' | '30d' | '90d' | '1y' = '7d'
+  ): Promise<RiderStatisticsOverview> {
     if (USE_MOCK_DATA) {
       await this.simulateDelay();
       return this.getMockRiderStatistics();
     }
 
     try {
-      const response = await api.get(ENDPOINTS.ADMIN.RIDERS_OVERVIEW);
-      return response.data.data || response.data;
+      const [metrics, top, activity, trend] = await Promise.all([
+        this.getRiderOverview(),
+        this.getRiderTopPerformers(1, 5),
+        this.getRiderActivityFeed(1, 20),
+        this.getRiderTrendData(
+          (() => {
+            const today = new Date();
+            const start = new Date();
+            switch (timeRange) {
+              case '7d':
+                start.setDate(today.getDate() - 6);
+                break;
+              case '30d':
+                start.setDate(today.getDate() - 29);
+                break;
+              case '90d':
+                start.setDate(today.getDate() - 89);
+                break;
+              case '1y':
+                start.setFullYear(today.getFullYear() - 1);
+                break;
+            }
+            return start.toISOString().split('T')[0];
+          })(),
+          new Date().toISOString().split('T')[0]
+        ),
+      ]);
+
+      // guard against missing metrics object
+      const baseMetrics: RiderMetrics = metrics || {} as RiderMetrics;
+      // compute completion rate if missing
+      const enrichedMetrics: RiderMetrics = {
+        ...baseMetrics,
+        rideCompletionRate:
+          baseMetrics.rideCompletionRate !== undefined
+            ? baseMetrics.rideCompletionRate
+            : baseMetrics.cancellationRate !== undefined
+            ? 100 - baseMetrics.cancellationRate
+            : undefined,
+      };
+
+      return {
+        metrics: enrichedMetrics,
+        topPerformers: top.performers,
+        recentActivity: activity.activities,
+        trendData: trend,
+      };
     } catch (error) {
-      console.error('Error fetching rider statistics:', error);
+      console.error('Error fetching combined rider statistics:', error);
       return this.getMockRiderStatistics();
     }
   }
@@ -1290,13 +1588,14 @@ export class AdminService {
       metrics: {
         activeToday: 156,
         onBooking: 43,
-        deliveredSuccess: 8934,
-        totalReviews: 7321,
         averageRating: 4.7,
         totalEarnings: 450230,
-        rideCompletionRate: 97.2,
+        completedRides: 8934,
         acceptanceRate: 94.5,
-        cancellationRate: 2.8
+        cancellationRate: 2.8,
+        partnerRiders: 230,
+        totalReviews: 7321,
+        rideCompletionRate: 97.2
       },
       topPerformers: [
         {
@@ -1366,41 +1665,11 @@ export class AdminService {
         }
       ],
       recentActivity: [
-        {
-          id: 'act-001',
-          riderId: 'rider-001',
-          riderName: 'Maria Santos',
-          activity: 'Completed ride to Downtown Mall',
-          timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString()
-        },
-        {
-          id: 'act-002',
-          riderId: 'rider-002',
-          riderName: 'Juan Dela Cruz',
-          activity: 'Accepted new booking request',
-          timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString()
-        },
-        {
-          id: 'act-003',
-          riderId: 'rider-003',
-          riderName: 'Alex Johnson',
-          activity: 'Received 5-star review from customer',
-          timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString()
-        },
-        {
-          id: 'act-004',
-          riderId: 'rider-004',
-          riderName: 'Sofia Rodriguez',
-          activity: 'Completed ride to Airport',
-          timestamp: new Date(Date.now() - 45 * 60 * 1000).toISOString()
-        },
-        {
-          id: 'act-005',
-          riderId: 'rider-005',
-          riderName: 'Michael Chen',
-          activity: 'Started new ride',
-          timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString()
-        }
+        'Completed ride to Downtown Mall',
+        'Accepted new booking request',
+        'Received 5-star review from customer',
+        'Completed ride to Airport',
+        'Started new ride'
       ],
       trendData: [
         { date: '2026-01-26', activeRiders: 145, completedRides: 634, revenue: 18920 },

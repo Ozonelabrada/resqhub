@@ -78,6 +78,7 @@ const ApplicationManagementPage: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<ApplicationStatus | 'all'>('pending');
   const [roleFilter, setRoleFilter] = useState<ApplicationRole | 'all'>('all');
+  const [typeFilter, setTypeFilter] = useState<string | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [actionModal, setActionModal] = useState<ActionModalState>({
     isOpen: false,
@@ -92,12 +93,13 @@ const ApplicationManagementPage: React.FC = () => {
   // Load applications on mount and when filters change
   useEffect(() => {
     loadApplications();
-  }, [activeTab, roleFilter, searchQuery]);
+  }, [activeTab, roleFilter, typeFilter, searchQuery]);
 
   const loadApplications = async () => {
     await fetchApplications({
       status: activeTab === 'all' ? undefined : activeTab,
       role: roleFilter === 'all' ? undefined : roleFilter,
+      type: typeFilter === 'all' ? undefined : typeFilter,
       query: searchQuery || undefined,
       pageSize: 50
     });
@@ -148,15 +150,18 @@ const ApplicationManagementPage: React.FC = () => {
     }
   };
 
-  const getStatusBadge = (status: ApplicationStatus) => {
-    const config = {
+  const getStatusBadge = (status: ApplicationStatus | string | undefined) => {
+    // backend may return "submitted" instead of "pending"; normalize.
+    const normalized = status === 'submitted' ? 'pending' : status || 'pending';
+
+    const config: Record<string, { bg: string; text: string; icon: any; label: string }> = {
       pending: { bg: 'bg-yellow-50', text: 'text-yellow-700', icon: Clock, label: 'Pending' },
       approved: { bg: 'bg-green-50', text: 'text-green-700', icon: CheckCircle, label: 'Approved' },
       rejected: { bg: 'bg-red-50', text: 'text-red-700', icon: XCircle, label: 'Rejected' },
       suspended: { bg: 'bg-orange-50', text: 'text-orange-700', icon: AlertCircle, label: 'Suspended' }
     };
 
-    const cfg = config[status];
+    const cfg = config[normalized] || config['pending'];
     const Icon = cfg.icon;
 
     return (
@@ -379,6 +384,17 @@ const ApplicationManagementPage: React.FC = () => {
             onChange={(val) => setRoleFilter(val as ApplicationRole | 'all')}
             placeholder="All Roles"
           />
+          <Select
+            value={typeFilter}
+            options={[
+              { label: 'All Types', value: 'all' },
+              { label: 'Rider', value: 'rider' },
+              { label: 'Seller', value: 'seller' },
+              { label: 'Service Provider', value: 'service_provider' }
+            ]}
+            onChange={(val) => setTypeFilter(val as string | 'all')}
+            placeholder="All Types"
+          />
         </div>
       </Card>
 
@@ -442,13 +458,13 @@ const ApplicationManagementPage: React.FC = () => {
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar 
-                              src={app.applicant.profileImage} 
-                              alt={app.applicant.name}
+                              src={app.applicant?.profileImage || ''} 
+                              alt={app.applicant?.name || ''}
                               className="h-8 w-8"
                             />
                             <div>
-                              <p className="font-medium text-sm">{app.applicant.name}</p>
-                              <p className="text-xs text-gray-500">{app.applicant.email}</p>
+                              <p className="font-medium text-sm">{app.applicant?.name || 'Unknown'}</p>
+                              <p className="text-xs text-gray-500">{app.applicant?.email || '-'}</p>
                             </div>
                           </div>
                         </TableCell>
@@ -460,7 +476,7 @@ const ApplicationManagementPage: React.FC = () => {
                         <TableCell>
                           <div className="flex items-center gap-1 text-sm">
                             <MapPin size={14} />
-                            {app.applicant.communityName}
+                            {app.applicant?.communityName || '-'}
                           </div>
                         </TableCell>
                         <TableCell>{getStatusBadge(app.status)}</TableCell>
@@ -547,15 +563,15 @@ const ApplicationManagementPage: React.FC = () => {
                   <div className="flex items-start justify-between">
                     <div className="flex gap-4">
                       <Avatar 
-                        src={selectedDetail.applicant.profileImage} 
-                        alt={selectedDetail.applicant.name}
+                        src={selectedDetail.applicant?.profileImage || ''} 
+                        alt={selectedDetail.applicant?.name || ''}
                         className="h-12 w-12"
                       />
                       <div>
-                        <h3 className="font-bold text-lg">{selectedDetail.applicant.name}</h3>
+                        <h3 className="font-bold text-lg">{selectedDetail.applicant?.name || 'Unknown'}</h3>
                         <p className="text-sm text-gray-600 flex items-center gap-2">
                           <Mail size={14} />
-                          {selectedDetail.applicant.email}
+                          {selectedDetail.applicant?.email || '-'}
                         </p>
                         {selectedDetail.applicant.phone && (
                           <p className="text-sm text-gray-600 flex items-center gap-2">
@@ -565,7 +581,7 @@ const ApplicationManagementPage: React.FC = () => {
                         )}
                         <p className="text-sm text-gray-600 flex items-center gap-2 mt-2">
                           <MapPin size={14} />
-                          {selectedDetail.applicant.communityName}
+                          {selectedDetail.applicant?.communityName || '-'}
                         </p>
                       </div>
                     </div>

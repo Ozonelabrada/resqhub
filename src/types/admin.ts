@@ -347,6 +347,11 @@ export type Application = RiderApplication | SellerApplication | ServiceProvider
 export interface ApplicationListParams {
   communityId?: string | number;
   role?: ApplicationRole | 'all';
+  /**
+   * Optional raw type parameter for the backend (`rider` | `seller` | `service_provider`)
+   * the hook/page can use this instead of or alongside `role`.
+   */
+  type?: string;
   status?: ApplicationStatus | 'all';
   query?: string;
   page?: number;
@@ -415,45 +420,104 @@ export interface AdminSearchParams {
 export interface RiderMetrics {
   activeToday: number;
   onBooking: number;
-  deliveredSuccess: number;
-  totalReviews: number;
   averageRating: number;
   totalEarnings: number;
-  rideCompletionRate: number;
+  completedRides: number;
   acceptanceRate: number;
   cancellationRate: number;
+  partnerRiders: number;
+  totalReviews: number;
+  /** computed by client when backend does not supply it */
+  rideCompletionRate?: number;
 }
 
 export interface RiderPerformance {
   id: string;
   name: string;
-  email: string;
+  email?: string;
   profileImage?: string;
   rating: number;
-  reviewsCount: number;
+  reviewsCount?: number;
   completedRides: number;
-  totalEarnings: number;
+  totalEarnings?: number;
+  /** backend uses "earnings" field which we map */
   acceptanceRate: number;
-  joinedDate: string;
+  joinedDate?: string;
   status: 'active' | 'inactive' | 'suspended';
+}
+
+export interface RiderTrendPoint {
+  date: string;
+  completedRides: number;
+  revenue: number;
+  activeRiders: number;
+}
+
+// Response for new rider list endpoint
+export interface RiderListItem {
+  id: number | string;
+  userId: string;
+  location: string;
+  vehicle: string;
+  plate: string;
+  rating: number;
+  reviews: number;
+  isActive: boolean;
+  approvalStatus: 'approved' | 'pending' | 'rejected' | 'suspended';
+  occupied: boolean;
+  avatar?: string;
+  totalCompletedRides: number;
+  cancelledRides: number;
+  dateCreated: string;
+  userDetails: {
+    userId: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber?: string;
+    userName: string;
+    profilePictureUrl?: string | null;
+  };
+}
+
+export interface RiderListResponse {
+  totalCount: number;
+  allCount: number;
+  pendingCount: number;
+  approvedCount: number;
+  rejectedCount: number;
+  suspendedCount: number;
+  page: number;
+  pageSize: number;
+  riders: RiderListItem[];
 }
 
 export interface RiderStatisticsOverview {
   metrics: RiderMetrics;
   topPerformers: RiderPerformance[];
-  recentActivity: Array<{
-    id: string;
-    riderId: string;
-    riderName: string;
-    activity: string;
-    timestamp: string;
-  }>;
-  trendData: Array<{
-    date: string;
-    activeRiders: number;
-    completedRides: number;
-    revenue: number;
-  }>;
+  recentActivity: string[]; // simple list of messages returned by backend
+  trendData: RiderTrendPoint[];
+}
+
+// helper types for paginated endpoints
+export interface PaginatedRiderPerformanceResponse {
+  data: RiderPerformance[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+  };
+}
+
+export interface PaginatedStringResponse {
+  data: string[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+  };
 }
 
 // Export commonly used types
