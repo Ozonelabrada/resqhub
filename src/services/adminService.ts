@@ -26,7 +26,12 @@ import type {
   SellerApplication,
   ServiceProviderApplication,
   RiderStatisticsOverview,
-  RiderMetrics
+  RiderMetrics,
+  RiderPerformance,
+  PaginatedRiderPerformanceResponse,
+  PaginatedStringResponse,
+  RiderTrendPoint,
+  RiderListResponse
 } from '../types/admin';
 
 // Toggle this to use real API or local mock data
@@ -894,7 +899,7 @@ export class AdminService {
       await this.simulateDelay();
       const mock = this.getMockRiderStatistics();
       return {
-        activities: mock.recentActivity.map(a => a.activity),
+        activities: mock.recentActivity,
         pagination: { page, pageSize, totalCount: mock.recentActivity.length, totalPages: 1 },
       };
     }
@@ -909,7 +914,7 @@ export class AdminService {
       console.error('Error fetching activity feed:', error);
       const mock = this.getMockRiderStatistics();
       return {
-        activities: mock.recentActivity.map(a => a.activity),
+        activities: mock.recentActivity,
         pagination: { page, pageSize, totalCount: mock.recentActivity.length, totalPages: 1 },
       };
     }
