@@ -359,7 +359,7 @@ const RiderStatisticsPage: React.FC = () => {
                     <span className="text-sm">{performer.reviewsCount}</span>
                   </TableCell>
                   <TableCell>
-                    <span className="font-bold">₱{performer.totalEarnings.toLocaleString()}</span>
+                    <span className="font-bold">₱{performer.totalEarnings?.toLocaleString() || '0'}</span>
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">

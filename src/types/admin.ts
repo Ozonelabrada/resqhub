@@ -520,6 +520,67 @@ export interface PaginatedStringResponse {
   };
 }
 
+// User Management
+export interface AdminUser {
+  id: string;              // Maps from userId
+  email: string;
+  username?: string;       // Maps from userName
+  firstName?: string;
+  lastName?: string;
+  fullName?: string;
+  profilePicture?: string; // Maps from profilePictureUrl
+  phoneNumber?: string;
+  role: 'User' | 'Moderator' | 'Admin';
+  emailVerified?: boolean; // Maps from isEmailVerified
+  isActive: boolean;       // Maps from status === 'Active'
+  lastLoginAt?: string;
+  createdAt: string;
+  updatedAt?: string;
+  // Additional stats
+  reportsCount?: number;
+  communitiesCount?: number;
+  bookingsCount?: number;
+}
+
+export interface UserListParams {
+  page?: number;
+  pageSize?: number;
+  role?: 'all' | 'User' | 'Moderator' | 'Admin';
+  status?: 'all' | 'active' | 'inactive';
+  query?: string;
+  sort?: 'name' | 'email' | 'role' | 'createdAt' | 'lastLoginAt';
+  order?: 'asc' | 'desc';
+}
+
+export interface UserListResponse extends BaseApiResponse {
+  data: {
+    items: AdminUser[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    summary: {
+      total: number;
+      active: number;
+      inactive: number;
+      admins: number;
+      users: number;
+    };
+  };
+}
+
+export interface UserRoleUpdateRequest {
+  userId: string;
+  newRole: AdminUser['role'];
+  reason?: string;
+}
+
+export interface UserStatusUpdateRequest {
+  userId: string;
+  status: 'Active' | 'Inactive' | 'Suspended' | 'Banned' | 'Pending';
+  reason?: string;
+}
+
 // Export commonly used types
 export type AdminDashboardTab = 'overview' | 'communities' | 'reports' | 'subscriptions' | 'audit';
 export type CommunityStatus = CommunitySummary['status'];

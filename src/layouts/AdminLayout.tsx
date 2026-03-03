@@ -89,6 +89,12 @@ const AdminLayout: React.FC = () => {
       path: '/admin'
     },
     {
+      id: 'users',
+      label: 'User Management',
+      icon: <Shield size={20} />,
+      path: '/admin/users'
+    },
+    {
       id: 'communities',
       label: 'Communities',
       icon: <Users size={20} />,

@@ -31,7 +31,12 @@ import type {
   PaginatedRiderPerformanceResponse,
   PaginatedStringResponse,
   RiderTrendPoint,
-  RiderListResponse
+  RiderListResponse,
+  AdminUser,
+  UserListParams,
+  UserListResponse,
+  UserRoleUpdateRequest,
+  UserStatusUpdateRequest
 } from '../types/admin';
 
 // Toggle this to use real API or local mock data
@@ -1083,6 +1088,165 @@ export class AdminService {
   }
 
 
+  // User Management
+  static async getUsers(params: UserListParams = {}): Promise<UserListResponse> {
+    try {
+      const query: Record<string, string | number> = {};
+      if (params.page) query.page = params.page;
+      if (params.pageSize) query.pageSize = params.pageSize;
+      if (params.role && params.role !== 'all') query.role = params.role;
+      if (params.status && params.status !== 'all') query.status = params.status;
+      if (params.query) query.query = params.query;
+      if (params.sort) query.sort = params.sort;
+      if (params.order) query.order = params.order;
+
+      const response = await api.get(ENDPOINTS.ADMIN.USERS, { params: query });
+      const body = response.data;
+
+      const resp = body.data || {};
+      const totalCount = resp.totalCount ?? resp.total ?? 0;
+      const page = resp.page ?? params.page ?? 1;
+      const pageSize = resp.pageSize ?? params.pageSize ?? 10;
+      const users: AdminUser[] = (resp.users || resp.items || []).map((user: any) => AdminService.mapBackendUserToAdminUser(user));
+
+      return {
+        succeeded: body.succeeded,
+        message: body.message,
+        statusCode: body.statusCode,
+        data: {
+          items: users,
+          total: totalCount,
+          page,
+          pageSize,
+          totalPages: resp.totalPages ?? Math.ceil(totalCount / pageSize),
+          summary: resp.summary || {
+            total: totalCount,
+            active: users.filter(u => u.isActive).length,
+            inactive: users.filter(u => !u.isActive).length,
+            admins: users.filter(u => u.role === 'admin').length,
+            users: users.filter(u => u.role === 'user').length
+          }
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      throw error;
+    }
+  }
+
+  static async getUserDetail(userId: string): Promise<AdminUser> {
+    try {
+      const response = await api.get(ENDPOINTS.ADMIN.USER_DETAIL(userId));
+      const backendUser = response.data.data || response.data;
+      return AdminService.mapBackendUserToAdminUser(backendUser);
+    } catch (error) {
+      console.error('Error fetching user detail:', error);
+      throw error;
+    }
+  }
+
+  static async updateUserRole(request: UserRoleUpdateRequest): Promise<AdminActionResponse> {
+    try {
+      const response = await api.patch(ENDPOINTS.ADMIN.USER_UPDATE_ROLE(request.userId), {
+        role: request.newRole,
+        reason: request.reason
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      return {
+        succeeded: false,
+        message: 'Failed to update user role',
+        statusCode: 500,
+        data: {
+          success: false,
+          message: 'Failed to update user role'
+        }
+      };
+    }
+  }
+
+  static async updateUserStatus(request: UserStatusUpdateRequest): Promise<AdminActionResponse> {
+    try {
+      const response = await api.patch(ENDPOINTS.ADMIN.USER_UPDATE_STATUS(request.userId), {
+        status: request.status,
+        reason: request.reason
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating user status:', error);
+      return {
+        succeeded: false,
+        message: 'Failed to update user status',
+        statusCode: 500,
+        data: {
+          success: false,
+          message: 'Failed to update user status'
+        }
+      };
+    }
+  }
+
+  static async deleteUser(userId: string, reason?: string): Promise<AdminActionResponse> {
+    try {
+      const response = await api.delete(ENDPOINTS.ADMIN.USER_DELETE(userId), {
+        data: { reason }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      return {
+        succeeded: false,
+        message: 'Failed to delete user',
+        statusCode: 500,
+        data: {
+          success: false,
+          message: 'Failed to delete user'
+        }
+      };
+    }
+  }
+
+
+  // User data mapping utilities
+  private static mapBackendUserToAdminUser(backendUser: any): AdminUser {
+    return {
+      id: backendUser.userId,
+      email: backendUser.email,
+      username: backendUser.userName,
+      firstName: backendUser.firstName,
+      lastName: backendUser.lastName,
+      fullName: backendUser.fullName,
+      profilePicture: backendUser.profilePictureUrl,
+      phoneNumber: backendUser.phoneNumber,
+      role: AdminService.mapBackendRoleToFrontendRole(backendUser.role),
+      emailVerified: backendUser.isEmailVerified,
+      isActive: backendUser.status === 'Active',
+      lastLoginAt: backendUser.lastLoginAt,
+      createdAt: backendUser.createdAt,
+      updatedAt: backendUser.createdAt, // Backend doesn't provide updatedAt, using createdAt
+    };
+  }
+
+  private static mapBackendRoleToFrontendRole(backendRole: string): AdminUser['role'] {
+    const roleMap: Record<string, AdminUser['role']> = {
+      'User': 'User',
+      'Admin': 'Admin',
+      'Moderator': 'Moderator',
+      'admin': 'Admin', // Handle lowercase admin
+      'moderator': 'Moderator', // Handle lowercase moderator
+      'Rider': 'User', // Map rider to User
+      'Seller': 'User', // Map seller to User
+      'Service Provider': 'User', // Map service provider to User
+    };
+    return roleMap[backendRole] || 'User'; // Default to User
+  }
+
+  private static mapFrontendStatusToBackendStatus(isActive: boolean): string {
+    return isActive ? 'Active' : 'Inactive';
+  }
+
+
   // Helper Methods for Mocking
   private static async simulateDelay(ms: number = 300): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -1687,6 +1851,192 @@ export class AdminService {
       ]
     };
   }
+
+  private static getMockUsers(): AdminUser[] {
+    return [
+      {
+        id: 'user-001',
+        email: 'admin@resqhub.com',
+        username: 'admin',
+        firstName: 'System',
+        lastName: 'Administrator',
+        fullName: 'System Administrator',
+        profilePicture: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin',
+        role: 'admin',
+        emailVerified: true,
+        isActive: true,
+        lastLoginAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        createdAt: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        reportsCount: 0,
+        communitiesCount: 5,
+        bookingsCount: 0
+      },
+      {
+        id: 'user-002',
+        email: 'john.doe@example.com',
+        username: 'johndoe',
+        firstName: 'John',
+        lastName: 'Doe',
+        fullName: 'John Doe',
+        profilePicture: 'https://api.dicebear.com/7.x/avataaars/svg?seed=John',
+        role: 'user',
+        emailVerified: true,
+        isActive: true,
+        lastLoginAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+        createdAt: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+        reportsCount: 12,
+        communitiesCount: 3,
+        bookingsCount: 8
+      },
+      {
+        id: 'user-003',
+        email: 'jane.smith@example.com',
+        username: 'janesmith',
+        firstName: 'Jane',
+        lastName: 'Smith',
+        fullName: 'Jane Smith',
+        profilePicture: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Jane',
+        role: 'rider',
+        emailVerified: true,
+        isActive: true,
+        lastLoginAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+        createdAt: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+        reportsCount: 0,
+        communitiesCount: 1,
+        bookingsCount: 45
+      },
+      {
+        id: 'user-004',
+        email: 'mike.wilson@example.com',
+        username: 'mikewilson',
+        firstName: 'Mike',
+        lastName: 'Wilson',
+        fullName: 'Mike Wilson',
+        profilePicture: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mike',
+        role: 'seller',
+        emailVerified: false,
+        isActive: true,
+        lastLoginAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        reportsCount: 2,
+        communitiesCount: 2,
+        bookingsCount: 15
+      },
+      {
+        id: 'user-005',
+        email: 'sarah.johnson@example.com',
+        username: 'sarahj',
+        firstName: 'Sarah',
+        lastName: 'Johnson',
+        fullName: 'Sarah Johnson',
+        profilePicture: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
+        role: 'moderator',
+        emailVerified: true,
+        isActive: true,
+        lastLoginAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+        createdAt: new Date(Date.now() - 200 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+        reportsCount: 8,
+        communitiesCount: 4,
+        bookingsCount: 0
+      },
+      {
+        id: 'user-006',
+        email: 'inactive@example.com',
+        username: 'inactiveuser',
+        firstName: 'Inactive',
+        lastName: 'User',
+        fullName: 'Inactive User',
+        profilePicture: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Inactive',
+        role: 'user',
+        emailVerified: false,
+        isActive: false,
+        lastLoginAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+        createdAt: new Date(Date.now() - 300 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+        reportsCount: 1,
+        communitiesCount: 0,
+        bookingsCount: 2
+      }
+    ];
+  }
+
+  // private static filterMockUsers(users: AdminUser[], params: UserListParams): AdminUser[] {
+  //   let filtered = [...users];
+
+  //   // Filter by role
+  //   if (params.role && params.role !== 'all') {
+  //     filtered = filtered.filter(user => user.role === params.role);
+  //   }
+
+  //   // Filter by status
+  //   if (params.status && params.status !== 'all') {
+  //     const isActive = params.status === 'active';
+  //     filtered = filtered.filter(user => user.isActive === isActive);
+  //   }
+
+  //   // Filter by query (search in name, email, username)
+  //   if (params.query) {
+  //     const query = params.query.toLowerCase();
+  //     filtered = filtered.filter(user =>
+  //       user.fullName?.toLowerCase().includes(query) ||
+  //       user.email.toLowerCase().includes(query) ||
+  //       user.username?.toLowerCase().includes(query)
+  //     );
+  //   }
+
+  //   // Sort
+  //   if (params.sort) {
+  //     filtered.sort((a, b) => {
+  //       let aValue: any, bValue: any;
+
+  //       switch (params.sort) {
+  //         case 'name':
+  //           aValue = a.fullName || '';
+  //           bValue = b.fullName || '';
+  //           break;
+  //         case 'email':
+  //           aValue = a.email;
+  //           bValue = b.email;
+  //           break;
+  //         case 'role':
+  //           aValue = a.role;
+  //           bValue = b.role;
+  //           break;
+  //         case 'createdAt':
+  //           aValue = new Date(a.createdAt);
+  //           bValue = new Date(b.createdAt);
+  //           break;
+  //         case 'lastLoginAt':
+  //           aValue = a.lastLoginAt ? new Date(a.lastLoginAt) : new Date(0);
+  //           bValue = b.lastLoginAt ? new Date(b.lastLoginAt) : new Date(0);
+  //           break;
+  //         default:
+  //           return 0;
+  //       }
+
+  //       if (aValue < bValue) return params.order === 'desc' ? 1 : -1;
+  //       if (aValue > bValue) return params.order === 'desc' ? -1 : 1;
+  //       return 0;
+  //     });
+  //   }
+
+  //   return filtered;
+  // }
+
+  // private static getMockUsersSummary(users: AdminUser[]) {
+  //   return {
+  //     total: users.length,
+  //     active: users.filter(u => u.isActive).length,
+  //     inactive: users.filter(u => !u.isActive).length,
+  //     admins: users.filter(u => u.role === 'admin').length,
+  //     users: users.filter(u => u.role === 'user').length
+  //   };
+  // }
 }
 
 export default AdminService;

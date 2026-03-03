@@ -33,6 +33,12 @@ export const ENDPOINTS = {
     RIDERS_OVERVIEW: '/admin/riders/overview',
     // public endpoint for the rider list (not admin scoped)
     RIDERS_LIST: '/riders/list',
+    // User Management
+    USERS: '/admin/users',
+    USER_DETAIL: (id: string) => `/admin/users/${id}`,
+    USER_UPDATE_ROLE: (id: string) => `/admin/users/${id}/role`,
+    USER_UPDATE_STATUS: (id: string) => `/admin/users/${id}/status`,
+    USER_DELETE: (id: string) => `/admin/users/${id}`,
   },
   AUTH: {
     LOGIN: '/auth/login',
