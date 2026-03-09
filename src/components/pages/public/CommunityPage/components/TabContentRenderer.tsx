@@ -36,8 +36,8 @@ interface TabContentRendererProps {
   onRefresh: () => Promise<void>;
   onNewsModalOpen: () => void;
   onEventModalOpen: () => void;
-  onApprove: (requestId: number, userId: string) => Promise<boolean>;
-  onReject: (requestId: number, userId: string) => Promise<boolean>;
+  onApprove: (userId: string) => Promise<boolean>;
+  onReject: (userId: string) => Promise<boolean>;
 }
 
 const TabContentRenderer: React.FC<TabContentRendererProps> = ({

@@ -90,7 +90,14 @@ export const UserManagementPage: React.FC<UserManagementPageProps> = ({ classNam
           total: response.data.total,
           totalPages: response.data.totalPages
         });
-        setSummary(response.data.summary);
+        setSummary({
+          total: response.data.summary.total || 0,
+          active: response.data.summary.active || 0,
+          inactive: response.data.summary.inactive || 0,
+          admins: response.data.summary.admins || 0,
+          moderators: response.data.summary.moderators || 0,
+          users: response.data.summary.users || 0
+        });
       } else {
         setError(response.message || 'Failed to fetch users');
       }

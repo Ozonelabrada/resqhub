@@ -27,9 +27,9 @@ export interface UseApplicationManagementReturn {
   // Methods
   fetchApplications: (params: ApplicationListParams) => Promise<void>;
   fetchApplicationDetail: (id: string) => Promise<void>;
-  approveApplication: (id: string, reason?: string) => Promise<boolean>;
-  rejectApplication: (id: string, reason: string) => Promise<boolean>;
-  suspendApplication: (id: string, reason?: string) => Promise<boolean>;
+  approveApplication: (id: string, reason?: string, applicationType?: ApplicationRole) => Promise<boolean>;
+  rejectApplication: (id: string, reason: string, applicationType?: ApplicationRole) => Promise<boolean>;
+  suspendApplication: (id: string, reason?: string, applicationType?: ApplicationRole) => Promise<boolean>;
   reactivateApplication: (id: string, reason?: string) => Promise<boolean>;
   clearDetail: () => void;
 }
@@ -51,6 +51,14 @@ export const useApplicationManagement = (): UseApplicationManagementReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
+
+  const isActionResponseSuccessful = (response: any): boolean => {
+    if (!response || response.succeeded === false) return false;
+    if (typeof response?.data?.success === 'boolean') {
+      return response.data.success;
+    }
+    return response.succeeded === true;
+  };
 
   // Fetch applications with optional filters
   const fetchApplications = useCallback(
@@ -81,8 +89,20 @@ export const useApplicationManagement = (): UseApplicationManagementReturn => {
     async (id: string): Promise<void> => {
       setIsDetailLoading(true);
       try {
-        const detail = await AdminService.getApplicationDetail(id);
-        setApplicationDetail(detail);
+        // For rider applications, use the detailed rider endpoint
+        // First get the basic application to check the type
+        const basicApp = await AdminService.getApplicationDetail(id);
+        if (basicApp.applicationType === 'rider') {
+          const riderDetail = await AdminService.getRiderDetail(id);
+          // Merge the rider detail with the application data
+          const mergedDetail = {
+            ...basicApp,
+            riderDetail: riderDetail
+          };
+          setApplicationDetail(mergedDetail);
+        } else {
+          setApplicationDetail(basicApp);
+        }
       } catch (error) {
         console.error('Error fetching application detail:', error);
         toast.error('Failed to load application details');
@@ -95,16 +115,16 @@ export const useApplicationManagement = (): UseApplicationManagementReturn => {
 
   // Approve application
   const approveApplication = useCallback(
-    async (id: string, reason?: string): Promise<boolean> => {
+    async (id: string, reason?: string, applicationType?: ApplicationRole): Promise<boolean> => {
       setIsActionLoading(true);
       try {
         const response = await AdminService.approveApplication(id, {
           type: 'approve',
           reason,
           notifyUser: true
-        });
+        }, applicationType);
 
-        if (response.succeeded && response.data.success) {
+        if (isActionResponseSuccessful(response)) {
           toast.success('Application approved successfully');
           
           // Update local state
@@ -122,7 +142,7 @@ export const useApplicationManagement = (): UseApplicationManagementReturn => {
 
           return true;
         }
-        toast.error(response.data?.message || 'Failed to approve application');
+        toast.error(response.data?.message || response.message || 'Failed to approve application');
         return false;
       } catch (error) {
         console.error('Error approving application:', error);
@@ -137,7 +157,7 @@ export const useApplicationManagement = (): UseApplicationManagementReturn => {
 
   // Reject application
   const rejectApplication = useCallback(
-    async (id: string, reason: string): Promise<boolean> => {
+    async (id: string, reason: string, applicationType?: ApplicationRole): Promise<boolean> => {
       if (!reason.trim()) {
         toast.error('Please provide a rejection reason');
         return false;
@@ -149,9 +169,9 @@ export const useApplicationManagement = (): UseApplicationManagementReturn => {
           type: 'reject',
           reason,
           notifyUser: true
-        });
+        }, applicationType);
 
-        if (response.succeeded && response.data.success) {
+        if (isActionResponseSuccessful(response)) {
           toast.success('Application rejected');
           
           // Update local state
@@ -175,7 +195,7 @@ export const useApplicationManagement = (): UseApplicationManagementReturn => {
 
           return true;
         }
-        toast.error(response.data?.message || 'Failed to reject application');
+        toast.error(response.data?.message || response.message || 'Failed to reject application');
         return false;
       } catch (error) {
         console.error('Error rejecting application:', error);
@@ -190,16 +210,16 @@ export const useApplicationManagement = (): UseApplicationManagementReturn => {
 
   // Suspend application
   const suspendApplication = useCallback(
-    async (id: string, reason?: string): Promise<boolean> => {
+    async (id: string, reason?: string, applicationType?: ApplicationRole): Promise<boolean> => {
       setIsActionLoading(true);
       try {
         const response = await AdminService.suspendApplication(id, {
           type: 'suspend',
           reason,
           notifyUser: true
-        });
+        }, applicationType);
 
-        if (response.succeeded && response.data.success) {
+        if (isActionResponseSuccessful(response)) {
           toast.success('Application suspended');
           
           // Update local state
@@ -217,7 +237,7 @@ export const useApplicationManagement = (): UseApplicationManagementReturn => {
 
           return true;
         }
-        toast.error(response.data?.message || 'Failed to suspend application');
+        toast.error(response.data?.message || response.message || 'Failed to suspend application');
         return false;
       } catch (error) {
         console.error('Error suspending application:', error);

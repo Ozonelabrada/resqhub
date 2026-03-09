@@ -24,6 +24,9 @@ export const ENDPOINTS = {
     APPLICATION_REJECT: (id: string) => `/admin/applications/${id}/reject`,
     APPLICATION_SUSPEND: (id: string) => `/admin/applications/${id}/suspend`,
     APPLICATION_REACTIVATE: (id: string) => `/admin/applications/${id}/reactivate`,
+    RIDER_APPLICATION_APPROVE: (id: string) => `/admin/riders/applications/${id}/approve`,
+    RIDER_APPLICATION_DENY: (id: string) => `/admin/riders/applications/${id}/deny`,
+    RIDER_APPLICATION_SUSPEND: (id: string) => `/admin/riders/applications/${id}/suspend`,
     // Rider Statistics
     RIDERS: '/admin/riders',
     RIDERS_STATISTICS: '/admin/riders/statistics',

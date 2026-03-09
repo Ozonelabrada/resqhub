@@ -7,16 +7,18 @@ import { cn } from '@/lib/utils';
 interface EventObjectivesProps {
   event: EventData;
   isEventCreator: boolean;
+  isAdmin?: boolean;
 }
 
 /**
  * Event objectives tab component
  * <70 lines - displays event objectives with completion status
  */
-const EventObjectives: React.FC<EventObjectivesProps> = ({ event, isEventCreator }) => {
+const EventObjectives: React.FC<EventObjectivesProps> = ({ event, isEventCreator, isAdmin = false }) => {
   const completedCount = (event?.stats?.objectives?.completed ?? event?.objectives?.filter(o => o.completed).length) || 0;
   const totalCount = (event?.stats?.objectives?.total ?? event?.objectives?.length) || 0;
   const progress = event?.stats?.objectives?.progressPercent ?? (totalCount ? Math.round((completedCount / totalCount) * 100) : 0);
+  const canManageObjectives = isEventCreator || isAdmin;
 
   return (
     <div className="space-y-4">
@@ -24,7 +26,7 @@ const EventObjectives: React.FC<EventObjectivesProps> = ({ event, isEventCreator
         <h3 className="text-lg font-black text-slate-800">
           Event Objectives ({completedCount}/{totalCount})
         </h3>
-        {isEventCreator && event?.status === 'in-progress' && (
+        {canManageObjectives && event?.status === 'in-progress' && (
           <Button className="bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-sm flex items-center gap-2">
             <Plus size={16} />
             Add Objective

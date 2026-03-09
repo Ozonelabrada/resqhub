@@ -1,24 +1,44 @@
 import React from 'react';
 import { EventData } from '../hooks/useEventData';
-import { Clock } from 'lucide-react';
+import { Button } from '@/components/ui';
+import { Clock, Plus } from 'lucide-react';
 import { formatSimpleMarkdown } from '@/utils/validation';
 
 interface EventScheduleProps {
   event: EventData;
+  isAdmin?: boolean;
+  isEventCreator?: boolean;
 }
 
 /**
  * Event schedule tab component
  * <60 lines - displays timeline of event activities
  */
-const EventSchedule: React.FC<EventScheduleProps> = ({ event }) => {
+const EventSchedule: React.FC<EventScheduleProps> = ({ event, isAdmin = false, isEventCreator = false }) => {
   const sessionsCount = event?.stats?.schedule?.sessionsCount ?? event?.schedule?.length ?? 0;
+  const canManageSchedule = isAdmin || isEventCreator;
+
+  const handleAddSession = () => {
+    // TODO: Open add session modal
+    console.log('Add session clicked');
+  };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-black text-slate-800 mb-6">Event Schedule</h3>
-        <div className="text-xs font-bold text-slate-500 uppercase mt-1">Sessions: {sessionsCount}</div>
+        <div className="flex items-center gap-2">
+          {canManageSchedule && (
+            <Button
+              onClick={handleAddSession}
+              className="bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-sm flex items-center gap-2"
+            >
+              <Plus size={16} />
+              Add Session
+            </Button>
+          )}
+          <div className="text-xs font-bold text-slate-500 uppercase">Sessions: {sessionsCount}</div>
+        </div>
       </div>
 
       <div className="space-y-3">

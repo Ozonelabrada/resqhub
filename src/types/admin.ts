@@ -249,7 +249,7 @@ export interface AuditLogEntry {
 // =========================================
 // Application Management Types
 // =========================================
-export type ApplicationRole = 'rider' | 'seller' | 'service_provider';
+export type ApplicationRole = 'rider' | 'store' | 'serviceprovider';
 export type ApplicationStatus = 'pending' | 'approved' | 'rejected' | 'suspended';
 
 export interface ApplicationApplicant {
@@ -265,19 +265,25 @@ export interface ApplicationApplicant {
 // Base application interface
 export interface BaseApplication {
   id: string;
-  applicantId: string;
-  applicant: ApplicationApplicant;
-  role: ApplicationRole;
-  status: ApplicationStatus;
-  createdAt: string;
-  updatedAt: string;
+  userId: string;
+  applicationType: string;
+  ownerId: number;
+  status: string;
+  remarks?: string;
+  submittedAt: string;
+  reviewedByUserId?: string;
   reviewedAt?: string;
-  reviewedBy?: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  rejectionReason?: string;
+  dateCreated: string;
+  createdBy: string;
+  userName: string;
+  userRole: string;
+  userAddress: string;
+  // Legacy fields for backward compatibility
+  applicantId?: string;
+  applicant?: ApplicationApplicant;
+  role?: ApplicationRole;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Rider Application
@@ -300,7 +306,7 @@ export interface RiderApplication extends BaseApplication {
 
 // Seller Application
 export interface SellerApplication extends BaseApplication {
-  role: 'seller';
+  role: 'store';
   businessInfo: {
     businessName: string;
     businessType: string; // RETAIL, FOOD, SERVICES, EVENTS
@@ -323,7 +329,7 @@ export interface SellerApplication extends BaseApplication {
 
 // Service Provider Application
 export interface ServiceProviderApplication extends BaseApplication {
-  role: 'service_provider';
+  role: 'serviceprovider';
   serviceInfo: {
     serviceName: string;
     category: string; // e.g., "Hair & Beauty", "Cleaning", "Home Repair"
@@ -346,7 +352,7 @@ export type Application = RiderApplication | SellerApplication | ServiceProvider
 
 export interface ApplicationListParams {
   communityId?: string | number;
-  role?: ApplicationRole | 'all';
+  applicationType?: ApplicationRole | 'all';
   /**
    * Optional raw type parameter for the backend (`rider` | `seller` | `service_provider`)
    * the hook/page can use this instead of or alongside `role`.
@@ -564,6 +570,7 @@ export interface UserListResponse extends BaseApiResponse {
       active: number;
       inactive: number;
       admins: number;
+      moderators: number;
       users: number;
     };
   };

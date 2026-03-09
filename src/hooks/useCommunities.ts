@@ -105,14 +105,14 @@ export const useCommunityDetail = (id: string | undefined) => {
 
   const approveRequest = async (requestId: number, userId: string) => {
     if (!id) return false;
-    const success = await CommunityService.approveJoinRequest(id, requestId, userId);
+    const success = await CommunityService.approveJoinRequest(id, userId);
     if (success) fetchDetail();
     return success;
   };
 
   const rejectRequest = async (requestId: number, userId: string) => {
     if (!id) return false;
-    const success = await CommunityService.rejectJoinRequest(id, requestId, userId);
+    const success = await CommunityService.rejectJoinRequest(id, userId);
     if (success) fetchDetail();
     return success;
   };

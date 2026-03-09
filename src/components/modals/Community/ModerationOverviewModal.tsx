@@ -41,7 +41,7 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState<ReportAbuseResponse | null>(null);
-  const [processingId, setProcessingId] = useState<number | null>(null);
+  const [processingId, setProcessingId] = useState<number | string | null>(null);
 
   const fetchReports = async () => {
     try {
@@ -57,7 +57,7 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
     if (!communityId) return;
     try {
       const data = await CommunityService.getJoinRequests(String(communityId));
-      setJoinRequests(Array.isArray(data) ? data : []);
+      setJoinRequests(Array.isArray(data.requests) ? data.requests : []);
     } catch (error) {
       console.error('Failed to fetch join requests:', error);
       setJoinRequests([]);
@@ -76,10 +76,10 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
     }
   }, [isOpen, communityId]);
 
-  const handleApproveRequest = async (requestId: number, userId: string) => {
-    setProcessingId(requestId);
+  const handleApproveRequest = async (userId: string) => {
+    setProcessingId(userId);
     try {
-      const success = await CommunityService.approveJoinRequest(String(communityId), requestId, userId);
+      const success = await CommunityService.approveJoinRequest(String(communityId), userId);
       if (success) {
         toast.success(t('moderation.member_approved'));
         await fetchJoinRequests();
@@ -89,10 +89,10 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
     }
   };
 
-  const handleRejectRequest = async (requestId: number, userId: string) => {
-    setProcessingId(requestId);
+  const handleRejectRequest = async (userId: string) => {
+    setProcessingId(userId);
     try {
-      const success = await CommunityService.rejectJoinRequest(String(communityId), requestId, userId);
+      const success = await CommunityService.rejectJoinRequest(String(communityId), userId);
       if (success) {
         toast.success(t('moderation.request_rejected'));
         await fetchJoinRequests();
@@ -245,7 +245,7 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
               ) : (
                 joinRequests.map((request) => (
                   <div
-                    key={request.id}
+                    key={`${request.userId}-${request.communityId}`}
                     className="w-full p-4 rounded-2xl bg-white border border-slate-100 hover:border-teal-200 transition-all"
                   >
                     <div className="flex items-center gap-3 mb-3">
@@ -268,21 +268,21 @@ const ModerationOverviewModal: React.FC<ModerationOverviewModalProps> = ({ isOpe
                          <MessageCircle size={12} /> {t('moderation.chat')}
                       </Button>
                       <Button
-                        onClick={() => handleRejectRequest(request.id, request.userId)}
+                        onClick={() => handleRejectRequest(request.userId)}
                         disabled={!!processingId}
                         variant="outline"
                         size="sm"
                         className="h-8 w-8 px-0 rounded-lg border-slate-100 text-rose-500 hover:bg-rose-50"
                       >
-                        {processingId === request.id ? <Spinner size="sm" /> : <X size={14} />}
+                        {processingId === request.userId ? <Spinner size="sm" /> : <X size={14} />}
                       </Button>
                       <Button
-                        onClick={() => handleApproveRequest(request.id, request.userId)}
+                        onClick={() => handleApproveRequest(request.userId)}
                         disabled={!!processingId}
                         size="sm"
                         className="h-8 w-8 px-0 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white"
                       >
-                        {processingId === request.id ? <Spinner size="sm" /> : <Check size={14} />}
+                        {processingId === request.userId ? <Spinner size="sm" /> : <Check size={14} />}
                       </Button>
                     </div>
                   </div>
