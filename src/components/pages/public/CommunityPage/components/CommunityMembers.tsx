@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Avatar, Button, ShadcnBadge as Badge } from '@/components/ui';
+import React, { useState, useEffect, useRef } from 'react';
+import { Card, Avatar, Button, ShadcnBadge as Badge, Spinner } from '@/components/ui';
 import { useNavigate } from 'react-router-dom';
 import { ProfilePreviewModal, AddVolunteerModal } from '@/components/modals';
 import { 
@@ -50,8 +50,8 @@ interface CommunityMembersProps {
   isAdmin?: boolean;
   isModerator?: boolean;
   communityId?: string | number;
-  onApprove?: (requestId: number, userId: string) => Promise<boolean>;
-  onReject?: (requestId: number, userId: string) => Promise<boolean>;
+  onApprove?: (userId: string) => Promise<boolean>;
+  onReject?: (userId: string) => Promise<boolean>;
   onRefresh?: () => void;
 }
 
@@ -70,14 +70,17 @@ export const CommunityMembers: React.FC<CommunityMembersProps> = ({
   // UI State
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'moderator' | 'member' | 'seller'>('all');
-  const [activeSubTab, setActiveSubTab] = useState<'members' | 'requests' | 'volunteers' | 'sellers'>('members');
+  const [activeSubTab, setActiveSubTab] = useState<'members' | 'request' | 'volunteers' | 'sellers'>('members');
   const [activeSellerSubTab, setActiveSellerSubTab] = useState<'pending' | 'approved' | 'rejected' | 'suspended'>('pending');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [processingId, setProcessingId] = useState<number | null>(null);
+  const [processingId, setProcessingId] = useState<number | string | null>(null);
   const [isProfilePreviewOpen, setIsProfilePreviewOpen] = useState(false);
   const [selectedUserProfile, setSelectedUserProfile] = useState<any>(null);
   const [volunteers, setVolunteers] = useState<CommunityMember[]>([]);
   const [isAddVolunteerModalOpen, setIsAddVolunteerModalOpen] = useState(false);
+  const [fetchedJoinRequests, setFetchedJoinRequests] = useState<JoinRequest[]>([]);
+  const [joinRequestsLoading, setJoinRequestsLoading] = useState(false);
+  const [joinRequestsError, setJoinRequestsError] = useState<string | null>(null);
   const [selectedStore, setSelectedStore] = useState<any>(null);
 
   // Custom Hooks
@@ -96,7 +99,7 @@ export const CommunityMembers: React.FC<CommunityMembersProps> = ({
     }
   }, [communityId, fetchMemberCounts]);
 
-  // Fetch and filter volunteers from API endpoint
+  // Fetch volunteers when volunteers tab is active
   useEffect(() => {
     const fetchVolunteers = async () => {
       if (activeSubTab === 'volunteers' && communityId) {
@@ -116,6 +119,38 @@ export const CommunityMembers: React.FC<CommunityMembersProps> = ({
     
     fetchVolunteers();
   }, [activeSubTab, communityId]);
+
+  // Fetch join requests when requests tab is active
+  useEffect(() => {
+    const fetchJoinRequests = async () => {
+      if (activeSubTab === 'request' && communityId) {
+        setJoinRequestsLoading(true);
+        try {
+          const result = await CommunityService.getJoinRequests(String(communityId), 10, 1);
+          setFetchedJoinRequests(result.requests);
+          setJoinRequestsError(null);
+        } catch (error) {
+          console.error('Error fetching join requests:', error);
+          setFetchedJoinRequests([]);
+          setJoinRequestsError('Failed to load join requests. Please try again.');
+        } finally {
+          setJoinRequestsLoading(false);
+        }
+      }
+    };
+
+    fetchJoinRequests();
+  }, [activeSubTab, communityId]);
+
+  const prevActiveSubTabRef = useRef<string>('members');
+
+  // Refresh members when members tab is activated
+  useEffect(() => {
+    if (activeSubTab === 'members' && prevActiveSubTabRef.current !== 'members' && onRefresh) {
+      onRefresh();
+    }
+    prevActiveSubTabRef.current = activeSubTab;
+  }, [activeSubTab, onRefresh]);
 
   // Fetch stores when sellers tab is active
   useEffect(() => {
@@ -146,29 +181,22 @@ export const CommunityMembers: React.FC<CommunityMembersProps> = ({
     return matchesSearch && matchesRole;
   });
 
-  // Combine pending members from API with those who have memberIsApproved = false
-  const allPendingRequests = [
-    ...joinRequests.filter(req => req.status === 'Pending'),
-    ...pendingMembers.map(member => ({
-      id: parseInt(member.id) || Math.random(),
-      userId: member.id,
-      userName: member.username,
-      userFullName: member.name,
-      userEmail: undefined,
-      userPhone: undefined,
-      userAddress: undefined,
-      userAge: undefined,
-      userSex: undefined,
-      userLocation: undefined,
-      requestMessage: undefined,
-      verificationStatus: undefined,
-      profilePictureUrl: member.profilePicture,
-      communityId: 0,
-      dateCreated: member.joinedAt,
-      status: 'Pending' as const
-    }))
-  ];
-  const pendingRequests = allPendingRequests;
+  // Use fetched join requests for request tab, otherwise combine with pending members
+  const pendingRequests = activeSubTab === 'request' 
+    ? fetchedJoinRequests 
+    : [
+        ...(joinRequests || []).filter(req => req.status === 'Pending'),
+        ...pendingMembers.map(member => ({
+          communityId: parseInt(String(communityId || '0')),
+          userId: member.id,
+          userName: member.username,
+          userFullName: member.name,
+          userEmail: '',
+          requestedDate: member.joinedAt || new Date().toISOString(),
+          status: 'Pending',
+          roles: []
+        } as JoinRequest))
+      ];
 
   // Handle store action with fresh detail fetch
   const handleProcessStoreAction = async (action: 'approve' | 'reject' | 'suspend' | 'reopen') => {
@@ -193,11 +221,11 @@ export const CommunityMembers: React.FC<CommunityMembersProps> = ({
   };
 
   // Member Request Handlers
-  const handleApprove = async (requestId: number, userId: string) => {
+  const handleApprove = async (userId: string) => {
     if (!onApprove) return;
-    setProcessingId(requestId);
+    setProcessingId(parseInt(userId) || 0); // Use userId as processingId for now
     try {
-      const success = await onApprove(requestId, userId);
+      const success = await onApprove(userId);
       if (success) toast.success('Member approved successfully');
       else toast.error('Failed to approve member');
     } finally {
@@ -205,11 +233,11 @@ export const CommunityMembers: React.FC<CommunityMembersProps> = ({
     }
   };
 
-  const handleReject = async (requestId: number, userId: string) => {
+  const handleReject = async (userId: string) => {
     if (!onReject) return;
-    setProcessingId(requestId);
+    setProcessingId(parseInt(userId) || 0);
     try {
-      const success = await onReject(requestId, userId);
+      const success = await onReject(userId);
       if (success) toast.success('Join request rejected');
       else toast.error('Failed to reject request');
     } finally {
@@ -307,10 +335,10 @@ export const CommunityMembers: React.FC<CommunityMembersProps> = ({
                 <Badge variant="secondary" className="bg-slate-200 text-slate-600 border-none px-1 py-0 min-w-[18px] h-4 text-[7px]">{memberCounts.allResidents}</Badge>
               </button>
               <button
-                onClick={() => setActiveSubTab('requests')}
+                onClick={() => setActiveSubTab('request')}
                 className={cn(
                   "px-3 md:px-6 py-2 md:py-3 rounded-lg md:rounded-xl text-[10px] md:text-xs font-black uppercase tracking-[0.1em] transition-all flex items-center gap-2",
-                  activeSubTab === 'requests' 
+                  activeSubTab === 'request'
                     ? "bg-rose-500 text-white shadow-lg shadow-rose-100" 
                     : "text-slate-400 hover:text-rose-500"
                 )}
@@ -379,17 +407,75 @@ export const CommunityMembers: React.FC<CommunityMembersProps> = ({
         />
       )}
 
-      {activeSubTab === 'requests' && isPrivileged && (
-        <JoinRequestsGrid
-          requests={pendingRequests}
-          processingId={processingId}
-          onApprove={handleApprove}
-          onReject={handleReject}
-          onViewProfile={(userId) => {
-            setSelectedUserId(userId);
-            setIsProfilePreviewOpen(true);
-          }}
-        />
+      {activeSubTab === 'request' && isPrivileged && (
+        joinRequestsLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Spinner size="lg" className="text-teal-600" />
+            <span className="ml-3 text-slate-600 font-medium">Loading join requests...</span>
+          </div>
+        ) : joinRequestsError ? (
+          <div className="text-center py-12">
+            <AlertCircle className="mx-auto h-12 w-12 text-red-500 mb-4" />
+            <p className="text-red-600 font-medium">{joinRequestsError}</p>
+            <Button
+              onClick={() => {
+                // Retry fetching
+                const fetchJoinRequests = async () => {
+                  if (communityId) {
+                    setJoinRequestsLoading(true);
+                    setJoinRequestsError(null);
+                    try {
+                      const result = await CommunityService.getJoinRequests(String(communityId), 10, 1);
+                      setFetchedJoinRequests(result.requests);
+                    } catch (error) {
+                      console.error('Error fetching join requests:', error);
+                      setFetchedJoinRequests([]);
+                      setJoinRequestsError('Failed to load join requests. Please try again.');
+                    } finally {
+                      setJoinRequestsLoading(false);
+                    }
+                  }
+                };
+                fetchJoinRequests();
+              }}
+              className="mt-4"
+              variant="outline"
+            >
+              Retry
+            </Button>
+          </div>
+        ) : (
+          <JoinRequestsGrid
+            requests={pendingRequests}
+            processingId={processingId}
+            onApprove={handleApprove}
+            onReject={handleReject}
+            onRefresh={() => {
+              // Refresh join requests
+              const fetchJoinRequests = async () => {
+                if (communityId) {
+                  setJoinRequestsLoading(true);
+                  setJoinRequestsError(null);
+                  try {
+                    const result = await CommunityService.getJoinRequests(String(communityId), 10, 1);
+                    setFetchedJoinRequests(result.requests);
+                  } catch (error) {
+                    console.error('Error fetching join requests:', error);
+                    setFetchedJoinRequests([]);
+                    setJoinRequestsError('Failed to load join requests. Please try again.');
+                  } finally {
+                    setJoinRequestsLoading(false);
+                  }
+                }
+              };
+              fetchJoinRequests();
+            }}
+            onViewProfile={(userId) => {
+              setSelectedUserId(userId);
+              setIsProfilePreviewOpen(true);
+            }}
+          />
+        )
       )}
 
       {activeSubTab === 'volunteers' && isPrivileged && (

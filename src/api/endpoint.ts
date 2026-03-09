@@ -16,6 +16,32 @@ export const ENDPOINTS = {
     PAYMENTS: '/admin/payments',
     AUDIT: '/admin/audit',
     AUDIT_LOG: '/admin/audit/log',
+    // Applications Management
+    APPLICATIONS: '/admin/applications',
+    APPLICATIONS_BY_ROLE: (role: string) => `/admin/applications?role=${role}`,
+    APPLICATION_DETAIL: (id: string) => `/admin/applications/${id}`,
+    APPLICATION_APPROVE: (id: string) => `/admin/applications/${id}/approve`,
+    APPLICATION_REJECT: (id: string) => `/admin/applications/${id}/reject`,
+    APPLICATION_SUSPEND: (id: string) => `/admin/applications/${id}/suspend`,
+    APPLICATION_REACTIVATE: (id: string) => `/admin/applications/${id}/reactivate`,
+    RIDER_APPLICATION_APPROVE: (id: string) => `/admin/riders/applications/${id}/approve`,
+    RIDER_APPLICATION_DENY: (id: string) => `/admin/riders/applications/${id}/deny`,
+    RIDER_APPLICATION_SUSPEND: (id: string) => `/admin/riders/applications/${id}/suspend`,
+    // Rider Statistics
+    RIDERS: '/admin/riders',
+    RIDERS_STATISTICS: '/admin/riders/statistics',
+    RIDERS_TOP_PERFORMERS: '/admin/riders/top-performers',
+    RIDERS_ACTIVITY_FEED: '/admin/riders/activity-feed',
+    RIDERS_TREND_DATA: '/admin/riders/trend-data',
+    RIDERS_OVERVIEW: '/admin/riders/overview',
+    // public endpoint for the rider list (not admin scoped)
+    RIDERS_LIST: '/riders/list',
+    // User Management
+    USERS: '/admin/users',
+    USER_DETAIL: (id: string) => `/admin/users/${id}`,
+    USER_UPDATE_ROLE: (id: string) => `/admin/users/${id}/role`,
+    USER_UPDATE_STATUS: (id: string) => `/admin/users/${id}/status`,
+    USER_DELETE: (id: string) => `/admin/users/${id}`,
   },
   AUTH: {
     LOGIN: '/auth/login',

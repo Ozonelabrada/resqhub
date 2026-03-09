@@ -246,6 +246,142 @@ export interface AuditLogEntry {
   ipAddress?: string;
 }
 
+// =========================================
+// Application Management Types
+// =========================================
+export type ApplicationRole = 'rider' | 'store' | 'serviceprovider';
+export type ApplicationStatus = 'pending' | 'approved' | 'rejected' | 'suspended';
+
+export interface ApplicationApplicant {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  profileImage?: string;
+  communityId: string | number;
+  communityName: string;
+}
+
+// Base application interface
+export interface BaseApplication {
+  id: string;
+  userId: string;
+  applicationType: string;
+  ownerId: number;
+  status: string;
+  remarks?: string;
+  submittedAt: string;
+  reviewedByUserId?: string;
+  reviewedAt?: string;
+  dateCreated: string;
+  createdBy: string;
+  userName: string;
+  userRole: string;
+  userAddress: string;
+  // Legacy fields for backward compatibility
+  applicantId?: string;
+  applicant?: ApplicationApplicant;
+  role?: ApplicationRole;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// Rider Application
+export interface RiderApplication extends BaseApplication {
+  role: 'rider';
+  documents: {
+    licenseNumber: string;
+    licenseExpiry: string;
+    vehicleType: string;
+    plateNumber: string;
+    insuranceCertificate?: string;
+  };
+  experience: {
+    years: number;
+    previousCompanies?: string;
+  };
+  rating?: number;
+  completedRides?: number;
+}
+
+// Seller Application
+export interface SellerApplication extends BaseApplication {
+  role: 'store';
+  businessInfo: {
+    businessName: string;
+    businessType: string; // RETAIL, FOOD, SERVICES, EVENTS
+    description: string;
+    registrationNumber?: string;
+    taxId?: string;
+  };
+  documents: {
+    businessLicense?: string;
+    taxCertificate?: string;
+    bankDetails?: {
+      bankName: string;
+      accountNumber: string;
+      accountHolder: string;
+    };
+  };
+  productCategories?: string[];
+  estimatedMonthlyRevenue?: number;
+}
+
+// Service Provider Application
+export interface ServiceProviderApplication extends BaseApplication {
+  role: 'serviceprovider';
+  serviceInfo: {
+    serviceName: string;
+    category: string; // e.g., "Hair & Beauty", "Cleaning", "Home Repair"
+    description: string;
+    experience: number; // in years
+    certifications?: string[];
+  };
+  documents: {
+    certifications?: string[];
+    backgroundCheck?: string;
+    insuranceCertificate?: string;
+  };
+  serviceAreas?: string[];
+  rating?: number;
+  completedServices?: number;
+}
+
+// Union type for all applications
+export type Application = RiderApplication | SellerApplication | ServiceProviderApplication;
+
+export interface ApplicationListParams {
+  communityId?: string | number;
+  applicationType?: ApplicationRole | 'all';
+  /**
+   * Optional raw type parameter for the backend (`rider` | `seller` | `service_provider`)
+   * the hook/page can use this instead of or alongside `role`.
+   */
+  type?: string;
+  status?: ApplicationStatus | 'all';
+  query?: string;
+  page?: number;
+  pageSize?: number;
+  sort?: 'created_at' | 'updated_at' | 'status';
+  order?: 'asc' | 'desc';
+}
+
+export interface ApplicationListResponse extends BaseApiResponse {
+  data: {
+    items: Application[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages?: number;
+    summary?: {
+      pending: number;
+      approved: number;
+      rejected: number;
+      suspended: number;
+    };
+  };
+}
+
 // Statistics and Analytics
 export interface AdminStatistics {
   timeRange: string;
@@ -282,6 +418,174 @@ export interface AdminSearchParams {
   pageSize?: number;
   sort?: string;
   order?: 'asc' | 'desc';
+}
+
+// =========================================
+// Rider Statistics Types
+// =========================================
+export interface RiderMetrics {
+  activeToday: number;
+  onBooking: number;
+  averageRating: number;
+  totalEarnings: number;
+  completedRides: number;
+  acceptanceRate: number;
+  cancellationRate: number;
+  partnerRiders: number;
+  totalReviews: number;
+  /** computed by client when backend does not supply it */
+  rideCompletionRate?: number;
+}
+
+export interface RiderPerformance {
+  id: string;
+  name: string;
+  email?: string;
+  profileImage?: string;
+  rating: number;
+  reviewsCount?: number;
+  completedRides: number;
+  totalEarnings?: number;
+  /** backend uses "earnings" field which we map */
+  acceptanceRate: number;
+  joinedDate?: string;
+  status: 'active' | 'inactive' | 'suspended';
+}
+
+export interface RiderTrendPoint {
+  date: string;
+  completedRides: number;
+  revenue: number;
+  activeRiders: number;
+}
+
+// Response for new rider list endpoint
+export interface RiderListItem {
+  id: number | string;
+  userId: string;
+  location: string;
+  vehicle: string;
+  plate: string;
+  rating: number;
+  reviews: number;
+  isActive: boolean;
+  approvalStatus: 'approved' | 'pending' | 'rejected' | 'suspended';
+  occupied: boolean;
+  avatar?: string;
+  totalCompletedRides: number;
+  cancelledRides: number;
+  dateCreated: string;
+  userDetails: {
+    userId: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber?: string;
+    userName: string;
+    profilePictureUrl?: string | null;
+  };
+}
+
+export interface RiderListResponse {
+  totalCount: number;
+  allCount: number;
+  pendingCount: number;
+  approvedCount: number;
+  rejectedCount: number;
+  suspendedCount: number;
+  page: number;
+  pageSize: number;
+  riders: RiderListItem[];
+}
+
+export interface RiderStatisticsOverview {
+  metrics: RiderMetrics;
+  topPerformers: RiderPerformance[];
+  recentActivity: string[]; // simple list of messages returned by backend
+  trendData: RiderTrendPoint[];
+}
+
+// helper types for paginated endpoints
+export interface PaginatedRiderPerformanceResponse {
+  data: RiderPerformance[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+  };
+}
+
+export interface PaginatedStringResponse {
+  data: string[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+  };
+}
+
+// User Management
+export interface AdminUser {
+  id: string;              // Maps from userId
+  email: string;
+  username?: string;       // Maps from userName
+  firstName?: string;
+  lastName?: string;
+  fullName?: string;
+  profilePicture?: string; // Maps from profilePictureUrl
+  phoneNumber?: string;
+  role: 'User' | 'Moderator' | 'Admin';
+  emailVerified?: boolean; // Maps from isEmailVerified
+  isActive: boolean;       // Maps from status === 'Active'
+  lastLoginAt?: string;
+  createdAt: string;
+  updatedAt?: string;
+  // Additional stats
+  reportsCount?: number;
+  communitiesCount?: number;
+  bookingsCount?: number;
+}
+
+export interface UserListParams {
+  page?: number;
+  pageSize?: number;
+  role?: 'all' | 'User' | 'Moderator' | 'Admin';
+  status?: 'all' | 'active' | 'inactive';
+  query?: string;
+  sort?: 'name' | 'email' | 'role' | 'createdAt' | 'lastLoginAt';
+  order?: 'asc' | 'desc';
+}
+
+export interface UserListResponse extends BaseApiResponse {
+  data: {
+    items: AdminUser[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    summary: {
+      total: number;
+      active: number;
+      inactive: number;
+      admins: number;
+      moderators: number;
+      users: number;
+    };
+  };
+}
+
+export interface UserRoleUpdateRequest {
+  userId: string;
+  newRole: AdminUser['role'];
+  reason?: string;
+}
+
+export interface UserStatusUpdateRequest {
+  userId: string;
+  status: 'Active' | 'Inactive' | 'Suspended' | 'Banned' | 'Pending';
+  reason?: string;
 }
 
 // Export commonly used types
