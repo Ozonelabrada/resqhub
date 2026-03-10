@@ -2,10 +2,13 @@ import React from 'react';
 import { EventData } from '../hooks/useEventData';
 import { Button, Badge, Avatar } from '@/components/ui';
 import { CheckCircle, QrCode } from 'lucide-react';
+import { EventCheckIns } from '@/components/features/communities/EventCheckIns';
 
 interface EventAttendeesProps {
   event: EventData;
   isEventCreator: boolean;
+  isModerator?: boolean;
+  isAdmin?: boolean;
   onCheckInClick: () => void;
 }
 
@@ -16,10 +19,14 @@ interface EventAttendeesProps {
 const EventAttendees: React.FC<EventAttendeesProps> = ({
   event,
   isEventCreator,
+  isModerator = false,
+  isAdmin = false,
   onCheckInClick,
 }) => {
+  const canManageCheckIns = isEventCreator || isModerator || isAdmin;
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* Header with Check-in Button */}
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-black text-slate-800">
           Attendees ({event?.stats?.attendees?.total ?? event?.attendees?.length ?? 0})
@@ -35,8 +42,19 @@ const EventAttendees: React.FC<EventAttendeesProps> = ({
         )}
       </div>
 
+      {/* Check-in Management (for moderators/admins) */}
+      {canManageCheckIns && (
+        <EventCheckIns
+          eventId={event?.id}
+          eventTitle={event?.title || 'Event'}
+          isModerator={canManageCheckIns}
+          className="mb-6"
+        />
+      )}
+
+      {/* Attendees List */}
       <div className="space-y-3 max-h-96 overflow-y-auto">
-        {event?.attendees.map((attendee) => (
+        {event?.attendees?.map((attendee) => (
           <div
             key={attendee.id}
             className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors"

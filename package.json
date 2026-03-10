@@ -11,7 +11,10 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@microsoft/signalr": "^10.0.0",
     "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-dropdown-menu": "^2.1.16",
+    "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-scroll-area": "^1.2.10",
     "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-slot": "^1.2.4",
@@ -35,6 +38,7 @@
     "react-i18next": "^16.5.1",
     "react-markdown": "^10.1.0",
     "react-router-dom": "^7.6.3",
+    "socket.io-client": "^4.8.3",
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^4.3.5"

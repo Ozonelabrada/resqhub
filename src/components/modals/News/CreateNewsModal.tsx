@@ -6,6 +6,7 @@ import {
   DialogTitle,
   Button, 
   Input, 
+  Textarea,
 } from '@/components/ui';
 import { useForm, SubmitHandler, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,14 +14,18 @@ import { z } from 'zod';
 import { t } from 'i18next';
 import { Upload, X, Clock, Plus, Trash2, Globe, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { RichTextEditor } from '@/components/common/RichTextEditor/RichTextEditor';
+import { useAuth } from '@/context/AuthContext';
+
+// replaced rich editor with simple textarea plus minimal markdown support
+// (bold **text** and newline preservation) for easier content management
+
 
 const newsItemSchema = z.object({
   title: z.string().min(1, 'Title is required').min(3, 'Title must be at least 3 characters'),
   content: z.string().min(1, 'Content is required').min(10, 'Content must be at least 10 characters'),
-  summary: z.string().min(1, 'Summary is required').min(10, 'Summary must be at least 10 characters'),
+  // summary removed – backend will use content for this field
   category: z.string().min(1, 'Category is required'),
-  author: z.string().min(1, 'Author is required').min(3, 'Author must be at least 3 characters'),
+  // author is assigned automatically; not part of form validation
   imageUrl: z.string().optional(),
   publishDate: z.string().min(1, 'Publish date is required'),
   isFeatured: z.boolean(),
@@ -53,6 +58,8 @@ function getDefaultDate() {
 }
 
 export const CreateNewsModal: React.FC<CreateNewsModalProps> = ({ isOpen, onClose, onSubmit, communityId }) => {
+  const { user } = useAuth();
+
   const {
     control,
     handleSubmit,
@@ -69,9 +76,7 @@ export const CreateNewsModal: React.FC<CreateNewsModalProps> = ({ isOpen, onClos
         {
           title: '',
           content: '',
-          summary: '',
           category: '',
-          author: '',
           publishDate: getDefaultDate(),
           isFeatured: false,
           privacy: 'public',
@@ -103,9 +108,7 @@ export const CreateNewsModal: React.FC<CreateNewsModalProps> = ({ isOpen, onClos
     append({
       title: '',
       content: '',
-      summary: '',
       category: '',
-      author: '',
       publishDate: getDefaultDate(),
       isFeatured: false,
       privacy: 'public',
@@ -127,8 +130,10 @@ export const CreateNewsModal: React.FC<CreateNewsModalProps> = ({ isOpen, onClos
     newContents[index] = value;
     setContents(newContents);
     // keep react-hook-form in sync so zod validation for `content` passes
-    setValue(`newsArticles.${index}.content`, value, { shouldValidate: true, shouldDirty: true });
+    setValue(`newsArticles.${index}.content`, value.trim(), { shouldValidate: true, shouldDirty: true });
   };
+
+
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const file = e.target.files?.[0];
@@ -151,30 +156,62 @@ export const CreateNewsModal: React.FC<CreateNewsModalProps> = ({ isOpen, onClos
   };
 
   const handleFormSubmit: SubmitHandler<NewsFormData> = async (data) => {
+    console.log('CreateNewsModal.handleFormSubmit called', data);
     setIsLoading(true);
+
+    const newsData = {
+      ...data,
+      newsArticles: data.newsArticles.map((article, idx) => ({
+        ...article,
+        author: user?.fullName || user?.username || 'Unknown',
+        content: contents[idx],
+        summary: contents[idx], // backend expects summary field; use content as summary
+        imageUrl: imagePreviews[idx] || undefined,
+        publishDate: article.publishDate ? new Date(article.publishDate).toISOString() : new Date().toISOString(),
+      })),
+    };
+
     try {
-      const newsData = {
-        ...data,
-        newsArticles: data.newsArticles.map((article, idx) => ({
-          ...article,
-          // ensure content is the rich-editor value
-          content: contents[idx],
-          imageUrl: imagePreviews[idx] || undefined,
-          // convert YYYY-MM-DD -> ISO timestamp for backend
-          publishDate: article.publishDate ? new Date(article.publishDate).toISOString() : new Date().toISOString(),
-        })),
-      };
-      await onSubmit(newsData);
+      let result: any = undefined;
+      if (onSubmit) {
+        result = await onSubmit(newsData);
+      }
+
+      if (result && typeof result === 'object' && 'success' in result) {
+        if (!result.success) {
+          throw new Error(result.message || 'Failed to save news');
+        }
+      }
+
+      const toast = (window as any).showToast;
+      if (toast) {
+        toast('success', 'News Created', `Published ${newsData.newsArticles.length} article${newsData.newsArticles.length !== 1 ? 's' : ''}`);
+      }
+
+      // close only after successful result
       onClose();
+      reset();
     } catch (error) {
       console.error('Error submitting news:', error);
+      const toast = (window as any).showToast;
+      if (toast) {
+        toast('error', 'Publish Failed', (error as any)?.message || 'Failed to create news');
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        // avoid closing the dialog while a save is in progress
+        if (!open && !isLoading) {
+          onClose();
+        }
+      }}
+    >
       <DialogContent className="sm:max-w-[1000px] p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white max-h-[95vh]">
         <DialogHeader className="px-8 pt-8 pb-4 text-left bg-white relative z-10 border-b border-slate-50">
           <div className="flex items-center justify-between">
@@ -227,7 +264,7 @@ export const CreateNewsModal: React.FC<CreateNewsModalProps> = ({ isOpen, onClos
                       )}
                     </div>
 
-                    {/* Category & Author */}
+                    {/* Category */}
                     <div>
                       <label className="block text-sm font-black text-slate-700 uppercase tracking-wider mb-2">
                         Category*
@@ -242,34 +279,6 @@ export const CreateNewsModal: React.FC<CreateNewsModalProps> = ({ isOpen, onClos
                       )}
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-black text-slate-700 uppercase tracking-wider mb-2">
-                        Author*
-                      </label>
-                      <Input
-                        placeholder="Author name..."
-                        className="px-4 py-3 rounded-2xl border-2 bg-white font-semibold text-slate-800"
-                        {...register(`newsArticles.${index}.author`)}
-                      />
-                      {errors.newsArticles?.[index]?.author && (
-                        <p className="text-xs font-bold text-red-500 mt-1">⚠ {errors.newsArticles[index]?.author?.message}</p>
-                      )}
-                    </div>
-
-                    {/* Summary & Publish Date */}
-                    <div className="col-span-2">
-                      <label className="block text-sm font-black text-slate-700 uppercase tracking-wider mb-2">
-                        Summary (Brief description)*
-                      </label>
-                      <Input
-                        placeholder="Brief summary of the article..."
-                        className="px-4 py-3 rounded-2xl border-2 bg-white font-semibold text-slate-800"
-                        {...register(`newsArticles.${index}.summary`)}
-                      />
-                      {errors.newsArticles?.[index]?.summary && (
-                        <p className="text-xs font-bold text-red-500 mt-1">⚠ {errors.newsArticles[index]?.summary?.message}</p>
-                      )}
-                    </div>
 
                     {/* Publish Date */}
                     <div>
@@ -339,16 +348,16 @@ export const CreateNewsModal: React.FC<CreateNewsModalProps> = ({ isOpen, onClos
                     <label className="block text-sm font-black text-slate-700 uppercase tracking-wider mb-2">
                       Article Content*
                     </label>
-                    <RichTextEditor
+                    <Textarea
                       value={contents[index]}
-                      onChange={(value) => handleContentChange(index, value)}
-                      placeholder="Write article content..."
-                      minHeight="min-h-[150px]"
+                      onChange={(e) => handleContentChange(index, e.target.value)}
+                      placeholder="Write article content...\nUse **bold** for emphasis"
+                      className="min-h-[150px] px-4 py-3 rounded-2xl border-2 bg-white font-semibold text-slate-800"
                     />
                     {errors.newsArticles?.[index]?.content && (
                       <p className="text-xs font-bold text-red-500 mt-1">⚠ {errors.newsArticles[index]?.content?.message}</p>
                     )}
-                    {contents[index].replace(/<[^>]*>/g, '').length < 10 && (
+                    {contents[index].trim().length < 10 && (
                       <p className="text-xs font-bold text-red-500 mt-1">⚠ Content must be at least 10 characters</p>
                     )}
                   </div>
@@ -449,7 +458,7 @@ export const CreateNewsModal: React.FC<CreateNewsModalProps> = ({ isOpen, onClos
             <Button
               type="submit"
               className="px-8 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-black transition-all shadow-lg shadow-teal-600/20 disabled:opacity-50"
-              disabled={isLoading || !isValid || contents.some(c => c.replace(/<[^>]*>/g, '').length < 10)}
+              disabled={isLoading || !isValid || contents.some(c => c.trim().length < 10)}
             >
               {isLoading ? 'Publishing...' : `Publish ${fields.length} Article${fields.length !== 1 ? 's' : ''}`}
             </Button>

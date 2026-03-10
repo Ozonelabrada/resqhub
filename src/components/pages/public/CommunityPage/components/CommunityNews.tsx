@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import { formatSimpleMarkdown } from '@/utils/validation';
 import { CommunityService } from '@/services/communityService';
 import { getCategoryStyles, formatDateRange } from '@/utils/formatter';
 import { ReportDetailModal } from '@/components/modals';
@@ -184,9 +185,10 @@ export const CommunityNews: React.FC<CommunityNewsProps> = ({
                           <h3 className="text-xl font-black text-slate-900 mb-2 line-clamp-2 group-hover:text-teal-600 transition-colors">
                             {newsItem.title}
                           </h3>
-                          <p className="text-slate-600 text-sm font-medium line-clamp-3">
-                            {newsItem.description}
-                          </p>
+                          <p
+                            className="text-slate-600 text-sm font-medium line-clamp-3"
+                            dangerouslySetInnerHTML={{ __html: formatSimpleMarkdown(newsItem.description) }}
+                          />
                         </div>
 
                         {/* Date Range */}
@@ -287,9 +289,10 @@ export const CommunityNews: React.FC<CommunityNewsProps> = ({
                           </div>
 
                           {newsItem.description && (
-                            <p className="text-sm text-slate-600 font-medium line-clamp-2">
-                              {newsItem.description}
-                            </p>
+                            <p
+                              className="text-sm text-slate-600 font-medium line-clamp-2"
+                              dangerouslySetInnerHTML={{ __html: formatSimpleMarkdown(newsItem.description) }}
+                            />
                           )}
                         </div>
                       </div>

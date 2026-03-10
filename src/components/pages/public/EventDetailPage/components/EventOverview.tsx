@@ -1,26 +1,36 @@
 import React from 'react';
 import { EventData } from '../hooks/useEventData';
-import { Card, Badge } from '@/components/ui';
+import { Card, Badge, Button } from '@/components/ui';
 import { 
   Zap, 
   Star, 
   Users, 
   TrendingUp,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Edit
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatSimpleMarkdown } from '@/utils/validation';
 
 interface EventOverviewProps {
   event: EventData;
+  isAdmin?: boolean;
+  isEventCreator?: boolean;
 }
 
 /**
  * Event overview tab component
  * Displays event description, stats, features, and match compatibility
  */
-const EventOverview: React.FC<EventOverviewProps> = ({ event }) => {
+const EventOverview: React.FC<EventOverviewProps> = ({ event, isAdmin = false, isEventCreator = false }) => {
+  const canEditEvent = isAdmin || isEventCreator;
+
+  const handleEditEvent = () => {
+    // TODO: Open edit event modal
+    console.log('Edit event clicked');
+  };
+
   // Placeholder event features that can be populated from backend
   const eventFeatures = [
     { name: 'Live Streaming', icon: '📡', available: false },
@@ -41,7 +51,19 @@ const EventOverview: React.FC<EventOverviewProps> = ({ event }) => {
     <div className="space-y-8">
       {/* About Section */}
       <div>
-        <h3 className="text-lg font-black text-slate-800 mb-3">About This Event</h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-black text-slate-800">About This Event</h3>
+          {canEditEvent && (
+            <Button
+              onClick={handleEditEvent}
+              variant="outline"
+              className="text-sm flex items-center gap-2"
+            >
+              <Edit size={16} />
+              Edit Event
+            </Button>
+          )}
+        </div>
         <p className="text-slate-600 leading-relaxed" dangerouslySetInnerHTML={{ __html: formatSimpleMarkdown(event?.description) }} />
       </div>
 

@@ -64,6 +64,14 @@ const CommunityPage: React.FC = () => {
 
   const handleTabChange = (tab: CommunityTabType) => setSearchParams({ tab });
 
+  const handleApproveRequest = async (userId: string) => {
+    return await approveRequest(0, userId); // requestId not used in the function
+  };
+
+  const handleRejectRequest = async (userId: string) => {
+    return await rejectRequest(0, userId); // requestId not used in the function
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -161,9 +169,17 @@ const CommunityPage: React.FC = () => {
                 isEventModalOpen={communityState.isEventModalOpen}
                 onNewsModalClose={() => communityState.setIsNewsModalOpen(false)}
                 onEventModalClose={() => communityState.setIsEventModalOpen(false)}
-                onNewsSuccess={(data) => {
-                  communityState.setIsNewsModalOpen(false);
-                  handlers.handleNewsSuccess(data);
+                onNewsSuccess={async (data) => {
+                  // attempt to save via handler which returns nothing, so assume success
+                  try {
+                    await handlers.handleNewsSuccess(data);
+                    // close only on success
+                    communityState.setIsNewsModalOpen(false);
+                  } catch (err) {
+                    console.error('News save error:', err);
+                    // rethrow to surface error to modal if desired
+                    throw err;
+                  }
                 }}
                 onEventSuccess={async (data) => {
                   // Wait for the backend save to finish (handlers returns the API result)
@@ -180,8 +196,8 @@ const CommunityPage: React.FC = () => {
                 onRefresh={refresh}
                 onNewsModalOpen={() => communityState.setIsNewsModalOpen(true)}
                 onEventModalOpen={() => communityState.setIsEventModalOpen(true)}
-                onApprove={approveRequest}
-                onReject={rejectRequest}
+                onApprove={handleApproveRequest}
+                onReject={handleRejectRequest}
               />
             </div>
           </div>

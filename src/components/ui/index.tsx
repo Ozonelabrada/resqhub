@@ -29,10 +29,28 @@ export {
   SelectScrollUpButton, 
   SelectScrollDownButton 
 } from "./select";
+export {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuCheckboxItem,
+  DropdownMenuRadioItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuGroup,
+  DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuRadioGroup,
+} from "./dropdown-menu";
 export { Skeleton } from "./skeleton";
 export { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell, TableCaption } from "./table";
 export { Tabs, TabsList, TabsTrigger, TabsContent, TabList, TabTrigger, TabContent } from "./tabs";
 export { Badge as ShadcnBadge } from "./badge";
+export { Label } from "./label";
 export { ScrollArea, ScrollBar } from "./scroll-area";
 export { Switch } from "./switch";
 export { Checkbox } from "./Checkbox/Checkbox";
@@ -82,6 +100,7 @@ export { Avatar } from "./Avatar/Avatar";
 export { default as Toast } from "./Toast/Toast";
 export type { ToastRef, ToastMessage } from "./Toast/Toast";
 export { ProgressBar } from "./ProgressBar/ProgressBar";
+export { ProgressBar as Progress } from "./ProgressBar/ProgressBar";
 export { ImageGallery } from "./ImageGallery/ImageGallery";
 
 // Re-export common icon-related components if needed

@@ -1,16 +1,31 @@
 import React from 'react';
 import { EventData } from '../hooks/useEventData';
-import { Download, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui';
+import { Download, ArrowRight, Plus, Upload } from 'lucide-react';
 
 interface EventResourcesProps {
   event: EventData;
+  isAdmin?: boolean;
+  isEventCreator?: boolean;
 }
 
 /**
  * Event resources tab component
  * <60 lines - displays downloadable materials and documents
  */
-const EventResources: React.FC<EventResourcesProps> = ({ event }) => {
+const EventResources: React.FC<EventResourcesProps> = ({ event, isAdmin = false, isEventCreator = false }) => {
+  const canManageResources = isAdmin || isEventCreator;
+
+  const handleAddResource = () => {
+    // TODO: Open add resource modal
+    console.log('Add resource clicked');
+  };
+
+  const handleUploadResource = () => {
+    // TODO: Open file upload modal
+    console.log('Upload resource clicked');
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-6">
@@ -18,7 +33,28 @@ const EventResources: React.FC<EventResourcesProps> = ({ event }) => {
           <Download size={20} />
           Resources & Materials
         </h3>
-        <div className="text-xs font-bold text-slate-500 uppercase mt-1">{event?.stats?.resources?.total ?? event?.resources?.length ?? 0} items</div>
+        <div className="flex items-center gap-2">
+          {canManageResources && (
+            <>
+              <Button
+                onClick={handleUploadResource}
+                variant="outline"
+                className="text-sm flex items-center gap-2"
+              >
+                <Upload size={16} />
+                Upload
+              </Button>
+              <Button
+                onClick={handleAddResource}
+                className="bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-sm flex items-center gap-2"
+              >
+                <Plus size={16} />
+                Add Resource
+              </Button>
+            </>
+          )}
+          <div className="text-xs font-bold text-slate-500 uppercase">{event?.stats?.resources?.total ?? event?.resources?.length ?? 0} items</div>
+        </div>
       </div>
 
       {event?.resources && event.resources.length > 0 ? (

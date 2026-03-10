@@ -104,23 +104,14 @@ export interface CommunityMember {
 }
 
 export interface JoinRequest {
-  id: number;
+  communityId: number;
   userId: string;
   userName: string;
+  userEmail: string;
   userFullName: string;
-  userEmail?: string;
-  profilePictureUrl?: string;
-  communityId: number;
-  dateCreated: string;
-  status: 'Pending' | 'Approved' | 'Denied';
-  // Admin review fields
-  userAddress?: string;
-  userPhone?: string;
-  userAge?: number;
-  userSex?: string;
-  userLocation?: string;
-  requestMessage?: string;
-  verificationStatus?: string;
+  requestedDate: string;
+  status: string;
+  roles: string[];
 }
 
 export type CommunityContentType = 'announcement' | 'news' | 'events';

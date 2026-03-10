@@ -248,17 +248,35 @@ export const CommunityService = {
     }
   },
 
-  async getJoinRequests(id: string): Promise<JoinRequest[]> {
+  async getJoinRequests(id: string, pageSize: number = 10, page: number = 1): Promise<{ requests: JoinRequest[], totalCount: number, page: number, pageSize: number, totalPages: number }> {
     try {
-      const response = await api.get<{ data: JoinRequest[] }>(`/communities/${id}/join-requests`);
-      return response.data?.data || [];
+      const response = await api.get<{
+        message: string;
+        succeeded: boolean;
+        statusCode: number;
+        data: {
+          totalCount: number;
+          page: number;
+          pageSize: number;
+          totalPages: number;
+          requests: any[];
+        };
+        errors: any;
+        baseEntity: any;
+      }>(`/communities/${id}/join-requests?pageSize=${pageSize}&page=${page}`);
+      const data = response.data.data || { requests: [], totalCount: 0, page: 1, pageSize: 10, totalPages: 0 };
+      
+      return {
+        ...data,
+        requests: data.requests || []
+      };
     } catch (error) {
       console.error('Error fetching join requests:', error);
-      return [];
+      return { requests: [], totalCount: 0, page: 1, pageSize: 10, totalPages: 0 };
     }
   },
 
-  async approveJoinRequest(communityId: string, requestId: number, userId: string): Promise<boolean> {
+  async approveJoinRequest(communityId: string, userId: string): Promise<boolean> {
     try {
       await api.patch(`/community-members/communities/${communityId}/members/${userId}/approve`);
       return true;
@@ -268,7 +286,7 @@ export const CommunityService = {
     }
   },
 
-  async rejectJoinRequest(communityId: string, requestId: number, userId: string): Promise<boolean> {
+  async rejectJoinRequest(communityId: string, userId: string): Promise<boolean> {
     try {
       await api.patch(`/community-members/communities/${communityId}/members/${userId}/reject`);
       return true;
@@ -722,6 +740,163 @@ export const CommunityService = {
         date: new Date().toISOString().split('T')[0],
         events: [],
         totalCount: 0
+      };
+    }
+  },
+
+  // QR Code Check-In Methods
+  async checkInToEvent(eventId: string | number, qrData: string, checkInMethod: string = 'qr_code', verificationMethod: string = 'qr_code', notes?: string): Promise<{
+    success: boolean;
+    data?: any;
+    message?: string;
+    validationFailed?: string;
+  }> {
+    try {
+      const response = await api.post(`/events/${eventId}/check-in`, {
+        qrData,
+        checkInMethod,
+        verificationMethod,
+        notes
+      });
+
+      return {
+        success: true,
+        data: response.data?.data || response.data,
+        message: response.data?.message || 'Check-in validated successfully'
+      };
+    } catch (error: any) {
+      console.error('Error during check-in:', error);
+      const errorData = error?.response?.data;
+      
+      return {
+        success: false,
+        message: errorData?.message || 'Check-in failed',
+        validationFailed: errorData?.data?.validationFailed
+      };
+    }
+  },
+
+  async batchCheckInToEvent(eventId: string | number, qrDataList: string[], performBulkApproval: boolean = false): Promise<{
+    success: boolean;
+    data?: any;
+    message?: string;
+    totalProcessed?: number;
+  }> {
+    try {
+      const response = await api.post(`/events/${eventId}/check-in/batch`, {
+        qrDataList,
+        performBulkApproval
+      });
+
+      return {
+        success: true,
+        data: response.data?.data || response.data,
+        message: response.data?.message || 'Batch check-in completed',
+        totalProcessed: response.data?.data?.totalProcessed
+      };
+    } catch (error: any) {
+      console.error('Error during batch check-in:', error);
+      return {
+        success: false,
+        message: error?.response?.data?.message || 'Batch check-in failed'
+      };
+    }
+  },
+
+  async getEventCheckIns(eventId: string | number, page: number = 1, pageSize: number = 20): Promise<{
+    checkIns: any[];
+    totalCount: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+  }> {
+    try {
+      const response = await api.get(`/events/${eventId}/check-in?page=${page}&pageSize=${pageSize}`);
+      const data = response.data?.data || response.data;
+
+      return {
+        checkIns: Array.isArray(data?.checkIns) ? data.checkIns : 
+                 Array.isArray(data?.items) ? data.items : 
+                 Array.isArray(data) ? data : [],
+        totalCount: data?.totalCount || 0,
+        page: data?.page || page,
+        pageSize: data?.pageSize || pageSize,
+        totalPages: data?.totalPages || 1
+      };
+    } catch (error) {
+      console.error('Error fetching event check-ins:', error);
+      return {
+        checkIns: [],
+        totalCount: 0,
+        page: 1,
+        pageSize: pageSize,
+        totalPages: 1
+      };
+    }
+  },
+
+  async approveCheckIn(eventId: string | number, checkInId: string | number, notes?: string): Promise<{
+    success: boolean;
+    message?: string;
+  }> {
+    try {
+      const response = await api.put(`/events/${eventId}/check-in/${checkInId}`, {
+        status: 'approved',
+        notes
+      });
+
+      return {
+        success: true,
+        message: response.data?.message || 'Check-in approved successfully'
+      };
+    } catch (error: any) {
+      console.error('Error approving check-in:', error);
+      return {
+        success: false,
+        message: error?.response?.data?.message || 'Failed to approve check-in'
+      };
+    }
+  },
+
+  async rejectCheckIn(eventId: string | number, checkInId: string | number, notes?: string): Promise<{
+    success: boolean;
+    message?: string;
+  }> {
+    try {
+      const response = await api.put(`/events/${eventId}/check-in/${checkInId}`, {
+        status: 'rejected',
+        notes
+      });
+
+      return {
+        success: true,
+        message: response.data?.message || 'Check-in rejected successfully'
+      };
+    } catch (error: any) {
+      console.error('Error rejecting check-in:', error);
+      return {
+        success: false,
+        message: error?.response?.data?.message || 'Failed to reject check-in'
+      };
+    }
+  },
+
+  async cancelCheckIn(eventId: string | number, checkInId: string | number): Promise<{
+    success: boolean;
+    message?: string;
+  }> {
+    try {
+      const response = await api.delete(`/events/${eventId}/check-in/${checkInId}`);
+
+      return {
+        success: true,
+        message: response.data?.message || 'Check-in cancelled successfully'
+      };
+    } catch (error: any) {
+      console.error('Error cancelling check-in:', error);
+      return {
+        success: false,
+        message: error?.response?.data?.message || 'Failed to cancel check-in'
       };
     }
   }

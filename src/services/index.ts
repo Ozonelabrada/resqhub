@@ -13,3 +13,5 @@ export { StoreService } from './storeService';
 export { AdminService } from './adminService';
 export { appConfigService } from './appConfigService';
 export { ReportMatchService } from './reportMatchService';
+export { notificationService } from './notificationService';
+export { default as websocketService } from './websocketService';

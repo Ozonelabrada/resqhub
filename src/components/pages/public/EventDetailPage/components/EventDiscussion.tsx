@@ -1,31 +1,51 @@
 import React, { useState } from 'react';
 import { EventData } from '../hooks/useEventData';
 import { Button, Avatar } from '@/components/ui';
-import { Heart, MessageCircle, Send } from 'lucide-react';
+import { Heart, MessageCircle, Send, Shield, Settings } from 'lucide-react';
 
 interface EventDiscussionProps {
   event: EventData;
   userFullName?: string;
+  isAdmin?: boolean;
+  isEventCreator?: boolean;
 }
 
 /**
  * Event discussion/comments tab component
  * <80 lines - manages event comments and discussion
  */
-const EventDiscussion: React.FC<EventDiscussionProps> = ({ event, userFullName }) => {
+const EventDiscussion: React.FC<EventDiscussionProps> = ({ event, userFullName, isAdmin = false, isEventCreator = false }) => {
   const [newComment, setNewComment] = useState('');
+  const canModerate = isAdmin || isEventCreator;
 
   const handleSubmitComment = () => {
     // TODO: Call API to submit comment
     setNewComment('');
   };
 
+  const handleModerationSettings = () => {
+    // TODO: Open moderation settings modal
+    console.log('Moderation settings clicked');
+  };
+
   return (
     <div className="space-y-6">
-      <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
-        <MessageCircle size={20} />
-        Discussion ({event?.stats?.discussion?.commentsCount ?? event?.comments?.length ?? 0})
-      </h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
+          <MessageCircle size={20} />
+          Discussion ({event?.stats?.discussion?.commentsCount ?? event?.comments?.length ?? 0})
+        </h3>
+        {canModerate && (
+          <Button
+            onClick={handleModerationSettings}
+            variant="outline"
+            className="text-sm flex items-center gap-2"
+          >
+            <Shield size={16} />
+            Moderate
+          </Button>
+        )}
+      </div>
 
       {/* Comment Input */}
       <div className="flex gap-3">

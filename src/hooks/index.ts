@@ -1,6 +1,6 @@
 export { useSignInForm } from './useSignInForm';
 export { useStatistics } from './useStatistics';
-export { useTrendingReports } from './useTrendingReports';  
+export { useTrendingReports } from './useTrendingReports';
 export { useCommunities, useCommunityDetail } from './useCommunities';
 export { useMessages } from './useMessages';
 export { useNotifications } from './useNotifications';
@@ -13,6 +13,9 @@ export { useFeatureFlags } from './useFeatureFlags';
 export { useScreenSize } from './useScreenSize';
 export { useUserSubscriptions } from './useUserSubscriptions';
 export { useTodaysUpdates } from './useTodaysUpdates';
+
+// WebSocket hooks
+export * from './useWebSocket';
 
 // Admin hooks
 export * from './admin';

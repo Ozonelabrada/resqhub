@@ -175,20 +175,22 @@ const EventDetailPage: React.FC = () => {
                   ))}
                 </div>
 
-                {selectedTab === 'overview' && <EventOverview event={event} />}
-                {selectedTab === 'schedule' && <EventSchedule event={event} />}
-                {selectedTab === 'gallery' && <EventGallery event={event} />}
+                {selectedTab === 'overview' && <EventOverview event={event} isAdmin={isCommunityAdmin} isEventCreator={isEventCreator} />}
+                {selectedTab === 'schedule' && <EventSchedule event={event} isAdmin={isCommunityAdmin} isEventCreator={isEventCreator} />}
+                {selectedTab === 'gallery' && <EventGallery event={event} isAdmin={isCommunityAdmin} isEventCreator={isEventCreator} />}
                 {selectedTab === 'attendees' && (
                   <EventAttendees
                     event={event}
                     isEventCreator={isEventCreator}
+                    isModerator={isModerator}
+                    isAdmin={isCommunityAdmin}
                     onCheckInClick={handleCheckIn}
                   />
                 )}
-                {selectedTab === 'objectives' && <EventObjectives event={event} isEventCreator={isEventCreator} />}
-                {selectedTab === 'discussion' && <EventDiscussion event={event} userFullName={user?.fullName} />}
-                {selectedTab === 'resources' && <EventResources event={event} />}
-                {selectedTab === 'faq' && <EventFAQ event={event} />}
+                {selectedTab === 'objectives' && <EventObjectives event={event} isEventCreator={isEventCreator} isAdmin={isCommunityAdmin} />}
+                {selectedTab === 'discussion' && <EventDiscussion event={event} userFullName={user?.fullName} isAdmin={isCommunityAdmin} isEventCreator={isEventCreator} />}
+                {selectedTab === 'resources' && <EventResources event={event} isAdmin={isCommunityAdmin} isEventCreator={isEventCreator} />}
+                {selectedTab === 'faq' && <EventFAQ event={event} isAdmin={isCommunityAdmin} isEventCreator={isEventCreator} />}
               </div>
             </div>
 
