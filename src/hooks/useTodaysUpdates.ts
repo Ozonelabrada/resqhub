@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CommunityService } from '@/services/communityService';
+import { useAuth } from '@/context/AuthContext';
 
 export interface TodaysUpdate {
   id: number;
@@ -22,11 +23,20 @@ export interface UseTodaysUpdatesReturn {
 }
 
 export const useTodaysUpdates = (): UseTodaysUpdatesReturn => {
+  const { isAuthenticated } = useAuth();
   const [updates, setUpdates] = useState<TodaysUpdate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchUpdates = async () => {
+    // Only fetch from API if authenticated
+    if (!isAuthenticated) {
+      setUpdates([]);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -49,7 +59,7 @@ export const useTodaysUpdates = (): UseTodaysUpdatesReturn => {
 
   useEffect(() => {
     fetchUpdates();
-  }, []);
+  }, [isAuthenticated]);
 
   return {
     updates,

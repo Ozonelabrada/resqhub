@@ -17,6 +17,11 @@ class WebSocketService {
   }
 
   private setupConnection() {
+    // Only connect if user is authenticated
+    if (!authManager.isAuthenticated()) {
+      return;
+    }
+
     if (this.isConnecting || this.connection?.state === HubConnectionState.Connected || !this.websocketSupported) return;
 
     this.isConnecting = true;

@@ -1,14 +1,22 @@
 import { useState, useEffect, useCallback } from 'react';
 import { notificationService, Notification } from '../services/notificationService';
+import { useAuth } from '../context/AuthContext';
 
 export const useNotifications = () => {
+  const { isAuthenticated } = useAuth();
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  // Subscribe to real-time notifications
+  // Subscribe to real-time notifications only if authenticated
   useEffect(() => {
+    if (!isAuthenticated) {
+      setUnreadCount(0);
+      setNotifications([]);
+      return;
+    }
+
     const unsubscribe = notificationService.subscribe((realtimeNotifications) => {
       setNotifications(realtimeNotifications);
       const unread = realtimeNotifications.filter(n => !n.isRead).length;
@@ -16,9 +24,14 @@ export const useNotifications = () => {
     });
 
     return unsubscribe;
-  }, []);
+  }, [isAuthenticated]);
 
   const fetchUnreadCount = useCallback(async () => {
+    if (!isAuthenticated) {
+      setUnreadCount(0);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
@@ -30,10 +43,14 @@ export const useNotifications = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   // Fetch stored notifications
   const fetchNotifications = useCallback(async (page: number = 1, pageSize: number = 20) => {
+    if (!isAuthenticated) {
+      return { notifications: [], total: 0, page, pageSize };
+    }
+
     setLoading(true);
     setError(null);
     try {
@@ -54,34 +71,40 @@ export const useNotifications = () => {
     } finally {
       setLoading(false);
     }
-  }, [notifications]);
+  }, [isAuthenticated, notifications]);
 
   // Mark notification as read
   const markAsRead = useCallback(async (notificationId: string) => {
+    if (!isAuthenticated) return;
+
     try {
       await notificationService.markAsRead(notificationId);
     } catch (err) {
       console.error('Error marking notification as read:', err);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   // Mark all as read
   const markAllAsRead = useCallback(async () => {
+    if (!isAuthenticated) return;
+
     try {
       await notificationService.markAllAsRead();
     } catch (err) {
       console.error('Error marking all notifications as read:', err);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   // Delete notification
   const deleteNotification = useCallback(async (notificationId: string) => {
+    if (!isAuthenticated) return;
+
     try {
       await notificationService.deleteNotification(notificationId);
     } catch (err) {
       console.error('Error deleting notification:', err);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   // Fetch unread count on mount
   useEffect(() => {
