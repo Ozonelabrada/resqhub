@@ -33,10 +33,10 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [isAuthenticated, setIsAuthenticated] = useState(authManager.isAuthenticated());
-  const [token, setToken] = useState<string | null>(authManager.getToken());
+  const [isAuthenticated, setIsAuthenticated] = useState(false); // Start as false, validate later
+  const [token, setToken] = useState<string | null>(null); // Start as null
   const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState<User | null>(authManager.getUser());
+  const [user, setUser] = useState<User | null>(null); // Start as null
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
@@ -63,27 +63,32 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
   useEffect(() => {
     // Initialize auth state
     const initAuth = async () => {
-      if (authManager.isAuthenticated()) {
+      // Check if there's a stored token
+      const storedToken = authManager.getToken();
+      const storedUser = authManager.getUser();
+
+      if (storedToken && storedUser) {
         try {
-          const userData = authManager.getUser();
-          if (userData) {
-            // Verify token by fetching user data - pass the actual ID
-            const response = await AuthService.getCurrentUser(String(userData.id));
-            
-            // If successful, update the session with fresh data
-            // Handle both { succeeded: true, data: user } and direct user object response
-            const freshUser = response?.data || (response?.id ? response : null);
-            
-            if (freshUser) {
-              const token = authManager.getToken();
-              if (token) {
-                authManager.setSession(token, freshUser);
-              }
-            }
+          // Verify token by fetching user data
+          const response = await AuthService.getCurrentUser(String(storedUser.id));
+          
+          // If successful, update the session with fresh data
+          const freshUser = response?.data || (response?.id ? response : null);
+          
+          if (freshUser) {
+            authManager.setSession(storedToken, freshUser);
+            // Now set the authenticated state
+            setIsAuthenticated(true);
+            setToken(storedToken);
+            setUser(freshUser);
+          } else {
+            // Invalid response, clear auth
+            authManager.logout();
           }
         } catch (error: any) {
           console.warn('Token validation failed on init:', error.message);
-          // If it's a 401, the interceptor will handle logout
+          // Clear invalid auth
+          authManager.logout();
         }
       }
       setIsLoading(false);

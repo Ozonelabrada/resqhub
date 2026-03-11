@@ -14,12 +14,18 @@ export const useStatistics = (): UseStatisticsReturn => {
   const [statistics, setStatistics] = useState<StatisticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { isLoading: authLoading } = useAuth();
+  const { isLoading: authLoading, isAuthenticated } = useAuth();
 
   const fetchStatistics = async () => {
     try {
       setLoading(true);
       setError(null);
+      
+      // If user is not authenticated, use fallback data
+      if (!isAuthenticated) {
+        setStatistics(StatisticsService.getFallbackStatistics());
+        return;
+      }
       
       const data = await StatisticsService.getStatistics();
       setStatistics(data);
@@ -27,7 +33,7 @@ export const useStatistics = (): UseStatisticsReturn => {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load statistics';
       setError(errorMessage);
       
-      // Use fallback data
+      // Use fallback data on error
       setStatistics(StatisticsService.getFallbackStatistics());
     } finally {
       setLoading(false);
@@ -39,7 +45,7 @@ export const useStatistics = (): UseStatisticsReturn => {
     if (!authLoading) {
       fetchStatistics();
     }
-  }, [authLoading]);
+  }, [authLoading, isAuthenticated]);
 
   const refetch = () => {
     fetchStatistics();

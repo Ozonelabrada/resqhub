@@ -15,12 +15,19 @@ export const useTrendingReports = (): UseTrendingReportsReturn => {
   const [trendingReports, setTrendingReports] = useState<TrendingReportItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { isLoading: authLoading } = useAuth();
+  const { isLoading: authLoading, isAuthenticated } = useAuth();
 
   const fetchTrendingReports = async () => {
     try {
       setLoading(true);
       setError(null);
+      
+      // If user is not authenticated, use fallback data
+      if (!isAuthenticated) {
+        setTrendingReports(TrendingReportsService.getFallbackTrendingReports());
+        return;
+      }
+      
       const data = await TrendingReportsService.getTrendingReports();
       
       // Ensure data is an array
@@ -47,6 +54,11 @@ export const useTrendingReports = (): UseTrendingReportsReturn => {
 
   const calculateAndRefresh = async () => {
     try {
+      // Only calculate if user is authenticated
+      if (!isAuthenticated) {
+        return;
+      }
+      
       // Silently calculate trending reports in background
       await TrendingReportsService.calculateTrendingReports();
       
@@ -67,7 +79,7 @@ export const useTrendingReports = (): UseTrendingReportsReturn => {
     if (!authLoading) {
       fetchTrendingReports();
     }
-  }, [authLoading]);
+  }, [authLoading, isAuthenticated]);
 
   return {
     trendingReports,
