@@ -43,6 +43,12 @@ export const ENDPOINTS = {
     USER_UPDATE_STATUS: (id: string) => `/admin/users/${id}/status`,
     USER_DELETE: (id: string) => `/admin/users/${id}`,
   },
+  ANNOUNCEMENTS: {
+    CREATE: '/announcements',
+    ACTIVE: '/announcements/active',
+    UPDATE: (id: string) => `/announcements/${id}`,
+    DELETE: (id: string) => `/announcements/${id}`,
+  },
   AUTH: {
     LOGIN: '/auth/login',
     REGISTER: '/auth/register',

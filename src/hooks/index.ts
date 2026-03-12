@@ -13,6 +13,7 @@ export { useFeatureFlags } from './useFeatureFlags';
 export { useScreenSize } from './useScreenSize';
 export { useUserSubscriptions } from './useUserSubscriptions';
 export { useTodaysUpdates } from './useTodaysUpdates';
+export { useAnnouncements, useUserAnnouncements } from './useAnnouncements';
 
 // WebSocket hooks
 export * from './useWebSocket';

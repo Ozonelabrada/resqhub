@@ -11,6 +11,7 @@ export { ReportsService } from './reportsService';
 export { ReactionsService } from './reactionsService';
 export { StoreService } from './storeService';
 export { AdminService } from './adminService';
+export { AnnouncementsService } from './announcementsService';
 export { appConfigService } from './appConfigService';
 export { ReportMatchService } from './reportMatchService';
 export { notificationService } from './notificationService';

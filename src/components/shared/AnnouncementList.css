@@ -1,0 +1,126 @@
+.announcements-list-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.announcements-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.announcements-header h3 {
+  margin: 0;
+  font-size: 1.3rem;
+  color: #333;
+}
+
+.announcement-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.announcement-empty-card,
+.announcement-error-card {
+  text-align: center;
+  padding: 2rem;
+  background-color: #f8f9fa;
+}
+
+.empty-message,
+.error-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: #6c757d;
+  font-size: 1.1rem;
+}
+
+.empty-message i,
+.error-message i {
+  font-size: 2.5rem;
+  color: #adb5bd;
+}
+
+.error-message {
+  color: #dc3545;
+}
+
+.error-message i {
+  color: #dc3545;
+}
+
+.announcement-details-container {
+  padding: 1rem 2rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.announcement-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.announcement-content h4 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1rem;
+}
+
+.announcement-full-content {
+  margin: 0;
+  color: #555;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.announcement-expiry,
+.announcement-creator {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.announcements-datatable {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.announcements-datatable .p-datatable-thead > tr > th {
+  background-color: #e9ecef;
+  padding: 0.75rem;
+  font-weight: 600;
+  color: #333;
+  border: 1px solid #dee2e6;
+}
+
+.announcements-datatable .p-datatable-tbody > tr {
+  border-bottom: 1px solid #dee2e6;
+}
+
+.announcements-datatable .p-datatable-tbody > tr > td {
+  padding: 0.75rem;
+}
+
+.p-datatable.announcements-datatable .p-datatable-tbody > tr:hover {
+  background-color: #f8f9fa;
+}
+
+@media (max-width: 768px) {
+  .announcements-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .announcement-details-container {
+    padding: 1rem;
+  }
+}

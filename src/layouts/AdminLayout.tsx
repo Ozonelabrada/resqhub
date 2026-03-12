@@ -125,6 +125,12 @@ const AdminLayout: React.FC = () => {
       path: '/admin/subscriptions'
     },
     {
+      id: 'announcements',
+      label: 'Announcements',
+      icon: <Bell size={20} />,
+      path: '/admin/announcements'
+    },
+    {
       id: 'appconfig',
       label: 'App Config',
       icon: <Settings size={20} />,
