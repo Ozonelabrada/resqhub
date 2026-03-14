@@ -498,10 +498,28 @@ export interface RiderListResponse {
   riders: RiderListItem[];
 }
 
+export interface RiderActivity {
+  id: string;
+  activityType: string;
+  description: string;
+  riderName: string;
+  timestamp: string;
+  details?: any;
+}
+
+export interface PaginationInfo {
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+}
+
 export interface RiderStatisticsOverview {
   metrics: RiderMetrics;
   topPerformers: RiderPerformance[];
-  recentActivity: string[]; // simple list of messages returned by backend
+  topPerformersPagination?: PaginationInfo;
+  recentActivity: RiderActivity[] | string[]; // backend may return objects or strings
+  recentActivityPagination?: PaginationInfo;
   trendData: RiderTrendPoint[];
 }
 
@@ -517,7 +535,7 @@ export interface PaginatedRiderPerformanceResponse {
 }
 
 export interface PaginatedStringResponse {
-  data: string[];
+  data: string[] | RiderActivity[];
   pagination: {
     page: number;
     pageSize: number;
@@ -654,4 +672,3 @@ export type CommunityStatus = CommunitySummary['status'];
 export type AdminReportStatus = AdminReport['status'];
 export type AdminReportType = AdminReport['type'];
 export type AdminReportPriority = AdminReport['priority'];
-export type AnnouncementAudience = 'riders' | 'sellers' | 'service_providers' | 'community_admins' | 'all_users';

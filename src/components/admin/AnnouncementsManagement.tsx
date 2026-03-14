@@ -176,7 +176,7 @@ export function AnnouncementsManagement() {
 
                     <div className="flex justify-end gap-2 pt-4 border-t border-slate-200">
                       <Button
-                        variant="destructive"
+                        color="destructive"
                         size="sm"
                         onClick={() => handleDelete(announcement)}
                         className="gap-2"

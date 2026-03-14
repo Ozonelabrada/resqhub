@@ -485,16 +485,31 @@ export class AdminService {
    */
   static async getRiderActivityFeed(
     page: number = 1,
-    pageSize: number = 20
+    pageSize: number = 20,
+    fromDate?: string,
+    toDate?: string,
+    searchQuery?: string
   ): Promise<{
-    activities: string[];
+    activities: (string | any)[];
     pagination: { page: number; pageSize: number; totalCount: number; totalPages: number };
   }> {
     try {
+      const params: any = { page, pageSize };
+      // Send ISO 8601 UTC datetime strings to backend
+      if (fromDate) {
+        // Ensure ISO format with Z suffix for UTC
+        params.fromDate = fromDate.endsWith('Z') ? fromDate : new Date(fromDate).toISOString();
+      }
+      if (toDate) {
+        // Ensure ISO format with Z suffix for UTC
+        params.toDate = toDate.endsWith('Z') ? toDate : new Date(toDate).toISOString();
+      }
+      if (searchQuery) params.search = searchQuery;
+
       const response = await api.get(ENDPOINTS.ADMIN.RIDERS_ACTIVITY_FEED, {
-        params: { page, pageSize },
+        params,
       });
-      const payload: PaginatedStringResponse = response.data.data;
+      const payload: any = response.data.data;
       return { activities: payload.data, pagination: payload.pagination };
     } catch (error) {
       console.error('Error fetching activity feed:', error);
@@ -593,7 +608,9 @@ export class AdminService {
       return {
         metrics: enrichedMetrics,
         topPerformers: top.performers,
+        topPerformersPagination: top.pagination,
         recentActivity: activity.activities,
+        recentActivityPagination: activity.pagination,
         trendData: trend,
       };
     } catch (error) {
@@ -611,6 +628,19 @@ export class AdminService {
       return response.data.data || response.data;
     } catch (error) {
       console.error('Error fetching rider detail:', error);
+      throw error;
+    }
+  }
+
+  // Document Management
+  static async verifyDocument(documentId: string): Promise<any> {
+    try {
+      const response = await api.put(ENDPOINTS.ADMIN.DOCUMENT_VERIFY(documentId), {
+        isVerified: true
+      });
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error('Error verifying document:', error);
       throw error;
     }
   }
@@ -774,6 +804,107 @@ export class AdminService {
     return isActive ? 'Active' : 'Inactive';
   }
 
+
+  // Rider Credits Management
+  /**
+   * Grant credits to a user
+   * POST /api/services/admin/credits/grant
+   */
+  static async grantCreditsToUser(payload: {
+    userId: string;
+    serviceType: string;
+    creditsToGrant: number;
+    creditValue: number;
+    reason: string;
+  }): Promise<any> {
+    try {
+      const response = await api.post(ENDPOINTS.ADMIN.GRANT_CREDITS, payload);
+      return response.data;
+    } catch (error) {
+      console.error('Error granting credits:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Deduct credits from a user
+   * POST /api/services/admin/credits/deduct
+   */
+  static async deductCreditsFromUser(payload: {
+    userId: string;
+    serviceType: string;
+    creditsToDeduct: number;
+    reason: string;
+  }): Promise<any> {
+    try {
+      const response = await api.post(ENDPOINTS.ADMIN.DEDUCT_CREDITS, payload);
+      return response.data;
+    } catch (error) {
+      console.error('Error deducting credits:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get user's credit history with pagination
+   * GET /api/services/admin/credits/history/{userId}?serviceType=&page=&pageSize=
+   */
+  static async getUserCreditHistory(
+    userId: string,
+    serviceType?: string,
+    page: number = 1,
+    pageSize: number = 20
+  ): Promise<any> {
+    try {
+      let endpoint = `${ENDPOINTS.ADMIN.CREDIT_HISTORY}/${userId}`;
+      const params: any = { page, pageSize };
+      
+      if (serviceType) {
+        params.serviceType = serviceType;
+      }
+
+      const response = await api.get(endpoint, { params });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching credit history:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get user's current available credits
+   * GET /api/services/admin/users/{userId}/credits?serviceType=
+   */
+  static async getUserCurrentCredits(userId: string, serviceType?: string): Promise<any> {
+    try {
+      const endpoint = `${ENDPOINTS.ADMIN.USER_CREDITS}/${userId}/credits`;
+      const params: any = {};
+      
+      if (serviceType) {
+        params.serviceType = serviceType;
+      }
+
+      const response = await api.get(endpoint, { params });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user current credits:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get plan statistics
+   * GET /api/services/admin/credits/statistics/{planId}
+   */
+  static async getPlanStatistics(planId: string): Promise<any> {
+    try {
+      const response = await api.get(`${ENDPOINTS.ADMIN.PLAN_STATISTICS}/${planId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching plan statistics:', error);
+      throw error;
+    }
+  }
 
   // Helper Methods for Mocking
 }

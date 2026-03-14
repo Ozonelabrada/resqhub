@@ -42,6 +42,14 @@ export const ENDPOINTS = {
     USER_UPDATE_ROLE: (id: string) => `/admin/users/${id}/role`,
     USER_UPDATE_STATUS: (id: string) => `/admin/users/${id}/status`,
     USER_DELETE: (id: string) => `/admin/users/${id}`,
+    // Rider Credits Management
+    GRANT_CREDITS: '/api/services/admin/credits/grant',
+    DEDUCT_CREDITS: '/api/services/admin/credits/deduct',
+    CREDIT_HISTORY: '/api/services/admin/credits/history',
+    USER_CREDITS: '/api/services/admin/users',
+    PLAN_STATISTICS: '/api/services/admin/credits/statistics',
+    // Document Management
+    DOCUMENT_VERIFY: (id: string) => `/documents/${id}/verify`,
   },
   ANNOUNCEMENTS: {
     CREATE: '/announcements',

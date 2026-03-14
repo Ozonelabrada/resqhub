@@ -52,11 +52,13 @@ export interface RiderUpdateData {
 export const useWebSocket = () => {
   const [isConnected, setIsConnected] = useState(websocketService.isConnected);
   const [isReconnecting, setIsReconnecting] = useState(websocketService.isReconnecting);
+  const [isSupported, setIsSupported] = useState(websocketService.isWebSocketSupported);
 
   useEffect(() => {
     const checkConnection = () => {
       setIsConnected(websocketService.isConnected);
       setIsReconnecting(websocketService.isReconnecting);
+      setIsSupported(websocketService.isWebSocketSupported);
     };
 
     // Check connection status periodically
@@ -79,6 +81,7 @@ export const useWebSocket = () => {
   return {
     isConnected,
     isReconnecting,
+    isSupported, // Add this to let components know if WebSocket features are available
     connect,
     disconnect
   };

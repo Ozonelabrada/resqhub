@@ -31,7 +31,7 @@ const AdminGuard: React.FC<AdminGuardProps> = ({
 
   // Check if user is authenticated
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/" state={{ from: location, openLogin: true }} replace />;
   }
 
   // Check if user has admin role

@@ -82,65 +82,109 @@ const AdminLayout: React.FC = () => {
       icon: <Home size={20} />,
       path: '/hub'
     },
+    // Overview
     {
       id: 'dashboard',
       label: 'Overview',
       icon: <BarChart3 size={20} />,
-      path: '/admin'
+      path: '/admin',
+      category: 'Dashboard'
     },
+    // Section 1: Core Management
     {
-      id: 'users',
-      label: 'User Management',
-      icon: <Shield size={20} />,
-      path: '/admin/users'
+      category: 'Core Management',
+      categoryIcon: <Shield size={18} />,
+      items: [
+        {
+          id: 'users',
+          label: 'User Management',
+          icon: <Shield size={20} />,
+          path: '/admin/users'
+        }
+      ]
     },
+    // Section 2: Community & Applications
     {
-      id: 'communities',
-      label: 'Communities',
-      icon: <Users size={20} />,
-      path: '/admin/communities'
+      category: 'Communities',
+      categoryIcon: <Users size={18} />,
+      items: [
+        {
+          id: 'communities',
+          label: 'Communities',
+          icon: <Users size={20} />,
+          path: '/admin/communities'
+        },
+        {
+          id: 'applications',
+          label: 'Applications',
+          icon: <Briefcase size={20} />,
+          path: '/admin/applications'
+        }
+      ]
     },
+    // Section 3: Rider Operations
     {
-      id: 'applications',
-      label: 'Applications',
-      icon: <Briefcase size={20} />,
-      path: '/admin/applications'
+      category: 'Rider Operations',
+      categoryIcon: <TrendingUp size={18} />,
+      items: [
+        {
+          id: 'riders',
+          label: 'Riders',
+          icon: <TrendingUp size={20} />,
+          path: '/admin/riders'
+        },
+        {
+          id: 'reports',
+          label: 'Reports',
+          icon: <FileText size={20} />,
+          path: '/admin/reports'
+        }
+      ]
     },
+    // Section 4: Revenue
     {
-      id: 'riders',
-      label: 'Riders',
-      icon: <TrendingUp size={20} />,
-      path: '/admin/riders'
+      category: 'Revenue & Billing',
+      categoryIcon: <CreditCard size={18} />,
+      items: [
+        {
+          id: 'subscriptions',
+          label: 'Subscriptions',
+          icon: <CreditCard size={20} />,
+          path: '/admin/subscriptions'
+        }
+      ]
     },
+    // Section 5: Communications
     {
-      id: 'reports',
-      label: 'Reports',
-      icon: <FileText size={20} />,
-      path: '/admin/reports'
+      category: 'Communications',
+      categoryIcon: <Bell size={18} />,
+      items: [
+        {
+          id: 'announcements',
+          label: 'Announcements',
+          icon: <Bell size={20} />,
+          path: '/admin/announcements'
+        }
+      ]
     },
+    // Section 6: System
     {
-      id: 'subscriptions',
-      label: 'Subscriptions',
-      icon: <CreditCard size={20} />,
-      path: '/admin/subscriptions'
-    },
-    {
-      id: 'announcements',
-      label: 'Announcements',
-      icon: <Bell size={20} />,
-      path: '/admin/announcements'
-    },
-    {
-      id: 'appconfig',
-      label: 'App Config',
-      icon: <Settings size={20} />,
-      path: '/admin/app-config'
-    },
-    {
-      id: 'audit',
-      label: 'Audit Trail',
-      icon: <History size={20} />,
-      path: '/admin/audit'
+      category: 'System',
+      categoryIcon: <Settings size={18} />,
+      items: [
+        {
+          id: 'appconfig',
+          label: 'App Config',
+          icon: <Settings size={20} />,
+          path: '/admin/app-config'
+        },
+        {
+          id: 'audit',
+          label: 'Audit Trail',
+          icon: <History size={20} />,
+          path: '/admin/audit'
+        }
+      ]
     }
   ];
 
@@ -204,49 +248,100 @@ const AdminLayout: React.FC = () => {
 
         {/* Sidebar Navigation */}
         <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-2">
-          {menuItems.map((item) => {
-            const isActive = currentPath === item.path || (item.path !== '/admin' && currentPath.startsWith(item.path));
-            
-            return (
-              <button
-                key={item.id}
-                onClick={() => handleNavigation(item.path)}
-                className={cn(
-                  "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group",
-                  isActive 
-                    ? "bg-teal-50 text-teal-700 font-bold" 
-                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
-                )}
-                title={isSidebarCollapsed ? item.label : undefined}
-              >
-                <div className={cn(
-                  "transition-colors",
-                  isActive ? "text-teal-600" : "text-slate-400 group-hover:text-slate-600 text-lg" // increased text size for icon fallback
-                )}>
-                  {item.icon}
+          {menuItems.map((item: any, index: number) => {
+            // Handle grouped category items
+            if (item.items && item.category) {
+              return (
+                <div key={`category-${index}`} className="space-y-2">
+                  {!isSidebarCollapsed && (
+                    <div className="flex items-center gap-2 px-4 py-2 mt-4 mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                      {item.categoryIcon && <span className="text-slate-300">{item.categoryIcon}</span>}
+                      <span>{item.category}</span>
+                    </div>
+                  )}
+                  {item.items.map((subItem: any) => {
+                    const isActive = currentPath === subItem.path || (subItem.path !== '/admin' && currentPath.startsWith(subItem.path));
+                    return (
+                      <button
+                        key={subItem.id}
+                        onClick={() => handleNavigation(subItem.path)}
+                        className={cn(
+                          "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group",
+                          isActive 
+                            ? "bg-teal-50 text-teal-700 font-bold" 
+                            : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                        )}
+                        title={isSidebarCollapsed ? subItem.label : undefined}
+                      >
+                        <div className={cn(
+                          "transition-colors",
+                          isActive ? "text-teal-600" : "text-slate-400 group-hover:text-slate-600"
+                        )}>
+                          {subItem.icon}
+                        </div>
+                        {!isSidebarCollapsed && <span>{subItem.label}</span>}
+                        {!isSidebarCollapsed && isActive && (
+                          <div className="ml-auto w-1.5 h-1.5 bg-teal-600 rounded-full" />
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
-                {!isSidebarCollapsed && <span>{item.label}</span>}
-                {!isSidebarCollapsed && isActive && (
-                  <div className="ml-auto w-1.5 h-1.5 bg-teal-600 rounded-full" />
-                )}
-              </button>
-            );
+              );
+            }
+
+            // Handle standalone items (for backward compatibility)
+            if (item.path) {
+              const isActive = currentPath === item.path || (item.path !== '/admin' && currentPath.startsWith(item.path));
+              
+              return (
+                <button key={item.id}
+                  onClick={() => handleNavigation(item.path)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group",
+                    isActive 
+                      ? "bg-teal-50 text-teal-700 font-bold" 
+                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                  )}
+                  title={isSidebarCollapsed ? item.label : undefined}
+                >
+                  <div className={cn(
+                    "transition-colors",
+                    isActive ? "text-teal-600" : "text-slate-400 group-hover:text-slate-600"
+                  )}>
+                    {item.icon}
+                  </div>
+                  {!isSidebarCollapsed && <span>{item.label}</span>}
+                  {!isSidebarCollapsed && isActive && (
+                    <div className="ml-auto w-1.5 h-1.5 bg-teal-600 rounded-full" />
+                  )}
+                </button>
+              );
+            }
           })}
         </nav>
 
         {/* Sidebar Footer */}
-        <div className="p-4 border-t border-slate-100 space-y-4">
+        <div className="p-4 border-t border-slate-100 space-y-2">
           <button
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            className="w-full hidden lg:flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition-all font-medium"
+            className="w-full flex items-center justify-center lg:justify-start gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-teal-50 hover:text-teal-600 transition-all font-medium group"
+            title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            <ChevronRight className={cn("transition-transform", isSidebarCollapsed ? "" : "rotate-180")} size={20} />
+            <div className="transition-transform group-hover:scale-110">
+              {isSidebarCollapsed ? (
+                <ChevronRight size={20} className="rotate-180" />
+              ) : (
+                <ChevronRight size={20} />
+              )}
+            </div>
             {!isSidebarCollapsed && <span>Collapse</span>}
           </button>
           
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-rose-500 hover:bg-rose-50 transition-all font-medium"
+            className="w-full flex items-center justify-center lg:justify-start gap-3 px-4 py-3 rounded-xl text-rose-500 hover:bg-rose-50 transition-all font-medium"
+            title={isSidebarCollapsed ? "Logout" : undefined}
           >
             <LogOut size={20} />
             {!isSidebarCollapsed && <span>Logout</span>}
@@ -260,10 +355,19 @@ const AdminLayout: React.FC = () => {
         <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-20 sticky top-0">
           <div className="flex items-center gap-4">
             <button 
-              className="md:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-lg"
+              className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-all md:hidden"
               onClick={() => setIsMobileMenuOpen(true)}
+              title="Open menu"
             >
               <MenuIcon size={24} />
+            </button>
+
+            <button
+              className="hidden md:block p-2 text-slate-500 hover:bg-teal-50 hover:text-teal-600 rounded-lg transition-all"
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              <ChevronRight size={20} className={cn("transition-transform duration-300", isSidebarCollapsed ? "rotate-180" : "")} />
             </button>
             
             <div className="hidden lg:flex items-center bg-slate-100 rounded-xl px-4 py-2 w-96 border border-transparent focus-within:border-teal-500/30 focus-within:bg-white transition-all">
@@ -328,7 +432,22 @@ const AdminLayout: React.FC = () => {
             <span className="text-slate-400 font-medium text-sm">Admin</span>
             <ChevronRight size={14} className="text-slate-300" />
             <span className="text-teal-600 font-bold text-sm">
-              {menuItems.find(item => currentPath === item.path || (item.id !== 'dashboard' && currentPath.startsWith(item.path)))?.label || 'Details'}
+              {(() => {
+                // Find matching item in menu structure
+                for (const item of menuItems) {
+                  if (item.path && (currentPath === item.path || (item.path !== '/admin' && currentPath.startsWith(item.path)))) {
+                    return item.label;
+                  }
+                  if (item.items) {
+                    for (const subItem of item.items) {
+                      if (currentPath === subItem.path || (subItem.path !== '/admin' && currentPath.startsWith(subItem.path))) {
+                        return subItem.label;
+                      }
+                    }
+                  }
+                }
+                return 'Details';
+              })()}
             </span>
           </nav>
           
@@ -375,32 +494,73 @@ const AdminLayout: React.FC = () => {
         </div>
 
         <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-2">
-          {menuItems.map((item) => {
-            const isActive = currentPath === item.path || (item.path !== '/admin' && currentPath.startsWith(item.path));
-            
-            return (
-              <button
-                key={item.id}
-                onClick={() => {
-                  handleNavigation(item.path);
-                  setIsMobileMenuOpen(false);
-                }}
-                className={cn(
-                  "w-full flex items-center gap-3 px-4 py-4 rounded-2xl transition-all",
-                  isActive 
-                    ? "bg-teal-50 text-teal-700 font-bold" 
-                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
-                )}
-              >
-                <div className={cn(
-                  "transition-colors",
-                  isActive ? "text-teal-600" : "text-slate-400"
-                )}>
-                  {item.icon}
+          {menuItems.map((item: any, index: number) => {
+            // Handle grouped category items
+            if (item.items && item.category) {
+              return (
+                <div key={`category-${index}`} className="space-y-2">
+                  <div className="flex items-center gap-2 px-4 py-2 mt-4 mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    {item.categoryIcon && <span className="text-slate-300">{item.categoryIcon}</span>}
+                    <span>{item.category}</span>
+                  </div>
+                  {item.items.map((subItem: any) => {
+                    const isActive = currentPath === subItem.path || (subItem.path !== '/admin' && currentPath.startsWith(subItem.path));
+                    return (
+                      <button
+                        key={subItem.id}
+                        onClick={() => {
+                          handleNavigation(subItem.path);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className={cn(
+                          "w-full flex items-center gap-3 px-4 py-4 rounded-2xl transition-all",
+                          isActive 
+                            ? "bg-teal-50 text-teal-700 font-bold" 
+                            : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                        )}
+                      >
+                        <div className={cn(
+                          "transition-colors",
+                          isActive ? "text-teal-600" : "text-slate-400"
+                        )}>
+                          {subItem.icon}
+                        </div>
+                        <span>{subItem.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
-                <span>{item.label}</span>
-              </button>
-            );
+              );
+            }
+
+            // Handle standalone items
+            if (item.path) {
+              const isActive = currentPath === item.path || (item.path !== '/admin' && currentPath.startsWith(item.path));
+              
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    handleNavigation(item.path);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-4 py-4 rounded-2xl transition-all",
+                    isActive 
+                      ? "bg-teal-50 text-teal-700 font-bold" 
+                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                  )}
+                >
+                  <div className={cn(
+                    "transition-colors",
+                    isActive ? "text-teal-600" : "text-slate-400"
+                  )}>
+                    {item.icon}
+                  </div>
+                  <span>{item.label}</span>
+                </button>
+              );
+            }
           })}
         </nav>
 

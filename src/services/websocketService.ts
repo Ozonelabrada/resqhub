@@ -39,7 +39,8 @@ class WebSocketService {
     this.connection = new HubConnectionBuilder()
       .withUrl(hubUrl, {
         accessTokenFactory: () => token || '',
-        transport: 1 | 2 | 4, // WebSockets | ServerSentEvents | LongPolling
+        transport: 4, // Try LongPolling first (WebSockets=1, ServerSentEvents=2, LongPolling=4)
+        skipNegotiation: false,
       })
       .withAutomaticReconnect([0, 0, 1000, 3000, 5000, 10000])
       .configureLogging(LogLevel.Information)
@@ -53,15 +54,33 @@ class WebSocketService {
     if (!this.connection) return;
 
     try {
+      console.log('🔗 Attempting SignalR connection to:', this.connection?.baseUrl || 'unknown URL');
+      console.log('📋 Connection state:', HubConnectionState[this.connection.state]);
+      
       await this.connection.start();
       console.log('✅ Connected to notifications hub:', this.connection.connectionId);
       this.isConnecting = false;
     } catch (error) {
       console.error('❌ SignalR connection error:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorDetails = {
+        message: errorMessage,
+        name: error instanceof Error ? error.name : 'Unknown',
+        isCorsError: errorMessage.includes('CORS') || errorMessage.includes('Access-Control') || errorMessage.includes('blocked'),
+      };
+      console.error('📊 Full error details:', errorDetails);
       this.isConnecting = false;
 
+      // Handle CORS errors specifically
+      if (errorDetails.isCorsError) {
+        console.warn('⚠️  CORS Error: Backend is not allowing WebSocket connections from this origin.');
+        console.warn('📋 Backend team needs to configure CORS for SignalR with .AllowCredentials()');
+        this.websocketSupported = false;
+        this.connection = null;
+        return;
+      }
+
       // Check if it's a transport error (server doesn't support SignalR)
-      const errorMessage = error instanceof Error ? error.message : String(error);
       if (errorMessage.includes('Failed to start') || errorMessage.includes('Unable to connect')) {
         console.warn('❌ SignalR not supported by server. Real-time features will be unavailable.');
         this.websocketSupported = false;
@@ -69,7 +88,8 @@ class WebSocketService {
         return;
       }
 
-      // SignalR automatic reconnect will handle retries with configured delays
+      // Other connection errors - will retry via automatic reconnect
+      console.warn('⚠️  SignalR will attempt to reconnect...');
     }
   }
 
