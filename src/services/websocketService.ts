@@ -3,11 +3,8 @@ import { authManager } from '../utils/sessionManager';
 
 class WebSocketService {
   private connection: HubConnection | null = null;
-  private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private reconnectDelay = 1000;
   private isConnecting = false;
-  private websocketSupported = true; // Assume supported until proven otherwise
+  private websocketSupported = true;
 
   // Event listeners
   private eventListeners: Map<string, Function[]> = new Map();
@@ -22,12 +19,19 @@ class WebSocketService {
       return;
     }
 
+    // WebSocket connections are disabled until hub endpoint is confirmed
+    const enableWebSocket = import.meta.env.VITE_APP_ENABLE_WEBSOCKET === 'true';
+    if (!enableWebSocket) {
+      console.log('WebSocket connections are disabled. Set VITE_APP_ENABLE_WEBSOCKET=true to enable.');
+      return;
+    }
+
     if (this.isConnecting || this.connection?.state === HubConnectionState.Connected || !this.websocketSupported) return;
 
     this.isConnecting = true;
 
     const token = authManager.getToken();
-    const baseURL = import.meta.env.VITE_APP_API_BASE_URL || 'https://resqhub-be.onrender.com';
+    const baseURL = import.meta.env.VITE_APP_API_BASE_URL || 'https://findrhub.api.dev.nextstep-software.com';
 
     // Build the SignalR hub URL
     const hubUrl = `${baseURL}/notificationHub`;
@@ -35,9 +39,10 @@ class WebSocketService {
     this.connection = new HubConnectionBuilder()
       .withUrl(hubUrl, {
         accessTokenFactory: () => token || '',
-        transport: 1 | 2 | 4, // WebSockets | ServerSentEvents | LongPolling
+        transport: 4, // Try LongPolling first (WebSockets=1, ServerSentEvents=2, LongPolling=4)
+        skipNegotiation: false,
       })
-      .withAutomaticReconnect()
+      .withAutomaticReconnect([0, 0, 1000, 3000, 5000, 10000])
       .configureLogging(LogLevel.Information)
       .build();
 
@@ -49,24 +54,42 @@ class WebSocketService {
     if (!this.connection) return;
 
     try {
+      console.log('🔗 Attempting SignalR connection to:', this.connection?.baseUrl || 'unknown URL');
+      console.log('📋 Connection state:', HubConnectionState[this.connection.state]);
+      
       await this.connection.start();
-      console.log('SignalR connected:', this.connection.connectionId);
-      this.reconnectAttempts = 0;
+      console.log('✅ Connected to notifications hub:', this.connection.connectionId);
       this.isConnecting = false;
     } catch (error) {
-      console.error('SignalR connection error:', error);
+      console.error('❌ SignalR connection error:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorDetails = {
+        message: errorMessage,
+        name: error instanceof Error ? error.name : 'Unknown',
+        isCorsError: errorMessage.includes('CORS') || errorMessage.includes('Access-Control') || errorMessage.includes('blocked'),
+      };
+      console.error('📊 Full error details:', errorDetails);
       this.isConnecting = false;
 
-      // Check if it's a transport error (server doesn't support SignalR)
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes('Failed to start') || errorMessage.includes('Unable to connect')) {
-        console.warn('SignalR not supported by server. Real-time features will be unavailable.');
+      // Handle CORS errors specifically
+      if (errorDetails.isCorsError) {
+        console.warn('⚠️  CORS Error: Backend is not allowing WebSocket connections from this origin.');
+        console.warn('📋 Backend team needs to configure CORS for SignalR with .AllowCredentials()');
         this.websocketSupported = false;
         this.connection = null;
-        return; // Don't attempt reconnection for transport errors
+        return;
       }
 
-      this.attemptReconnect();
+      // Check if it's a transport error (server doesn't support SignalR)
+      if (errorMessage.includes('Failed to start') || errorMessage.includes('Unable to connect')) {
+        console.warn('❌ SignalR not supported by server. Real-time features will be unavailable.');
+        this.websocketSupported = false;
+        this.connection = null;
+        return;
+      }
+
+      // Other connection errors - will retry via automatic reconnect
+      console.warn('⚠️  SignalR will attempt to reconnect...');
     }
   }
 
@@ -75,55 +98,67 @@ class WebSocketService {
 
     // Handle connection events
     this.connection.onclose(() => {
-      console.log('SignalR disconnected');
+      console.log('⚠️  SignalR disconnected');
       this.isConnecting = false;
-      this.attemptReconnect();
     });
 
     this.connection.onreconnecting(() => {
-      console.log('SignalR reconnecting...');
+      console.log('🔄 SignalR reconnecting...');
       this.isConnecting = true;
     });
 
     this.connection.onreconnected(() => {
-      console.log('SignalR reconnected:', this.connection?.connectionId);
-      this.reconnectAttempts = 0;
+      console.log('✅ SignalR reconnected:', this.connection?.connectionId);
       this.isConnecting = false;
     });
 
-    // Handle real-time notifications
+    // Handle booking status updates (as per backend documentation)
+    this.connection.on('BookingStatusUpdated', (data) => {
+      console.log('📬 Received booking status update:', data);
+      this.emitToListeners('booking_status_updated', data);
+    });
+
+    // Handle booking accepted notification (as per backend documentation)
+    this.connection.on('BookingAccepted', (data) => {
+      console.log('✅ Received booking accepted:', data);
+      this.emitToListeners('booking_accepted', data);
+    });
+
+    // Handle real-time notifications (generic)
     this.connection.on('ReceiveNotification', (data) => {
-      console.log('Received notification:', data);
+      console.log('📬 Received notification:', data);
       this.emitToListeners('notification', data);
     });
 
     // Handle community approval/denial events
     this.connection.on('CommunityApproved', (data) => {
-      console.log('Received community approved:', data);
+      console.log('✅ Received community approved:', data);
       this.emitToListeners('community_approved', data);
     });
 
     this.connection.on('CommunityDenied', (data) => {
-      console.log('Received community denied:', data);
+      console.log('❌ Received community denied:', data);
       this.emitToListeners('community_denied', data);
+    });
+
+    // Handle announcement events
+    this.connection.on('AnnouncementCreated', (data) => {
+      console.log('📢 Received announcement created:', data);
+      this.emitToListeners('announcement_created', data);
+      this.emitToListeners('announcement_received', data);
+    });
+
+    this.connection.on('AnnouncementUpdated', (data) => {
+      console.log('📝 Received announcement updated:', data);
+      this.emitToListeners('announcement_updated', data);
+    });
+
+    this.connection.on('AnnouncementReceived', (data) => {
+      console.log('📢 Received announcement:', data);
+      this.emitToListeners('announcement_received', data);
     });
   }
 
-  private attemptReconnect() {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('Max reconnection attempts reached');
-      return;
-    }
-
-    this.reconnectAttempts++;
-    const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
-
-    console.log(`Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts})`);
-
-    setTimeout(() => {
-      this.setupConnection();
-    }, delay);
-  }
 
   // Public methods
   connect() {

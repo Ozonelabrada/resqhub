@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import {
   Card,
   Button,
@@ -39,7 +40,8 @@ import {
   TrendingUp,
   Mail,
   Phone,
-  ExternalLink
+  ExternalLink,
+  ChevronDown
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useApplicationManagement } from '@/hooks/admin';
@@ -95,6 +97,8 @@ const ApplicationManagementPage: React.FC = () => {
   const [riderDetail, setRiderDetail] = useState<any>(null);
   const [isRiderDetailLoading, setIsRiderDetailLoading] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<any>(null);
+  const [isTransactionHistoryOpen, setIsTransactionHistoryOpen] = useState(false);
+  const [verifyingDocumentId, setVerifyingDocumentId] = useState<string | null>(null);
 
   // Load applications on mount and when filters change
   useEffect(() => {
@@ -135,30 +139,36 @@ const ApplicationManagementPage: React.FC = () => {
 
     try {
       let success = false;
+      let actionMessage = '';
       switch (type) {
         case 'approve':
           success = await approveApplication(applicationId, undefined, normalizedApplicationType);
+          actionMessage = 'Application approved successfully';
           break;
         case 'reject':
           success = await rejectApplication(applicationId, reason, normalizedApplicationType);
+          actionMessage = 'Application rejected successfully';
           break;
         case 'suspend':
           success = await suspendApplication(applicationId, reason, normalizedApplicationType);
+          actionMessage = 'Application suspended successfully';
           break;
         case 'reactivate':
-          success = await reactivateApplication(applicationId, reason);
+          // Reactivate uses the approve endpoint
+          success = await approveApplication(applicationId, undefined, normalizedApplicationType);
+          actionMessage = 'Application reactivated successfully';
           break;
       }
 
       if (success) {
+        toast.success(actionMessage);
         setActionModal({ isOpen: false, type: null, applicationId: null, applicationType: null, reason: '' });
+        setSelectedDetail(null);
         await loadApplications();
-        if (selectedDetail?.id === applicationId) {
-          await fetchApplicationDetail(applicationId);
-        }
       }
     } catch (error) {
       console.error('Error taking action:', error);
+      toast.error('Failed to process action');
     }
   };
 
@@ -212,6 +222,13 @@ const ApplicationManagementPage: React.FC = () => {
     return normalized === 'pending' || normalized === 'approved' || normalized === 'suspended';
   };
 
+  const hasUnverifiedDocuments = (): boolean => {
+    if (!riderDetail?.documents || riderDetail.documents.length === 0) {
+      return false;
+    }
+    return riderDetail.documents.some((doc: any) => !doc.isVerified || doc.status === 'pending');
+  };
+
   const handleViewDetails = async (app: Application) => {
     setSelectedDetail(app);
     setRiderDetail(null);
@@ -231,6 +248,27 @@ const ApplicationManagementPage: React.FC = () => {
     }
   };
 
+  const handleVerifyDocument = async (documentId: string) => {
+    setVerifyingDocumentId(documentId);
+    try {
+      const verifiedDocument = await AdminService.verifyDocument(documentId);
+      // Update the document status in the riderDetail with the response from backend
+      if (riderDetail?.documents) {
+        const updatedDocuments = riderDetail.documents.map((doc: any) =>
+          doc.id === documentId ? verifiedDocument : doc
+        );
+        setRiderDetail({ ...riderDetail, documents: updatedDocuments });
+      }
+      // Show success message
+      console.log('Document verified successfully');
+    } catch (error) {
+      console.error('Error verifying document:', error);
+      // Show error message
+    } finally {
+      setVerifyingDocumentId(null);
+    }
+  };
+
   const getDetailContent = (app: Application) => {
     if (app.applicationType === 'rider') {
       if (riderDetail) {
@@ -238,36 +276,40 @@ const ApplicationManagementPage: React.FC = () => {
         return (
           <div className="space-y-6">
             {/* Rider Stats Overview */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                 <div className="flex items-center gap-2 mb-2">
                   <TrendingUp size={16} className="text-blue-600" />
-                  <span className="text-sm font-medium text-blue-700">Total Rides</span>
+                  <span className="text-xs font-medium text-blue-700">Completed</span>
                 </div>
-                <p className="text-2xl font-bold text-blue-900">{riderDetail.totalCompletedRides}</p>
+                <p className="text-2xl font-bold text-blue-900">{riderDetail.totalCompletedRides || 0}</p>
+                <p className="text-xs text-blue-600 mt-1">Rides</p>
+              </div>
+              <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <XCircle size={16} className="text-red-600" />
+                  <span className="text-xs font-medium text-red-700">Cancelled</span>
+                </div>
+                <p className="text-2xl font-bold text-red-900">{riderDetail.cancelledRides || 0}</p>
+                <p className="text-xs text-red-600 mt-1">Rides</p>
               </div>
               <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                 <div className="flex items-center gap-2 mb-2">
                   <CheckCircle size={16} className="text-green-600" />
-                  <span className="text-sm font-medium text-green-700">Rating</span>
+                  <span className="text-xs font-medium text-green-700">Reviews</span>
                 </div>
-                <p className="text-2xl font-bold text-green-900">
-                  {riderDetail.rating ? `${riderDetail.rating.toFixed(1)} ⭐` : 'Not rated'}
-                </p>
+                <p className="text-2xl font-bold text-green-900">{riderDetail.reviews || 0}</p>
+                <p className="text-xs text-green-600 mt-1">Count</p>
               </div>
               <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
                 <div className="flex items-center gap-2 mb-2">
-                  <MapPin size={16} className="text-purple-600" />
-                  <span className="text-sm font-medium text-purple-700">Vehicle</span>
+                  <TrendingUp size={16} className="text-purple-600" />
+                  <span className="text-xs font-medium text-purple-700">Rating</span>
                 </div>
-                <p className="text-lg font-bold text-purple-900">{riderDetail.vehicle}</p>
-              </div>
-              <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                <div className="flex items-center gap-2 mb-2">
-                  <Clock size={16} className="text-orange-600" />
-                  <span className="text-sm font-medium text-orange-700">Status</span>
-                </div>
-                <p className="text-lg font-bold text-orange-900 capitalize">{riderDetail.onlineStatus}</p>
+                <p className="text-2xl font-bold text-purple-900">
+                  {riderDetail.rating ? riderDetail.rating.toFixed(1) : '0'}⭐
+                </p>
+                <p className="text-xs text-purple-600 mt-1">Score</p>
               </div>
             </div>
 
@@ -303,33 +345,147 @@ const ApplicationManagementPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Documents Section */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="font-semibold text-gray-900 flex items-center gap-2">
-                  <FileText size={18} />
-                  Documents ({riderDetail.documentsCount})
+            {/* Credits Overview */}
+            {riderDetail.credits && (
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg border border-green-200">
+                <h4 className="font-semibold text-green-900 mb-4 flex items-center gap-2">
+                  <TrendingUp size={18} />
+                  Credits & Wallet Information
                 </h4>
-                <div className="flex gap-2 text-sm">
-                  <span className="text-green-600 flex items-center gap-1">
-                    <CheckCircle size={14} />
-                    {riderDetail.verifiedDocumentsCount} Verified
-                  </span>
-                  <span className="text-yellow-600 flex items-center gap-1">
-                    <Clock size={14} />
-                    {riderDetail.pendingDocumentsCount} Pending
-                  </span>
-                  {riderDetail.expiredDocumentsCount > 0 && (
-                    <span className="text-red-600 flex items-center gap-1">
-                      <XCircle size={14} />
-                      {riderDetail.expiredDocumentsCount} Expired
-                    </span>
-                  )}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-white rounded-lg p-4 border border-green-100">
+                    <p className="text-sm text-green-700 font-medium mb-1">Total Credits</p>
+                    <p className="text-2xl font-bold text-green-900">{riderDetail.credits.totalCredits || 0}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 border border-green-100">
+                    <p className="text-sm text-green-700 font-medium mb-1">Total Value</p>
+                    <p className="text-2xl font-bold text-green-900">₱{parseFloat(riderDetail.credits.totalValue || '0').toFixed(2)}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 border border-green-100">
+                    <p className="text-sm text-green-700 font-medium mb-1">Transactions</p>
+                    <p className="text-2xl font-bold text-green-900">{riderDetail.credits.transactionCount || 0}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 border border-green-100">
+                    <p className="text-sm text-green-700 font-medium mb-1">Booking Status</p>
+                    <Badge className={riderDetail.credits.canAcceptBookings ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                      {riderDetail.credits.canAcceptBookings ? 'Can Accept' : 'Restricted'}
+                    </Badge>
+                  </div>
                 </div>
               </div>
+            )}
+
+            {/* Transaction History */}
+            {riderDetail.credits?.transactions && riderDetail.credits.transactions.length > 0 && (
+              <div className="space-y-4">
+                <button
+                  onClick={() => setIsTransactionHistoryOpen(!isTransactionHistoryOpen)}
+                  className="w-full flex items-center justify-between gap-3 pb-2 border-b border-gray-200 hover:bg-gray-50 p-2 -m-2 rounded transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-teal-100 rounded-lg">
+                      <TrendingUp size={20} className="text-teal-600" />
+                    </div>
+                    <div className="text-left">
+                      <h4 className="font-semibold text-lg text-gray-900">Transaction History</h4>
+                      <p className="text-sm text-gray-600">{riderDetail.credits.transactions.length} transactions recorded</p>
+                    </div>
+                  </div>
+                  <div className={`flex-shrink-0 transition-transform duration-300 ${isTransactionHistoryOpen ? 'rotate-180' : ''}`}>
+                    <ChevronDown size={24} className="text-gray-600" />
+                  </div>
+                </button>
+                
+                {isTransactionHistoryOpen && (
+                  <div className="overflow-x-auto animate-in fade-in duration-200">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-gray-50">
+                          <TableHead className="text-xs font-semibold text-gray-700">ID</TableHead>
+                          <TableHead className="text-xs font-semibold text-gray-700">Type</TableHead>
+                          <TableHead className="text-xs font-semibold text-gray-700">Credits</TableHead>
+                          <TableHead className="text-xs font-semibold text-gray-700">Used</TableHead>
+                          <TableHead className="text-xs font-semibold text-gray-700">Remaining</TableHead>
+                          <TableHead className="text-xs font-semibold text-gray-700">Value</TableHead>
+                          <TableHead className="text-xs font-semibold text-gray-700">Status</TableHead>
+                          <TableHead className="text-xs font-semibold text-gray-700">Date</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {riderDetail.credits.transactions.map((transaction: any, index: number) => (
+                          <TableRow key={transaction.id || index} className="border-b border-gray-100 hover:bg-gray-50">
+                            <TableCell className="text-xs text-gray-900 font-medium">#{transaction.id}</TableCell>
+                            <TableCell className="text-xs">
+                              <Badge className={`text-xs font-medium ${
+                                transaction.transactionType === 'trial' ? 'bg-blue-100 text-blue-800' :
+                                transaction.transactionType === 'purchase' ? 'bg-green-100 text-green-800' :
+                                transaction.transactionType === 'refund' ? 'bg-purple-100 text-purple-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {transaction.transactionType}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-xs font-semibold text-gray-900">{transaction.creditCount}</TableCell>
+                            <TableCell className="text-xs text-gray-600">{transaction.creditsUsed}</TableCell>
+                            <TableCell className="text-xs font-medium text-gray-900">{transaction.creditsRemaining}</TableCell>
+                            <TableCell className="text-xs font-semibold text-gray-900">₱{parseFloat(transaction.value || '0').toFixed(2)}</TableCell>
+                            <TableCell className="text-xs">
+                              <Badge className={`text-xs font-medium ${
+                                transaction.status === 'active' ? 'bg-green-100 text-green-800' :
+                                transaction.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {(transaction.status || 'active').charAt(0).toUpperCase() + (transaction.status || 'active').slice(1)}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-xs text-gray-600">{new Date(transaction.purchaseDate).toLocaleDateString()}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Documents Section */}
+            <div className="space-y-4">
+              {(() => {
+                const totalDocs = riderDetail.documents?.length || 0;
+                const verifiedDocs = riderDetail.documents?.filter((doc: any) => doc.isVerified).length || 0;
+                const pendingDocs = riderDetail.documents?.filter((doc: any) => doc.status === 'pending').length || 0;
+                const expiredDocs = riderDetail.documents?.filter((doc: any) => doc.expirationDate && new Date(doc.expirationDate) < new Date()).length || 0;
+                
+                return (
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                      <FileText size={18} />
+                      Documents ({totalDocs})
+                    </h4>
+                    <div className="flex gap-2 text-sm">
+                      <span className="text-green-600 flex items-center gap-1">
+                        <CheckCircle size={14} />
+                        {verifiedDocs} Verified
+                      </span>
+                      <span className="text-yellow-600 flex items-center gap-1">
+                        <Clock size={14} />
+                        {pendingDocs} Pending
+                      </span>
+                      {expiredDocs > 0 && (
+                        <span className="text-red-600 flex items-center gap-1">
+                          <XCircle size={14} />
+                          {expiredDocs} Expired
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+              
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {riderDetail.documents.map((doc: any, index: number) => {
+                {riderDetail.documents && riderDetail.documents.length > 0 ? (
+                  riderDetail.documents.map((doc: any, index: number) => {
                   // Debug logging for image URLs
                   console.log(`Document ${index}:`, {
                     type: doc.documentType,
@@ -450,33 +606,74 @@ const ApplicationManagementPage: React.FC = () => {
                             <span>Verified by: {doc.verifiedByUserId}</span>
                           )}
                         </div>
+
+                        {/* Verify Button */}
+                        {!doc.isVerified && doc.status === 'pending' && (
+                          <div className="pt-3 border-t border-gray-100">
+                            <Button
+                              size="sm"
+                              className="w-full bg-green-600 hover:bg-green-700 text-white text-xs"
+                              onClick={() => handleVerifyDocument(doc.id)}
+                              disabled={verifyingDocumentId === doc.id}
+                            >
+                              {verifyingDocumentId === doc.id ? (
+                                <>
+                                  <Spinner size="sm" className="mr-2" />
+                                  Verifying...
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle size={14} className="mr-2" />
+                                  Verify Document
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
-                })}
+                })
+                ) : (
+                  <div className="col-span-full text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
+                    <FileText size={32} className="mx-auto text-gray-400 mb-3" />
+                    <p className="text-gray-600 font-medium">No documents uploaded yet</p>
+                    <p className="text-sm text-gray-500 mt-1">Documents will appear here once submitted</p>
+                  </div>
+                )}
               </div>
 
               {/* Summary Stats */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                  <div>
-                    <p className="text-2xl font-bold text-gray-900">{riderDetail.documentsCount}</p>
-                    <p className="text-xs text-gray-600">Total Documents</p>
+              {(() => {
+                const totalDocs = riderDetail.documents?.length || 0;
+                const verifiedDocs = riderDetail.documents?.filter((doc: any) => doc.isVerified).length || 0;
+                const pendingDocs = riderDetail.documents?.filter((doc: any) => doc.status === 'pending').length || 0;
+                const expiredDocs = riderDetail.documents?.filter((doc: any) => doc.expirationDate && new Date(doc.expirationDate) < new Date()).length || 0;
+                
+                return (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                      <div>
+                        <p className="text-2xl font-bold text-gray-900">{totalDocs}</p>
+                        <p className="text-xs text-gray-600">Total Documents</p>
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold text-green-600">{verifiedDocs}</p>
+                        <p className="text-xs text-gray-600">Verified</p>
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold text-yellow-600">{pendingDocs}</p>
+                        <p className="text-xs text-gray-600">Pending Review</p>
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold text-red-600">{expiredDocs}</p>
+                        <p className="text-xs text-gray-600">Expired</p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold text-green-600">{riderDetail.verifiedDocumentsCount}</p>
-                    <p className="text-xs text-gray-600">Verified</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-yellow-600">{riderDetail.pendingDocumentsCount}</p>
-                    <p className="text-xs text-gray-600">Pending Review</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-red-600">{riderDetail.expiredDocumentsCount}</p>
-                    <p className="text-xs text-gray-600">Expired</p>
-                  </div>
-                </div>
-              </div>
+                );
+              })()}
+              
             </div>
           </div>
         );
@@ -1136,6 +1333,20 @@ const ApplicationManagementPage: React.FC = () => {
                 )}
               </div>
 
+              {hasUnverifiedDocuments() && getNormalizedStatus(selectedDetail.status) === 'pending' && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle size={20} className="text-orange-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-orange-900 mb-1">Documents Not Verified</h4>
+                      <p className="text-sm text-orange-800">
+                        All documents must be verified before approving this application. Please review and verify all pending documents first.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <DialogFooter className="gap-3 border-t pt-6">
                 <Button variant="outline" onClick={() => setSelectedDetail(null)}>
                   Close
@@ -1156,7 +1367,8 @@ const ApplicationManagementPage: React.FC = () => {
                         <Button
                           className="bg-green-600 hover:bg-green-700 text-white"
                           onClick={() => handleAction('approve', selectedDetail.id, selectedDetail.applicationType)}
-                          disabled={isActionLoading}
+                          disabled={isActionLoading || hasUnverifiedDocuments()}
+                          title={hasUnverifiedDocuments() ? 'Cannot approve: All documents must be verified first' : 'Approve Application'}
                         >
                           {isActionLoading ? <Spinner size="sm" /> : <CheckCircle size={16} className="mr-2" />}
                           Approve Application

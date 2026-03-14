@@ -1,0 +1,43 @@
+.announcement-banner-container {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.announcement-message-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.announcement-title {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.announcement-description {
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+.announcement-message {
+  margin: 0 !important;
+  border-radius: 4px;
+}
+
+.announcement-message.p-message-info {
+  background-color: #e7f3ff;
+  border: 1px solid #b3d9ff;
+  color: #004085;
+}
+
+.announcement-message.p-message-warn {
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  color: #856404;
+}
+
+.announcement-message.p-message-success {
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+}

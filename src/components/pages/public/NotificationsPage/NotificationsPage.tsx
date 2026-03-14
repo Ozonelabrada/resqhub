@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../../../context/AuthContext';
-import { useMessages } from '../../../../hooks';
-import { Button, Card, Avatar, Badge } from '../../../ui';
+import { useNotifications } from '../../../../hooks/useNotifications';
+import { Button, Card, Avatar, Badge, Spinner } from '../../../ui';
 import {
   Bell,
   LogIn,
@@ -18,47 +18,27 @@ import {
 } from 'lucide-react';
 import { cn } from '../../../../lib/utils';
 
-interface Notification {
+interface NotificationUI {
   id: string;
-  type: 'message' | 'match' | 'reaction' | 'comment' | 'community';
+  type: string;
   title: string;
-  description: string;
-  timestamp: string;
-  read: boolean;
-  actor?: {
-    id: string;
-    name: string;
-    avatar?: string;
-  };
-  actionUrl?: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+  data?: any;
 }
 
 const NotificationsPage: React.FC = () => {
   const { user: authUser, openLoginModal } = useAuth();
-  const { conversations } = useMessages(null);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const { notifications, unreadCount, fetchNotifications, markAsRead, markAllAsRead, deleteNotification, loading } = useNotifications();
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
-  // Simulate loading notifications from conversations (in real app, use notification service)
+  // Load notifications on mount
   useEffect(() => {
-    if (conversations && conversations.length > 0) {
-      const generatedNotifications: Notification[] = conversations.map((conv: any, idx: number) => ({
-        id: `notif-${conv.id || idx}`,
-        type: 'message',
-        title: `New message from ${conv.user?.fullName || 'User'}`,
-        description: conv.lastMessage || 'Sent you a message',
-        timestamp: new Date(Date.now() - Math.random() * 86400000).toISOString(),
-        read: Math.random() > 0.3,
-        actor: {
-          id: conv.user?.id || 'user-' + idx,
-          name: conv.user?.fullName || 'User',
-          avatar: conv.user?.profilePicture
-        },
-        actionUrl: `/messages`
-      }));
-      setNotifications(generatedNotifications);
+    if (authUser) {
+      fetchNotifications(1, 50);
     }
-  }, [conversations]);
+  }, [authUser, fetchNotifications]);
 
   if (!authUser) {
     return (
@@ -81,13 +61,13 @@ const NotificationsPage: React.FC = () => {
     );
   }
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadNotifications = notifications.filter(n => !n.isRead);
   const filteredNotifications = filter === 'unread'
-    ? notifications.filter(n => !n.read)
+    ? unreadNotifications
     : notifications;
 
   const getNotificationIcon = (type: string) => {
-    switch (type) {
+    switch (type?.toLowerCase()) {
       case 'message':
         return <MessageSquare size={20} className="text-blue-600" />;
       case 'match':
@@ -98,13 +78,15 @@ const NotificationsPage: React.FC = () => {
         return <MessageSquare size={20} className="text-orange-600" />;
       case 'community':
         return <Users size={20} className="text-teal-600" />;
+      case 'booking':
+        return <CheckCircle size={20} className="text-green-600" />;
       default:
         return <Bell size={20} className="text-slate-600" />;
     }
   };
 
   const getNotificationColor = (type: string) => {
-    switch (type) {
+    switch (type?.toLowerCase()) {
       case 'message':
         return 'bg-blue-50 border-blue-200';
       case 'match':
@@ -115,23 +97,23 @@ const NotificationsPage: React.FC = () => {
         return 'bg-orange-50 border-orange-200';
       case 'community':
         return 'bg-teal-50 border-teal-200';
+      case 'booking':
+        return 'bg-green-50 border-green-200';
       default:
         return 'bg-slate-50 border-slate-200';
     }
   };
 
   const handleMarkAsRead = (id: string) => {
-    setNotifications(prev =>
-      prev.map(n => n.id === id ? { ...n, read: true } : n)
-    );
+    markAsRead(id);
   };
 
   const handleMarkAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    markAllAsRead();
   };
 
   const handleDelete = (id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+    deleteNotification(id);
   };
 
   const formatTime = (timestamp: string) => {
@@ -212,7 +194,12 @@ const NotificationsPage: React.FC = () => {
 
         {/* Notifications List */}
         <div className="space-y-3">
-          {filteredNotifications.length === 0 ? (
+          {loading && filteredNotifications.length === 0 ? (
+            <Card className="p-16 rounded-3xl text-center bg-white border border-slate-100">
+              <Spinner size="lg" className="mx-auto mb-4" />
+              <p className="text-slate-600 font-medium">Loading notifications...</p>
+            </Card>
+          ) : filteredNotifications.length === 0 ? (
             <Card className="p-16 rounded-3xl text-center bg-white border border-slate-100">
               <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mx-auto mb-4">
                 <Bell size={32} />
@@ -233,23 +220,15 @@ const NotificationsPage: React.FC = () => {
                 className={cn(
                   'p-5 rounded-2xl border transition-all cursor-pointer hover:shadow-md',
                   getNotificationColor(notification.type),
-                  !notification.read && 'ring-2 ring-teal-400'
+                  !notification.isRead && 'ring-2 ring-teal-400'
                 )}
-                onClick={() => !notification.read && handleMarkAsRead(notification.id)}
+                onClick={() => !notification.isRead && handleMarkAsRead(notification.id)}
               >
                 <div className="flex items-start gap-4">
-                  {/* Icon / Avatar */}
-                  {notification.actor ? (
-                    <Avatar
-                      src={notification.actor.avatar}
-                      label={notification.actor.name.charAt(0)}
-                      className="w-12 h-12 rounded-xl flex-shrink-0"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center flex-shrink-0 border border-slate-200">
-                      {getNotificationIcon(notification.type)}
-                    </div>
-                  )}
+                  {/* Icon */}
+                  <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center flex-shrink-0 border border-slate-200">
+                    {getNotificationIcon(notification.type)}
+                  </div>
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
@@ -257,15 +236,15 @@ const NotificationsPage: React.FC = () => {
                       <div>
                         <h3 className={cn(
                           'font-bold truncate',
-                          !notification.read ? 'text-slate-900' : 'text-slate-700'
+                          !notification.isRead ? 'text-slate-900' : 'text-slate-700'
                         )}>
                           {notification.title}
                         </h3>
                         <p className="text-sm text-slate-600 line-clamp-2 mt-1">
-                          {notification.description}
+                          {notification.message}
                         </p>
                       </div>
-                      {!notification.read && (
+                      {!notification.isRead && (
                         <div className="w-3 h-3 rounded-full bg-teal-600 flex-shrink-0 mt-2" />
                       )}
                     </div>
@@ -274,10 +253,10 @@ const NotificationsPage: React.FC = () => {
                     <div className="flex items-center justify-between mt-3">
                       <span className="text-xs text-slate-500 font-medium flex items-center gap-1">
                         <Clock size={12} />
-                        {formatTime(notification.timestamp)}
+                        {formatTime(notification.createdAt)}
                       </span>
                       <div className="flex items-center gap-2">
-                        {!notification.read && (
+                        {!notification.isRead && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();

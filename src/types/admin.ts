@@ -498,10 +498,28 @@ export interface RiderListResponse {
   riders: RiderListItem[];
 }
 
+export interface RiderActivity {
+  id: string;
+  activityType: string;
+  description: string;
+  riderName: string;
+  timestamp: string;
+  details?: any;
+}
+
+export interface PaginationInfo {
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+}
+
 export interface RiderStatisticsOverview {
   metrics: RiderMetrics;
   topPerformers: RiderPerformance[];
-  recentActivity: string[]; // simple list of messages returned by backend
+  topPerformersPagination?: PaginationInfo;
+  recentActivity: RiderActivity[] | string[]; // backend may return objects or strings
+  recentActivityPagination?: PaginationInfo;
   trendData: RiderTrendPoint[];
 }
 
@@ -517,7 +535,7 @@ export interface PaginatedRiderPerformanceResponse {
 }
 
 export interface PaginatedStringResponse {
-  data: string[];
+  data: string[] | RiderActivity[];
   pagination: {
     page: number;
     pageSize: number;
@@ -588,8 +606,68 @@ export interface UserStatusUpdateRequest {
   reason?: string;
 }
 
+// Announcements Management
+export type AnnouncementAudience = 
+  | 'all' 
+  | 'admins' 
+  | 'moderators' 
+  | 'riders' 
+  | 'sellers' 
+  | 'community_admins' 
+  | 'community_moderators';
+
+export type AnnouncementIconType = 
+  | 'info' 
+  | 'warning' 
+  | 'success' 
+  | 'error' 
+  | 'bell' 
+  | 'star';
+
+export interface Announcement {
+  id: string;
+  title: string;
+  message: string;
+  targetAudience: AnnouncementAudience;
+  priority: 'low' | 'medium' | 'high';
+  iconType: AnnouncementIconType;
+  communityId?: number;
+  createdBy: {
+    id: string;
+    name: string;
+  };
+  createdAt: string;
+  updatedAt?: string;
+  expiresAt?: string;
+  viewCount?: number;
+  isRead?: boolean;
+}
+
+export interface CreateAnnouncementRequest {
+  title: string;
+  message: string;
+  targetAudience: AnnouncementAudience;
+  priority: 'low' | 'medium' | 'high';
+  iconType?: AnnouncementIconType;
+  communityId?: number;
+  expiresAt?: string;
+}
+
+export interface AnnouncementListParams {
+  targetAudience?: string;
+  priority?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface AnnouncementListResponse extends BaseApiResponse {
+  data: Announcement[];
+  totalCount: number;
+  pageCount?: number;
+}
+
 // Export commonly used types
-export type AdminDashboardTab = 'overview' | 'communities' | 'reports' | 'subscriptions' | 'audit';
+export type AdminDashboardTab = 'overview' | 'communities' | 'reports' | 'subscriptions' | 'audit' | 'announcements';
 export type CommunityStatus = CommunitySummary['status'];
 export type AdminReportStatus = AdminReport['status'];
 export type AdminReportType = AdminReport['type'];

@@ -32,6 +32,7 @@ const ApplicationManagementPage = lazy(() => import('./components/pages/admin/Ap
 const RiderStatisticsPage = lazy(() => import('./components/pages/admin/RiderStatisticsPage'));
 const AppConfigPage = lazy(() => import('./components/pages/admin/AppConfigPage'));
 const UserManagementPage = lazy(() => import('./components/pages/admin/UserManagementPage'));
+const AnnouncementsPage = lazy(() => import('./components/pages/admin/AnnouncementsPage'));
 const AdminLayout = lazy(() => import('./layouts/AdminLayout'));
 const SettingsPage = lazy(() => import('./components/pages/public/SettingPage/SettingsPage'));
 const WatchlistPage = lazy(() => import('./components/pages/public/WatchlistPage/WatchlistPage'));
@@ -128,6 +129,7 @@ const AppRouter = () => {
           <Route path="communities/:id" element={<CommunityDetailsPage />} />
           <Route path="reports" element={<ReportsPage />} />
           <Route path="subscriptions" element={<SubscriptionsPage />} />
+          <Route path="announcements" element={<AnnouncementsPage />} />
           <Route path="applications" element={<ApplicationManagementPage />} />
           <Route path="riders" element={<RiderStatisticsPage />} />
           <Route path="app-config" element={<AppConfigPage />} />

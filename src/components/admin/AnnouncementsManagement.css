@@ -1,0 +1,139 @@
+.announcements-management-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1rem;
+}
+
+.announcements-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.header-content {
+  flex: 1;
+}
+
+.announcements-header h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.8rem;
+  color: #333;
+}
+
+.header-description {
+  margin: 0;
+  color: #6c757d;
+  font-size: 0.95rem;
+}
+
+.announcements-table-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.announcements-management-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.announcements-management-table .p-datatable-thead > tr > th {
+  background-color: #e9ecef;
+  padding: 1rem 0.75rem;
+  font-weight: 600;
+  color: #333;
+  border: 1px solid #dee2e6;
+  text-align: left;
+}
+
+.announcements-management-table .p-datatable-tbody > tr {
+  border-bottom: 1px solid #dee2e6;
+  transition: background-color 0.2s;
+}
+
+.announcements-management-table .p-datatable-tbody > tr:hover {
+  background-color: #f8f9fa;
+}
+
+.announcements-management-table .p-datatable-tbody > tr > td {
+  padding: 1rem 0.75rem;
+}
+
+.announcement-title-cell strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.announcement-description-cell {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #6c757d;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.announcements-error-card {
+  text-align: center;
+  padding: 2rem;
+  background-color: #f8f9fa;
+}
+
+.error-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: #dc3545;
+  font-size: 1.1rem;
+}
+
+.error-message i {
+  font-size: 2.5rem;
+  color: #dc3545;
+}
+
+@media (max-width: 768px) {
+  .announcements-management-container {
+    padding: 0.5rem;
+  }
+
+  .announcements-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .announcements-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .announcements-management-table {
+    font-size: 0.9rem;
+  }
+
+  .announcements-management-table .p-datatable-thead > tr > th,
+  .announcements-management-table .p-datatable-tbody > tr > td {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .action-buttons {
+    gap: 0.25rem;
+  }
+
+  .action-buttons button {
+    padding: 0.25rem !important;
+  }
+}
