@@ -67,6 +67,9 @@ const AppRouter = () => {
   return (
     <Suspense fallback={<LoadingFallback />}>
       <Routes>
+        {/* 🌐 LOGIN REDIRECT - Handle /login route explicitly */}
+        <Route path="/login" element={<Navigate to="/" state={{ openLogin: true }} replace />} />
+        
         {/* 🌐 MAIN LAYOUT ROUTES */}
         <Route path="/" element={<PublicLayout />}>
           {/* Public Home */}
