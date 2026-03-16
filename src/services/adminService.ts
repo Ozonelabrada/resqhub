@@ -804,6 +804,38 @@ export class AdminService {
     return isActive ? 'Active' : 'Inactive';
   }
 
+  /**
+   * Fetch riders with credits and filters
+   * GET /admin/riders?page=&pageSize=&searchQuery=&vehicle=&minRating=&maxRating=&isActive=
+   */
+  static async getRidersWithCredits(params: {
+    page?: number;
+    pageSize?: number;
+    searchQuery?: string;
+    vehicle?: string;
+    minRating?: number;
+    maxRating?: number;
+    isActive?: boolean;
+  }): Promise<any> {
+    try {
+      const query: Record<string, any> = {
+        page: params.page || 1,
+        pageSize: params.pageSize || 10,
+      };
+      
+      if (params.searchQuery) query.searchQuery = params.searchQuery;
+      if (params.vehicle) query.vehicle = params.vehicle;
+      if (params.minRating !== undefined) query.minRating = params.minRating;
+      if (params.maxRating !== undefined) query.maxRating = params.maxRating;
+      if (params.isActive !== undefined) query.isActive = params.isActive;
+
+      const response = await api.get(ENDPOINTS.ADMIN.RIDERS, { params: query });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching riders with credits:', error);
+      throw error;
+    }
+  }
 
   // Rider Credits Management
   /**
@@ -902,6 +934,38 @@ export class AdminService {
       return response.data;
     } catch (error) {
       console.error('Error fetching plan statistics:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get pending credit purchases awaiting approval
+   * GET /api/services/admin/credits/purchases/pending?page=&pageSize=
+   */
+  static async getPendingCreditPurchases(page: number = 1, pageSize: number = 20): Promise<any> {
+    try {
+      const response = await api.get(ENDPOINTS.ADMIN.PENDING_PURCHASES, {
+        params: { page, pageSize },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching pending credit purchases:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all credit purchase history with pagination
+   * GET /api/services/admin/credits/history/all?serviceType=rider&page=&pageSize=
+   */
+  static async getAllCreditHistory(serviceType: string = 'rider', page: number = 1, pageSize: number = 20): Promise<any> {
+    try {
+      const response = await api.get(ENDPOINTS.ADMIN.CREDIT_HISTORY_ALL, {
+        params: { serviceType, page, pageSize },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching all credit history:', error);
       throw error;
     }
   }

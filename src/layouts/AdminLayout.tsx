@@ -150,7 +150,34 @@ const AdminLayout: React.FC = () => {
           id: 'subscriptions',
           label: 'Subscriptions',
           icon: <CreditCard size={20} />,
-          path: '/admin/subscriptions'
+          path: '/admin/subscriptions',
+          children: [
+            {
+              id: 'subscriptions-communities',
+              label: 'Communities',
+              path: '/admin/subscriptions/communities'
+            },
+            {
+              id: 'subscriptions-riders',
+              label: 'Riders',
+              path: '/admin/subscriptions/riders'
+            },
+            {
+              id: 'subscriptions-sellers',
+              label: 'Sellers',
+              path: '/admin/subscriptions/sellers'
+            },
+            {
+              id: 'subscriptions-events',
+              label: 'Events',
+              path: '/admin/subscriptions/events'
+            },
+            {
+              id: 'subscriptions-services',
+              label: 'Service Providers',
+              path: '/admin/subscriptions/service-providers'
+            }
+          ]
         }
       ]
     },
@@ -260,30 +287,61 @@ const AdminLayout: React.FC = () => {
                     </div>
                   )}
                   {item.items.map((subItem: any) => {
-                    const isActive = currentPath === subItem.path || (subItem.path !== '/admin' && currentPath.startsWith(subItem.path));
+                    const isActive = currentPath === subItem.path || (subItem.path !== '/admin' && currentPath.startsWith(subItem.path + '/'));
+                    const hasChildren = subItem.children && subItem.children.length > 0;
+                    const isChildActive = hasChildren && subItem.children.some((child: any) => currentPath === child.path || (child.path !== '/admin' && currentPath.startsWith(child.path + '/')));
+                    
                     return (
-                      <button
-                        key={subItem.id}
-                        onClick={() => handleNavigation(subItem.path)}
-                        className={cn(
-                          "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group",
-                          isActive 
-                            ? "bg-teal-50 text-teal-700 font-bold" 
-                            : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                      <div key={subItem.id}>
+                        <button
+                          onClick={() => handleNavigation(subItem.path)}
+                          className={cn(
+                            "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group",
+                            (isActive || isChildActive) 
+                              ? "bg-teal-50 text-teal-700 font-bold" 
+                              : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                          )}
+                          title={isSidebarCollapsed ? subItem.label : undefined}
+                        >
+                          <div className={cn(
+                            "transition-colors",
+                            (isActive || isChildActive) ? "text-teal-600" : "text-slate-400 group-hover:text-slate-600"
+                          )}>
+                            {subItem.icon}
+                          </div>
+                          {!isSidebarCollapsed && <span>{subItem.label}</span>}
+                          {!isSidebarCollapsed && (isActive || isChildActive) && (
+                            <div className="ml-auto w-1.5 h-1.5 bg-teal-600 rounded-full" />
+                          )}
+                        </button>
+                        
+                        {/* Render children if they exist and parent is active */}
+                        {hasChildren && (isActive || isChildActive) && !isSidebarCollapsed && (
+                          <div className="mt-1 ml-4 space-y-1 pl-2 border-l border-slate-200">
+                            {subItem.children.map((child: any) => {
+                              const childIsActive = currentPath === child.path || (child.path !== '/admin' && currentPath.startsWith(child.path));
+                              return (
+                                <button
+                                  key={child.id}
+                                  onClick={() => handleNavigation(child.path)}
+                                  className={cn(
+                                    "w-full text-left px-3 py-2 rounded-lg text-sm transition-all",
+                                    childIsActive
+                                      ? "bg-teal-100 text-teal-700 font-bold"
+                                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                                  )}
+                                  title={child.label}
+                                >
+                                  {child.label}
+                                  {childIsActive && (
+                                    <div className="ml-auto w-1 h-1 bg-teal-600 rounded-full inline-block" />
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
                         )}
-                        title={isSidebarCollapsed ? subItem.label : undefined}
-                      >
-                        <div className={cn(
-                          "transition-colors",
-                          isActive ? "text-teal-600" : "text-slate-400 group-hover:text-slate-600"
-                        )}>
-                          {subItem.icon}
-                        </div>
-                        {!isSidebarCollapsed && <span>{subItem.label}</span>}
-                        {!isSidebarCollapsed && isActive && (
-                          <div className="ml-auto w-1.5 h-1.5 bg-teal-600 rounded-full" />
-                        )}
-                      </button>
+                      </div>
                     );
                   })}
                 </div>
@@ -292,7 +350,7 @@ const AdminLayout: React.FC = () => {
 
             // Handle standalone items (for backward compatibility)
             if (item.path) {
-              const isActive = currentPath === item.path || (item.path !== '/admin' && currentPath.startsWith(item.path));
+              const isActive = currentPath === item.path || (item.path !== '/admin' && currentPath.startsWith(item.path + '/'));
               
               return (
                 <button key={item.id}
@@ -505,28 +563,66 @@ const AdminLayout: React.FC = () => {
                   </div>
                   {item.items.map((subItem: any) => {
                     const isActive = currentPath === subItem.path || (subItem.path !== '/admin' && currentPath.startsWith(subItem.path));
+                    const hasChildren = subItem.children && subItem.children.length > 0;
+                    const isChildActive = hasChildren && subItem.children.some((child: any) => currentPath === child.path || (child.path !== '/admin' && currentPath.startsWith(child.path)));
+                    const [expandedChild, setExpandedChild] = React.useState<string | null>(null);
+                    
                     return (
-                      <button
-                        key={subItem.id}
-                        onClick={() => {
-                          handleNavigation(subItem.path);
-                          setIsMobileMenuOpen(false);
-                        }}
-                        className={cn(
-                          "w-full flex items-center gap-3 px-4 py-4 rounded-2xl transition-all",
-                          isActive 
-                            ? "bg-teal-50 text-teal-700 font-bold" 
-                            : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                      <div key={subItem.id}>
+                        <button
+                          onClick={() => {
+                            handleNavigation(subItem.path);
+                            if (hasChildren && (isActive || isChildActive)) {
+                              setExpandedChild(expandedChild === subItem.id ? null : subItem.id);
+                            } else if (!hasChildren) {
+                              setIsMobileMenuOpen(false);
+                            }
+                          }}
+                          className={cn(
+                            "w-full flex items-center gap-3 px-4 py-4 rounded-2xl transition-all",
+                            (isActive || isChildActive) 
+                              ? "bg-teal-50 text-teal-700 font-bold" 
+                              : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                          )}
+                        >
+                          <div className={cn(
+                            "transition-colors",
+                            (isActive || isChildActive) ? "text-teal-600" : "text-slate-400"
+                          )}>
+                            {subItem.icon}
+                          </div>
+                          <span>{subItem.label}</span>
+                          {hasChildren && (
+                            <div className="ml-auto text-xs">
+                              {expandedChild === subItem.id ? '▲' : '▼'}
+                            </div>
+                          )}
+                        </button>
+                        {hasChildren && expandedChild === subItem.id && (
+                          <div className="mt-1 ml-6 space-y-1 pl-2 border-l border-slate-200">
+                            {subItem.children.map((child: any) => {
+                              const childIsActive = currentPath === child.path || (child.path !== '/admin' && currentPath.startsWith(child.path));
+                              return (
+                                <button
+                                  key={child.id}
+                                  onClick={() => {
+                                    handleNavigation(child.path);
+                                    setIsMobileMenuOpen(false);
+                                  }}
+                                  className={cn(
+                                    "w-full text-left px-3 py-2 rounded-lg text-sm transition-all",
+                                    childIsActive
+                                      ? "bg-teal-100 text-teal-700 font-bold"
+                                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                                  )}
+                                >
+                                  {child.label}
+                                </button>
+                              );
+                            })}
+                          </div>
                         )}
-                      >
-                        <div className={cn(
-                          "transition-colors",
-                          isActive ? "text-teal-600" : "text-slate-400"
-                        )}>
-                          {subItem.icon}
-                        </div>
-                        <span>{subItem.label}</span>
-                      </button>
+                      </div>
                     );
                   })}
                 </div>

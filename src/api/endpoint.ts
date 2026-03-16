@@ -46,8 +46,10 @@ export const ENDPOINTS = {
     GRANT_CREDITS: '/api/services/admin/credits/grant',
     DEDUCT_CREDITS: '/api/services/admin/credits/deduct',
     CREDIT_HISTORY: '/api/services/admin/credits/history',
+    CREDIT_HISTORY_ALL: '/api/services/admin/credits/history/all',
     USER_CREDITS: '/api/services/admin/users',
     PLAN_STATISTICS: '/api/services/admin/credits/statistics',
+    PENDING_PURCHASES: '/api/services/admin/credits/purchases/pending',
     // Document Management
     DOCUMENT_VERIFY: (id: string) => `/documents/${id}/verify`,
   },
