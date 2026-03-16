@@ -1,20 +1,22 @@
-import React, { useState } from 'react';
-import { Card, Button } from '../../ui';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { Card, Button, Input } from '../../ui';
 import { Search, Clock, Eye, TrendingUp, Users, Briefcase, Calendar, CheckCircle, AlertCircle, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRiderCredits } from './hooks/useRiderCredits';
 import { useRidersList } from './hooks/useRidersList';
 import { useCreditRequests } from './hooks/useCreditRequests';
+import { useCreditHistoryAll } from './hooks/useCreditHistoryAll';
 import { GrantCreditsModal } from './modals/GrantCreditsModal';
 import { DeductCreditsModal } from './modals/DeductCreditsModal';
 import { ViewCreditsModal } from './modals/ViewCreditsModal';
 import { CreditHistoryView } from './components/CreditHistoryView';
 import { CreditRequestsView } from './components/CreditRequestsView';
-import { FilterBar } from './components/FilterBar';
+import { CreditHistoryAllView } from './components/CreditHistoryAllView';
 import { RidersTable } from './components/RidersTable';
 
 interface RiderCreditsPageProps {
   serviceType?: 'rider' | 'seller' | 'personal-services' | 'event';
+  hideHeader?: boolean;
 }
 
 const SERVICE_TYPES = {
@@ -24,7 +26,7 @@ const SERVICE_TYPES = {
   event: { label: 'Event Credits', color: 'text-orange-600', icon: <Calendar size={20} /> },
 };
 
-const RiderCreditsPage: React.FC<RiderCreditsPageProps> = ({ serviceType = 'rider' }) => {
+const RiderCreditsPage: React.FC<RiderCreditsPageProps> = ({ serviceType = 'rider', hideHeader = false }) => {
   const serviceLabel = SERVICE_TYPES[serviceType as keyof typeof SERVICE_TYPES] || SERVICE_TYPES.rider;
   const [activeTab, setActiveTab] = useState<'management' | 'requests' | 'history'>('management');
   const [searchUserId, setSearchUserId] = useState('');
@@ -33,6 +35,14 @@ const RiderCreditsPage: React.FC<RiderCreditsPageProps> = ({ serviceType = 'ride
   const [showCreditsModal, setShowCreditsModal] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [selectedRiderId, setSelectedRiderId] = useState<string | null>(null);
+
+  // Riders filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [vehicleFilter, setVehicleFilter] = useState('');
+  const [minRating, setMinRating] = useState<number | ''>('');
+  const [maxRating, setMaxRating] = useState<number | ''>('');
+  const [isActiveFilter, setIsActiveFilter] = useState<boolean | ''>('');
+  const [currentPage, setCurrentPage] = useState(1);
 
   const {
     creditHistoryState,
@@ -49,16 +59,88 @@ const RiderCreditsPage: React.FC<RiderCreditsPageProps> = ({ serviceType = 'ride
     handleDeductCredits,
   } = useRiderCredits(serviceType);
 
-  const { riders, loading: ridersLoading, applyFilters } = useRidersList(serviceType);
+  const { 
+    riders, 
+    pagination,
+    loading: ridersLoading, 
+    error: ridersError,
+    fetchRiders 
+  } = useRidersList(serviceType);
 
   const {
     requests,
     loading: requestsLoading,
     error: requestsError,
     approving,
+    hasLoadedOnce: requestsLoaded,
+    fetchRequests,
     approveRequest,
     rejectRequest,
   } = useCreditRequests(serviceType);
+
+  const {
+    data: historyData,
+    loading: historyLoading,
+    error: historyError,
+    currentPage: historyPage,
+    pageSize: historyPageSize,
+    hasLoadedOnce: historyLoaded,
+    goToPage,
+    goToNextPage,
+    goToPreviousPage,
+    changePageSize,
+    fetchHistory,
+  } = useCreditHistoryAll(serviceType);
+
+  // Memoize riders fetch parameters to prevent unnecessary re-renders
+  const ridersParams = useMemo(() => ({
+    page: currentPage,
+    pageSize: 10,
+    searchQuery: searchQuery || undefined,
+    vehicle: vehicleFilter || undefined,
+    minRating: minRating !== '' ? Number(minRating) : undefined,
+    maxRating: maxRating !== '' ? Number(maxRating) : undefined,
+    isActive: isActiveFilter !== '' ? Boolean(isActiveFilter) : undefined,
+  }), [currentPage, searchQuery, vehicleFilter, minRating, maxRating, isActiveFilter]);
+
+  const debounceTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
+
+  // Debounced fetch for riders to prevent rapid calls
+  const debouncedFetchRiders = useCallback(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      fetchRiders(ridersParams);
+    }, 500);
+  }, [fetchRiders, ridersParams]);
+
+  // Fetch riders when management tab opens or filters change
+  useEffect(() => {
+    if (activeTab === 'management') {
+      debouncedFetchRiders();
+    }
+    // Cleanup debounce timer on unmount
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [activeTab, debouncedFetchRiders]);
+
+  // Fetch requests when requests tab opens
+  useEffect(() => {
+    if (activeTab === 'requests' && !requestsLoaded) {
+      fetchRequests();
+    }
+  }, [activeTab, requestsLoaded, fetchRequests]);
+
+  // Fetch history when history tab opens
+  useEffect(() => {
+    if (activeTab === 'history' && !historyLoaded) {
+      fetchHistory();
+    }
+  }, [activeTab, historyLoaded, fetchHistory]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,10 +228,12 @@ const RiderCreditsPage: React.FC<RiderCreditsPageProps> = ({ serviceType = 'ride
           <span className="font-medium">{notification.message}</span>
         </div>
       )}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">{serviceLabel.label} Management</h1>
-        <p className="text-gray-600 mt-1">Grant, deduct, and manage {serviceLabel.label.toLowerCase()} allocations</p>
-      </div>
+      {!hideHeader && (
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">{serviceLabel.label} Management</h1>
+          <p className="text-gray-600 mt-1">Grant, deduct, and manage {serviceLabel.label.toLowerCase()} allocations</p>
+        </div>
+      )}
       <Card className="p-6">
         <form onSubmit={handleSearch} className="flex gap-3">
           <div className="flex-1 relative">
@@ -193,19 +277,92 @@ const RiderCreditsPage: React.FC<RiderCreditsPageProps> = ({ serviceType = 'ride
       </div>
       {activeTab === 'management' && (
         <div className="space-y-6">
-          <FilterBar
-            onSearch={(query) => applyFilters(query, '', '', '')}
-            onServiceTypeChange={(type) => applyFilters('', type, '', '')}
-            onMonthChange={(month) => applyFilters('', '', month, '')}
-            onYearChange={(year) => applyFilters('', '', '', year)}
-            onFilterClear={() => applyFilters('', '', '', '')}
-          />
+          {/* Riders Filter Bar */}
+          <Card className="p-4 bg-white border border-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              {/* Search Query */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-2">Search Name/Email</label>
+                <Input
+                  placeholder="Enter name or email..."
+                  value={searchQuery}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full"
+                />
+              </div>
+
+              {/* Vehicle Filter */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-2">Vehicle Type</label>
+                <select
+                  value={vehicleFilter}
+                  onChange={(e) => {
+                    setVehicleFilter(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                >
+                  <option value="">All Vehicles</option>
+                  <option value="Motorcycle">Motorcycle</option>
+                  <option value="Car">Car</option>
+                  <option value="Bicycle">Bicycle</option>
+                  <option value="Truck">Truck</option>
+                </select>
+              </div>
+
+              {/* Active Status */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-2">Status</label>
+                <select
+                  value={isActiveFilter === '' ? '' : isActiveFilter ? 'true' : 'false'}
+                  onChange={(e) => {
+                    if (e.target.value === '') {
+                      setIsActiveFilter('');
+                    } else {
+                      setIsActiveFilter(e.target.value === 'true');
+                    }
+                    setCurrentPage(1);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                >
+                  <option value="">Show All</option>
+                  <option value="true">Active</option>
+                  <option value="false">Inactive</option>
+                </select>
+              </div>
+
+              {/* Clear Filters Button */}
+              <div className="flex items-end">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setVehicleFilter('');
+                    setMinRating('');
+                    setMaxRating('');
+                    setIsActiveFilter('');
+                    setCurrentPage(1);
+                  }}
+                  className="w-full"
+                >
+                  Clear Filters
+                </Button>
+              </div>
+            </div>
+          </Card>
+
+          {/* Riders Table */}
           <RidersTable
             riders={riders}
             loading={ridersLoading}
             onGrant={handleTableGrant}
             onDeduct={handleTableDeduct}
             onViewHistory={handleTableViewHistory}
+            pagination={pagination}
+            onPageChange={(page: number) => setCurrentPage(page)}
           />
         </div>
       )}
@@ -238,7 +395,19 @@ const RiderCreditsPage: React.FC<RiderCreditsPageProps> = ({ serviceType = 'ride
           />
         </div>
       )}
-      {activeTab === 'history' && <CreditHistoryView loading={creditHistoryState.loading} data={creditHistoryState.history?.data} />}
+      {activeTab === 'history' && (
+        <CreditHistoryAllView
+          data={historyData}
+          loading={historyLoading}
+          error={historyError}
+          currentPage={historyPage}
+          pageSize={historyPageSize}
+          onPageChange={goToPage}
+          onPageSizeChange={changePageSize}
+          onNextPage={goToNextPage}
+          onPreviousPage={goToPreviousPage}
+        />
+      )}
       <GrantCreditsModal
         open={showGrantModal}
         onOpenChange={setShowGrantModal}

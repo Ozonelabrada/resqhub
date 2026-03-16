@@ -1,54 +1,39 @@
-import React, { useState } from 'react';
-import { MoreVertical, Trash2, Plus, Clock, Eye } from 'lucide-react';
-import { Card, Badge } from '@/components/ui';
-
-interface Rider {
-  id: string;
-  username: string;
-  name: string;
-  email: string;
-  serviceType: 'rider' | 'seller' | 'personal-services' | 'event';
-  status: 'active' | 'inactive' | 'suspended';
-  currentCredits: number;
-  totalSpent: number;
-  lastActivity: string;
-  joinDate: string;
-}
+import React, { useMemo, useState } from 'react';
+import { MoreVertical, Plus, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Card, Badge, Button, Spinner } from '@/components/ui';
+import { cn } from '@/lib/utils';
+import type { RiderData } from '../hooks/useRidersList';
 
 interface RidersTableProps {
-  riders: Rider[];
+  riders: RiderData[];
   loading: boolean;
   onGrant: (riderId: string) => void;
   onDeduct: (riderId: string) => void;
   onViewHistory: (riderId: string) => void;
+  pagination?: {
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+  };
+  onPageChange?: (page: number) => void;
 }
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'active':
+const getApprovalStatusColor = (status: string) => {
+  switch (status?.toLowerCase()) {
+    case 'approved':
       return 'bg-green-100 text-green-800';
-    case 'inactive':
-      return 'bg-gray-100 text-gray-800';
-    case 'suspended':
+    case 'pending':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'rejected':
       return 'bg-red-100 text-red-800';
     default:
       return 'bg-gray-100 text-gray-800';
   }
 };
 
-const getServiceTypeColor = (type: string) => {
-  switch (type) {
-    case 'rider':
-      return 'bg-blue-50 text-blue-700 border-blue-200';
-    case 'seller':
-      return 'bg-green-50 text-green-700 border-green-200';
-    case 'personal-services':
-      return 'bg-purple-50 text-purple-700 border-purple-200';
-    case 'event':
-      return 'bg-orange-50 text-orange-700 border-orange-200';
-    default:
-      return 'bg-gray-50 text-gray-700 border-gray-200';
-  }
+const getActivityColor = (isActive: boolean) => {
+  return isActive ? 'text-green-600' : 'text-gray-600';
 };
 
 export const RidersTable: React.FC<RidersTableProps> = ({
@@ -57,14 +42,16 @@ export const RidersTable: React.FC<RidersTableProps> = ({
   onGrant,
   onDeduct,
   onViewHistory,
+  pagination,
+  onPageChange,
 }) => {
-  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [openMenu, setOpenMenu] = useState<number | null>(null);
 
   if (loading) {
     return (
       <Card className="p-12 text-center">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
-        <p className="mt-4 text-gray-600">Loading riders...</p>
+        <Spinner size="lg" className="mx-auto mb-4" />
+        <p className="text-gray-600">Loading riders...</p>
       </Card>
     );
   }
@@ -79,100 +66,165 @@ export const RidersTable: React.FC<RidersTableProps> = ({
   }
 
   return (
-    <Card className="overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700">User Info</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700">Status</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700">Service Type</th>
-              <th className="px-6 py-4 text-right text-xs font-bold text-gray-700">Credits</th>
-              <th className="px-6 py-4 text-right text-xs font-bold text-gray-700">Total Spent</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700">Activity</th>
-              <th className="px-6 py-4 text-center text-xs font-bold text-gray-700">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {riders.map((rider, idx) => (
-              <tr key={rider.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                <td className="px-6 py-4">
-                  <div>
-                    <p className="font-bold text-gray-900">{rider.name}</p>
-                    <p className="text-xs text-gray-600">@{rider.username}</p>
-                    <p className="text-xs text-gray-500">{rider.email}</p>
-                    <p className="text-xs text-gray-500 mt-1">ID: {rider.id}</p>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <Badge className={getStatusColor(rider.status)}>
-                    {rider.status.charAt(0).toUpperCase() + rider.status.slice(1)}
-                  </Badge>
-                </td>
-                <td className="px-6 py-4">
-                  <div className={`px-3 py-1 rounded-full border text-xs font-medium inline-block ${getServiceTypeColor(rider.serviceType)}`}>
-                    {rider.serviceType.charAt(0).toUpperCase() + rider.serviceType.slice(1)}
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <span className="font-bold text-teal-600">{rider.currentCredits.toLocaleString()}</span>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <span className="text-gray-700">₱{rider.totalSpent.toLocaleString('en-US', { maximumFractionDigits: 2 })}</span>
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-600">
-                  <p>Active: {rider.lastActivity}</p>
-                  <p className="text-gray-500 text-xs">Joined: {rider.joinDate}</p>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="relative">
-                    <button
-                      onClick={() => setOpenMenu(openMenu === rider.id ? null : rider.id)}
-                      className="p-2 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer"
-                    >
-                      <MoreVertical size={18} className="text-gray-600" />
-                    </button>
-                    {openMenu === rider.id && (
-                      <div className="absolute right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-max">
-                        <button
-                          onClick={() => {
-                            onGrant(rider.id);
-                            setOpenMenu(null);
-                          }}
-                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-green-50 flex items-center gap-2 border-b"
-                        >
-                          <Plus size={16} className="text-green-600" />
-                          Grant Credits
-                        </button>
-                        <button
-                          onClick={() => {
-                            onDeduct(rider.id);
-                            setOpenMenu(null);
-                          }}
-                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-red-50 flex items-center gap-2 border-b"
-                        >
-                          <Trash2 size={16} className="text-red-600" />
-                          Deduct Credits
-                        </button>
-                        <button
-                          onClick={() => {
-                            onViewHistory(rider.id);
-                            setOpenMenu(null);
-                          }}
-                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-blue-50 flex items-center gap-2"
-                        >
-                          <Clock size={16} className="text-blue-600" />
-                          View History
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </td>
+    <div className="space-y-4">
+      <Card className="overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700">Rider Info</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700">Vehicle</th>
+                <th className="px-6 py-4 text-center text-xs font-bold text-gray-700">Rating</th>
+                <th className="px-6 py-4 text-right text-xs font-bold text-gray-700">Rides</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700">Credits Volume</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700">Status</th>
+                <th className="px-6 py-4 text-center text-xs font-bold text-gray-700">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </Card>
+            </thead>
+            <tbody>
+              {riders.map((rider, idx) => (
+                <tr key={`${rider.id}-${idx}`} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                  {/* Rider Info */}
+                  <td className="px-6 py-4">
+                    <div>
+                      <p className="font-bold text-gray-900">{rider.firstName} {rider.lastName}</p>
+                      <p className="text-xs text-gray-600">{rider.email}</p>
+                      <p className="text-xs text-gray-500 mt-1">ID: {rider.userId.substring(0, 8)}</p>
+                    </div>
+                  </td>
+
+                  {/* Vehicle */}
+                  <td className="px-6 py-4">
+                    <Badge className="bg-blue-50 text-blue-700 border border-blue-200">
+                      {rider.vehicle || 'N/A'}
+                    </Badge>
+                  </td>
+
+                  {/* Rating */}
+                  <td className="px-6 py-4 text-center">
+                    <div className="font-bold text-yellow-600">
+                      {rider.rating.toFixed(1)} ⭐
+                    </div>
+                  </td>
+
+                  {/* Rides */}
+                  <td className="px-6 py-4 text-right">
+                    <div className="text-sm">
+                      <p className="font-semibold text-green-600">{rider.totalCompletedRides} completed</p>
+                      <p className="text-xs text-red-600">{rider.cancelledRides} cancelled</p>
+                    </div>
+                  </td>
+
+                  {/* Credits Volume */}
+                  <td className="px-6 py-4">
+                    <div className="space-y-1">
+                      <p className="font-bold text-teal-600 text-lg">{rider.credits.creditCount}</p>
+                      <p className="text-xs text-gray-600">₱{parseFloat(rider.credits.totalValue).toLocaleString('en-US', { maximumFractionDigits: 2 })}</p>
+                      <p className={cn(
+                        'text-xs font-medium',
+                        rider.credits.canAcceptBookings ? 'text-green-600' : 'text-red-600'
+                      )}>
+                        {rider.credits.canAcceptBookings ? '✓ Can Book' : '✗ Cannot Book'}
+                      </p>
+                    </div>
+                  </td>
+
+                  {/* Status */}
+                  <td className="px-6 py-4">
+                    <div className="space-y-2">
+                      <Badge className={getApprovalStatusColor(rider.approvalStatus)}>
+                        {rider.approvalStatus}
+                      </Badge>
+                      <div className={cn(
+                        'text-xs font-semibold px-2 py-1 rounded inline-block',
+                        getActivityColor(rider.isActive)
+                      )}>
+                        {rider.isActive ? '🟢 Active' : '⚫ Inactive'}
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* Actions */}
+                  <td className="px-6 py-4">
+                    <div className="relative flex justify-center">
+                      <button
+                        onClick={() => setOpenMenu(openMenu === rider.id ? null : rider.id)}
+                        className="p-2 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer"
+                      >
+                        <MoreVertical size={18} className="text-gray-600" />
+                      </button>
+                      {openMenu === rider.id && (
+                        <div className="absolute right-0 mt-10 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-max">
+                          <button
+                            onClick={() => {
+                              onGrant(String(rider.id));
+                              setOpenMenu(null);
+                            }}
+                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-green-50 flex items-center gap-2 border-b"
+                          >
+                            <Plus size={16} className="text-green-600" />
+                            Grant Credits
+                          </button>
+                          <button
+                            onClick={() => {
+                              onDeduct(String(rider.id));
+                              setOpenMenu(null);
+                            }}
+                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-red-50 flex items-center gap-2 border-b"
+                          >
+                            <Plus size={16} className="text-red-600 rotate-45" />
+                            Deduct Credits
+                          </button>
+                          <button
+                            onClick={() => {
+                              onViewHistory(String(rider.id));
+                              setOpenMenu(null);
+                            }}
+                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-blue-50 flex items-center gap-2"
+                          >
+                            <Clock size={16} className="text-blue-600" />
+                            View History
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      {/* Pagination */}
+      {pagination && pagination.totalPages > 1 && (
+        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <p className="text-sm text-gray-600">
+            Showing {Math.min((pagination.page - 1) * pagination.pageSize + 1, pagination.totalCount)} to {Math.min(pagination.page * pagination.pageSize, pagination.totalCount)} of {pagination.totalCount} riders
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={pagination.page === 1}
+              onClick={() => onPageChange?.(pagination.page - 1)}
+            >
+              <ChevronLeft size={16} />
+            </Button>
+            <span className="flex items-center px-3 text-sm font-medium">
+              Page {pagination.page} of {pagination.totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={pagination.page >= pagination.totalPages}
+              onClick={() => onPageChange?.(pagination.page + 1)}
+            >
+              <ChevronRight size={16} />
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };

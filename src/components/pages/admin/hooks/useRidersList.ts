@@ -1,156 +1,96 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import { AdminService } from '@/services';
 
-interface Rider {
-  id: string;
-  username: string;
-  name: string;
+export interface RiderData {
+  id: number;
+  userId: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  serviceType: 'rider' | 'seller' | 'personal-services' | 'event';
-  status: 'active' | 'inactive' | 'suspended';
-  currentCredits: number;
-  totalSpent: number;
-  lastActivity: string;
-  joinDate: string;
+  location: string;
+  vehicle: string;
+  rating: number;
+  totalCompletedRides: number;
+  cancelledRides: number;
+  approvalStatus: string;
+  isActive: boolean;
+  credits: {
+    totalCredits: number;
+    creditCount: number;
+    totalValue: string;
+    canAcceptBookings: boolean;
+  };
 }
 
-export const useRidersList = (serviceType: string) => {
-  const [riders, setRiders] = useState<Rider[]>([]);
+export interface RidersResponse {
+  data: RiderData[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+  };
+}
+
+interface FetchParams {
+  page?: number;
+  pageSize?: number;
+  searchQuery?: string;
+  vehicle?: string;
+  minRating?: number;
+  maxRating?: number;
+  isActive?: boolean;
+}
+
+export const useRidersList = (serviceType?: string) => {
+  const [riders, setRiders] = useState<RiderData[]>([]);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    pageSize: 10,
+    totalCount: 0,
+    totalPages: 0,
+  });
   const [loading, setLoading] = useState(false);
-  const [allRiders, setAllRiders] = useState<Rider[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock data - replace with actual API call
-  const mockRiders: Rider[] = [
-    {
-      id: 'R001',
-      username: 'johndoe',
-      name: 'John Doe',
-      email: 'john@example.com',
-      serviceType: 'rider',
-      status: 'active',
-      currentCredits: 500,
-      totalSpent: 1250.50,
-      lastActivity: '2 hours ago',
-      joinDate: '2023-01-15',
-    },
-    {
-      id: 'R002',
-      username: 'janedoe',
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      serviceType: 'rider',
-      status: 'active',
-      currentCredits: 250,
-      totalSpent: 850.75,
-      lastActivity: '30 minutes ago',
-      joinDate: '2023-03-20',
-    },
-    {
-      id: 'S001',
-      username: 'seller_mike',
-      name: 'Mike Johnson',
-      email: 'mike@seller.com',
-      serviceType: 'seller',
-      status: 'active',
-      currentCredits: 1000,
-      totalSpent: 5000.00,
-      lastActivity: '1 hour ago',
-      joinDate: '2023-02-10',
-    },
-    {
-      id: 'R003',
-      username: 'sarah_rider',
-      name: 'Sarah Williams',
-      email: 'sarah@example.com',
-      serviceType: 'rider',
-      status: 'inactive',
-      currentCredits: 0,
-      totalSpent: 500.00,
-      lastActivity: '5 days ago',
-      joinDate: '2023-06-05',
-    },
-    {
-      id: 'P001',
-      username: 'ps_trainer',
-      name: 'Alex Trainer',
-      email: 'alex@services.com',
-      serviceType: 'personal-services',
-      status: 'active',
-      currentCredits: 750,
-      totalSpent: 3200.00,
-      lastActivity: '45 minutes ago',
-      joinDate: '2023-04-12',
-    },
-  ];
-
-  const fetchRiders = useCallback(async () => {
+  const fetchRiders = useCallback(async (params: FetchParams = {}) => {
     setLoading(true);
+    setError(null);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      
-      const filtered = serviceType
-        ? mockRiders.filter((r) => r.serviceType === serviceType)
-        : mockRiders;
-      
-      setAllRiders(mockRiders);
-      setRiders(filtered);
-    } catch (error) {
-      console.error('Error fetching riders:', error);
+      const response = await AdminService.getRidersWithCredits({
+        page: params.page || 1,
+        pageSize: params.pageSize || 10,
+        searchQuery: params.searchQuery,
+        vehicle: params.vehicle,
+        minRating: params.minRating,
+        maxRating: params.maxRating,
+        isActive: params.isActive,
+      });
+
+      if (response.succeeded && response.data) {
+        setRiders(response.data.data || []);
+        setPagination(response.data.pagination || {
+          page: 1,
+          pageSize: 10,
+          totalCount: 0,
+          totalPages: 0,
+        });
+      } else {
+        setError(response.message || 'Failed to fetch riders');
+      }
+    } catch (err: any) {
+      console.error('Error fetching riders:', err);
+      setError(err?.message || 'Error fetching riders');
     } finally {
       setLoading(false);
     }
-  }, [serviceType]);
-
-  useEffect(() => {
-    fetchRiders();
-  }, [fetchRiders]);
-
-  const applyFilters = useCallback(
-    (searchQuery: string, svcType: string, month: string, year: string) => {
-      let filtered = allRiders;
-
-      // Filter by service type
-      if (svcType) {
-        filtered = filtered.filter((r) => r.serviceType === svcType);
-      } else if (serviceType) {
-        filtered = filtered.filter((r) => r.serviceType === serviceType);
-      }
-
-      // Search by ID, username, email, or name
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        filtered = filtered.filter(
-          (r) =>
-            r.id.toLowerCase().includes(query) ||
-            r.username.toLowerCase().includes(query) ||
-            r.email.toLowerCase().includes(query) ||
-            r.name.toLowerCase().includes(query)
-        );
-      }
-
-      // Filter by year
-      if (year) {
-        filtered = filtered.filter((r) =>
-          r.joinDate.startsWith(year)
-        );
-      }
-
-      // Filter by month
-      if (month && year) {
-        filtered = filtered.filter((r) =>
-          r.joinDate.startsWith(`${year}-${month}`)
-        );
-      }
-
-      setRiders(filtered);
-    },
-    [allRiders, serviceType]
-  );
+  }, []);
 
   return {
     riders,
+    pagination,
     loading,
-    applyFilters,
-    refetch: fetchRiders,
+    error,
+    fetchRiders,
   };
 };

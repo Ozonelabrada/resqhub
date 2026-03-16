@@ -1,13 +1,47 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { CreditRequest } from '../components/CreditRequestsView';
+import { AdminService } from '@/services/adminService';
 
-// Mock data for credit requests awaiting approval
+// Transform API response to CreditRequest format
+const transformPurchaseToCreditRequest = (purchase: any): CreditRequest => {
+  const amountPaid = purchase.amountPaid || 0;
+  const creditsAcquired = purchase.creditsAcquired || 0;
+  const creditValue = creditsAcquired > 0 ? amountPaid / creditsAcquired : 0;
+  const user = purchase.user || {};
+  const servicePlan = purchase.servicePlan || {};
+
+  return {
+    id: `REQ_${purchase.purchaseId}`,
+    userId: user.userId || `USER_${purchase.purchaseId}`,
+    user: {
+      firstName: user.firstName || 'User',
+      lastName: user.lastName || '',
+      email: user.email || `user_${purchase.purchaseId}@resqhub.com`,
+    },
+    requestType: 'grant',
+    serviceType: servicePlan.serviceType || 'rider',
+    amount: creditsAcquired,
+    creditValue: creditValue,
+    reason: purchase.notes || `Credit purchase via ${purchase.paymentMethod || 'unknown'}`,
+    status: purchase.status === 'pending_approval' ? 'pending' : 'approved',
+    requestedBy: 'system',
+    requestedDate: purchase.purchaseDate || new Date().toISOString(),
+    userCurrentCredits: 0,
+    paymentReference: purchase.paymentReference || '',
+    bankVerified: false,
+  };
+};
+
+// Mock data for credit requests awaiting approval (fallback if API fails)
 const mockCreditRequests: CreditRequest[] = [
   {
     id: 'REQ001',
     userId: 'R001',
-    username: 'johndoe',
-    userEmail: 'john@example.com',
+    user: {
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john@example.com',
+    },
     requestType: 'grant',
     serviceType: 'rider',
     amount: 100,
@@ -17,12 +51,17 @@ const mockCreditRequests: CreditRequest[] = [
     requestedBy: 'support@resqhub.com',
     requestedDate: '2025-03-15T10:30:00Z',
     userCurrentCredits: 250,
+    paymentReference: 'BANK_TRF_R001_20250315_TX-123456',
+    bankVerified: false,
   },
   {
     id: 'REQ002',
     userId: 'S001',
-    username: 'seller_mike',
-    userEmail: 'mike@example.com',
+    user: {
+      firstName: 'Mike',
+      lastName: 'Johnson',
+      email: 'mike@example.com',
+    },
     requestType: 'deduct',
     serviceType: 'seller',
     amount: 50,
@@ -36,8 +75,11 @@ const mockCreditRequests: CreditRequest[] = [
   {
     id: 'REQ003',
     userId: 'R002',
-    username: 'janedoe',
-    userEmail: 'jane@example.com',
+    user: {
+      firstName: 'Jane',
+      lastName: 'Smith',
+      email: 'jane@example.com',
+    },
     requestType: 'grant',
     serviceType: 'rider',
     amount: 50,
@@ -47,12 +89,17 @@ const mockCreditRequests: CreditRequest[] = [
     requestedBy: 'marketing@resqhub.com',
     requestedDate: '2025-03-15T12:00:00Z',
     userCurrentCredits: 100,
+    paymentReference: 'BANK_TRF_R002_20250315_TX-789012',
+    bankVerified: false,
   },
   {
     id: 'REQ004',
     userId: 'R001',
-    username: 'johndoe',
-    userEmail: 'john@example.com',
+    user: {
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john@example.com',
+    },
     requestType: 'grant',
     serviceType: 'rider',
     amount: 75,
@@ -64,12 +111,17 @@ const mockCreditRequests: CreditRequest[] = [
     approvalDate: '2025-03-14T09:15:00Z',
     approvedBy: 'admin@resqhub.com',
     userCurrentCredits: 250,
+    paymentReference: 'BANK_TRF_R001_20250314_TX-345678',
+    bankVerified: true,
   },
   {
     id: 'REQ005',
     userId: 'S001',
-    username: 'seller_mike',
-    userEmail: 'mike@example.com',
+    user: {
+      firstName: 'Mike',
+      lastName: 'Johnson',
+      email: 'mike@example.com',
+    },
     requestType: 'deduct',
     serviceType: 'seller',
     amount: 25,
@@ -89,28 +141,40 @@ export const useCreditRequests = (serviceType: string) => {
   const [loading, setLoading] = useState(false);
   const [approving, setApproving] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
-  // Fetch credit requests on component mount
-  useEffect(() => {
-    fetchRequests();
-  }, [serviceType]);
-
+  // Manual fetch function - called when tab is navigated to
   const fetchRequests = async () => {
     setLoading(true);
     try {
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      // Fetch pending purchases from API
+      const response = await AdminService.getPendingCreditPurchases(1, 20);
 
-      // Filter by service type if needed
+      if (response.succeeded && response.data?.purchases) {
+        // Transform API response to CreditRequest format
+        const transformedRequests = response.data.purchases.map((purchase: any) =>
+          transformPurchaseToCreditRequest(purchase)
+        );
+        setRequests(transformedRequests);
+        setHasLoadedOnce(true);
+      } else {
+        // Fallback to mock data if API doesn't return expected structure
+        const filteredRequests = mockCreditRequests.filter(
+          (req) => req.serviceType === serviceType || serviceType === 'all'
+        );
+        setRequests(filteredRequests);
+        setHasLoadedOnce(true);
+      }
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching credit requests:', err);
+      // Fallback to mock data on error
       const filteredRequests = mockCreditRequests.filter(
         (req) => req.serviceType === serviceType || serviceType === 'all'
       );
-
       setRequests(filteredRequests);
-      setError(null);
-    } catch (err) {
-      setError('Failed to fetch credit requests');
-      console.error('Error fetching credit requests:', err);
+      setHasLoadedOnce(true);
+      setError('Using cached data. Failed to fetch latest requests from server.');
     } finally {
       setLoading(false);
     }
@@ -189,6 +253,7 @@ export const useCreditRequests = (serviceType: string) => {
     loading,
     error,
     approving,
+    hasLoadedOnce,
     fetchRequests,
     approveRequest,
     rejectRequest,

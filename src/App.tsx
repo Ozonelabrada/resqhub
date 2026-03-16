@@ -128,10 +128,14 @@ const AppRouter = () => {
         }>
           <Route index element={<AdminDashboard />} />
           <Route path="users" element={<UserManagementPage />} />
-          <Route path="communities" element={<CommunityManagementPage />} />
-          <Route path="communities/:id" element={<CommunityDetailsPage />} />
           <Route path="reports" element={<ReportsPage />} />
           <Route path="subscriptions" element={<SubscriptionsPage />} />
+          <Route path="subscriptions/communities" element={<CommunityManagementPage />} />
+          <Route path="subscriptions/communities/:id" element={<CommunityDetailsPage />} />
+          <Route path="subscriptions/riders" element={<SubscriptionsPage />} />
+          <Route path="subscriptions/sellers" element={<SubscriptionsPage />} />
+          <Route path="subscriptions/events" element={<SubscriptionsPage />} />
+          <Route path="subscriptions/service-providers" element={<SubscriptionsPage />} />
           <Route path="announcements" element={<AnnouncementsPage />} />
           <Route path="applications" element={<ApplicationManagementPage />} />
           <Route path="riders" element={<RiderStatisticsPage />} />
