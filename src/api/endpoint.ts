@@ -36,6 +36,17 @@ export const ENDPOINTS = {
     RIDERS_OVERVIEW: '/admin/riders/overview',
     // public endpoint for the rider list (not admin scoped)
     RIDERS_LIST: '/riders/list',
+    // Sellers Management
+    SELLERS: '/admin/sellers',
+    SELLER_TOGGLE_EXEMPTION: (storeId: string) => `/admin/sellers/${storeId}/toggle-exemption`,
+    // Events Management
+    EVENTS: '/admin/events',
+    EVENT_TOGGLE_EXEMPTION: (communityId: string) => `/admin/events/${communityId}/toggle-exemption`,
+    // Service Providers Management
+    SERVICE_PROVIDERS: '/admin/service-provider',
+    SERVICE_PROVIDER_TOGGLE_EXEMPTION: (serviceProviderId: string) => `/admin/service-providers/${serviceProviderId}/toggle-exemption`,
+    // Rider Exemption
+    RIDER_TOGGLE_EXEMPTION: (riderId: string) => `/admin/riders/${riderId}/toggle-exemption`,
     // User Management
     USERS: '/admin/users',
     USER_DETAIL: (id: string) => `/admin/users/${id}`,
