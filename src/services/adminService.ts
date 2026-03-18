@@ -805,8 +805,8 @@ export class AdminService {
   }
 
   /**
-   * Fetch riders with credits and filters
-   * GET /admin/riders?page=&pageSize=&searchQuery=&vehicle=&minRating=&maxRating=&isActive=
+   * Fetch riders/sellers/events/service-providers with credits and filters
+   * Based on serviceType, calls the appropriate endpoint
    */
   static async getRidersWithCredits(params: {
     page?: number;
@@ -816,6 +816,7 @@ export class AdminService {
     minRating?: number;
     maxRating?: number;
     isActive?: boolean;
+    serviceType?: 'rider' | 'seller' | 'personal-services' | 'event' | 'service-provider';
   }): Promise<any> {
     try {
       const query: Record<string, any> = {
@@ -829,7 +830,25 @@ export class AdminService {
       if (params.maxRating !== undefined) query.maxRating = params.maxRating;
       if (params.isActive !== undefined) query.isActive = params.isActive;
 
-      const response = await api.get(ENDPOINTS.ADMIN.RIDERS, { params: query });
+      // Determine endpoint based on service type
+      let endpoint: string;
+      switch (params.serviceType) {
+        case 'seller':
+          endpoint = ENDPOINTS.ADMIN.SELLERS;
+          break;
+        case 'event':
+          endpoint = ENDPOINTS.ADMIN.EVENTS;
+          break;
+        case 'service-provider':
+        case 'personal-services':
+          endpoint = ENDPOINTS.ADMIN.SERVICE_PROVIDERS;
+          break;
+        case 'rider':
+        default:
+          endpoint = ENDPOINTS.ADMIN.RIDERS;
+      }
+
+      const response = await api.get(endpoint, { params: query });
       return response.data;
     } catch (error) {
       console.error('Error fetching riders with credits:', error);
@@ -966,6 +985,75 @@ export class AdminService {
       return response.data;
     } catch (error) {
       console.error('Error fetching all credit history:', error);
+      throw error;
+    }
+  }
+
+  // Exemption Management
+  /**
+   * Toggle rider exemption
+   * PATCH /admin/riders/{riderId}/toggle-exemption
+   */
+  static async toggleRiderExemption(riderId: string, isExempted: boolean = true, reason: string = 'Admin toggle'): Promise<any> {
+    try {
+      const response = await api.patch(ENDPOINTS.ADMIN.RIDER_TOGGLE_EXEMPTION(riderId), {
+        isExempted,
+        reason,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error toggling rider exemption:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Toggle seller exemption
+   * PATCH /admin/sellers/{storeId}/toggle-exemption
+   */
+  static async toggleSellerExemption(storeId: string, isExempted: boolean = true, reason: string = 'Admin toggle'): Promise<any> {
+    try {
+      const response = await api.patch(ENDPOINTS.ADMIN.SELLER_TOGGLE_EXEMPTION(storeId), {
+        isExempted,
+        reason,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error toggling seller exemption:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Toggle event exemption
+   * PATCH /admin/events/{communityId}/toggle-exemption
+   */
+  static async toggleEventExemption(communityId: string, isExempted: boolean = true, reason: string = 'Admin toggle'): Promise<any> {
+    try {
+      const response = await api.patch(ENDPOINTS.ADMIN.EVENT_TOGGLE_EXEMPTION(communityId), {
+        isExempted,
+        reason,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error toggling event exemption:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Toggle service provider exemption
+   * PATCH /admin/service-providers/{serviceProviderId}/toggle-exemption
+   */
+  static async toggleServiceProviderExemption(serviceProviderId: string, isExempted: boolean = true, reason: string = 'Admin toggle'): Promise<any> {
+    try {
+      const response = await api.patch(ENDPOINTS.ADMIN.SERVICE_PROVIDER_TOGGLE_EXEMPTION(serviceProviderId), {
+        isExempted,
+        reason,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error toggling service provider exemption:', error);
       throw error;
     }
   }

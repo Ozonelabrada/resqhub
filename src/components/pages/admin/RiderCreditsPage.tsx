@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Card, Button, Input } from '../../ui';
 import { Search, Clock, Eye, TrendingUp, Users, Briefcase, Calendar, CheckCircle, AlertCircle, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { AdminService } from '@/services';
 import { useRiderCredits } from './hooks/useRiderCredits';
 import { useRidersList } from './hooks/useRidersList';
 import { useCreditRequests } from './hooks/useCreditRequests';
@@ -220,6 +221,34 @@ const RiderCreditsPage: React.FC<RiderCreditsPageProps> = ({ serviceType = 'ride
     loadCreditHistory(riderId, 1);
   };
 
+  const handleTableToggleExemption = async (riderId: string, isExempted: boolean = true, reason: string = 'Admin action') => {
+    try {
+      const adminServiceMap = {
+        rider: AdminService.toggleRiderExemption,
+        seller: AdminService.toggleSellerExemption,
+        event: AdminService.toggleEventExemption,
+        'personal-services': AdminService.toggleServiceProviderExemption,
+      };
+
+      const method = adminServiceMap[serviceType as keyof typeof adminServiceMap] || AdminService.toggleRiderExemption;
+      
+      const result = await method(riderId, isExempted, reason);
+      
+      if (result?.succeeded || result?.success) {
+        setNotification({ type: 'success', message: '✓ Exemption status updated successfully!' });
+        // Refresh the riders list
+        fetchRiders(ridersParams);
+      } else {
+        setNotification({ type: 'error', message: '✕ Failed to update exemption status' });
+      }
+      setTimeout(() => setNotification(null), 3000);
+    } catch (err) {
+      console.error('Error toggling exemption:', err);
+      setNotification({ type: 'error', message: '✕ Error toggling exemption status' });
+      setTimeout(() => setNotification(null), 3000);
+    }
+  };
+
   return (
     <div className="space-y-8">
       {notification && (
@@ -361,6 +390,7 @@ const RiderCreditsPage: React.FC<RiderCreditsPageProps> = ({ serviceType = 'ride
             onGrant={handleTableGrant}
             onDeduct={handleTableDeduct}
             onViewHistory={handleTableViewHistory}
+            onToggleExemption={handleTableToggleExemption}
             pagination={pagination}
             onPageChange={(page: number) => setCurrentPage(page)}
           />

@@ -14,10 +14,12 @@ export interface RiderData {
   cancelledRides: number;
   approvalStatus: string;
   isActive: boolean;
+  isExempted?: boolean;
   credits: {
     totalCredits: number;
     creditCount: number;
     totalValue: string;
+    totalCreditsRemaining: number;
     canAcceptBookings: boolean;
   };
 }
@@ -65,6 +67,7 @@ export const useRidersList = (serviceType?: string) => {
         minRating: params.minRating,
         maxRating: params.maxRating,
         isActive: params.isActive,
+        serviceType: (serviceType as any) || 'rider',
       });
 
       if (response.succeeded && response.data) {
@@ -84,7 +87,7 @@ export const useRidersList = (serviceType?: string) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [serviceType]);
 
   return {
     riders,

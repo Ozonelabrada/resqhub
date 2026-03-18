@@ -55,14 +55,7 @@ export const useNotifications = () => {
     setError(null);
     try {
       const result = await notificationService.getNotifications(page, pageSize);
-      // Merge with real-time notifications
-      const allNotifications = [
-        ...notifications,
-        ...result.notifications.filter(stored =>
-          !notifications.some(realtime => realtime.id === stored.id)
-        )
-      ];
-      setNotifications(allNotifications);
+      setNotifications(result.notifications);
       return result;
     } catch (err) {
       setError('Failed to fetch notifications');
@@ -71,7 +64,7 @@ export const useNotifications = () => {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, notifications]);
+  }, [isAuthenticated]);
 
   // Mark notification as read
   const markAsRead = useCallback(async (notificationId: string) => {

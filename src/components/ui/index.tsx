@@ -102,6 +102,8 @@ export type { ToastRef, ToastMessage } from "./Toast/Toast";
 export { ProgressBar } from "./ProgressBar/ProgressBar";
 export { ProgressBar as Progress } from "./ProgressBar/ProgressBar";
 export { ImageGallery } from "./ImageGallery/ImageGallery";
+export { EnhancedTableTemplate } from "./EnhancedTableTemplate";
+export type { EnhancedTableColumn } from "./EnhancedTableTemplate";
 
 // Re-export common icon-related components if needed
 

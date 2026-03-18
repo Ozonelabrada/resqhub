@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../../../../context/AuthContext';
 import { useNotifications } from '../../../../hooks/useNotifications';
 import { Button, Card, Avatar, Badge, Spinner } from '../../../ui';
@@ -32,11 +32,15 @@ const NotificationsPage: React.FC = () => {
   const { user: authUser, openLoginModal } = useAuth();
   const { notifications, unreadCount, fetchNotifications, markAsRead, markAllAsRead, deleteNotification, loading } = useNotifications();
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const hasLoadedRef = useRef(false);
 
-  // Load notifications on mount
+  // Load notifications on mount (only once)
   useEffect(() => {
-    if (authUser) {
+    if (authUser && !hasLoadedRef.current) {
+      hasLoadedRef.current = true;
       fetchNotifications(1, 50);
+    } else if (!authUser) {
+      hasLoadedRef.current = false;
     }
   }, [authUser, fetchNotifications]);
 
