@@ -5,7 +5,7 @@ import { Button } from '@/components/ui';
 interface RestrictedContentProps {
   title: string;
   description: string;
-  onJoinClick: () => void;
+  onJoinClick?: () => void;
 }
 
 const RestrictedContent: React.FC<RestrictedContentProps> = ({ title, description, onJoinClick }) => (
@@ -15,12 +15,14 @@ const RestrictedContent: React.FC<RestrictedContentProps> = ({ title, descriptio
     </div>
     <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight mb-2">{title}</h3>
     <p className="text-slate-500 font-medium mb-8 max-w-md mx-auto">{description}</p>
-    <Button
-      onClick={onJoinClick}
-      className="px-10 h-14 bg-teal-600 hover:bg-teal-700 text-white font-black rounded-2xl shadow-xl shadow-teal-100 uppercase tracking-widest text-xs"
-    >
-      Join to Unlock
-    </Button>
+    {onJoinClick && (
+      <Button
+        onClick={onJoinClick}
+        className="px-10 h-14 bg-teal-600 hover:bg-teal-700 text-white font-black rounded-2xl shadow-xl shadow-teal-100 uppercase tracking-widest text-xs"
+      >
+        Join to Unlock
+      </Button>
+    )}
   </div>
 );
 

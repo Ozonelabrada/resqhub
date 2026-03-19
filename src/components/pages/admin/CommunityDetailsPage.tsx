@@ -661,7 +661,7 @@ const CommunityDetailsPage: React.FC = () => {
                 <Card 
                   key={child.id} 
                   className="group p-6 hover:shadow-xl transition-all border-slate-100 hover:border-teal-100 cursor-pointer"
-                  onClick={() => navigate(`/admin/communities/${child.id}`)}
+                  onClick={() => navigate(`/admin/subscriptions/communities/${child.id}`)}
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center text-teal-600">

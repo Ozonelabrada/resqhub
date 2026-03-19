@@ -350,7 +350,7 @@ const CommunityManagementPage: React.FC = () => {
                                   </>
                                 ) : (
                                   <Button 
-                                    onClick={() => navigate(`/admin/communities/${item.id}`)}
+                                    onClick={() => navigate(`/admin/subscriptions/communities/${item.id}`)}
                                     className="flex-1 h-12 rounded-2xl bg-slate-800 hover:bg-slate-900 text-white font-black transition-all"
                                   >
                                     Manage

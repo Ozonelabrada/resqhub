@@ -1228,7 +1228,7 @@ export const CommunitiesContainer: React.FC<{ initialTab?: 'my-communities' | 'a
             <p className="mt-4 text-slate-500 font-medium">Loading communities...</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 gap-3 md:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 gap-3 md:gap-6 auto-rows-fr">
             {filteredCommunities.map((community, idx) => {
               return (
               <Card 
@@ -1236,7 +1236,7 @@ export const CommunitiesContainer: React.FC<{ initialTab?: 'my-communities' | 'a
                 role="button"
                 tabIndex={0}
                 aria-label={`Open community ${community.name}`}
-                className="group border border-slate-100 rounded-lg sm:rounded-[2rem] overflow-hidden bg-white hover:shadow-2xl hover:shadow-teal-100/30 transition-all duration-500 cursor-pointer flex flex-col h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+                className="group border border-slate-100 rounded-lg sm:rounded-[2rem] overflow-hidden bg-white hover:shadow-2xl hover:shadow-teal-100/30 transition-all duration-500 cursor-pointer flex flex-col h-full min-h-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
                 onClick={() => {
                   const isPending = community.status === 'pending' || community.status === 'Pending';
                   if (isPending) {
@@ -1267,52 +1267,55 @@ export const CommunitiesContainer: React.FC<{ initialTab?: 'my-communities' | 'a
                   )}
                   <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] pointer-events-none"></div>
                   
-                  {isAuthenticated && user?.id && community.createdBy === user.id && (
-                    <Badge className="absolute top-3 left-3 bg-violet-500 text-white font-black uppercase text-[8px] tracking-widest px-2 py-0.5 border-none shadow-sm">
-                      Your Community
-                    </Badge>
-                  )}
+                  {/* Badge Stack - Left Side */}
+                  <div className="absolute top-3 left-3 flex flex-col gap-2">
+                    {isAuthenticated && user?.id && community.createdBy === user.id && (
+                      <Badge className="bg-violet-500 text-white font-black uppercase text-[8px] tracking-widest px-2 py-0.5 border-none shadow-md hover:shadow-lg transition-shadow">
+                        Your Community
+                      </Badge>
+                    )}
 
-                  {isAuthenticated && isCommunityMember(community) && isMemberApproved(community) && !(user?.id && community.createdBy === user.id) && (
-                    <Badge className="absolute top-3 left-3 bg-emerald-500 text-white font-black uppercase text-[8px] tracking-widest px-2 py-0.5 border-none shadow-sm">
-                      Joined
-                    </Badge>
-                  )}
+                    {isAuthenticated && isCommunityMember(community) && isMemberApproved(community) && !(user?.id && community.createdBy === user.id) && (
+                      <Badge className="bg-emerald-500 text-white font-black uppercase text-[8px] tracking-widest px-2 py-0.5 border-none shadow-md hover:shadow-lg transition-shadow">
+                        Joined
+                      </Badge>
+                    )}
 
-                  {/* Show "Pending Approval" badge if user is member but not approved AND not the creator */}
-                  {isAuthenticated && isCommunityMember(community) && !isMemberApproved(community) && !(user?.id && community.createdBy === user.id) && (
-                    <Badge className="absolute top-3 left-3 bg-amber-500 text-white font-black uppercase text-[8px] tracking-widest px-2 py-0.5 border-none shadow-sm">
-                      Pending Approval
-                    </Badge>
-                  )}
+                    {/* Show "Pending Approval" badge if user is member but not approved AND not the creator */}
+                    {isAuthenticated && isCommunityMember(community) && !isMemberApproved(community) && !(user?.id && community.createdBy === user.id) && (
+                      <Badge className="bg-amber-500 text-white font-black uppercase text-[8px] tracking-widest px-2 py-0.5 border-none shadow-md hover:shadow-lg transition-shadow">
+                        Pending
+                      </Badge>
+                    )}
 
-                  {/* Show status badge if community is pending, suspended, denied, or disabled */}
-                  {isAuthenticated && 
-                    ['pending', 'suspended', 'denied', 'disabled'].includes(community.status?.toLowerCase() || '') && (
-                    <Badge className={cn(
-                      "absolute top-3 left-3 font-black uppercase text-[8px] tracking-widest px-2 py-0.5 border-none shadow-sm",
-                      community.status?.toLowerCase() === 'pending' ? "bg-amber-500 text-white" :
-                      community.status?.toLowerCase() === 'suspended' ? "bg-rose-500 text-white" :
-                      "bg-red-500 text-white"
-                    )}>
-                      {community.status}
-                    </Badge>
-                  )}
+                    {/* Show status badge if community is pending, suspended, denied, or disabled */}
+                    {isAuthenticated && 
+                      ['pending', 'suspended', 'denied', 'disabled'].includes(community.status?.toLowerCase() || '') && (
+                      <Badge className={cn(
+                        "font-black uppercase text-[8px] tracking-widest px-2 py-0.5 border-none shadow-md hover:shadow-lg transition-shadow",
+                        community.status?.toLowerCase() === 'pending' ? "bg-amber-500 text-white" :
+                        community.status?.toLowerCase() === 'suspended' ? "bg-rose-500 text-white" :
+                        "bg-red-500 text-white"
+                      )}>
+                        {community.status}
+                      </Badge>
+                    )}
+                  </div>
 
                   {community.tagline && (
-                    <Badge className="absolute top-3 right-3 bg-white/20 backdrop-blur-md border-white/30 text-white font-black uppercase text-[8px] tracking-widest px-2 py-0.5">
+                    <Badge className="absolute top-3 right-3 bg-white/20 backdrop-blur-md border-white/30 text-white font-black uppercase text-[8px] tracking-widest px-2 py-0.5 shadow-md">
                       {community.tagline}
                     </Badge>
                   )}
                   <div className="hidden sm:block absolute -bottom-6 -left-6 w-20 h-20 bg-white/10 rounded-full blur-2xl"></div>
                 </div>
                 
-                <div className="p-2 md:p-5 flex flex-col flex-1">
+                <div className="p-2 md:p-5 flex flex-col flex-1 min-h-0">
                   <div className="flex items-center justify-between mb-2">
                     {/* top short label removed to avoid duplicate location display; full address appears in the card footer */}
                   </div>
                   
-                  <div className="flex items-start gap-3 mb-3">
+                  <div className="flex items-start gap-3 mb-4">
                     <div className="relative flex-shrink-0">
                       {/* Show logo on mobile only (hidden on sm and larger) */}
                       <div className="w-12 h-12 rounded-xl overflow-hidden shadow-sm border border-slate-50 bg-teal-50 flex items-center justify-center sm:hidden">
@@ -1327,44 +1330,48 @@ export const CommunitiesContainer: React.FC<{ initialTab?: 'my-communities' | 'a
                       )}
                     </div>
 
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <h3 className="text-base font-black text-slate-900 group-hover:text-teal-600 transition-colors line-clamp-2 leading-tight">
-                          {community.name}
-                        </h3>
-                      </div>
+                    <div className="flex-1 min-w-0 flex flex-col gap-2">
+                      <h3 className="text-base font-black text-slate-900 group-hover:text-teal-600 transition-colors line-clamp-2 leading-tight">
+                        {community.name}
+                      </h3>
 
                       {isCommunityMember(community) && isMemberApproved(community) && (
-                        <span className="inline-flex items-center gap-2 mt-2 px-2 py-0.5 text-xs font-bold bg-emerald-50 text-emerald-700 rounded-full border border-emerald-100">
-                          Joined
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 w-fit">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                          Member
                         </span>
                       )}
                     </div>
                   </div>
                   
-                  <p className="text-slate-500 text-[11px] leading-relaxed mb-4 md:mb-6 line-clamp-3 font-medium flex-1">
+                  <p className="text-slate-500 text-[11px] leading-relaxed mb-3 md:mb-4 line-clamp-2 font-medium flex-1 overflow-hidden">
                     {community.description || 'No description available for this community.'}
                   </p>
                   
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-2 md:pt-4 border-t border-slate-50 mt-auto">
-                    <div className="flex items-center gap-3 text-slate-400 text-xs flex-1">
-                      <div className="flex items-center gap-2">
-                        <Users size={12} />
-                        <span className="font-bold text-slate-500">{community.memberCount || community.membersCount || 0}</span>
-                        <span className="text-[11px] text-slate-400 ml-1">Members</span>
+                  <div className="flex flex-col gap-4 pt-3 md:pt-4 border-t border-slate-100 mt-auto">
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-50">
+                        <Users size={14} className="text-teal-600 flex-shrink-0" />
+                        <div className="flex flex-col min-w-0">
+                          <span className="font-bold text-slate-900">{community.memberCount || community.membersCount || 0}</span>
+                          <span className="text-slate-500 text-[10px]">Members</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 max-w-full">
-                        <MapPin size={12} />
-                        <span className="text-[11px] font-medium text-slate-500 break-words line-clamp-2 max-w-full">{community.location || 'Local Community'}</span>
+                      <div className="flex items-start gap-2 p-2 rounded-lg bg-slate-50">
+                        <MapPin size={14} className="text-amber-600 flex-shrink-0 mt-0.5" />
+                        <div className="flex flex-col min-w-0">
+                          <span className="font-medium text-slate-900 line-clamp-1 text-[11px]">{community.location || 'Local'}</span>
+                          <span className="text-slate-500 text-[10px]">Location</span>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="w-full sm:w-auto">
+                    <div className="w-full">
                       {isAuthenticated && user?.id && community.createdBy === user.id ? (
                         <Button 
                           onClick={() => navigate(`/community/${community.id || (community as any)._id}`)}
                           size="sm"
-                          className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white font-extrabold h-10 rounded-xl flex items-center justify-center gap-2"
+                          className="w-full bg-teal-600 hover:bg-teal-700 text-white font-extrabold h-10 rounded-lg flex items-center justify-center gap-2 text-sm shadow-md hover:shadow-lg transition-all"
                         >
                           <ArrowRight size={14} />
                           Visit Hub
@@ -1373,7 +1380,7 @@ export const CommunitiesContainer: React.FC<{ initialTab?: 'my-communities' | 'a
                         <Button 
                           onClick={() => navigate(`/community/${community.id || (community as any)._id}`)}
                           size="sm"
-                          className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white font-extrabold h-10 rounded-xl flex items-center justify-center gap-2"
+                          className="w-full bg-teal-600 hover:bg-teal-700 text-white font-extrabold h-10 rounded-lg flex items-center justify-center gap-2 text-sm shadow-md hover:shadow-lg transition-all"
                         >
                           <ArrowRight size={14} />
                           Visit Hub
@@ -1383,7 +1390,7 @@ export const CommunitiesContainer: React.FC<{ initialTab?: 'my-communities' | 'a
                           variant="ghost" 
                           size="sm" 
                           disabled
-                          className="w-full sm:w-auto h-10 rounded-xl text-amber-600 font-extrabold bg-slate-50 opacity-60"
+                          className="w-full h-10 rounded-lg text-amber-600 font-extrabold bg-amber-50 opacity-60 text-sm border border-amber-100"
                         >
                           Waiting for Approval
                         </Button>
@@ -1394,7 +1401,7 @@ export const CommunitiesContainer: React.FC<{ initialTab?: 'my-communities' | 'a
                             openLoginModal();
                           }}
                           size="sm"
-                          className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white font-extrabold h-10 rounded-xl"
+                          className="w-full bg-teal-600 hover:bg-teal-700 text-white font-extrabold h-10 rounded-lg text-sm shadow-md hover:shadow-lg transition-all"
                         >
                           Sign In
                         </Button>
@@ -1404,7 +1411,7 @@ export const CommunitiesContainer: React.FC<{ initialTab?: 'my-communities' | 'a
                           disabled={joiningId === community.id}
                           size="sm"
                           className={cn(
-                            "w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white font-extrabold h-10 rounded-xl",
+                            "w-full bg-teal-600 hover:bg-teal-700 text-white font-extrabold h-10 rounded-lg text-sm shadow-md hover:shadow-lg transition-all",
                             joiningId === community.id && "opacity-50 cursor-not-allowed"
                           )}
                         >
@@ -1412,7 +1419,7 @@ export const CommunitiesContainer: React.FC<{ initialTab?: 'my-communities' | 'a
                             <Spinner size="xs" className="border-white" />
                           ) : (
                             <div className="flex items-center gap-1.5 justify-center">
-                              <UserPlus size={12} strokeWidth={3} />
+                              <UserPlus size={14} strokeWidth={2.5} />
                               Request to Join
                             </div>
                           )}
