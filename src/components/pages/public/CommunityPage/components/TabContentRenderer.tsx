@@ -70,6 +70,9 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
     onJoinClick();
   };
 
+  // Check if user is admin/moderator and community is not approved
+  const isAdminWithPendingCommunity = (isAdmin || isModerator) && community?.status && ['pending', 'suspended', 'denied', 'disabled'].includes(community.status.toLowerCase());
+
   switch (activeTab) {
     case 'feed':
       return (
@@ -80,11 +83,13 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
           isAdmin={isAdmin}
           isModerator={isModerator}
           onRefresh={onRefresh}
+          communityStatus={community?.status}
         />
       );
 
     case 'updates':
-      return isFullMember || isAdmin ? (
+      const isNewsAccessible = (isFullMember || isPendingMember || isAdmin) && (community?.status && !['pending', 'suspended', 'denied', 'disabled'].includes(community.status.toLowerCase()));
+      return isNewsAccessible ? (
         <>
           <CommunityNews
             isAdmin={isPrivileged}
@@ -99,6 +104,11 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
             communityId={String(community?.id)}
           />
         </>
+      ) : isAdminWithPendingCommunity ? (
+        <RestrictedContent
+          title="News Locked"
+          description="This community is awaiting approval. News will be available once the community is approved."
+        />
       ) : (
         <RestrictedContent
           title="News Locked"
@@ -108,7 +118,8 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
       );
 
     case 'events':
-      return isFullMember || isAdmin ? (
+      const isEventsAccessible = (isFullMember || isPendingMember || isAdmin) && (community?.status && !['pending', 'suspended', 'denied', 'disabled'].includes(community.status.toLowerCase()));
+      return isEventsAccessible ? (
         <>
           <CommunityEvents
             isAdmin={isPrivileged}
@@ -123,6 +134,11 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
             communityId={String(community?.id)}
           />
         </>
+      ) : isAdminWithPendingCommunity ? (
+        <RestrictedContent
+          title="Events Locked"
+          description="This community is awaiting approval. Events will be available once the community is approved."
+        />
       ) : (
         <RestrictedContent
           title="Events Locked"
@@ -132,41 +148,40 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
       );
 
     case 'trade':
-      return isFullMember || isPrivileged ? (
+      return (isFullMember || isPendingMember || isPrivileged) ? (
         <CommunityTrade />
       ) : (
         <RestrictedContent
-          title={isPendingMember ? 'Limited Access During Review' : 'Marketplace Locked'}
-          description={
-            isPendingMember
-              ? 'Trading features are available after your membership is approved.'
-              : 'Join the community to access the marketplace.'
-          }
+          title="Marketplace Locked"
+          description="Join the community to access the marketplace."
           onJoinClick={handleRestrictedJoin}
         />
       );
 
     case 'resources':
-      return isFullMember || isAdmin ? (
+      const isResourcesAccessible = (isFullMember || isPendingMember || isAdmin) && (community?.status && !['pending', 'suspended', 'denied', 'disabled'].includes(community.status.toLowerCase()));
+      return isResourcesAccessible ? (
         <CommunityResources
           isAdmin={isPrivileged}
           onOpenAddResourceModal={() => {}}
           communityId={String(community?.id)}
         />
+      ) : isAdminWithPendingCommunity ? (
+        <RestrictedContent
+          title="Resources Locked"
+          description="This community is awaiting approval. Resources will be available once the community is approved."
+        />
       ) : (
         <RestrictedContent
-          title={isPendingMember ? 'Limited Access During Review' : 'Resources Locked'}
-          description={
-            isPendingMember
-              ? 'Resource features are available after your membership is approved.'
-              : 'Join the community to access resources.'
-          }
+          title="Resources Locked"
+          description="Join the community to access resources."
           onJoinClick={handleRestrictedJoin}
         />
       );
 
     case 'members':
-      return isFullMember || isPrivileged ? (
+      const isMembersAccessible = (isFullMember || isPendingMember || isPrivileged) && (community?.status && !['pending', 'suspended', 'denied', 'disabled'].includes(community.status.toLowerCase()));
+      return isMembersAccessible ? (
         <CommunityMembers
           members={safeMembers}
           joinRequests={safeJoinRequests}
@@ -176,6 +191,11 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
           onApprove={onApprove}
           onReject={onReject}
           onRefresh={onRefresh}
+        />
+      ) : isAdminWithPendingCommunity ? (
+        <RestrictedContent
+          title="Members List Locked"
+          description="This community is awaiting approval. Members list will be available once the community is approved."
         />
       ) : (
         <RestrictedContent

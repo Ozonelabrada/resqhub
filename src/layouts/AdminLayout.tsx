@@ -100,19 +100,6 @@ const AdminLayout: React.FC = () => {
           label: 'User Management',
           icon: <Shield size={20} />,
           path: '/admin/users'
-        }
-      ]
-    },
-    // Section 2: Community & Applications
-    {
-      category: 'Communities',
-      categoryIcon: <Users size={18} />,
-      items: [
-        {
-          id: 'communities',
-          label: 'Communities',
-          icon: <Users size={20} />,
-          path: '/admin/communities'
         },
         {
           id: 'applications',
@@ -122,7 +109,7 @@ const AdminLayout: React.FC = () => {
         }
       ]
     },
-    // Section 3: Rider Operations
+    // Section 2: Rider Operations
     {
       category: 'Rider Operations',
       categoryIcon: <TrendingUp size={18} />,
@@ -141,7 +128,7 @@ const AdminLayout: React.FC = () => {
         }
       ]
     },
-    // Section 4: Revenue
+    // Section 3: Revenue & Billing
     {
       category: 'Revenue & Billing',
       categoryIcon: <CreditCard size={18} />,
@@ -181,7 +168,7 @@ const AdminLayout: React.FC = () => {
         }
       ]
     },
-    // Section 5: Communications
+    // Section 4: Communications
     {
       category: 'Communications',
       categoryIcon: <Bell size={18} />,
@@ -194,7 +181,7 @@ const AdminLayout: React.FC = () => {
         }
       ]
     },
-    // Section 6: System
+    // Section 5: System
     {
       category: 'System',
       categoryIcon: <Settings size={18} />,

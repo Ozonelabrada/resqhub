@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   TrendingUp, 
   Users, 
@@ -29,7 +29,7 @@ import {
   AlertDescription
 } from '../../ui';
 import { cn } from '@/lib/utils';
-import RiderCreditsPage from './RiderCreditsPage';
+import { SubscriptionCreditPage } from './SubscriptionCreditPage';
 
 interface SubscriptionPlan {
   id: string;
@@ -71,6 +71,7 @@ interface Transaction {
 
 const SubscriptionsPage: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   
   // Determine the main tab based on current route
   const determineActiveTab = () => {
@@ -743,22 +744,22 @@ const SubscriptionsPage: React.FC = () => {
 
         {/* Riders Tab */}
         {activeTab === 'riders' && (
-          <RiderCreditsPage serviceType="rider" hideHeader={true} />
+          <SubscriptionCreditPage serviceType="rider" hideHeader={true} />
         )}
 
         {/* Sellers Tab */}
         {activeTab === 'sellers' && (
-          <RiderCreditsPage serviceType="seller" hideHeader={true} />
+          <SubscriptionCreditPage serviceType="seller" hideHeader={true} />
         )}
 
         {/* Events Tab */}
         {activeTab === 'events' && (
-          <RiderCreditsPage serviceType="event" hideHeader={true} />
+          <SubscriptionCreditPage serviceType="event" hideHeader={true} />
         )}
 
         {/* Service Providers Tab */}
         {activeTab === 'service-providers' && (
-          <RiderCreditsPage serviceType="personal-services" hideHeader={true} />
+          <SubscriptionCreditPage serviceType="personal-services" hideHeader={true} />
         )}
       </div>
 

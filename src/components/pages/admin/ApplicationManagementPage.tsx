@@ -46,6 +46,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useApplicationManagement } from '@/hooks/admin';
 import { AdminService } from '@/services';
+import { TemplateTable } from './components/TemplateTable';
 import type {
   Application,
   RiderApplication,
@@ -61,6 +62,14 @@ interface ActionModalState {
   applicationId: string | null;
   applicationType: string | null;
   reason: string;
+}
+
+interface ConfirmationState {
+  isOpen: boolean;
+  type: 'approve' | 'reject' | 'suspend' | 'reactivate' | null;
+  applicationId: string | null;
+  applicationType: string | null;
+  applicationName: string | null;
 }
 
 const ApplicationManagementPage: React.FC = () => {
@@ -84,6 +93,16 @@ const ApplicationManagementPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ApplicationStatus | 'all'>('pending');
   const [roleFilter, setRoleFilter] = useState<ApplicationRole | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalApplications, setTotalApplications] = useState(0);
+  const [confirmationDialog, setConfirmationDialog] = useState<ConfirmationState>({
+    isOpen: false,
+    type: null,
+    applicationId: null,
+    applicationType: null,
+    applicationName: null
+  });
   const [actionModal, setActionModal] = useState<ActionModalState>({
     isOpen: false,
     type: null,
@@ -102,30 +121,99 @@ const ApplicationManagementPage: React.FC = () => {
 
   // Load applications on mount and when filters change
   useEffect(() => {
-    loadApplications();
+    setCurrentPage(1);
+    loadApplications(1);
   }, [activeTab, roleFilter, searchQuery]);
 
-  const loadApplications = async () => {
+  const loadApplications = async (page: number = currentPage) => {
     await fetchApplications({
       status: activeTab === 'all' ? undefined : activeTab,
       applicationType: roleFilter === 'all' ? undefined : roleFilter,
       query: searchQuery || undefined,
-      pageSize: 50
+      page,
+      pageSize
     });
+    // Set total count (you may need to update this based on your API response)
+    setTotalApplications(applications.length > 0 ? (statusCounts.pending + statusCounts.approved + statusCounts.rejected + statusCounts.suspended) : 0);
   };
 
-  const handleAction = async (
+  const handlePageChange = async (newPage: number) => {
+    setCurrentPage(newPage);
+    await loadApplications(newPage);
+  };
+
+  const handleAction = (
     type: 'approve' | 'reject' | 'suspend' | 'reactivate',
     appId: string,
     applicationType: string
   ) => {
-    setActionModal({
+    // Show confirmation dialog first
+    const app = applications.find(a => a.id === appId);
+    setConfirmationDialog({
       isOpen: true,
       type,
       applicationId: appId,
       applicationType,
-      reason: ''
+      applicationName: app?.userName || 'Unknown'
     });
+  };
+
+  const handleConfirmAction = () => {
+    const { type, applicationId, applicationType } = confirmationDialog;
+    if (!applicationId || !type) return;
+
+    // For approve and reactivate, execute immediately
+    if (type === 'approve' || type === 'reactivate') {
+      confirmActionDirectly(type, applicationId, applicationType);
+    } else {
+      // For reject and suspend, open the reason modal
+      setActionModal({
+        isOpen: true,
+        type,
+        applicationId,
+        applicationType: applicationType!,
+        reason: ''
+      });
+    }
+    setConfirmationDialog({
+      isOpen: false,
+      type: null,
+      applicationId: null,
+      applicationType: null,
+      applicationName: null
+    });
+  };
+
+  const confirmActionDirectly = async (
+    type: 'approve' | 'reactivate',
+    applicationId: string,
+    applicationType: string | null
+  ) => {
+    const normalizedApplicationType: ApplicationRole | undefined =
+      applicationType === 'rider' || applicationType === 'store' || applicationType === 'serviceprovider'
+        ? applicationType
+        : undefined;
+
+    try {
+      let success = false;
+      let actionMessage = '';
+      if (type === 'approve') {
+        success = await approveApplication(applicationId, undefined, normalizedApplicationType);
+        actionMessage = 'Application approved successfully';
+      } else if (type === 'reactivate') {
+        success = await approveApplication(applicationId, undefined, normalizedApplicationType);
+        actionMessage = 'Application reactivated successfully';
+      }
+
+      if (success) {
+        toast.success(actionMessage);
+        setSelectedDetail(null);
+        await loadApplications();
+      }
+    } catch (error) {
+      console.error('Error taking action:', error);
+      toast.error('Failed to process action');
+    }
   };
 
   const confirmAction = async () => {
@@ -141,10 +229,6 @@ const ApplicationManagementPage: React.FC = () => {
       let success = false;
       let actionMessage = '';
       switch (type) {
-        case 'approve':
-          success = await approveApplication(applicationId, undefined, normalizedApplicationType);
-          actionMessage = 'Application approved successfully';
-          break;
         case 'reject':
           success = await rejectApplication(applicationId, reason, normalizedApplicationType);
           actionMessage = 'Application rejected successfully';
@@ -152,11 +236,6 @@ const ApplicationManagementPage: React.FC = () => {
         case 'suspend':
           success = await suspendApplication(applicationId, reason, normalizedApplicationType);
           actionMessage = 'Application suspended successfully';
-          break;
-        case 'reactivate':
-          // Reactivate uses the approve endpoint
-          success = await approveApplication(applicationId, undefined, normalizedApplicationType);
-          actionMessage = 'Application reactivated successfully';
           break;
       }
 
@@ -913,6 +992,143 @@ const ApplicationManagementPage: React.FC = () => {
     );
   }
 
+  // Build table columns
+  const tableColumns = [
+    {
+      key: 'applicant',
+      label: 'Applicant',
+      render: (row: Application) => (
+        <div className="flex items-center gap-3">
+          <Avatar
+            src=""
+            alt={row.userName || 'Unknown'}
+            className="h-10 w-10 border-2 border-gray-200"
+          />
+          <div className="min-w-0 flex-1">
+            <p className="font-medium text-sm text-gray-900 truncate">
+              {row.userName || 'Unknown User'}
+            </p>
+            <p className="text-xs text-gray-500 truncate">
+              ID: {row.userId || row.id}
+            </p>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'applicationType',
+      label: 'Role',
+      render: (row: Application) => (
+        <Badge className={cn('w-fit font-medium', getRoleColor(row.applicationType))}>
+          {getRoleLabel(row.applicationType)}
+        </Badge>
+      )
+    },
+    {
+      key: 'userAddress',
+      label: 'Location',
+      render: (row: Application) => (
+        <div className="flex items-start gap-2 text-sm">
+          <MapPin size={14} className="text-gray-400 mt-0.5 flex-shrink-0" />
+          <span className="text-gray-700 truncate max-w-[200px]" title={row.userAddress}>
+            {row.userAddress || 'No address provided'}
+          </span>
+        </div>
+      )
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (row: Application) => getStatusBadge(row.status)
+    },
+    {
+      key: 'submittedAt',
+      label: 'Applied Date',
+      render: (row: Application) => (
+        <div className="text-sm">
+          <p className="text-gray-900 font-medium">
+            {new Date(row.submittedAt).toLocaleDateString()}
+          </p>
+          <p className="text-gray-500 text-xs">
+            {new Date(row.submittedAt).toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit'
+            })}
+          </p>
+        </div>
+      )
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (row: Application) => (
+        <div className="flex gap-1 justify-end">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => handleViewDetails(row)}
+            className="h-8 w-8 p-0"
+            title="View Details"
+          >
+            <Eye size={14} />
+          </Button>
+          {canTakeAction(row) && (
+            <>
+              {getNormalizedStatus(row.status) === 'pending' && (
+                <>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 w-8 p-0 text-green-600 hover:bg-green-50 hover:text-green-700"
+                    onClick={() => handleAction('approve', row.id, row.applicationType)}
+                    disabled={isActionLoading}
+                    title="Approve Application"
+                  >
+                    <CheckCircle size={14} />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 hover:text-red-700"
+                    onClick={() => handleAction('reject', row.id, row.applicationType)}
+                    disabled={isActionLoading}
+                    title="Reject Application"
+                  >
+                    <XCircle size={14} />
+                  </Button>
+                </>
+              )}
+              {getNormalizedStatus(row.status) === 'approved' && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-8 w-8 p-0 text-orange-600 hover:bg-orange-50 hover:text-orange-700"
+                  onClick={() => handleAction('suspend', row.id, row.applicationType)}
+                  disabled={isActionLoading}
+                  title="Suspend Application"
+                >
+                  <AlertCircle size={14} />
+                </Button>
+              )}
+              {getNormalizedStatus(row.status) === 'suspended' && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-8 w-8 p-0 text-green-600 hover:bg-green-50 hover:text-green-700"
+                  onClick={() => handleAction('reactivate', row.id, row.applicationType)}
+                  disabled={isActionLoading}
+                  title="Reactivate Application"
+                >
+                  <CheckCircle size={14} />
+                </Button>
+              )}
+            </>
+          )}
+        </div>
+      )
+    }
+  ];
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -1065,151 +1281,24 @@ const ApplicationManagementPage: React.FC = () => {
                 <Spinner size="lg" className="mb-4" />
                 <p className="text-gray-500">Loading applications...</p>
               </div>
-            ) : applications.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                  <FileText className="w-8 h-8 text-gray-400" />
-                </div>
-                <p className="text-gray-500 text-lg font-medium mb-2">No applications found</p>
-                <p className="text-gray-400 text-sm text-center max-w-md">
-                  {activeTab === 'all'
+            ) : (
+              <TemplateTable
+                columns={tableColumns}
+                data={applications}
+                loading={isLoading}
+                empty={{
+                  title: 'No applications found',
+                  description: activeTab === 'all'
                     ? 'There are no applications to review at this time.'
                     : `No ${activeTab} applications found. Try adjusting your filters.`
-                  }
-                </p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-gray-50/50">
-                      <TableHead className="font-semibold text-gray-700">Applicant</TableHead>
-                      <TableHead className="font-semibold text-gray-700">Role</TableHead>
-                      <TableHead className="font-semibold text-gray-700">Location</TableHead>
-                      <TableHead className="font-semibold text-gray-700">Status</TableHead>
-                      <TableHead className="font-semibold text-gray-700">Applied Date</TableHead>
-                      <TableHead className="text-right font-semibold text-gray-700">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {applications.map((app) => (
-                      <TableRow key={app.id} className="hover:bg-gray-50">
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <Avatar
-                              src=""
-                              alt={app.userName || 'Unknown'}
-                              className="h-10 w-10 border-2 border-gray-200"
-                            />
-                            <div className="min-w-0 flex-1">
-                              <p className="font-medium text-sm text-gray-900 truncate">
-                                {app.userName || 'Unknown User'}
-                              </p>
-                              <p className="text-xs text-gray-500 truncate">
-                                ID: {app.userId || app.id}
-                              </p>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={cn('w-fit font-medium', getRoleColor(app.applicationType))}>
-                            {getRoleLabel(app.applicationType)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-start gap-2 text-sm">
-                            <MapPin size={14} className="text-gray-400 mt-0.5 flex-shrink-0" />
-                            <span className="text-gray-700 truncate max-w-[200px]" title={app.userAddress}>
-                              {app.userAddress || 'No address provided'}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {getStatusBadge(app.status)}
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            <p className="text-gray-900 font-medium">
-                              {new Date(app.submittedAt).toLocaleDateString()}
-                            </p>
-                            <p className="text-gray-500 text-xs">
-                              {new Date(app.submittedAt).toLocaleTimeString([], {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </p>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex gap-1 justify-end">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleViewDetails(app)}
-                              className="h-8 w-8 p-0"
-                              title="View Details"
-                            >
-                              <Eye size={14} />
-                            </Button>
-                            {canTakeAction(app) && (
-                              <>
-                                {getNormalizedStatus(app.status) === 'pending' && (
-                                  <>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      className="h-8 w-8 p-0 text-green-600 hover:bg-green-50 hover:text-green-700"
-                                      onClick={() => handleAction('approve', app.id, app.applicationType)}
-                                      disabled={isActionLoading}
-                                      title="Approve Application"
-                                    >
-                                      <CheckCircle size={14} />
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 hover:text-red-700"
-                                      onClick={() => handleAction('reject', app.id, app.applicationType)}
-                                      disabled={isActionLoading}
-                                      title="Reject Application"
-                                    >
-                                      <XCircle size={14} />
-                                    </Button>
-                                  </>
-                                )}
-                                {getNormalizedStatus(app.status) === 'approved' && (
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="h-8 w-8 p-0 text-orange-600 hover:bg-orange-50 hover:text-orange-700"
-                                    onClick={() => handleAction('suspend', app.id, app.applicationType)}
-                                    disabled={isActionLoading}
-                                    title="Suspend Application"
-                                  >
-                                    <AlertCircle size={14} />
-                                  </Button>
-                                )}
-                                {getNormalizedStatus(app.status) === 'suspended' && (
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="h-8 w-8 p-0 text-green-600 hover:bg-green-50 hover:text-green-700"
-                                    onClick={() => handleAction('reactivate', app.id, app.applicationType)}
-                                    disabled={isActionLoading}
-                                    title="Reactivate Application"
-                                  >
-                                    <CheckCircle size={14} />
-                                  </Button>
-                                )}
-                              </>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                }}
+                pagination={{
+                  currentPage,
+                  pageSize,
+                  total: totalApplications
+                }}
+                onPageChange={handlePageChange}
+              />
             )}
           </div>
         </Tabs>
@@ -1406,34 +1495,68 @@ const ApplicationManagementPage: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Action Modal */}
+      {/* Confirmation Dialog */}
+      <Dialog open={confirmationDialog.isOpen} onOpenChange={(open) => !open && setConfirmationDialog({ isOpen: false, type: null, applicationId: null, applicationType: null, applicationName: null })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Confirm {confirmationDialog.type === 'approve' || confirmationDialog.type === 'reactivate' ? 'Approval' : confirmationDialog.type === 'reject' ? 'Rejection' : 'Suspension'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-gray-700">
+              Are you sure you want to{' '}
+              <span className="font-bold">
+                {confirmationDialog.type === 'approve' ? 'approve' : confirmationDialog.type === 'reject' ? 'reject' : confirmationDialog.type === 'reactivate' ? 'reactivate' : 'suspend'}
+              </span>
+              {' '}the application for <span className="font-semibold text-gray-900">{confirmationDialog.applicationName}</span>?
+            </p>
+            {confirmationDialog.type === 'reject' || confirmationDialog.type === 'suspend' ? (
+              <p className="text-sm text-gray-500">You will be asked to provide a reason for this action.</p>
+            ) : null}
+          </div>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setConfirmationDialog({ isOpen: false, type: null, applicationId: null, applicationType: null, applicationName: null })}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmAction}
+              className={cn(
+                'text-white',
+                confirmationDialog.type === 'approve' || confirmationDialog.type === 'reactivate' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
+              )}
+            >
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Action Modal (for reason input on reject/suspend) */}
       <Dialog open={actionModal.isOpen} onOpenChange={(open) => !open && setActionModal({ isOpen: false, type: null, applicationId: null, applicationType: null, reason: '' })}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {actionModal.type === 'approve' && 'Approve Application'}
-              {actionModal.type === 'reject' && 'Deny Application'}
+              {actionModal.type === 'reject' && 'Reject Application'}
               {actionModal.type === 'suspend' && 'Suspend Application'}
-              {actionModal.type === 'reactivate' && 'Reactivate Application'}
             </DialogTitle>
             <DialogDescription>
-              {actionModal.type === 'approve' && 'This applicant will be approved and can start immediately.'}
-              {actionModal.type === 'reject' && 'Please provide a reason for denying this application.'}
+              {actionModal.type === 'reject' && 'Please provide a reason for rejecting this application.'}
               {actionModal.type === 'suspend' && 'Suspend this application and notify the applicant.'}
-              {actionModal.type === 'reactivate' && 'Reactivate this suspended application.'}
             </DialogDescription>
           </DialogHeader>
 
-          {(actionModal.type === 'reject' || actionModal.type === 'suspend') && (
-            <Textarea
-              placeholder="Enter reason..."
-              value={actionModal.reason}
-              onChange={(e) =>
-                setActionModal({ ...actionModal, reason: e.target.value })
-              }
-              className="h-20"
-            />
-          )}
+          <Textarea
+            placeholder="Enter reason..."
+            value={actionModal.reason}
+            onChange={(e) =>
+              setActionModal({ ...actionModal, reason: e.target.value })
+            }
+            className="h-20"
+          />
 
           <DialogFooter>
             <Button
@@ -1453,13 +1576,10 @@ const ApplicationManagementPage: React.FC = () => {
             <Button
               onClick={confirmAction}
               disabled={
-                isActionLoading ||
-                ((actionModal.type === 'reject' || actionModal.type === 'suspend') && !actionModal.reason.trim())
+                isActionLoading || !actionModal.reason.trim()
               }
               className={
-                actionModal.type === 'approve' || actionModal.type === 'reactivate'
-                  ? 'bg-green-600 hover:bg-green-700'
-                  : actionModal.type === 'reject'
+                actionModal.type === 'reject'
                   ? 'bg-red-600 hover:bg-red-700'
                   : 'bg-orange-600 hover:bg-orange-700'
               }

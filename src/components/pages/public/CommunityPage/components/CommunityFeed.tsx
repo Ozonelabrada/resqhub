@@ -19,6 +19,7 @@ interface CommunityFeedProps {
   isAdmin?: boolean;
   isModerator?: boolean;
   onRefresh: () => Promise<void>;
+  communityStatus?: string;
 }
 
 export const CommunityFeed: React.FC<CommunityFeedProps> = ({
@@ -27,7 +28,8 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
   isMember,
   isAdmin,
   isModerator,
-  onRefresh
+  onRefresh,
+  communityStatus
 }) => {
   const { isAuthenticated, user, openLoginModal } = useAuth();
   const [filter, setFilter] = useState<'all' | 'lost' | 'found'>('all');
@@ -43,7 +45,9 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const isUserMember = isMember || isAdmin;
-  const canPost = isAuthenticated && isUserMember;
+  const isApproved = communityStatus && !['pending', 'suspended', 'denied', 'disabled'].includes(communityStatus.toLowerCase());
+  const canPost = isAuthenticated && isUserMember && isApproved;
+  const canAccessAdminFeatures = isAuthenticated && (isAdmin || isModerator) && isApproved;
 
   const handleOpenDetail = (post: CommunityPost) => {
     setSelectedReportForDetail(post);
@@ -172,25 +176,29 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
           })}
         </div>
         
-        <Button 
-          variant="ghost" 
-          size="sm"
-          onClick={() => {
-            if (!isAuthenticated) {
-              openLoginModal();
-              return;
-            }
-            if (!isUserMember) return;
-            setIsReportModalOpen(true);
-          }}
-          className={cn(
-            "hidden lg:flex items-center gap-2 h-10 px-4 rounded-xl font-bold text-xs border-none transition-all mb-2",
-            isUserMember ? "text-teal-600 bg-teal-50 hover:bg-teal-100" : "text-slate-300 bg-slate-50 cursor-not-allowed opacity-50"
-          )}
-        >
-          <Plus className="w-4 h-4" />
-          New Report
-        </Button>
+        {canPost && (
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => {
+              if (!isAuthenticated) {
+                openLoginModal();
+                return;
+              }
+              setIsReportModalOpen(true);
+            }}
+            className="hidden lg:flex items-center gap-2 h-10 px-4 rounded-xl font-bold text-xs border-none transition-all mb-2 text-teal-600 bg-teal-50 hover:bg-teal-100"
+          >
+            <Plus className="w-4 h-4" />
+            New Report
+          </Button>
+        )}
+        {!isApproved && isAdmin && (
+          <div className="hidden lg:flex items-center gap-2 h-10 px-4 rounded-xl font-bold text-xs bg-amber-50 border border-amber-200 text-amber-700 mb-2">
+            <AlertCircle className="w-4 h-4" />
+            Awaiting Approval
+          </div>
+        )}
       </div>
 
       {/* Posts List - Standardized Layout */}
@@ -294,8 +302,8 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
                     </div>
                   )}
 
-                  {/* Mod Tools */}
-                  {isAdmin && (
+                  {/* Mod Tools - Only show when community is approved */}
+                  {canAccessAdminFeatures && (
                     <div className="flex items-center gap-2 mb-6 p-3 rounded-2xl bg-slate-50 border border-slate-100/50">
                       <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mr-2 flex items-center gap-1.5 ml-1">
                         <Shield size={10} className="text-teal-600" />
