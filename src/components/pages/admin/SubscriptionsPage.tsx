@@ -29,7 +29,7 @@ import {
   AlertDescription
 } from '../../ui';
 import { cn } from '@/lib/utils';
-import SubscriptionCreditPage from './SubscriptionCreditPage';
+import { SubscriptionCreditPage } from './SubscriptionCreditPage';
 
 interface SubscriptionPlan {
   id: string;
