@@ -15,9 +15,8 @@ export { useUserSubscriptions } from './useUserSubscriptions';
 export { useTodaysUpdates } from './useTodaysUpdates';
 export { useAnnouncements, useUserAnnouncements } from './useAnnouncements';
 
-// WebSocket & Real-time hooks
+// WebSocket hooks
 export * from './useWebSocket';
-export * from './useRiderBookings';
 
 // Admin hooks
 export * from './admin';
