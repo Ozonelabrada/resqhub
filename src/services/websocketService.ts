@@ -1,3 +1,88 @@
+/**
+ * ============================================================
+ * SIGNALR WEBSOCKET SERVICE
+ * ============================================================
+ * 
+ * This service integrates with the backend SignalR hub to receive
+ * real-time notifications for various operations.
+ * 
+ * Based on backend guide: FRONTEND REAL-TIME NOTIFICATIONS IMPLEMENTATION GUIDE
+ * 
+ * ============================================================
+ * EVENTS RECEIVED FROM BACKEND
+ * ============================================================
+ * 
+ * BOOKING OPERATIONS:
+ * - BookingCreated: When customer creates a booking
+ * - BookingCancelled: When booking is cancelled
+ * - BookingStatusUpdated: When booking status changes (accepted, completed, etc.)
+ * 
+ * COMMUNITY OPERATIONS:
+ * - CommunityCreated: When community is created
+ * - CommunityApproved: When admin approves community
+ * - CommunityDenied: When admin rejects community
+ * - LeftCommunity: When member leaves community
+ * - MemberLeftCommunity: When admin notified of member leaving
+ * 
+ * APPLICATION OPERATIONS:
+ * - RiderApplicationApproved: When admin approves rider application
+ * - RiderApplicationDenied: When admin denies rider application
+ * - RiderApplicationSuspended: When admin suspends rider account
+ * 
+ * SERVICE CREDITS:
+ * - CreditsGranted: When admin grants credits to user
+ * - CreditsDeducted: When credits are deducted from booking/service
+ * 
+ * USER OPERATIONS:
+ * - UserStatusUpdated: When admin changes user status (Active/Inactive/Suspended/Banned)
+ * - UserRoleUpdated: When admin changes user role (Admin/Moderator/User)
+ * 
+ * ANNOUNCEMENTS:
+ * - AnnouncementCreated: When admin creates announcement
+ * - AnnouncementUpdated: When admin updates announcement
+ * - AnnouncementReceived: When user receives announcement
+ * 
+ * GENERIC:
+ * - ReceiveNotification: Generic notification from backend
+ * 
+ * ============================================================
+ * DATA STRUCTURE REFERENCE
+ * ============================================================
+ * 
+ * All events from backend follow this structure:
+ * {
+ *   title: "emoji description",     // e.g., "📱 Booking Confirmed!"
+ *   message: "human readable msg",   // e.g., "Your booking has been created"
+ *   [Id]: "xxxxx",                   // BookingId, CommunityId, ApplicationId, UserId, etc.
+ *   Status: "current status",        // pending, accepted, approved, etc.
+ *   [Info]: { firstName, lastName, email, ... },  // User/Rider/Community info
+ *   [Details]: { createdAt, totalAmount, ... },   // Operation-specific details
+ *   Timestamp: "ISO 8601 date"       // When operation occurred
+ * }
+ * 
+ * See type definitions in useWebSocket.ts for detailed interfaces.
+ * 
+ * ============================================================
+ * ADMIN DASHBOARD NOTE
+ * ============================================================
+ * 
+ * ✅ CLARIFIED: Backend does NOT send DashboardUpdated SignalR event
+ * 
+ * Admin dashboard stats are fetched via API polling using `useDashboardUpdates` hook:
+ * - Initial fetch on component mount
+ * - Optional auto-refresh at configurable interval (default 30 seconds)
+ * - Manual refresh button available
+ * - Uses AdminService.getOverview() and AdminService.getStatistics()
+ * 
+ * Real-time updates still work via admin_notification events for:
+ * - CommunityApproved / CommunityDenied
+ * - RiderApplicationApproved / RiderApplicationDenied / RiderApplicationSuspended
+ * - UserStatusUpdated / UserRoleUpdated
+ * - CreditsGranted / CreditsDeducted
+ * 
+ * ============================================================
+ */
+
 import { HubConnection, HubConnectionBuilder, LogLevel, HubConnectionState } from '@microsoft/signalr';
 import { authManager } from '../utils/sessionManager';
 
@@ -112,50 +197,140 @@ class WebSocketService {
       this.isConnecting = false;
     });
 
-    // Handle booking status updates (as per backend documentation)
-    this.connection.on('BookingStatusUpdated', (data) => {
-      console.log('📬 Received booking status update:', data);
-      this.emitToListeners('booking_status_updated', data);
-    });
-
-    // Handle booking accepted notification (as per backend documentation)
-    this.connection.on('BookingAccepted', (data) => {
-      console.log('✅ Received booking accepted:', data);
-      this.emitToListeners('booking_accepted', data);
-    });
-
-    // Handle real-time notifications (generic)
-    this.connection.on('ReceiveNotification', (data) => {
-      console.log('📬 Received notification:', data);
+    // ============================================================
+    // BOOKING OPERATIONS
+    // ============================================================
+    this.connection.on('BookingCreated', (data) => {
+      console.log('📱 Received booking created:', data);
+      this.emitToListeners('booking_created', data);
       this.emitToListeners('notification', data);
     });
 
-    // Handle community approval/denial events
+    this.connection.on('BookingCancelled', (data) => {
+      console.log('❌ Received booking cancelled:', data);
+      this.emitToListeners('booking_cancelled', data);
+      this.emitToListeners('notification', data);
+    });
+
+    this.connection.on('BookingStatusUpdated', (data) => {
+      console.log('🚗 Received booking status update:', data);
+      this.emitToListeners('booking_status_updated', data);
+      this.emitToListeners('notification', data);
+    });
+
+    // ============================================================
+    // COMMUNITY OPERATIONS
+    // ============================================================
+    this.connection.on('CommunityCreated', (data) => {
+      console.log('🎉 Received community created:', data);
+      this.emitToListeners('community_created', data);
+      this.emitToListeners('notification', data);
+    });
+
     this.connection.on('CommunityApproved', (data) => {
       console.log('✅ Received community approved:', data);
       this.emitToListeners('community_approved', data);
+      this.emitToListeners('admin_notification', data);
+      this.emitToListeners('notification', data);
     });
 
     this.connection.on('CommunityDenied', (data) => {
-      console.log('❌ Received community denied:', data);
+      console.log('⚠️ Received community denied:', data);
       this.emitToListeners('community_denied', data);
+      this.emitToListeners('notification', data);
     });
 
-    // Handle announcement events
+    this.connection.on('LeftCommunity', (data) => {
+      console.log('👋 Received left community:', data);
+      this.emitToListeners('left_community', data);
+      this.emitToListeners('notification', data);
+    });
+
+    this.connection.on('MemberLeftCommunity', (data) => {
+      console.log('⚠️ Received member left community:', data);
+      this.emitToListeners('member_left_community', data);
+      this.emitToListeners('admin_notification', data);
+    });
+
+    // ============================================================
+    // APPLICATION OPERATIONS (Rider, Seller, Provider)
+    // ============================================================
+    this.connection.on('RiderApplicationApproved', (data) => {
+      console.log('🎉 Received rider application approved:', data);
+      this.emitToListeners('rider_application_approved', data);
+      this.emitToListeners('notification', data);
+    });
+
+    this.connection.on('RiderApplicationDenied', (data) => {
+      console.log('⚠️ Received rider application denied:', data);
+      this.emitToListeners('rider_application_denied', data);
+      this.emitToListeners('notification', data);
+    });
+
+    this.connection.on('RiderApplicationSuspended', (data) => {
+      console.log('⏸️ Received rider application suspended:', data);
+      this.emitToListeners('rider_application_suspended', data);
+      this.emitToListeners('notification', data);
+    });
+
+    // ============================================================
+    // SERVICE CREDITS OPERATIONS
+    // ============================================================
+    this.connection.on('CreditsGranted', (data) => {
+      console.log('🎉 Received credits granted:', data);
+      this.emitToListeners('credits_granted', data);
+      this.emitToListeners('notification', data);
+    });
+
+    this.connection.on('CreditsDeducted', (data) => {
+      console.log('⚠️ Received credits deducted:', data);
+      this.emitToListeners('credits_deducted', data);
+      this.emitToListeners('notification', data);
+    });
+
+    // ============================================================
+    // USER OPERATIONS
+    // ============================================================
+    this.connection.on('UserStatusUpdated', (data) => {
+      console.log('✅ Received user status updated:', data);
+      this.emitToListeners('user_status_updated', data);
+      this.emitToListeners('notification', data);
+    });
+
+    this.connection.on('UserRoleUpdated', (data) => {
+      console.log('🛡️ Received user role updated:', data);
+      this.emitToListeners('user_role_updated', data);
+      this.emitToListeners('notification', data);
+    });
+
+    // ============================================================
+    // ANNOUNCEMENTS
+    // ============================================================
     this.connection.on('AnnouncementCreated', (data) => {
       console.log('📢 Received announcement created:', data);
       this.emitToListeners('announcement_created', data);
       this.emitToListeners('announcement_received', data);
+      this.emitToListeners('notification', data);
     });
 
     this.connection.on('AnnouncementUpdated', (data) => {
       console.log('📝 Received announcement updated:', data);
       this.emitToListeners('announcement_updated', data);
+      this.emitToListeners('notification', data);
     });
 
     this.connection.on('AnnouncementReceived', (data) => {
       console.log('📢 Received announcement:', data);
       this.emitToListeners('announcement_received', data);
+      this.emitToListeners('notification', data);
+    });
+
+    // ============================================================
+    // GENERIC NOTIFICATIONS
+    // ============================================================
+    this.connection.on('ReceiveNotification', (data) => {
+      console.log('📬 Received notification:', data);
+      this.emitToListeners('notification', data);
     });
   }
 

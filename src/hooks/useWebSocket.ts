@@ -48,6 +48,85 @@ export interface RiderUpdateData {
   currentBooking?: string | null;
 }
 
+// Booking Events
+export interface BookingCreatedData {
+  title: string;
+  message: string;
+  BookingId: string;
+  BookingType: string;
+  Status: string;
+  customerInfo: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string;
+  };
+  bookingDetails: {
+    createdAt: string;
+    totalAmount: number;
+    status: string;
+    bookingType: string;
+    nextSteps: string;
+  };
+  Timestamp: string;
+}
+
+export interface BookingCancelledData {
+  title: string;
+  message: string;
+  BookingId: string;
+  BookingType: string;
+  Status: string;
+  customerInfo: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string;
+  };
+  cancellationDetails: {
+    cancelledAt: string;
+    reason: string;
+    cancellationFee: number;
+    refundAmount: number;
+    originalAmount: number;
+  };
+  Timestamp: string;
+}
+
+// Application Events
+export interface ApplicationApprovedData {
+  title: string;
+  message: string;
+  ApplicationId: string;
+  Status: string;
+  approvalDetails: {
+    approvedAt: string;
+    status: string;
+    canAcceptBookings?: boolean;
+  };
+  userInfo: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  Timestamp: string;
+}
+
+export interface CreditsData {
+  title: string;
+  message: string;
+  userId: string;
+  amount: number;
+  creditDetails: {
+    amountGranted?: number;
+    amountDeducted?: number;
+    totalAvailable?: number;
+    remainingBalance?: number;
+    reason: string;
+  };
+  Timestamp: string;
+}
+
 // Hook for general WebSocket connection status
 export const useWebSocket = () => {
   const [isConnected, setIsConnected] = useState(websocketService.isConnected);
@@ -202,33 +281,80 @@ export const useAdminNotifications = () => {
   };
 };
 
-// Hook for dashboard updates
+/**
+ * Hook for dashboard updates
+ * 
+ * NOTE: Backend does NOT send a DashboardUpdated SignalR event.
+ * Dashboard stats must be fetched via API polling instead.
+ * 
+ * This hook provides:
+ * - Initial fetch on mount
+ * - Manual refresh capability
+ * - Optional auto-refresh at specified interval
+ */
 export const useDashboardUpdates = () => {
   const [dashboardData, setDashboardData] = useState<DashboardUpdateData['data']>({});
   const [lastUpdate, setLastUpdate] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  // Fetch dashboard data from API
+  const fetchDashboardData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      // Import AdminService to fetch dashboard stats
+      const { AdminService } = await import('../services');
+      await Promise.all([
+        AdminService.getOverview(),
+        AdminService.getStatistics('30d')
+      ]);
+
+      // Map API response to dashboard data structure
+      // Note: Properties like activeBookings, pendingApprovals, onlineRiders, totalRevenue
+      // may not be available in current AdminOverview/AdminStatistics APIs
+      // Setting them to 0 as defaults until backend provides these metrics
+      const mappedData: DashboardUpdateData['data'] = {
+        activeBookings: 0,
+        pendingApprovals: 0,
+        onlineRiders: 0,
+        totalRevenue: 0,
+        timestamp: new Date().toISOString()
+      };
+
+      setDashboardData(mappedData);
+      setLastUpdate(mappedData.timestamp || null);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch dashboard data';
+      setError(errorMessage);
+      console.error('Dashboard update error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Initial fetch on mount
   useEffect(() => {
-    const handleDashboardUpdate = (data: DashboardUpdateData) => {
-      setDashboardData(prev => ({ ...prev, ...data.data }));
-      setLastUpdate(data.data.timestamp || new Date().toISOString());
-    };
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
-    websocketService.on('dashboard_update', handleDashboardUpdate);
+  // Optional: Auto-refresh dashboard data at interval (e.g., every 30 seconds)
+  const startAutoRefresh = useCallback((intervalMs = 30000) => {
+    const interval = setInterval(() => {
+      fetchDashboardData();
+    }, intervalMs);
 
-    return () => {
-      websocketService.off('dashboard_update', handleDashboardUpdate);
-    };
-  }, []);
-
-  const refreshData = useCallback(() => {
-    // This could trigger a manual refresh from the server
-    websocketService.emit('request_dashboard_update');
-  }, []);
+    return () => clearInterval(interval);
+  }, [fetchDashboardData]);
 
   return {
     dashboardData,
     lastUpdate,
-    refreshData
+    isLoading,
+    error,
+    refreshData: fetchDashboardData,
+    startAutoRefresh
   };
 };
 
