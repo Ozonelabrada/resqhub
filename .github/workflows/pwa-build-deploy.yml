@@ -295,7 +295,8 @@ jobs:
         with:
           status: ${{ job.status }}
           text: 'PWA staging deployment ${{ job.status }}'
-          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   deploy-production:
     runs-on: ubuntu-latest
@@ -332,7 +333,8 @@ jobs:
         with:
           status: ${{ job.status }}
           text: 'PWA production deployment ${{ job.status }}'
-          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   cleanup:
     runs-on: ubuntu-latest
