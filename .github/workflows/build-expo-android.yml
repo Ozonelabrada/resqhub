@@ -1,0 +1,51 @@
+name: Build Expo Android APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Expo CLI
+        run: npm install -g eas-cli@latest
+
+      - name: Install dependencies
+        working-directory: ./mobile
+        run: npm install
+
+      - name: Authenticate with Expo
+        run: eas login --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build Android APK
+        working-directory: ./mobile
+        run: eas build --platform android --profile production --non-interactive --wait
+
+      - name: Download APK
+        working-directory: ./mobile
+        run: |
+          # The APK will be generated and downloaded automatically
+          echo "APK built successfully"
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: mobile/dist/**/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

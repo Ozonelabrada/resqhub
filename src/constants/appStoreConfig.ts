@@ -13,11 +13,19 @@ export const APP_STORE_CONFIG = {
       name: 'FindrHub',
     },
     
-    // Google Play Store
+    // Google Play Store (Official)
     android: {
       url: 'https://play.google.com/store/apps/details?id=com.findrhub.app',
       packageName: 'com.findrhub.app',
       name: 'FindrHub',
+    },
+
+    // Android APK (Direct Download - No Google Play)
+    androidAPK: {
+      url: 'https://github.com/Ozonelabrada/resqhub/releases/download/latest/FindrHub.apk',
+      packageName: 'com.findrhub.app',
+      name: 'FindrHub APK',
+      version: '1.0.0',
     },
   },
 
