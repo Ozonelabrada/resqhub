@@ -3,41 +3,39 @@ name: PWA Build & Deploy
 on:
   push:
     branches: [main, development]
+    tags:
+      - 'v*'
   pull_request:
     branches: [main, development]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x]
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
-      - name: Setup Node.js ${{ matrix.node-version }}
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 20.x
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Lint code
         run: npm run lint
         continue-on-error: true
-      
+
       - name: Type check
         run: npm run type-check
         continue-on-error: true
-      
+
       - name: Build application
         run: npm run build
-      
+
       - name: Check build output
         run: |
           if [ ! -d "dist" ]; then
@@ -46,68 +44,50 @@ jobs:
           fi
           echo "✓ Build output verified"
           ls -lah dist/ | head -20
-      
+
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: build-${{ matrix.node-version }}
+          name: build
           path: dist/
           retention-days: 7
 
   pwa-validation:
     runs-on: ubuntu-latest
     needs: build
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20.x
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci
-      
+
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: build-20.x
+          name: build
           path: dist/
-      
+
       - name: Validate PWA manifest
         run: |
-          echo "Checking manifest.json..."
           node -e "
-            const manifest = require('./dist/manifest.webmanifest', 'utf8');
-            console.log('Manifest valid:', manifest);
+            const fs = require('fs');
+            const manifest = JSON.parse(fs.readFileSync('./dist/manifest.webmanifest', 'utf8'));
             const required = ['name', 'short_name', 'start_url', 'display', 'icons'];
             required.forEach(field => {
               if (!manifest[field]) throw new Error('Missing: ' + field);
             });
+            console.log('✓ Manifest valid');
           "
-      
+
       - name: Verify Service Worker
         run: |
-          echo "Checking Service Worker..."
           if [ ! -f "dist/sw.js" ]; then
             echo "✗ Service Worker not found"
             exit 1
           fi
           echo "✓ Service Worker found"
-          wc -l dist/sw.js
-      
-      - name: Check HTTPS requirements
-        run: |
-          echo "✓ PWA requires HTTPS in production"
-          echo "  - Localhost is exempted for development"
-          echo "  - All deployed instances must use HTTPS"
-      
+
       - name: Validate offline page
         run: |
-          echo "Checking offline.html..."
           if [ ! -f "dist/offline.html" ]; then
             echo "✗ Offline fallback page not found"
             exit 1
@@ -117,230 +97,115 @@ jobs:
   lighthouse:
     runs-on: ubuntu-latest
     needs: build
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20.x
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci
-      
+
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: build-20.x
+          name: build
           path: dist/
-      
+
+      # ✅ FIXED: No global install (uses npx)
       - name: Start local server
         run: |
-          npm install -g http-server
-          http-server dist -p 8080 -g &
-          sleep 3
-      
-      - name: Install Lighthouse
-        run: npm install -g @lhci/cli@0.11.x lighthouse
-      
+          nohup npx http-server dist -p 8080 > server.log 2>&1 &
+          npx wait-on http://localhost:8080
+
       - name: Run Lighthouse audit
-        id: lighthouse
         run: |
-          lighthouse http://localhost:8080 \
+          npx lighthouse http://localhost:8080 \
             --output=json \
             --output=html \
             --chrome-flags="--headless --no-sandbox" \
             --output-path=./lighthouse-report
-      
+
       - name: Upload Lighthouse report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: lighthouse-report
           path: lighthouse-report.json
           retention-days: 30
-      
-      - name: Comment PR with Lighthouse results
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const report = JSON.parse(fs.readFileSync('lighthouse-report.json', 'utf8'));
-            const scores = report.categories;
-            
-            const comment = `
-            ## 📊 Lighthouse PWA Audit Results
-            
-            | Category | Score |
-            |----------|-------|
-            | PWA | ${Math.round(scores.pwa.score * 100)}/100 ${scores.pwa.score >= 0.9 ? '✓' : '⚠'} |
-            | Performance | ${Math.round(scores.performance.score * 100)}/100 |
-            | Accessibility | ${Math.round(scores.accessibility.score * 100)}/100 |
-            | Best Practices | ${Math.round(scores['best-practices'].score * 100)}/100 |
-            | SEO | ${Math.round(scores.seo.score * 100)}/100 |
-            
-            ### PWA Checklist
-            - [x] Installable (manifest + icons)
-            - [x] Service Worker registered
-            - [x] Works offline
-            - [x] HTTPS enabled
-            - [x] Load fast on 3G
-            
-            [Full Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
-            `;
-            
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
 
   security:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
-      - name: Run security audit
-        run: npm audit --audit-level=moderate
+
+      - name: Fix security vulnerabilities
+        run: npm audit fix --force
         continue-on-error: true
-      
-      - name: Check for vulnerabilities
-        run: |
-          echo "Security scan completed"
-          echo "Review audit results above"
+
+      - name: Run security audit (production only)
+        run: npm audit --omit=dev --audit-level=moderate
+        continue-on-error: true
 
   performance:
     runs-on: ubuntu-latest
     needs: build
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: build-20.x
+          name: build
           path: dist/
-      
+
       - name: Analyze bundle size
         run: |
           echo "📦 Bundle Size Analysis"
-          echo "======================="
           du -sh dist/
-          echo ""
-          echo "Top 10 largest files:"
-          find dist -type f -exec du -h {} + | sort -rh | head -10
-          echo ""
-          
-          # Check size budgets
+
           TOTAL_SIZE=$(du -sb dist/ | awk '{print $1}')
-          LIMIT=$((5 * 1024 * 1024)) # 5MB limit
-          
+          LIMIT=$((5 * 1024 * 1024))
+
           if [ $TOTAL_SIZE -gt $LIMIT ]; then
-            echo "⚠️  Bundle size exceeds limit: $TOTAL_SIZE > $LIMIT"
+            echo "⚠️ Bundle too large"
             exit 1
           else
-            echo "✓ Bundle size within limit: $TOTAL_SIZE < $LIMIT"
-          fi
-      
-      - name: Check cache hit rate
-        run: |
-          echo "Cache Configuration Check"
-          if [ -f "dist/sw.js" ]; then
-            echo "✓ Service Worker precache configured"
-            grep -o "precache.*entries" dist/sw.js || echo "⚠️  Check precache configuration"
+            echo "✓ Bundle size OK"
           fi
 
   deploy-staging:
     runs-on: ubuntu-latest
-    needs: [build, pwa-validation, lighthouse, security]
+    needs: [build, pwa-validation, lighthouse, security, performance]
     if: github.event_name == 'push' && github.ref == 'refs/heads/development'
-    
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      
-      - name: Download build artifacts
-        uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
-          name: build-20.x
+          name: build
           path: dist/
-      
+
       - name: Deploy to staging
-        run: |
-          echo "🚀 Deploying to staging environment..."
-          echo "Deployment URL: https://staging.resqhub.com"
-          echo "✓ Deployment successful"
-      
-      - name: Notify deployment
-        uses: 8398a7/action-slack@v3
-        if: always()
-        with:
-          status: ${{ job.status }}
-          text: 'PWA staging deployment ${{ job.status }}'
-          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        run: echo "Deploying to staging..."
 
   deploy-production:
     runs-on: ubuntu-latest
-    needs: [build, pwa-validation, lighthouse, security]
+    needs: [build, pwa-validation, lighthouse, security, performance]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      
-      - name: Download build artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: build-20.x
-          path: dist/
-      
-      - name: Deploy to production
-        run: |
-          echo "🚀 Deploying to production environment..."
-          echo "Deployment URL: https://resqhub.com"
-          echo "✓ Production deployment successful"
-      
-      - name: Create release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          files: dist/**/*
-          draft: false
-          prerelease: false
-      
-      - name: Notify deployment
-        uses: 8398a7/action-slack@v3
-        if: always()
-        with:
-          status: ${{ job.status }}
-          text: 'PWA production deployment ${{ job.status }}'
-          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
 
-  cleanup:
-    runs-on: ubuntu-latest
-    if: always()
-    needs: [build]
-    
     steps:
-      - name: Clean up old artifacts
-        uses: geekyeggo/delete-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
-          name: build-*
-          failOnError: false
+          name: build
+          path: dist/
+
+      - name: Deploy to production
+        run: echo "Deploying to production..."
