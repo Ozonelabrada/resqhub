@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#14b8a6"/>
+  
+  <!-- Rounded corners -->
+  <defs>
+    <style>
+      .icon-text { font-family: Arial, sans-serif; font-size: 180px; font-weight: bold; fill: white; }
+      .icon-accent { fill: #0d9488; }
+    </style>
+  </defs>
+  
+  <!-- Search icon (magnifying glass) -->
+  <circle cx="256" cy="220" r="100" fill="none" stroke="white" stroke-width="20"/>
+  <line x1="340" y1="310" x2="420" y2="390" stroke="white" stroke-width="20" stroke-linecap="round"/>
+  
+  <!-- Gradient overlay for depth -->
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:white;stop-opacity:0.1" />
+      <stop offset="100%" style="stop-color:black;stop-opacity:0.1" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#grad)"/>
+</svg>
