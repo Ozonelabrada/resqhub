@@ -1,0 +1,113 @@
+{
+  "name": "ResqHub - Emergency Response & Community Support",
+  "short_name": "ResqHub",
+  "description": "Community-driven disaster response and emergency reporting platform for coordination and information sharing",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#0d9488",
+  "background_color": "#ffffff",
+  "categories": ["emergency", "disaster", "community"],
+  "prefer_related_applications": false,
+  "screenshots": [
+    {
+      "src": "/assets/images/screenshot-540x720.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/assets/images/screenshot-1280x720.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "icons": [
+    {
+      "src": "/assets/images/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/images/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/images/icon-192x192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/assets/images/icon-512x512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Report Emergency",
+      "short_name": "Report",
+      "description": "Quickly report an emergency or community issue",
+      "url": "/report?shortcut=true",
+      "icons": [
+        {
+          "src": "/assets/images/icon-report.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "View Live Map",
+      "short_name": "Map",
+      "description": "Check live emergency map and resources",
+      "url": "/map?shortcut=true",
+      "icons": [
+        {
+          "src": "/assets/images/icon-map.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Emergency Contacts",
+      "short_name": "Contacts",
+      "description": "Access emergency contacts and resources",
+      "url": "/contacts?shortcut=true",
+      "icons": [
+        {
+          "src": "/assets/images/icon-contacts.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "media",
+          "accept": ["image/*", "video/*", "audio/*"]
+        }
+      ]
+    }
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+resqhub",
+      "url": "/protocol?url=%s"
+    }
+  ]
+}

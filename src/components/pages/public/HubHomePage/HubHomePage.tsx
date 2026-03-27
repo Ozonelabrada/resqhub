@@ -93,8 +93,6 @@ const HubHomePage: React.FC = () => {
         isAuthenticated={isAuthenticated}
         userData={userData}
         isBelowDesktop={isBelowDesktop}
-        onShowAccountMenu={(e) => accountMenuRef.current?.toggle(e)}
-        onShowGuestMenu={() => openLoginModal()}
         onReportAction={handleReportAction}
         onGetStartedAction={handleGetStartedAction}
         onSearchAction={handleSearchAction}

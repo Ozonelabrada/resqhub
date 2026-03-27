@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0d9488" />
+    <title>Offline - ResqHub</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
+          'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+        background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .container {
+        background: white;
+        border-radius: 24px;
+        padding: 40px;
+        max-width: 500px;
+        width: 100%;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        text-align: center;
+      }
+
+      .icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+        background: #f0f9f8;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+      }
+
+      h1 {
+        color: #1e293b;
+        font-size: 24px;
+        margin-bottom: 12px;
+        font-weight: 700;
+      }
+
+      .subtitle {
+        color: #64748b;
+        font-size: 14px;
+        margin-bottom: 20px;
+        line-height: 1.6;
+      }
+
+      .status {
+        background: #f1f5fe;
+        border-left: 4px solid #3b82f6;
+        padding: 16px;
+        border-radius: 8px;
+        margin: 24px 0;
+        text-align: left;
+      }
+
+      .status-title {
+        color: #1e40af;
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+      }
+
+      .status-message {
+        color: #1e3a8a;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .suggestions {
+        text-align: left;
+        margin: 24px 0;
+      }
+
+      .suggestions-title {
+        color: #1e293b;
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 12px;
+      }
+
+      .suggestion-list {
+        list-style: none;
+        padding: 0;
+      }
+
+      .suggestion-item {
+        color: #475569;
+        font-size: 13px;
+        padding: 8px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .suggestion-item:before {
+        content: '✓';
+        color: #14b8a6;
+        font-weight: bold;
+        display: inline-block;
+        width: 16px;
+      }
+
+      .actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+      }
+
+      button {
+        flex: 1;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .btn-primary {
+        background: #14b8a6;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #0d9488;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(20, 184, 166, 0.3);
+      }
+
+      .btn-primary:active {
+        transform: translateY(0);
+      }
+
+      .btn-secondary {
+        background: #f1f5fe;
+        color: #1e40af;
+      }
+
+      .btn-secondary:hover {
+        background: #e0e7ff;
+        transform: translateY(-2px);
+      }
+
+      .btn-secondary:active {
+        transform: translateY(0);
+      }
+
+      .footer {
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid #e2e8f0;
+        color: #94a3b8;
+        font-size: 12px;
+      }
+
+      .indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #ef4444;
+        margin-right: 6px;
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      .cached-content {
+        background: #f0fdf4;
+        border-left: 4px solid #16a34a;
+        padding: 16px;
+        border-radius: 8px;
+        margin: 24px 0;
+        text-align: left;
+      }
+
+      .cached-content-title {
+        color: #15803d;
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+      }
+
+      .cached-content-message {
+        color: #166534;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      @media (max-width: 480px) {
+        .container {
+          padding: 24px;
+        }
+
+        h1 {
+          font-size: 20px;
+        }
+
+        .actions {
+          flex-direction: column;
+        }
+
+        button {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="icon">📡</div>
+
+      <h1>No Connection</h1>
+      <p class="subtitle">You're currently offline, but FindrHub is ready to help!</p>
+
+      <div class="status">
+        <div class="status-title">
+          <span class="indicator"></span>
+          Status
+        </div>
+        <div class="status-message">
+          Your device lost connection to the network. Many features will work offline thanks to FindrHub PWA.
+        </div>
+      </div>
+
+      <div class="cached-content">
+        <div class="cached-content-title">✓ You can still:</div>
+        <div class="cached-content-message">
+          View your recent reports, saved items, profile information, and generate QR codes. Your actions will sync automatically when you reconnect.
+        </div>
+      </div>
+
+      <div class="suggestions">
+        <div class="suggestions-title">While offline, you can:</div>
+        <ul class="suggestion-list">
+          <li class="suggestion-item">View your personal hub</li>
+          <li class="suggestion-item">Browse recent reports (cached)</li>
+          <li class="suggestion-item">Generate QR codes</li>
+          <li class="suggestion-item">Draft new reports</li>
+          <li class="suggestion-item">Read stored messages</li>
+        </ul>
+      </div>
+
+      <div class="actions">
+        <button class="btn-primary" onclick="location.href='/';">
+          📱 Go to Home
+        </button>
+        <button class="btn-secondary" onclick="location.reload();">
+          🔄 Retry
+        </button>
+      </div>
+
+      <div class="footer">
+        <p>FindrHub will automatically sync when you reconnect. Your data is safe.</p>
+      </div>
+    </div>
+
+    <script>
+      // Check connection status
+      function updateStatus() {
+        if (navigator.onLine) {
+          console.log('Connection restored! Redirecting...');
+          setTimeout(() => {
+            location.href = '/';
+          }, 1000);
+        }
+      }
+
+      // Listen for reconnection
+      window.addEventListener('online', updateStatus);
+
+      // Also check periodically
+      setInterval(() => {
+        fetch('/manifest.json', { method: 'HEAD' }).then(() => {
+          updateStatus();
+        });
+      }, 5000);
+
+      // Log offline status
+      console.log('🌐 FindrHub PWA - Offline Mode Active');
+      console.log('Available resources are cached and ready to use');
+    </script>
+  </body>
+</html>

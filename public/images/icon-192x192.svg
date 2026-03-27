@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <!-- Background -->
+  <rect width="192" height="192" fill="#14b8a6"/>
+  
+  <!-- Search icon -->
+  <circle cx="96" cy="82" r="38" fill="none" stroke="white" stroke-width="8"/>
+  <line x1="128" y1="115" x2="158" y2="145" stroke="white" stroke-width="8" stroke-linecap="round"/>
+  
+  <!-- Gradient overlay -->
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:white;stop-opacity:0.1" />
+      <stop offset="100%" style="stop-color:black;stop-opacity:0.1" />
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" fill="url(#grad)"/>
+</svg>
