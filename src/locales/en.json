@@ -266,6 +266,7 @@
     "confirm_logout": "Confirm Logout",
     "logout_question": "Are you sure you want to log out of your account?",
     "hero": {
+      "badge": "Connecting Communities",
       "title": "Reuniting Communities",
       "subtitle": "Restoring Hope",
       "description": "A platform connecting people who lost items with those who found them. Promoting accountability and honesty in our community.",
@@ -273,7 +274,17 @@
       "i_found": "I Found Something",
       "account": "Account",
       "sign_in": "Sign In",
-      "search_placeholder": "Search for lost or found items"
+      "search_placeholder": "Search for lost or found items",
+      "available_mobile": "Available on Mobile & Desktop",
+      "get_the_app": "Download Now!",
+      "mobile": "Mobile",
+      "desktop": "Desktop",
+      "download_google_play": "Google Play",
+      "download_app_store": "App Store",
+      "download_windows": "Windows",
+      "download_macos": "macOS",
+      "available_on_platforms": "Get FindrHub on iOS and Android",
+      "available_on_desktop": "Get FindrHub on Windows and macOS"
     },
     "stats": {
       "title": "Platform Impact",
@@ -315,6 +326,24 @@
       "feature_1": "Secure Platform",
       "feature_2": "10k+ Members",
       "feature_3": "Free Forever"
+    },
+    "mobile": {
+      "badge": "📱 Install Mobile App",
+      "title": "Get FindrHub",
+      "title_highlight": "On Your Phone",
+      "description": "Download FindrHub as a mobile app and access it like a native application. Works seamlessly on Android and iOS devices.",
+      "feature_1_title": "Lightning Fast",
+      "feature_1_desc": "Instant access to reports and updates",
+      "feature_2_title": "Works Offline",
+      "feature_2_desc": "Access cached content without internet",
+      "feature_3_title": "Smart Notifications",
+      "feature_3_desc": "Get alerts for matching items instantly",
+      "feature_4_title": "Secure & Private",
+      "feature_4_desc": "Your data stays encrypted and safe",
+      "phone_subtitle": "Install in seconds, use anytime",
+      "install_options": "Install on Web",
+      "download_native_app": "Or Download Native App",
+      "available_on_platforms": "Available on iOS and Android"
     }
   },
   "newsfeed": {

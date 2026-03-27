@@ -16,3 +16,4 @@ export { appConfigService } from './appConfigService';
 export { ReportMatchService } from './reportMatchService';
 export { notificationService } from './notificationService';
 export { default as websocketService } from './websocketService';
+export { pwaServiceWorkerManager } from './pwaServiceWorkerManager';

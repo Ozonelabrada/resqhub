@@ -218,11 +218,22 @@
   },
   "home": {
     "hero": {
+      "badge": "Nag-uugnay ng Mga Komunidad",
       "title": "Muling I-konek sa",
       "subtitle": "Mga Bagay na Mahalaga.",
       "description": "Isang platform na nag-uugnay sa mga taong nawalan ng gamit sa mga nakahanap nito. Itinataguyod ang katapatan sa ating komunidad.",
       "i_lost": "May Nawala Ako",
-      "i_found": "May Nahanap Ako"
+      "i_found": "May Nahanap Ako",
+      "available_mobile": "Available sa Mobile & Desktop",
+      "get_the_app": "I-download Ngayon!",
+      "mobile": "Mobile",
+      "desktop": "Desktop",
+      "download_google_play": "Google Play",
+      "download_app_store": "App Store",
+      "download_windows": "Windows",
+      "download_macos": "macOS",
+      "available_on_platforms": "Kunin ang FindrHub sa iOS at Android",
+      "available_on_desktop": "Kunin ang FindrHub sa Windows at macOS"
     },
     "stats": {
       "total_items": "Kabuuang Gamit",
@@ -235,6 +246,24 @@
       "title_part2": "sa Iyong Komunidad?",
       "button": "Sumali sa FindrHub Ngayon",
       "feature_3": "Libre sa Lahat"
+    },
+    "mobile": {
+      "badge": "📱 I-install ang Mobile App",
+      "title": "Kunin ang FindrHub",
+      "title_highlight": "Sa Iyong Telepono",
+      "description": "I-download ang FindrHub bilang mobile app at i-access ito na parang native application. Gumagana nang perpekto sa Android at iOS devices.",
+      "feature_1_title": "Napakabilis",
+      "feature_1_desc": "Instant access sa reports at updates",
+      "feature_2_title": "Gumagana Offline",
+      "feature_2_desc": "I-access ang cached content nang walang internet",
+      "feature_3_title": "Smart Notifications",
+      "feature_3_desc": "Makatanggap ng alerts para sa matching items kaagad",
+      "feature_4_title": "Secure & Private",
+      "feature_4_desc": "Ang iyong data ay nananatiling encrypted at safe",
+      "phone_subtitle": "I-install sa loob ng ilang segundo, gamitin anumang oras",
+      "install_options": "I-install sa Web",
+      "download_native_app": "O I-download ang Native App",
+      "available_on_platforms": "Available sa iOS at Android"
     }
   },
   "report": {

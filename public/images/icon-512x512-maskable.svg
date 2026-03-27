@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Maskable icon has content in safe zone (inner circle for 108x108dp on 192x192px = 270x270px on 512x512px) -->
+  <!-- Background -->
+  <rect width="512" height="512" fill="#14b8a6"/>
+  
+  <!-- Search icon centered in safe zone -->
+  <circle cx="256" cy="220" r="80" fill="none" stroke="white" stroke-width="16"/>
+  <line x1="320" y1="295" x2="390" y2="365" stroke="white" stroke-width="16" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,211 @@
+name: PWA Build & Deploy
+
+on:
+  push:
+    branches: [main, development]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [main, development]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint code
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Type check
+        run: npm run type-check
+        continue-on-error: true
+
+      - name: Build application
+        run: npm run build
+
+      - name: Check build output
+        run: |
+          if [ ! -d "dist" ]; then
+            echo "Build failed: dist directory not found"
+            exit 1
+          fi
+          echo "✓ Build output verified"
+          ls -lah dist/ | head -20
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: dist/
+          retention-days: 7
+
+  pwa-validation:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: dist/
+
+      - name: Validate PWA manifest
+        run: |
+          node -e "
+            const fs = require('fs');
+            const manifest = JSON.parse(fs.readFileSync('./dist/manifest.webmanifest', 'utf8'));
+            const required = ['name', 'short_name', 'start_url', 'display', 'icons'];
+            required.forEach(field => {
+              if (!manifest[field]) throw new Error('Missing: ' + field);
+            });
+            console.log('✓ Manifest valid');
+          "
+
+      - name: Verify Service Worker
+        run: |
+          if [ ! -f "dist/sw.js" ]; then
+            echo "✗ Service Worker not found"
+            exit 1
+          fi
+          echo "✓ Service Worker found"
+
+      - name: Validate offline page
+        run: |
+          if [ ! -f "dist/offline.html" ]; then
+            echo "✗ Offline fallback page not found"
+            exit 1
+          fi
+          echo "✓ Offline page found"
+
+  lighthouse:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: dist/
+
+      # ✅ FIXED: No global install (uses npx)
+      - name: Start local server
+        run: |
+          nohup npx http-server dist -p 8080 > server.log 2>&1 &
+          npx wait-on http://localhost:8080
+
+      - name: Run Lighthouse audit
+        run: |
+          npx lighthouse http://localhost:8080 \
+            --output=json \
+            --output=html \
+            --chrome-flags="--headless --no-sandbox" \
+            --output-path=./lighthouse-report
+
+      - name: Upload Lighthouse report
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-report
+          path: lighthouse-report.json
+          retention-days: 30
+
+  security:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Fix security vulnerabilities
+        run: npm audit fix --force
+        continue-on-error: true
+
+      - name: Run security audit (production only)
+        run: npm audit --omit=dev --audit-level=moderate
+        continue-on-error: true
+
+  performance:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: dist/
+
+      - name: Analyze bundle size
+        run: |
+          echo "📦 Bundle Size Analysis"
+          du -sh dist/
+
+          TOTAL_SIZE=$(du -sb dist/ | awk '{print $1}')
+          LIMIT=$((5 * 1024 * 1024))
+
+          if [ $TOTAL_SIZE -gt $LIMIT ]; then
+            echo "⚠️ Bundle too large"
+            exit 1
+          else
+            echo "✓ Bundle size OK"
+          fi
+
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: [build, pwa-validation, lighthouse, security, performance]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/development'
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: dist/
+
+      - name: Deploy to staging
+        run: echo "Deploying to staging..."
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: [build, pwa-validation, lighthouse, security, performance]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: dist/
+
+      - name: Deploy to production
+        run: echo "Deploying to production..."

@@ -1,38 +1,67 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAdminNotifications, useDashboardUpdates, useWebSocket } from '../../hooks/useWebSocket';
-import { Activity, Users, DollarSign, AlertTriangle, Wifi, WifiOff } from 'lucide-react';
+import { Activity, Users, DollarSign, AlertTriangle, Wifi, WifiOff, RotateCw } from 'lucide-react';
 
 interface AdminRealTimeDashboardProps {
   className?: string;
+  autoRefreshInterval?: number; // in milliseconds, default 30000 (30 seconds)
 }
 
 export const AdminRealTimeDashboard: React.FC<AdminRealTimeDashboardProps> = ({
-  className = ''
+  className = '',
+  autoRefreshInterval = 30000
 }) => {
   const { adminNotifications, pendingActions, markActionCompleted } = useAdminNotifications();
-  const { dashboardData, lastUpdate } = useDashboardUpdates();
+  const { dashboardData, lastUpdate, isLoading, error, refreshData, startAutoRefresh } = useDashboardUpdates();
   const { isConnected } = useWebSocket();
+
+  // Start auto-refresh on component mount
+  useEffect(() => {
+    const cleanup = startAutoRefresh(autoRefreshInterval);
+    return cleanup;
+  }, [startAutoRefresh, autoRefreshInterval]);
 
   const recentNotifications = adminNotifications.slice(0, 5);
 
   return (
     <div className={`space-y-6 ${className}`}>
-      {/* Connection Status */}
-      <div className="flex items-center gap-2 text-sm">
-        {isConnected ? (
-          <Wifi className="w-4 h-4 text-green-500" />
-        ) : (
-          <WifiOff className="w-4 h-4 text-red-500" />
-        )}
-        <span className={isConnected ? 'text-green-600' : 'text-red-600'}>
-          {isConnected ? 'Live Updates Active' : 'Connection Lost'}
-        </span>
+      {/* Connection Status & Last Update */}
+      <div className="flex items-center gap-4 text-sm">
+        <div className="flex items-center gap-2">
+          {isConnected ? (
+            <Wifi className="w-4 h-4 text-green-500" />
+          ) : (
+            <WifiOff className="w-4 h-4 text-red-500" />
+          )}
+          <span className={isConnected ? 'text-green-600' : 'text-red-600'}>
+            {isConnected ? 'WebSocket Connected' : 'WebSocket Disconnected'}
+          </span>
+        </div>
+
+        {/* Refresh Button */}
+        <button
+          onClick={refreshData}
+          disabled={isLoading}
+          className="flex items-center gap-2 px-3 py-1 rounded hover:bg-gray-100 disabled:opacity-50"
+          title="Refresh dashboard stats"
+        >
+          <RotateCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+          {isLoading ? 'Refreshing...' : 'Refresh'}
+        </button>
+
         {lastUpdate && (
           <span className="text-gray-500 ml-auto">
             Last update: {new Date(lastUpdate).toLocaleTimeString()}
           </span>
         )}
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+          ⚠️ Failed to load dashboard stats: {error}
+        </div>
+      )}
 
       {/* Real-time Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -41,7 +70,7 @@ export const AdminRealTimeDashboard: React.FC<AdminRealTimeDashboardProps> = ({
             <div>
               <p className="text-sm text-gray-600">Active Bookings</p>
               <p className="text-2xl font-bold text-blue-600">
-                {dashboardData.activeBookings || 0}
+                {isLoading ? '-' : dashboardData.activeBookings || 0}
               </p>
             </div>
             <Activity className="w-8 h-8 text-blue-500" />
@@ -53,7 +82,7 @@ export const AdminRealTimeDashboard: React.FC<AdminRealTimeDashboardProps> = ({
             <div>
               <p className="text-sm text-gray-600">Pending Approvals</p>
               <p className="text-2xl font-bold text-orange-600">
-                {dashboardData.pendingApprovals || 0}
+                {isLoading ? '-' : dashboardData.pendingApprovals || 0}
               </p>
             </div>
             <AlertTriangle className="w-8 h-8 text-orange-500" />
@@ -65,7 +94,7 @@ export const AdminRealTimeDashboard: React.FC<AdminRealTimeDashboardProps> = ({
             <div>
               <p className="text-sm text-gray-600">Online Riders</p>
               <p className="text-2xl font-bold text-green-600">
-                {dashboardData.onlineRiders || 0}
+                {isLoading ? '-' : dashboardData.onlineRiders || 0}
               </p>
             </div>
             <Users className="w-8 h-8 text-green-500" />
@@ -77,7 +106,7 @@ export const AdminRealTimeDashboard: React.FC<AdminRealTimeDashboardProps> = ({
             <div>
               <p className="text-sm text-gray-600">Revenue Today</p>
               <p className="text-2xl font-bold text-purple-600">
-                ₱{dashboardData.totalRevenue?.toLocaleString() || '0'}
+                ₱{isLoading ? '-' : (dashboardData.totalRevenue?.toLocaleString() || '0')}
               </p>
             </div>
             <DollarSign className="w-8 h-8 text-purple-500" />

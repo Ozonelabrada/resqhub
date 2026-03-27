@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#14b8a6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d9488;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="512" height="512" fill="url(#bgGrad)"/>
+  
+  <!-- Device frame -->
+  <rect x="60" y="40" width="392" height="432" rx="40" fill="white" stroke="#0d9488" stroke-width="8"/>
+  
+  <!-- Screen content -->
+  <rect x="80" y="60" width="352" height="352" fill="#f0f9f8"/>
+  
+  <!-- Header -->
+  <rect x="80" y="60" width="352" height="60" fill="#14b8a6"/>
+  <text x="256" y="100" font-family="Arial" font-size="32" font-weight="bold" fill="white" text-anchor="middle">FindrHub</text>
+  
+  <!-- Content - Report card -->
+  <g>
+    <!-- Card 1 -->
+    <rect x="100" y="140" width="312" height="100" rx="12" fill="white" stroke="#e0e7ff" stroke-width="2"/>
+    <circle cx="130" cy="170" r="20" fill="#fbbf24"/>
+    <rect x="160" y="155" width="230" height="15" rx="4" fill="#d1d5db"/>
+    <rect x="160" y="175" width="180" height="12" rx="3" fill="#e5e7eb"/>
+  </g>
+  
+  <!-- Content - Report card 2 -->
+  <g>
+    <!-- Card 2 -->
+    <rect x="100" y="260" width="312" height="100" rx="12" fill="white" stroke="#e0e7ff" stroke-width="2"/>
+    <circle cx="130" cy="290" r="20" fill="#60a5fa"/>
+    <rect x="160" y="275" width="230" height="15" rx="4" fill="#d1d5db"/>
+    <rect x="160" y="295" width="180" height="12" rx="3" fill="#e5e7eb"/>
+  </g>
+  
+  <!-- Bottom navigation bar -->
+  <rect x="80" y="410" width="352" height="42" fill="#f3f4f6"/>
+  <circle cx="110" cy="431" r="8" fill="#14b8a6"/>
+  <circle cx="210" cy="431" r="8" fill="#d1d5db"/>
+  <circle cx="310" cy="431" r="8" fill="#d1d5db"/>
+  <circle cx="410" cy="431" r="8" fill="#d1d5db"/>
+</svg>
