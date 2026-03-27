@@ -66,6 +66,39 @@ export const colors = {
   },
   white: '#ffffff',
   black: '#000000',
+
+  // Spacing
+  spacing: {
+    xs: 4,
+    sm: 8,
+    md: 12,
+    lg: 16,
+    xl: 20,
+    '2xl': 24,
+    '3xl': 32,
+    '4xl': 40,
+  },
+
+  // Typography
+  typography: {
+    sizes: {
+      xs: 12,
+      sm: 14,
+      md: 16,
+      lg: 18,
+      xl: 20,
+      '2xl': 24,
+      '3xl': 30,
+    },
+    weights: {
+      light: '300',
+      normal: '400',
+      medium: '500',
+      semibold: '600',
+      bold: '700',
+      extrabold: '800',
+    },
+  },
 };
 
 export const spacing = {

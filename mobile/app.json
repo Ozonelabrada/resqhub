@@ -34,18 +34,8 @@
       ]
     },
     "web": {
-      "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
-    "plugins": [
-      [
-        "expo-image-picker",
-        {
-          "photosPermission": "Allow FindrHub to access your photos",
-          "cameraPermission": "Allow FindrHub to use your camera",
-          "microphonePermission": "Allow FindrHub to use your microphone"
-        }
-      ]
-    ]
+    "plugins": []
   }
 }

@@ -9,9 +9,9 @@ import { Card } from '@/components/shared/Card';
 import { Button } from '@/components/shared/Button';
 import { Badge } from '@/components/shared/Badge';
 import { EmptyState } from '@/components/shared/EmptyState';
-import { reportsService, Report } from '@/services/reportsService';
 import { colors } from '@/theme/colors';
 import { Text } from 'react-native';
+import reportsService, { Report } from '@/services/reportsService';
 
 type ReportType = 'all' | 'lost' | 'found';
 
@@ -29,17 +29,15 @@ export default function HomeScreen() {
   const fetchReports = useCallback(async (type: ReportType = 'all') => {
     try {
       setLoading(true);
-      let result = await reportsService.getReports({ limit: 20, offset: 0 });
+      let result = await reportsService.getReports({ limit: 20, page: 1 });
 
       // Filter by type if needed
+      let reportsList = Array.isArray(result.data) ? result.data : [result.data];
       if (type !== 'all') {
-        result = {
-          ...result,
-          data: result.data.filter((report) => report.type === type),
-        };
+        reportsList = reportsList.filter((report: Report) => report.type === type);
       }
 
-      setReports(result.data || []);
+      setReports(reportsList);
     } catch (error) {
       showToast(t('errors.loadReportsFailed', 'Failed to load reports'), 'error');
       setReports([]);
@@ -110,7 +108,7 @@ export default function HomeScreen() {
       <Button
         variant="outlined"
         size="sm"
-        label={t('common.viewDetails', 'View Details')}
+        title={t('common.viewDetails', 'View Details')}
         style={styles.viewButton}
         onPress={() => {
           showToast(t('common.comingSoon', 'Coming soon'), 'info');
@@ -134,21 +132,21 @@ export default function HomeScreen() {
         <Button
           variant={selectedType === 'all' ? 'primary' : 'outlined'}
           size="sm"
-          label={t('report.filter.all', 'All')}
+          title={t('report.filter.all', 'All')}
           onPress={() => handleFilterChange('all')}
           style={styles.filterButton}
         />
         <Button
           variant={selectedType === 'lost' ? 'primary' : 'outlined'}
           size="sm"
-          label={t('report.filter.lost', 'Lost Items')}
+          title={t('report.filter.lost', 'Lost Items')}
           onPress={() => handleFilterChange('lost')}
           style={styles.filterButton}
         />
         <Button
           variant={selectedType === 'found' ? 'primary' : 'outlined'}
           size="sm"
-          label={t('report.filter.found', 'Found Items')}
+          title={t('report.filter.found', 'Found Items')}
           onPress={() => handleFilterChange('found')}
           style={styles.filterButton}
         />
@@ -168,9 +166,11 @@ export default function HomeScreen() {
           icon="📭"
           title={t('home.noReports', 'No reports found')}
           description={t('home.noReportsDesc', 'Be the first to report a lost or found item!')}
-          actionLabel={t('home.createReport', 'Create Report')}
+          action={{
+            label: t('home.createReport', 'Create Report'),
+            onPress: () => showToast(t('common.comingSoon', 'Coming soon'), 'info'),
+          }}
           size="md"
-          onAction={() => showToast(t('common.comingSoon', 'Coming soon'), 'info')}
         />
       )}
 

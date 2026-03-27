@@ -209,7 +209,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.neutral[0],
     borderRadius: 12,
     padding: 6,
-    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
     elevation: 3,
   },
   badge: {
@@ -236,7 +235,6 @@ const styles = StyleSheet.create({
     width: 20,
     height: 3,
     borderRadius: 1.5,
-    boxShadow: '0px 2px 3px rgba(0, 0, 0, 0.15)',
     elevation: 4,
   },
   navLabel: {
@@ -252,54 +250,6 @@ const styles = StyleSheet.create({
   },
   navLabelInactive: {
     color: colors.neutral[500],
-  },
-});
-
-const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    paddingTop: spacing.sm,
-  },
-  navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.md,
-  },
-  iconWrapper: {
-    position: 'relative',
-    marginBottom: spacing.xs,
-  },
-  label: {
-    fontSize: 11,
-    fontWeight: '500',
-  },
-  badge: {
-    position: 'absolute',
-    top: -4,
-    right: -8,
-    backgroundColor: colors.error.DEFAULT,
-    borderRadius: 8,
-    minWidth: 16,
-    height: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 4,
-    borderWidth: 2,
-    borderColor: colors.white,
-  },
-  badgeText: {
-    color: colors.white,
-    fontSize: 9,
-    fontWeight: '700',
   },
 });
 

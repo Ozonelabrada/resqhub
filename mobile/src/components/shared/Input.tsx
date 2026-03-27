@@ -31,10 +31,10 @@ export const Input: React.FC<InputProps> = ({
   return (
     <View style={[styles.container, containerStyle]}>
       {label && <Text style={styles.label}>{label}</Text>}
-      <View style={[styles.inputWrapper, error && styles.errorBorder]}>
+      <View style={[styles.inputWrapper, error ? styles.errorBorder : undefined]}>
         {icon && <View style={styles.iconContainer}>{icon}</View>}
         <TextInput
-          style={[styles.input, icon && styles.inputWithIcon]}
+          style={[styles.input, icon ? styles.inputWithIcon : undefined]}
           placeholderTextColor={colors.neutral[400]}
           {...props}
         />

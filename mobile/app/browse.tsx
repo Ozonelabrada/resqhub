@@ -1,8 +1,8 @@
 import { View, Text, FlatList, Pressable, Image, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useReports } from '@/hooks/useReports';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
+import { useReports } from 'hooks/useReports';
 
 interface Report {
   id: string;

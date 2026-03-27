@@ -22,6 +22,8 @@ export interface Report {
   status: 'active' | 'resolved' | 'closed';
   category?: string;
   reward?: string;
+  views?: number;
+  reactions?: Array<{ id: string; type: string; userId: string }>;
 }
 
 export interface ReportResponse {

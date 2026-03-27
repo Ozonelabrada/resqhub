@@ -44,11 +44,11 @@ function RootLayoutContent() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       {/* Welcome and Auth Screens */}
-      <Stack.Screen name="welcome" options={{ animationEnabled: false }} />
-      <Stack.Screen name="auth" options={{ animationEnabled: false }} />
+      <Stack.Screen name="welcome" />
+      <Stack.Screen name="auth" />
       
       {/* Main App Navigation */}
-      <Stack.Screen name="(tabs)" options={{ animationEnabled: false }} />
+      <Stack.Screen name="(tabs)" />
       
       {/* Detail/Modal Screens */}
       <Stack.Screen 
