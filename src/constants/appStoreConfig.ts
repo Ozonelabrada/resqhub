@@ -15,7 +15,7 @@ export const APP_STORE_CONFIG = {
     
     // Google Play Store
     android: {
-      url: 'https://expo.dev/accounts/olabrada/projects/findrhub/builds/837d6dae-dc84-46c1-9bfa-cda3605edc00',
+      url: 'https://expo.dev/accounts/olabrada/projects/findrhub/builds/7c060639-f649-472d-af2c-06b42850f45a',
       packageName: 'com.findrhub.app',
       name: 'FindrHub',
     },
