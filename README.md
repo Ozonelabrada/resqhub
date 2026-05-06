@@ -60,6 +60,11 @@ FindrHub is a React-based platform focused on helping communities reunite lost i
 
 The app is configured for deployment on Vercel. Simply connect your repository to Vercel and it will automatically deploy using the `vercel.json` configuration.
 
+## Mobile App
+
+Download FindrHub mobile app (APK):
+- [FindrHub APK](https://expo.dev/accounts/olabrada/projects/findrhub/builds/837d6dae-dc84-46c1-9bfa-cda3605edc00)
+
 ## Security
 
 - **CSP**: Content Security Policy implemented in `index.html`.
